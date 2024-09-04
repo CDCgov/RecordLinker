@@ -1,5 +1,5 @@
 ---
-name: task
+name: Task
 about: Create a new task for this project
 title: '[Title]'
 labels: ''
