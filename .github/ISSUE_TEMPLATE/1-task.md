@@ -3,7 +3,7 @@ name: Task
 about: Create a new task for this project
 title: '[Title]'
 labels: ''
-projects: 'CDCgov/34'
+projects: 'IDWA Dedupe/34'
 assignees: ''
 
 ---

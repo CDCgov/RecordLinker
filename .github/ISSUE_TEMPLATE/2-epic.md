@@ -3,7 +3,7 @@ name: EPIC
 about: Create a new EPIC for this project
 title: 'EPIC: [Epic Title]'
 labels: 'EPIC'
-projects: 'CDCgov/34'
+projects: 'IDWA Dedupe/34'
 assignees: ''
 
 ---

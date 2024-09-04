@@ -3,7 +3,7 @@ name: Bug
 about: Create a report to help us improve
 title: ''
 labels: 'bug'
-projects: 'CDCgov/34'
+projects: 'IDWA Dedupe/34'
 assignees: ''
 
 ---
