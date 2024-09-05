@@ -3,12 +3,10 @@ name: Task
 about: Create a new task for this project
 title: '[Title]'
 labels: ''
-projects: 'IDWA Dedupe/34'
+projects: ['CDCgov/34']
 assignees: ''
 
 ---
-
-### Task Title
 
 ## Summary
 Briefly describe the issue or feature to be implemented. Include the purpose and what is expected.
