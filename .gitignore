@@ -1,15 +1,12 @@
 # Build output
 target/
 *.class
+*_version.py
+*.egg-info
+build/
 
 # Log file
 *.log
-
-# BlueJ files
-*.ctxt
-
-# Mobile Tools for Java (J2ME)
-.mtj.tmp/
 
 # Package Files #
 *.jar
@@ -20,13 +17,6 @@ target/
 *.tar.gz
 *.rar
 node_modules
-
-# virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
-hs_err_pid*
-
-# IDE
-.idea/
-*.iml
 
 # macOS
 .DS_Store
@@ -47,18 +37,13 @@ coverage.xml
 # PyPI
 .pypitoken
 
-# Azure Functions
-*local.settings.json
-bin/
-obj/
-extensions.csproj
-
-# Local Data Storage
-__azurite*
-__blobstorage__
+# Python Cache
 __pycache__/
 .pytest_cache/
-data/
+
+# IDE
+.idea/
+*.iml
 
 # Jetbrains IDE settings
 /.idea
@@ -70,17 +55,5 @@ data/
 # VS Code
 /.vscode/settings.json
 
-persistent_storage/
-
-/kubernetes/secrets.yaml
-.next
-
-*.egg-info
-build/
-
-## ECR Viewer Seed data
-/containers/ecr-viewer/seed-scripts/fhir_data/
-
-.turbo
-out
-tsconfig.tsbuildinfo
+# Vim
+.exrc
