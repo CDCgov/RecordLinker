@@ -12,7 +12,7 @@ from typing import Union
 import fhirpathpy
 import rapidfuzz
 
-from app.config import get_settings
+from recordlinker.config import get_settings
 
 
 def load_mpi_env_vars_os():

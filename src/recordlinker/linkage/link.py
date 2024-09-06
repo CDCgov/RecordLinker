@@ -10,11 +10,11 @@ from typing import Union
 
 from pydantic import Field
 
-from app.linkage.mpi import BaseMPIConnectorClient
-from app.linkage.mpi import DIBBsMPIConnectorClient
-from app.linkage.utils import compare_strings
-from app.linkage.utils import datetime_to_str
-from app.linkage.utils import extract_value_with_resource_path
+from recordlinker.linkage.mpi import BaseMPIConnectorClient
+from recordlinker.linkage.mpi import DIBBsMPIConnectorClient
+from recordlinker.linkage.utils import compare_strings
+from recordlinker.linkage.utils import datetime_to_str
+from recordlinker.linkage.utils import extract_value_with_resource_path
 
 LINKING_FIELDS_TO_FHIRPATHS = {
     "first_name": "Patient.name.given",

@@ -13,10 +13,10 @@ from sqlalchemy import text
 from sqlalchemy.dialects.postgresql import aggregate_order_by
 from sqlalchemy.dialects.postgresql import array_agg
 
-from app.linkage.core import BaseMPIConnectorClient
-from app.linkage.dal import DataAccessLayer
-from app.linkage.utils import extract_value_with_resource_path
-from app.linkage.utils import load_mpi_env_vars_os
+from recordlinker.linkage.core import BaseMPIConnectorClient
+from recordlinker.linkage.dal import DataAccessLayer
+from recordlinker.linkage.utils import extract_value_with_resource_path
+from recordlinker.linkage.utils import load_mpi_env_vars_os
 
 
 class DIBBsMPIConnectorClient(BaseMPIConnectorClient):

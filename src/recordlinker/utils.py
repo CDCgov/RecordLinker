@@ -7,16 +7,16 @@ from typing import Literal
 
 from sqlalchemy import text
 
-from app.config import get_settings
-from app.linkage.dal import DataAccessLayer
-from app.linkage.mpi import DIBBsMPIConnectorClient
+from recordlinker.config import get_settings
+from recordlinker.linkage.dal import DataAccessLayer
+from recordlinker.linkage.mpi import DIBBsMPIConnectorClient
 
 
 def read_json_from_assets(filename: str):
     """
     Loads a JSON file from the 'assets' directory.
     """
-    return json.load(open((pathlib.Path(__file__).parent.parent / "assets" / filename)))
+    return json.load(open((pathlib.Path(__file__).parent.parent.parent / "assets" / filename)))
 
 
 def run_pyway(
@@ -33,7 +33,7 @@ def run_pyway(
     logger = logging.getLogger(__name__)
 
     # Prepare the pyway command.
-    migrations_dir = str(pathlib.Path(__file__).parent.parent / "migrations")
+    migrations_dir = str(pathlib.Path(__file__).parent.parent.parent / "migrations")
     settings = get_settings()
     pyway_args = [
         f"--database-migration-dir {migrations_dir}",

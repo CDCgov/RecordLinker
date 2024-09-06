@@ -3,21 +3,22 @@ from pathlib import Path
 from typing import Annotated
 from typing import Optional
 
-from dibbs.base_service import BaseService
 from fastapi import Body
 from fastapi import Response
 from fastapi import status
 from pydantic import BaseModel
 from pydantic import Field
 
-from app.linkage.algorithms import DIBBS_BASIC
-from app.linkage.algorithms import DIBBS_ENHANCED
-from app.linkage.link import add_person_resource
-from app.linkage.link import link_record_against_mpi
-from app.linkage.mpi import DIBBsMPIConnectorClient
-from app.utils import get_settings
-from app.utils import read_json_from_assets
-from app.utils import run_migrations
+from phdi.containers.base_service import BaseService
+
+from recordlinker.linkage.algorithms import DIBBS_BASIC
+from recordlinker.linkage.algorithms import DIBBS_ENHANCED
+from recordlinker.linkage.link import add_person_resource
+from recordlinker.linkage.link import link_record_against_mpi
+from recordlinker.linkage.mpi import DIBBsMPIConnectorClient
+from recordlinker.utils import get_settings
+from recordlinker.utils import read_json_from_assets
+from recordlinker.utils import run_migrations
 
 # Ensure MPI is configured as expected.
 run_migrations()
@@ -30,9 +31,9 @@ MPI_CLIENT = DIBBsMPIConnectorClient(
 app = BaseService(
     service_name="DIBBs Record Linkage Service",
     service_path="/record-linkage",
-    description_path=Path(__file__).parent.parent / "description.md",
+    description_path=Path(__file__).parent.parent.parent / "README.md",
     include_health_check_endpoint=False,
-    openapi_url="/record-linkage/openapi.json",
+    # openapi_url="/record-linkage/openapi.json",
 ).start()
 
 
