@@ -1,0 +1,44 @@
+[build-system]
+requires = ["setuptools>=42", "wheel", "setuptools-scm[toml]>=6.0.1"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "RecordLinker"
+dynamic = ["version"]
+description = "An API for linking health care records using Patient PII"
+authors = [
+    {name = "Brandon Mader", email = "brandon@skylight.digital"},
+    {name = "Dan Paseltiner", email = "dan@skylight.digital"},
+    {name = "Marcelle Goggins", email = "marcelle@skylight.digital"},
+    {name = "Eric Buckley", email = "ericbuckley@skylight.digital"}
+]
+license = { file = "LICENSE" }
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "fastapi",
+    "pydantic",
+    "phdi",
+    "sqlalchemy",
+    "fhirpathpy",
+    "rapidfuzz"
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest",
+    "ruff",
+    "mypy"
+]
+prod = [
+    # List any additional production-only dependencies here
+]
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+packages = ["recordlinker"]
+
+[tool.setuptools_scm]
+write_to = "src/recordlinker/_version.py"
+version_scheme = "post-release"
+local_scheme = "node-and-timestamp"
