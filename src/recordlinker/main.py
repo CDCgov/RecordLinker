@@ -6,10 +6,9 @@ from typing import Optional
 from fastapi import Body
 from fastapi import Response
 from fastapi import status
+from phdi.containers.base_service import BaseService
 from pydantic import BaseModel
 from pydantic import Field
-
-from phdi.containers.base_service import BaseService
 
 from recordlinker.linkage.algorithms import DIBBS_BASIC
 from recordlinker.linkage.algorithms import DIBBS_ENHANCED
