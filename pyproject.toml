@@ -16,12 +16,15 @@ license = { file = "LICENSE" }
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
+    "uvicorn",
     "fastapi",
     "pydantic",
     "phdi",
     "sqlalchemy",
     "fhirpathpy",
-    "rapidfuzz"
+    "rapidfuzz",
+    # TODO: replace pyway with alembic for managing database migrations
+    "pyway"
 ]
 
 [project.optional-dependencies]
