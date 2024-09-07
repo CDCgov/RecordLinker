@@ -8,34 +8,34 @@ from datetime import datetime
 from json.decoder import JSONDecodeError
 
 import pytest
-from app.linkage.algorithms import DIBBS_BASIC
-from app.linkage.algorithms import DIBBS_ENHANCED
-from app.linkage.dal import DataAccessLayer
-from app.linkage.link import _compare_address_elements
-from app.linkage.link import _compare_name_elements
-from app.linkage.link import _condense_extract_address_from_resource
-from app.linkage.link import _convert_given_name_to_first_name
-from app.linkage.link import _flatten_patient_resource
-from app.linkage.link import _get_fuzzy_params
-from app.linkage.link import _match_within_block_cluster_ratio
-from app.linkage.link import add_person_resource
-from app.linkage.link import eval_log_odds_cutoff
-from app.linkage.link import eval_perfect_match
-from app.linkage.link import extract_blocking_values_from_record
-from app.linkage.link import feature_match_exact
-from app.linkage.link import feature_match_four_char
-from app.linkage.link import feature_match_fuzzy_string
-from app.linkage.link import feature_match_log_odds_exact
-from app.linkage.link import feature_match_log_odds_fuzzy_compare
-from app.linkage.link import generate_hash_str
-from app.linkage.link import link_record_against_mpi
-from app.linkage.link import load_json_probs
-from app.linkage.link import match_within_block
-from app.linkage.link import read_linkage_config
-from app.linkage.link import score_linkage_vs_truth
-from app.linkage.link import write_linkage_config
-from app.linkage.mpi import DIBBsMPIConnectorClient
-from app.utils import _clean_up
+from recordlinker.linkage.algorithms import DIBBS_BASIC
+from recordlinker.linkage.algorithms import DIBBS_ENHANCED
+from recordlinker.linkage.dal import DataAccessLayer
+from recordlinker.linkage.link import _compare_address_elements
+from recordlinker.linkage.link import _compare_name_elements
+from recordlinker.linkage.link import _condense_extract_address_from_resource
+from recordlinker.linkage.link import _convert_given_name_to_first_name
+from recordlinker.linkage.link import _flatten_patient_resource
+from recordlinker.linkage.link import _get_fuzzy_params
+from recordlinker.linkage.link import _match_within_block_cluster_ratio
+from recordlinker.linkage.link import add_person_resource
+from recordlinker.linkage.link import eval_log_odds_cutoff
+from recordlinker.linkage.link import eval_perfect_match
+from recordlinker.linkage.link import extract_blocking_values_from_record
+from recordlinker.linkage.link import feature_match_exact
+from recordlinker.linkage.link import feature_match_four_char
+from recordlinker.linkage.link import feature_match_fuzzy_string
+from recordlinker.linkage.link import feature_match_log_odds_exact
+from recordlinker.linkage.link import feature_match_log_odds_fuzzy_compare
+from recordlinker.linkage.link import generate_hash_str
+from recordlinker.linkage.link import link_record_against_mpi
+from recordlinker.linkage.link import load_json_probs
+from recordlinker.linkage.link import match_within_block
+from recordlinker.linkage.link import read_linkage_config
+from recordlinker.linkage.link import score_linkage_vs_truth
+from recordlinker.linkage.link import write_linkage_config
+from recordlinker.linkage.mpi import DIBBsMPIConnectorClient
+from recordlinker.utils import _clean_up
 from sqlalchemy import select
 from sqlalchemy import text
 
@@ -58,9 +58,7 @@ def _init_db() -> DataAccessLayer:
 
     # load ddl
     schema_ddl = open(
-        pathlib.Path(__file__).parent.parent.parent.parent
-        / "containers"
-        / "record-linkage"
+        pathlib.Path(__file__).parent.parent
         / "migrations"
         / "V01_01__flat_schema.sql"
     ).read()
@@ -81,9 +79,7 @@ def _init_db() -> DataAccessLayer:
 def test_extract_blocking_values_from_record():
     bundle = json.load(
         open(
-            pathlib.Path(__file__).parent.parent.parent.parent
-            / "containers"
-            / "record-linkage"
+            pathlib.Path(__file__).parent.parent
             / "assets"
             / "general"
             / "patient_bundle.json"
@@ -884,9 +880,7 @@ def test_link_record_against_mpi_enhanced_algo():
 def test_add_person_resource():
     bundle = json.load(
         open(
-            pathlib.Path(__file__).parent.parent.parent.parent
-            / "containers"
-            / "record-linkage"
+            pathlib.Path(__file__).parent.parent
             / "assets"
             / "general"
             / "patient_bundle.json"

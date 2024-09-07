@@ -6,16 +6,16 @@ import os
 import pathlib
 
 import pytest
-from app.config import get_settings
-from app.utils import pop_mpi_env_vars
-from app.utils import set_mpi_env_vars
+from recordlinker.config import get_settings
+from recordlinker.utils import pop_mpi_env_vars
+from recordlinker.utils import set_mpi_env_vars
 
 set_mpi_env_vars()
 
 from fastapi import status
 from fastapi.testclient import TestClient
-from app.main import app, run_migrations
-from app.utils import _clean_up
+from recordlinker.main import app, run_migrations
+from recordlinker.utils import _clean_up
 import copy
 import json
 import pathlib
@@ -26,7 +26,7 @@ client = TestClient(app)
 def load_test_bundle():
     test_bundle = json.load(
         open(
-            pathlib.Path(__file__).parent
+            pathlib.Path(__file__).parent.parent
             / "assets"
             / "patient_bundle_to_link_with_mpi.json"
         )

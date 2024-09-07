@@ -2,9 +2,9 @@ import datetime
 import os
 import pathlib
 
-from app.linkage.dal import DataAccessLayer
-from app.linkage.mpi import DIBBsMPIConnectorClient
-from app.utils import _clean_up
+from recordlinker.linkage.dal import DataAccessLayer
+from recordlinker.linkage.mpi import DIBBsMPIConnectorClient
+from recordlinker.utils import _clean_up
 from sqlalchemy import Engine
 from sqlalchemy import select
 from sqlalchemy import Table
@@ -20,9 +20,7 @@ def _init_db() -> DataAccessLayer:
 
     # load ddl
     schema_ddl = open(
-        pathlib.Path(__file__).parent.parent.parent.parent
-        / "containers"
-        / "record-linkage"
+        pathlib.Path(__file__).parent.parent
         / "migrations"
         / "V01_01__flat_schema.sql"
     ).read()

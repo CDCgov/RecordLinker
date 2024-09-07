@@ -30,6 +30,7 @@ dependencies = [
 [project.optional-dependencies]
 dev = [
     "pytest",
+    "pytest-pythonpath",
     "ruff",
     "mypy"
 ]
@@ -39,7 +40,7 @@ prod = [
 
 [tool.setuptools]
 package-dir = {"" = "src"}
-packages = ["recordlinker"]
+packages = []
 
 [tool.setuptools_scm]
 write_to = "src/recordlinker/_version.py"
@@ -63,3 +64,9 @@ select = ["E4", "E7", "E9", "F", "I", "D102", "D103", "D104", "D105", "D106"] # 
 # The following settings reduce the number of changes from reorder-python-imports
 force-single-line = true
 order-by-type = false
+
+[tool.pytest.ini_options]
+python_paths = ["src"]
+filterwarnings = [
+    "ignore:typing.io is deprecated, import directly from typing instead:DeprecationWarning"
+]

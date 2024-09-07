@@ -33,6 +33,18 @@ To run the API locally, use the following command:
 
 The API will be available at `http://localhost:8000`. Visit `http://localhost:8000/redocs` to view the API documentation.
 
+### Running unit tests
+
+To run all the unit tests, use the following command:
+```bash
+./scripts/test.sh
+```
+
+To run a single unit test, use the following command:
+```bash
+./scripts/test.sh tests/test_linkage.py::test_link_record_against_mpi
+```
+
 ### Building the Docker Image
 
 To build the Docker image for the record linkage service from source code instead of downloading it from the DIBBs repository follow these steps.
