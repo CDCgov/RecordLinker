@@ -37,12 +37,12 @@ The API will be available at `http://localhost:8000`. Visit `http://localhost:80
 
 To run all the unit tests, use the following command:
 ```bash
-./scripts/test.sh
+./scripts/unit_test.sh
 ```
 
 To run a single unit test, use the following command:
 ```bash
-./scripts/test.sh tests/test_linkage.py::test_link_record_against_mpi
+./scripts/unit_test.sh tests/test_linkage.py::test_link_record_against_mpi
 ```
 
 ### Building the Docker Image

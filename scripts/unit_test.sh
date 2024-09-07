@@ -1,8 +1,8 @@
 #!/bin/sh
 #
-# Run the tests for the project.
+# Run the unit tests for the project.
 #
-# Usage: scripts/test.sh <test-spec>
+# Usage: scripts/unit_test.sh <test-spec>
 #
 # <test-spec> is the path to the test file(s) to run. If not specified, all tests
 # in the "test/" directory will be run.
