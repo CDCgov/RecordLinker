@@ -15,7 +15,7 @@ from sqlalchemy import text
 
 patient_resource = json.load(
     open(
-        pathlib.Path(__file__).parent.parent
+        pathlib.Path(__file__).parent.parent.parent
         / "assets"
         / "general"
         / "patient_resource_w_extensions.json"
@@ -41,7 +41,7 @@ def _init_db() -> DataAccessLayer:
 
     # load ddl
     schema_ddl = open(
-        pathlib.Path(__file__).parent.parent
+        pathlib.Path(__file__).parent.parent.parent
         / "migrations"
         / "V01_01__flat_schema.sql"
     ).read()
@@ -584,7 +584,7 @@ def test_get_mpi_records():
 
     patients = json.load(
         open(
-            pathlib.Path(__file__).parent.parent
+            pathlib.Path(__file__).parent.parent.parent
             / "assets"
             / "linkage"
             / "patient_bundle_to_link_with_mpi.json"

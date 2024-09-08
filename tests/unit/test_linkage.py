@@ -58,7 +58,7 @@ def _init_db() -> DataAccessLayer:
 
     # load ddl
     schema_ddl = open(
-        pathlib.Path(__file__).parent.parent
+        pathlib.Path(__file__).parent.parent.parent
         / "migrations"
         / "V01_01__flat_schema.sql"
     ).read()
@@ -79,7 +79,7 @@ def _init_db() -> DataAccessLayer:
 def test_extract_blocking_values_from_record():
     bundle = json.load(
         open(
-            pathlib.Path(__file__).parent.parent
+            pathlib.Path(__file__).parent.parent.parent
             / "assets"
             / "general"
             / "patient_bundle.json"
@@ -459,7 +459,7 @@ def test_feature_match_log_odds_fuzzy():
 
 def test_algo_read():
     dibbs_basic_algo = read_linkage_config(
-        pathlib.Path(__file__).parent.parent
+        pathlib.Path(__file__).parent.parent.parent
         / "assets"
         / "linkage"
         / "dibbs_basic_algorithm.json"
@@ -515,7 +515,7 @@ def test_algo_read():
     ]
 
     dibbs_enhanced_algo = read_linkage_config(
-        pathlib.Path(__file__).parent.parent
+        pathlib.Path(__file__).parent.parent.parent
         / "assets"
         / "linkage"
         / "dibbs_enhanced_algorithm.json"
@@ -667,7 +667,7 @@ def test_link_record_against_mpi_none_record():
 
     patients = json.load(
         open(
-            pathlib.Path(__file__).parent.parent
+            pathlib.Path(__file__).parent.parent.parent
             / "assets"
             / "linkage"
             / "patient_bundle_to_link_with_mpi.json"
@@ -710,7 +710,7 @@ def test_link_record_against_mpi():
     MPI = _init_db()
     patients = json.load(
         open(
-            pathlib.Path(__file__).parent.parent
+            pathlib.Path(__file__).parent.parent.parent
             / "assets"
             / "linkage"
             / "patient_bundle_to_link_with_mpi.json"
@@ -794,7 +794,7 @@ def test_link_record_against_mpi_enhanced_algo():
     MPI = _init_db()
     patients = json.load(
         open(
-            pathlib.Path(__file__).parent.parent
+            pathlib.Path(__file__).parent.parent.parent
             / "assets"
             / "linkage"
             / "patient_bundle_to_link_with_mpi.json"
@@ -880,7 +880,7 @@ def test_link_record_against_mpi_enhanced_algo():
 def test_add_person_resource():
     bundle = json.load(
         open(
-            pathlib.Path(__file__).parent.parent
+            pathlib.Path(__file__).parent.parent.parent
             / "assets"
             / "general"
             / "patient_bundle.json"
@@ -1015,7 +1015,7 @@ def test_compare_name_elements():
 def test_condense_extracted_address():
     patients = json.load(
         open(
-            pathlib.Path(__file__).parent.parent
+            pathlib.Path(__file__).parent.parent.parent
             / "assets"
             / "linkage"
             / "patient_bundle_to_link_with_mpi.json"
@@ -1037,7 +1037,7 @@ def test_condense_extracted_address():
 def test_flatten_patient():
     patients = json.load(
         open(
-            pathlib.Path(__file__).parent.parent
+            pathlib.Path(__file__).parent.parent.parent
             / "assets"
             / "linkage"
             / "patient_bundle_to_link_with_mpi.json"
@@ -1083,7 +1083,7 @@ def test_multi_element_blocking():
     MPI = _init_db()
     patients = json.load(
         open(
-            pathlib.Path(__file__).parent.parent
+            pathlib.Path(__file__).parent.parent.parent
             / "assets"
             / "linkage"
             / "patient_bundle_to_link_with_mpi.json"

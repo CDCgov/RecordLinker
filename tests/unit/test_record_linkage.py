@@ -1,4 +1,4 @@
-# flake8: noqa
+test_# flake8: noqa
 # fmt: off
 import copy
 import json
@@ -26,7 +26,7 @@ client = TestClient(app)
 def load_test_bundle():
     test_bundle = json.load(
         open(
-            pathlib.Path(__file__).parent.parent
+            pathlib.Path(__file__).parent.parent.parent
             / "assets"
             / "patient_bundle_to_link_with_mpi.json"
         )

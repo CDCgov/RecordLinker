@@ -6,7 +6,7 @@ from recordlinker.linkage.seed import convert_to_patient_fhir_resources
 from recordlinker.linkage.seed import extract_given_name
 
 mpi_test_file_path = (
-    pathlib.Path(__file__).parent.parent
+    pathlib.Path(__file__).parent.parent.parent
     / "assets"
     / "linkage"
     / "synthetic_patient_mpi_seed_data.parquet"

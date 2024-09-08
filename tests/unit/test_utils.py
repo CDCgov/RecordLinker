@@ -26,7 +26,7 @@ def make_pyway_command(
     :return: A string containing the pyway command.
     """
 
-    migrations_dir = str(pathlib.Path(__file__).parent.parent / "migrations")
+    migrations_dir = str(pathlib.Path(__file__).parent.parent.parent / "migrations")
 
     pyway_command = " ".join(
         [

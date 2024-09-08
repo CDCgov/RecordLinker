@@ -42,7 +42,7 @@ To run all the unit tests, use the following command:
 
 To run a single unit test, use the following command:
 ```bash
-./scripts/unit_test.sh tests/test_linkage.py::test_link_record_against_mpi
+./scripts/unit_test.sh tests/unit/test_linkage.py::test_link_record_against_mpi
 ```
 
 ### Building the Docker Image

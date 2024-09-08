@@ -29,8 +29,7 @@ dependencies = [
 
 [project.optional-dependencies]
 dev = [
-    "pytest",
-    "pytest-pythonpath",
+    "pytest>=8.3",
     "ruff",
     "pip-audit",
     "bandit",
@@ -68,7 +67,8 @@ force-single-line = true
 order-by-type = false
 
 [tool.pytest.ini_options]
-python_paths = ["src"]
+testpaths = ["tests/unit"]
+pythonpath = ["src"]
 filterwarnings = [
     "ignore:typing.io is deprecated, import directly from typing instead:DeprecationWarning"
 ]

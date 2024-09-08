@@ -20,7 +20,7 @@ def _init_db() -> DataAccessLayer:
 
     # load ddl
     schema_ddl = open(
-        pathlib.Path(__file__).parent.parent
+        pathlib.Path(__file__).parent.parent.parent
         / "migrations"
         / "V01_01__flat_schema.sql"
     ).read()
