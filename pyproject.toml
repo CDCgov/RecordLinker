@@ -32,6 +32,8 @@ dev = [
     "pytest",
     "pytest-pythonpath",
     "ruff",
+    "pip-audit",
+    "bandit",
     "mypy"
 ]
 prod = [
