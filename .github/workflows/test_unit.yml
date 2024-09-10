@@ -53,7 +53,7 @@ jobs:
             sleep 1
           done
 
-      # Step 5: Run the tests (you may need to adjust this depending on your test setup)
+      # Step 5: Run the tests
       - name: Run unit tests
         env:
           MPI_DB_TYPE: postgres
@@ -63,4 +63,4 @@ jobs:
           MPI_USER: postgres
           MPI_PASSWORD: pw
         run: |
-          pytest tests/unit
+          pytest --cov=recordlinker --cov-report=xml tests/unit
