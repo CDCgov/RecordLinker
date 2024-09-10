@@ -1,0 +1,15 @@
+FROM openjdk:23-slim
+
+ARG SYNTHEA_VERSION=v3.2.0
+ENV SYNTHEA_VERSION=${SYNTHEA_VERSION}
+
+RUN mkdir /code
+WORKDIR /code
+
+RUN apt-get update && apt-get install -y curl jq uuid-runtime postgresql-client pgbadger
+
+# Download the Synthea JAR file that we'll use to generate synthetic patient data
+RUN curl -L https://github.com/synthetichealth/synthea/releases/download/${SYNTHEA_VERSION}/synthea-with-dependencies.jar -o synthea.jar
+
+# Copy our custom testing code into the container
+COPY scripts /code/scripts

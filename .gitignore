@@ -8,7 +8,7 @@ build/
 # Log file
 *.log
 
-# Package Files #
+# Package files
 *.jar
 *.war
 *.ear
@@ -17,6 +17,14 @@ build/
 *.tar.gz
 *.rar
 node_modules
+
+# Temporary files
+*.swp
+*~
+*.bak
+tmp/
+temp/
+*.tmp
 
 # macOS
 .DS_Store

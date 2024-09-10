@@ -1,0 +1,74 @@
+services:
+  db:
+    # The PostgreSQL database that is used to store the patient and person data
+    image: "postgres:13-alpine"
+    environment:
+      POSTGRES_PASSWORD: "pw"
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./tests/performance/conf/postgresql.conf:/etc/postgresql/postgresql.conf
+      - ./tests/performance/conf/init.sql:/docker-entrypoint-initdb.d/init.sql
+      - ./tests/performance/tmp/results/psql/:/var/log/psql/
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready"]
+
+  jaeger:
+    # The Jaeger all-in-one container that is used to collect, store and visualize
+    # the traces of the service(s).
+    image: "jaegertracing/all-in-one:latest"
+    ports:
+      - "16686:16686"
+    healthcheck:
+      test: ["CMD-SHELL", "nc -z localhost 16686"]
+
+  api:
+    # The record linkage API that we are developing
+    build:
+      context: .
+      args:
+        USE_OTEL: ${USE_OTEL:-true}
+    ports:
+        - "8080:8080"
+    environment:
+      MPI_DB_TYPE: "postgres"
+      MPI_DBNAME: "postgres"
+      MPI_HOST: "db"
+      MPI_PORT: "5432"
+      MPI_USER: "postgres"
+      MPI_PASSWORD: "pw"
+      OTEL_TRACES_EXPORTER: "otlp"
+      OTEL_EXPORTER_OTLP_ENDPOINT: "http://jaeger:4317"
+    depends_on:
+      db:
+        condition: service_healthy
+      jaeger:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/"]
+
+  perf-runner:
+    # The orchestration container of the environment that is used to initialize
+    # run the tests. This container will eventually use Synthea to generate
+    # synthetic data, transform it into FHIR payloads acceptable by the linkage
+    # API and then run the tests.
+    profiles:
+      - perf
+    build:
+      context: tests/performance
+      dockerfile: Dockerfile.runner
+    env_file:
+      - tests/performance/rlpt.env
+    environment:
+      DB_URL: "postgres://postgres:pw@db:5432/postgres"
+      LINKAGE_API_URL: "http://api:8080"
+      SYNTHEA_OUTPUT_DIR: "results/synthea_output/"
+      POSTGRES_LOG: "/code/results/psql/postgresql.log"
+      PGBADGER_REPORT: "/code/results/psql/pgbadger.html"
+    volumes:
+      - ./tests/performance/scripts:/code/scripts
+      - ./tests/performance/tmp/results:/code/results
+      - ./tests/performance/tmp/data:/code/data
+    depends_on:
+      api:
+        condition: service_healthy
