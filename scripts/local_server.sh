@@ -20,9 +20,15 @@ cleanup() {
     docker rm ${DB_PID} > /dev/null 2>&1
 }
 
+# Wait for the database to start
+while ! docker exec ${DB_PID} pg_isready -q -h localhost -U postgres; do
+    sleep 1
+done
+
+
 trap cleanup EXIT
 
 # Read in environment variables defined in .env
 export $(grep -v '^#' .env | xargs)
 # Start the API server
-python -m uvicorn recordlinker.main:app --app-dir src --reload --host 0 --port ${PORT} --log-config src/recordlinker/log_config.yml
+uvicorn recordlinker.main:app --app-dir src --reload --host 0 --port ${PORT} --log-config src/recordlinker/log_config.yml

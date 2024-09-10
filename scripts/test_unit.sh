@@ -15,17 +15,17 @@ TESTS=${1:-tests/unit/}
 
 DB_PID=$(docker run -d --rm -p 5432:5432 -e POSTGRES_PASSWORD=pw -e POSTGRES_DB=testdb postgres:13-alpine)
 
-# Wait for the database to start
-while ! docker exec ${DB_PID} pg_isready -q -h localhost -U postgres; do
-    sleep 1
-done
-
 cleanup() {
     docker stop ${DB_PID} > /dev/null 2>&1
     docker rm ${DB_PID} > /dev/null 2>&1
 }
 
-trap cleanup EXIT
+# Wait for the database to start
+while ! docker exec ${DB_PID} pg_isready -q -h localhost -U postgres; do
+    sleep 1
+done
 
+
+trap cleanup EXIT
 
 pytest ${TESTS}
