@@ -19,7 +19,7 @@ dependencies = [
     "uvicorn",
     "fastapi",
     "pydantic",
-    "phdi",
+    "pydantic-settings",
     "sqlalchemy",
     "fhirpathpy",
     "rapidfuzz",
@@ -47,6 +47,7 @@ packages = []
 write_to = "src/recordlinker/_version.py"
 version_scheme = "post-release"
 local_scheme = "node-and-timestamp"
+fallback_version = "0.0.0"
 
 [tool.ruff]
 exclude = [".git", ".pytest_cache", "__pycache__", "docs"]

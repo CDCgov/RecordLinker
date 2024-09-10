@@ -4,12 +4,13 @@ from typing import Annotated
 from typing import Optional
 
 from fastapi import Body
+from fastapi import HTTPException
 from fastapi import Response
 from fastapi import status
-from phdi.containers.base_service import BaseService
 from pydantic import BaseModel
 from pydantic import Field
 
+from recordlinker.base_service import BaseService
 from recordlinker.linkage.algorithms import DIBBS_BASIC
 from recordlinker.linkage.algorithms import DIBBS_ENHANCED
 from recordlinker.linkage.link import add_person_resource
@@ -115,7 +116,9 @@ async def health_check() -> HealthCheckResponse:
     try:
         mpi_client = DIBBsMPIConnectorClient()  # noqa: F841
     except Exception as err:
-        return {"status": "OK", "mpi_connection_status": str(err)}
+        # Return a 503 status code with an error message
+        msg = {"status": "Service Unavailable", "mpi_connection_status": str(err)}
+        raise HTTPException(status_code=503, detail=msg)
     return {"status": "OK", "mpi_connection_status": "OK"}
 
 
