@@ -31,7 +31,7 @@ List any dependencies this issue has, such as other tasks, libraries, or third-p
 ## Testing Considerations
 Explain how this feature will be tested. Mention if there are any specific test cases to be written or existing ones to be modified.
 
-## Related EPICs/Issues/PRs
+## Related Issues/PRs
 - Link to related issues or pull requests if applicable.
 
 ## Notes / Comments
