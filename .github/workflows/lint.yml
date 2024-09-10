@@ -1,0 +1,36 @@
+name: Lint check
+
+# When the workflow will be triggered
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  test:
+    runs-on: ubuntu-latest  # You can use ubuntu, macos, or windows depending on your project needs
+
+    steps:
+      # Step 1: Check out the repository
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      # Step 2: Set up Python
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'  # Specify your Python version
+
+      # Step 3: Install dependencies
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install '.[dev]'
+
+      # Step 4: Run lint checks
+      - name: Run lint checks
+        run: |
+          ruff check src/
