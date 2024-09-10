@@ -43,7 +43,7 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install -r requirements.txt
+          pip install '.[dev]'
 
       # Step 4: Wait for PostgreSQL to be ready
       - name: Wait for PostgreSQL to be ready
