@@ -36,6 +36,7 @@ def run_pyway(
     migrations_dir = str(pathlib.Path(__file__).parent.parent.parent / "migrations")
     settings = get_settings()
     pyway_args = [
+        "--database-table public.pyway",
         f"--database-migration-dir {migrations_dir}",
         f"--database-type {settings['mpi_db_type']}",
         f"--database-host {settings['mpi_host']}",

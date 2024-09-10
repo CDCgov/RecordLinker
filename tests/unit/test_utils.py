@@ -32,6 +32,7 @@ def make_pyway_command(
         [
             "pyway",
             pyway_command,
+            "--database-table public.pyway",
             f"--database-migration-dir {migrations_dir}",
             f"--database-type {MOCK_SETTINGS['mpi_db_type']}",
             f"--database-host {MOCK_SETTINGS['mpi_host']}",
@@ -44,8 +45,8 @@ def make_pyway_command(
     return pyway_command
 
 
-@mock.patch("app.utils.get_settings")
-@mock.patch("app.utils.subprocess.run")
+@mock.patch("recordlinker.utils.get_settings")
+@mock.patch("recordlinker.utils.subprocess.run")
 def test_run_pyway_success(patched_subprocess, patched_get_settings):
     """
     Test the happy path in run_pyway()
@@ -62,8 +63,8 @@ def test_run_pyway_success(patched_subprocess, patched_get_settings):
     )
 
 
-@mock.patch("app.utils.get_settings")
-@mock.patch("app.utils.subprocess.run")
+@mock.patch("recordlinker.utils.get_settings")
+@mock.patch("recordlinker.utils.subprocess.run")
 def test_run_pyway_failure(patched_subprocess, patched_get_settings):
     """
     The general failure mode of run_pyway() when a subprocess.CalledProcessError is
@@ -88,8 +89,8 @@ def test_run_pyway_failure(patched_subprocess, patched_get_settings):
     )
 
 
-@mock.patch("app.utils.get_settings")
-@mock.patch("app.utils.subprocess.run")
+@mock.patch("recordlinker.utils.get_settings")
+@mock.patch("recordlinker.utils.subprocess.run")
 def test_run_pyway_no_migrations(patched_subprocess, patched_get_settings):
     """
     Test the special case where 'pyway validate' returns an error if no migrations have
@@ -115,7 +116,7 @@ def test_run_pyway_no_migrations(patched_subprocess, patched_get_settings):
     )
 
 
-@mock.patch("app.utils.run_pyway")
+@mock.patch("recordlinker.utils.run_pyway")
 def test_run_migrations_success(patched_run_pyway):
     """
     Test the happy path in run_migrations()
@@ -129,7 +130,7 @@ def test_run_migrations_success(patched_run_pyway):
     patched_run_pyway.assert_has_calls([mock.call("validate"), mock.call("migrate")])
 
 
-@mock.patch("app.utils.run_pyway")
+@mock.patch("recordlinker.utils.run_pyway")
 def test_run_migrations_validation_failure(patched_run_pyway):
     """
     Test the case where the validation step fails in run_migrations().
@@ -144,7 +145,7 @@ def test_run_migrations_validation_failure(patched_run_pyway):
     patched_run_pyway.assert_called_once_with("validate")
 
 
-@mock.patch("app.utils.run_pyway")
+@mock.patch("recordlinker.utils.run_pyway")
 def test_run_migrations_migration_failure(patched_run_pyway):
     """
     Test the case where the migration step fails in run_migrations().

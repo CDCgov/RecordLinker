@@ -9,16 +9,18 @@ import pytest
 from recordlinker.config import get_settings
 from recordlinker.utils import pop_mpi_env_vars
 from recordlinker.utils import set_mpi_env_vars
+from recordlinker.utils import run_migrations
+from recordlinker.utils import _clean_up
 
 set_mpi_env_vars()
 
 from fastapi import status
 from fastapi.testclient import TestClient
-from recordlinker.main import app, run_migrations
-from recordlinker.utils import _clean_up
+from recordlinker.main import app
 import copy
 import json
 import pathlib
+
 # fmt: on
 client = TestClient(app)
 
@@ -57,7 +59,7 @@ def test_health_check():
 
 
 def test_openapi():
-    actual_response = client.get("/record-linkage/openapi.json")
+    actual_response = client.get("/openapi.json")
     assert actual_response.status_code == 200
 
 
