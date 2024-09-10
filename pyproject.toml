@@ -33,7 +33,9 @@ dev = [
     "ruff",
     "pip-audit",
     "bandit",
-    "mypy"
+    "mypy",
+    "pyarrow",
+    "httpx"
 ]
 prod = [
     # List any additional production-only dependencies here
