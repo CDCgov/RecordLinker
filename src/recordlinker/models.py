@@ -16,8 +16,6 @@ class Person(Base):
 
 class ExternalPerson(Base):
     __tablename__ = "mpi_external_person"
-    # Create a unique index on the combination of person_id and external_id
-    __table_args__ = (orm.UniqueConstraint("person_id", "external_id"))
 
     id: orm.Mapped[int] = orm.mapped_column(primary_key=True)
     person_id: orm.Mapped[int] = orm.mapped_column(ForeignKey("mpi_person.id"))
