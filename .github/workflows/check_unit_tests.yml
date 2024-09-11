@@ -1,17 +1,15 @@
-name: unit tests
+name: unit tests check
 
 # When the workflow will be triggered
 on:
   push:
-    branches:
-      - main
+    branches: [main]
   pull_request:
-    branches:
-      - main
+    branches: [main]
 
 jobs:
   test:
-    runs-on: ubuntu-latest  # You can use ubuntu, macos, or windows depending on your project needs
+    runs-on: ubuntu-latest
 
     services:
       postgres:
