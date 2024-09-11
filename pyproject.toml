@@ -32,8 +32,6 @@ dev = [
     "pytest>=8.3",
     "pytest-cov",
     "ruff",
-    "pip-audit",
-    "bandit",
     "mypy",
     "pyarrow",
     "httpx"
