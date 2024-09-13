@@ -35,6 +35,12 @@ class BlockingKey(Base):
     __tablename__ = "mpi_blocking_key"
 
     id: orm.Mapped[int] = orm.mapped_column(primary_key=True)
-    patient_id: orm.Mapped[int] = orm.mapped_column(ForeignKey("mpi_patient.id"))
     key: orm.Mapped[str] = orm.mapped_column(String(50), index=True)
+
+class BlockingValue(Base):
+    __tablename__ = "mpi_blocking_value"
+
+    id: orm.Mapped[int] = orm.mapped_column(primary_key=True)
+    patient_id: orm.Mapped[int] = orm.mapped_column(ForeignKey("mpi_patient.id"))
+    blockingkey_id: orm.Mapped[int] = orm.mapped_column(ForeignKey("mpi_blocking_key.id"))
     value: orm.Mapped[str] = orm.mapped_column(String(50), index=True)

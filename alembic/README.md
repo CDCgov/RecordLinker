@@ -10,9 +10,9 @@ To manage Master Patient Index (MPI) database migrations, we use [Alembic](https
 **Step 1:** Update `src/recordlinker/linkage/models.py` with the changes you would like to make to the MPI schema.
 
 ### Create a Migration Script
-**Step 2:** In the CLI, navigate to the `alembic/` directory and use the following command to run a revision:
+**Step 2:** In the CLI, in the root directory use the following command to run a revision:
 ```bash
-alembic revision -m "<description>"
+alembic revision --autogenerate -m "<description>"
 ```
 You can now see a new migration script in the `alembic/versions/` directory.
 

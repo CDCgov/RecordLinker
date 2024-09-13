@@ -20,7 +20,7 @@ config.set_main_option("sqlalchemy.url", ENV["DB_URI"])
 
 # add your model's MetaData object here
 # for 'autogenerate' support
-from recordlinker import models
+from recordlinker.linkage import models
 target_metadata = models.Base.metadata
 
 # other values from the config, defined by the needs of env.py,
