@@ -65,3 +65,6 @@ __pycache__/
 
 # Vim
 .exrc
+
+# Databases
+*.sqlite3
