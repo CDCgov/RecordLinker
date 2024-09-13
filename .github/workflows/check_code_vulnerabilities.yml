@@ -18,6 +18,7 @@ jobs:
 
     strategy:
       matrix:
+        # Using a matrix in case we need to test Javascript code in the future
         language: ['python']
 
     steps:
@@ -34,4 +35,5 @@ jobs:
       with:
         category: "/language:${{matrix.language}}"
         config: |
+          # only scan the code in the src directory
           paths: ["src"]

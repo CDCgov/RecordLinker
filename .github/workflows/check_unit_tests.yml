@@ -1,6 +1,5 @@
 name: unit tests check
 
-# When the workflow will be triggered
 on:
   push:
     branches: [main]
@@ -13,50 +12,35 @@ jobs:
 
     services:
       postgres:
-        image: postgres:13  # Use the latest version of PostgreSQL you need
+        image: postgres:13
         ports:
           - 5432:5432
         env:
-          POSTGRES_USER: postgres
           POSTGRES_PASSWORD: pw
-          POSTGRES_DB: testdb
-        options: >-
-          --health-cmd "pg_isready -U testuser" 
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
 
     steps:
-      # Step 1: Check out the repository
       - name: Checkout code
         uses: actions/checkout@v3
 
-      # Step 2: Set up Python
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
           cache: 'pip'
 
-      # Step 3: Install dependencies
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
           pip install '.[dev]'
 
-      # Step 4: Wait for PostgreSQL to be ready
       - name: Wait for PostgreSQL to be ready
         run: |
-          until pg_isready -h localhost -p 5432 -U postgres; do
-            echo "Waiting for PostgreSQL to be ready..."
-            sleep 1
-          done
+          until pg_isready -U postgres; do sleep 1; done
 
-      # Step 5: Run the tests
       - name: Run unit tests
         env:
           MPI_DB_TYPE: postgres
-          MPI_DBNAME: testdb
+          MPI_DBNAME: postgres
           MPI_HOST: localhost
           MPI_PORT: 5432
           MPI_USER: postgres
