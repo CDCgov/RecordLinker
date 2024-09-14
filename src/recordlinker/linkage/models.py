@@ -1,6 +1,9 @@
 import uuid
 
-from sqlalchemy import orm, ForeignKey, String, JSON
+from sqlalchemy import ForeignKey
+from sqlalchemy import JSON
+from sqlalchemy import orm
+from sqlalchemy import String
 
 
 class Base(orm.DeclarativeBase):
