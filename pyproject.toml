@@ -10,7 +10,8 @@ authors = [
     {name = "Brandon Mader", email = "brandon@skylight.digital"},
     {name = "Dan Paseltiner", email = "dan@skylight.digital"},
     {name = "Marcelle Goggins", email = "marcelle@skylight.digital"},
-    {name = "Eric Buckley", email = "ericbuckley@skylight.digital"}
+    {name = "Eric Buckley", email = "ericbuckley@skylight.digital"},
+    {name = "Alex Hayward", email = "alex.hayward@skylight.digital"}
 ]
 license = { file = "LICENSE" }
 readme = "README.md"
@@ -34,7 +35,9 @@ dev = [
     "ruff",
     "mypy",
     "pyarrow",
-    "httpx"
+    "httpx",
+    "alembic",
+    "python-dotenv"
 ]
 prod = [
     # List any additional production-only dependencies here
