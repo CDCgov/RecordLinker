@@ -41,7 +41,7 @@ jobs:
       - name: Run unit tests
         env:
           MPI_DB_TYPE: postgres
-          MPI_DBNAME: postgres
+          MPI_DBNAME: testdb
           MPI_HOST: localhost
           MPI_PORT: 5432
           MPI_USER: postgres
