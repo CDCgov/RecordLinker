@@ -5,6 +5,7 @@ import pathlib
 from recordlinker.linkage.dal import DataAccessLayer
 from recordlinker.linkage.mpi import DIBBsMPIConnectorClient
 from recordlinker.utils import _clean_up
+from recordlinker.config import settings
 from sqlalchemy import Engine
 from sqlalchemy import select
 from sqlalchemy import Table
@@ -13,9 +14,7 @@ from sqlalchemy import text
 
 def _init_db() -> DataAccessLayer:
     dal = DataAccessLayer()
-    dal.get_connection(
-        engine_url="postgresql+psycopg2://postgres:pw@localhost:5432/testdb"
-    )
+    dal.get_connection(engine_url=settings.db_uri)
     _clean_up(dal)
 
     # load ddl
@@ -48,9 +47,7 @@ def test_init_dal():
 
 def test_get_connection():
     dal = DataAccessLayer()
-    dal.get_connection(
-        engine_url="postgresql+psycopg2://postgres:pw@localhost:5432/testdb"
-    )
+    dal.get_connection(engine_url=settings.db_uri)
 
     assert dal.engine is not None
     assert isinstance(dal.engine, Engine)
@@ -68,9 +65,7 @@ def test_get_connection():
 
 def test_get_session():
     dal = DataAccessLayer()
-    dal.get_connection(
-        engine_url="postgresql+psycopg2://postgres:pw@localhost:5432/testdb"
-    )
+    dal.get_connection(engine_url=settings.db_uri)
     dal.get_session()
 
 
