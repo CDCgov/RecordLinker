@@ -45,14 +45,6 @@ To run a single unit test, use the following command:
 ./scripts/test_unit.sh tests/unit/test_linkage.py::test_link_record_against_mpi
 ```
 
-### Building the Docker Image
-
-To build the Docker image for the record linkage service from source code instead of downloading it from the DIBBs repository follow these steps.
-1. Ensure that both [Git](https://git-scm.com/book/en/v2/Getting-Started-Installing-Git) and [Docker](https://docs.docker.com/get-docker/) are installed.
-2. Clone the DIBBs repository with `git clone https://github.com/CDCgov/phdi`.
-3. Navigate to `/phdi/containers/record-linkage/`.
-4. Run `docker build -t record-linkage .`.
-
 ## Standard Notices
 
 ### Public Domain Standard Notice

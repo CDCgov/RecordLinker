@@ -2,6 +2,7 @@ from functools import lru_cache
 
 from pydantic_settings import BaseSettings
 
+
 class DBSettings(BaseSettings):
     mpi_db_type: str
     mpi_dbname: str
