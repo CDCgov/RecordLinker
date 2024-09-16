@@ -3,11 +3,13 @@ import json
 import os
 import pathlib
 import uuid
-from datetime import date
-from datetime import datetime
 from json.decoder import JSONDecodeError
 
 import pytest
+from sqlalchemy import select
+from sqlalchemy import text
+
+from recordlinker.linkage import matchers
 from recordlinker.linkage.algorithms import DIBBS_BASIC
 from recordlinker.linkage.algorithms import DIBBS_ENHANCED
 from recordlinker.linkage.dal import DataAccessLayer
@@ -16,28 +18,16 @@ from recordlinker.linkage.link import _compare_name_elements
 from recordlinker.linkage.link import _condense_extract_address_from_resource
 from recordlinker.linkage.link import _convert_given_name_to_first_name
 from recordlinker.linkage.link import _flatten_patient_resource
-from recordlinker.linkage.link import _get_fuzzy_params
-from recordlinker.linkage.link import _match_within_block_cluster_ratio
 from recordlinker.linkage.link import add_person_resource
-from recordlinker.linkage.link import eval_log_odds_cutoff
-from recordlinker.linkage.link import eval_perfect_match
 from recordlinker.linkage.link import extract_blocking_values_from_record
-from recordlinker.linkage.link import feature_match_exact
-from recordlinker.linkage.link import feature_match_four_char
-from recordlinker.linkage.link import feature_match_fuzzy_string
-from recordlinker.linkage.link import feature_match_log_odds_exact
-from recordlinker.linkage.link import feature_match_log_odds_fuzzy_compare
 from recordlinker.linkage.link import generate_hash_str
 from recordlinker.linkage.link import link_record_against_mpi
 from recordlinker.linkage.link import load_json_probs
-from recordlinker.linkage.link import match_within_block
 from recordlinker.linkage.link import read_linkage_config
 from recordlinker.linkage.link import score_linkage_vs_truth
 from recordlinker.linkage.link import write_linkage_config
 from recordlinker.linkage.mpi import DIBBsMPIConnectorClient
 from recordlinker.utils import _clean_up
-from sqlalchemy import select
-from sqlalchemy import text
 
 
 def _init_db() -> DataAccessLayer:
@@ -162,168 +152,6 @@ def test_generate_hash():
     assert hash_2 == "102818c623290c24069beb721c6eb465d281b3b67ecfb6aef924d14affa117b9"
 
 
-def test_feature_match_exact():
-    record_i = [1, 0, -1, "blah", "", True]
-    record_j = [1, 0, -1, "blah", "", True]
-    record_k = [2, 10, -10, "no match", "null", False]
-
-    cols = {"col_1": 0, "col_2": 1, "col_3": 2, "col_4": 3, "col_5": 4, "col_6": 5}
-
-    # Simultaneously test matches and non-matches of different data types
-    for c in cols:
-        assert feature_match_exact(record_i, record_j, c, cols)
-        assert not feature_match_exact(record_i, record_k, c, cols)
-
-    # Special case for matching None--None == None is vacuous
-    assert feature_match_exact([None], [None], "col_7", {"col_7": 0})
-
-
-def test_get_fuzzy_params():
-    kwargs = {
-        "similarity_measure": "Levenshtein",
-        "thresholds": {"city": 0.95, "address": 0.98},
-    }
-
-    assert _get_fuzzy_params("city", **kwargs) == ("Levenshtein", 0.95)
-    assert _get_fuzzy_params("address", **kwargs) == ("Levenshtein", 0.98)
-    assert _get_fuzzy_params("first_name", **kwargs) == ("Levenshtein", 0.7)
-
-    del kwargs["similarity_measure"]
-
-    assert _get_fuzzy_params("last_name", **kwargs) == ("JaroWinkler", 0.7)
-
-
-def test_feature_match_fuzzy_string():
-    record_i = ["string1", "John", "John", "1985-12-12", None]
-    record_j = ["string2", "Jhon", "Jon", "1985-12-12", None]
-
-    cols = {"col_1": 0, "col_2": 1, "col_3": 2, "col_4": 3}
-
-    for c in cols:
-        assert feature_match_fuzzy_string(
-            record_i,
-            record_j,
-            c,
-            cols,
-            similarity_measure="JaroWinkler",
-            threshold=0.7,
-        )
-    assert not feature_match_fuzzy_string(
-        ["no match"],
-        ["dont match me bro"],
-        "col_5",
-        {"col_5": 0},
-        similarity_measure="JaroWinkler",
-        threshold=0.7,
-    )
-
-
-def test_eval_perfect_match():
-    assert eval_perfect_match([1, 1, 1])
-    assert not eval_perfect_match([1, 1, 0])
-    assert not eval_perfect_match([1, 0, 0])
-    assert not eval_perfect_match([0, 0, 0])
-
-
-def test_match_within_block_cluster_ratio():
-    data = [
-        [1, "John", "Shepard", "11-7-2153", "90909"],
-        [5, "Jhon", "Sheperd", "11-7-2153", "90909"],
-        [11, "Jon", "Shepherd", "11-7-2153", "90909"],
-        [12, "Johnathan", "Shepard", "11-7-2153", "90909"],
-        [13, "Nathan", "Shepard", "11-7-2153", "90909"],
-        [14, "Jane", "Smith", "01-10-1986", "12345"],
-        [18, "Daphne", "Walker", "12-12-1992", "23456"],
-        [23, "Alejandro", "Villanueve", "1-1-1980", "15935"],
-        [24, "Alejandro", "Villanueva", "1-1-1980", "15935"],
-        [27, "Philip", "", "2-2-1990", "64873"],
-        [31, "Alejandr", "Villanueve", "1-1-1980", "15935"],
-        [32, "Aelxdrano", "Villanueve", "1-1-1980", "15935"],
-    ]
-
-    eval_rule = eval_perfect_match
-    funcs = {
-        "first_name": feature_match_fuzzy_string,
-        "last_name": feature_match_fuzzy_string,
-        "birthdate": feature_match_exact,
-        "zip": feature_match_exact,
-    }
-    col_to_idx = {"first_name": 1, "last_name": 2, "birthdate": 3, "zip": 4}
-
-    # Do a test run requiring total membership match
-    matches = _match_within_block_cluster_ratio(
-        data, 1.0, funcs, col_to_idx, eval_rule, threshold=0.8
-    )
-    assert matches == [{0, 1, 2}, {3}, {4}, {5}, {6}, {7, 8, 10}, {9}, {11}]
-
-    # Now do a test showing different cluster groupings
-    matches = _match_within_block_cluster_ratio(
-        data, 0.6, funcs, col_to_idx, eval_rule, threshold=0.8
-    )
-    assert matches == [{0, 1, 2, 3}, {4}, {5}, {6}, {7, 8, 10, 11}, {9}]
-
-
-def test_match_within_block():
-    # Data will be of the form:
-    # patient_id, first_name, last_name, DOB, zip code
-    data = [
-        [1, "John", "Shepard", "11-7-2153", "90909"],
-        [5, "Jhon", "Sheperd", "11-7-2153", "90909"],
-        [11, "Jon", "Shepherd", "11-7-2153", "90909"],
-        [14, "Jane", "Smith", "01-10-1986", "12345"],
-        [18, "Daphne", "Walker", "12-12-1992", "23456"],
-        [23, "Alejandro", "Villanueve", "1-1-1980", "15935"],
-        [24, "Alejandro", "Villanueva", "1-1-1980", "15935"],
-        [27, "Philip", "", "2-2-1990", "64873"],
-        [31, "Alejandr", "Villanueve", "1-1-1980", "15935"],
-    ]
-    eval_rule = eval_perfect_match
-
-    # First, require exact matches on everything to match
-    # Expect 0 pairs
-    funcs = {
-        "first_name": feature_match_exact,
-        "last_name": feature_match_exact,
-        "birthdate": feature_match_exact,
-        "zip": feature_match_exact,
-    }
-    col_to_idx = {"first_name": 1, "last_name": 2, "birthdate": 3, "zip": 4}
-    match_pairs = match_within_block(data, funcs, col_to_idx, eval_rule)
-    assert len(match_pairs) == 0
-
-    # Now, require exact on DOB and zip, but allow fuzzy on first and last
-    # Expect 6 matches
-    funcs["first_name"] = feature_match_fuzzy_string
-    funcs["last_name"] = feature_match_fuzzy_string
-    match_pairs = match_within_block(data, funcs, col_to_idx, eval_rule)
-    assert match_pairs == [(0, 1), (0, 2), (1, 2), (5, 6), (5, 8), (6, 8)]
-
-    # As above, but let's be explicit about string comparison and threshold
-    # Expect three matches, but none with the "Johns"
-    # Note the difference in returned results by changing distance function
-    match_pairs = match_within_block(
-        data,
-        funcs,
-        col_to_idx,
-        eval_rule,
-        similarity_measure="Levenshtein",
-        threshold=0.8,
-    )
-    assert match_pairs == [(5, 6), (5, 8), (6, 8)]
-
-
-def test_feature_match_four_char():
-    record_i = ["Johnathan", "Shepard"]
-    record_j = ["John", "Sheperd"]
-    record_k = ["Jhon", "Sehpard"]
-
-    cols = {"first": 0, "last": 1}
-
-    # Simultaneously test matches and non-matches of different data types
-    for c in cols:
-        assert feature_match_four_char(record_i, record_j, c, cols)
-        assert not feature_match_four_char(record_i, record_k, c, cols)
-
 
 def test_score_linkage_vs_truth():
     num_records = 12
@@ -376,85 +204,6 @@ def test_load_json_probs_errors():
     os.remove("not_valid_json.json")
 
 
-def test_eval_log_odds_cutoff():
-    with pytest.raises(KeyError) as e:
-        eval_log_odds_cutoff([])
-    assert "Cutoff threshold for true matches must be passed" in str(e.value)
-
-    assert not eval_log_odds_cutoff([], true_match_threshold=10.0)
-    assert not eval_log_odds_cutoff([1.0, 0.0, 6.0, 2.7], true_match_threshold=10.0)
-    assert eval_log_odds_cutoff([4.3, 6.1, 2.5], true_match_threshold=10.0)
-
-
-def test_feature_match_log_odds_exact():
-    with pytest.raises(KeyError) as e:
-        feature_match_log_odds_exact([], [], "c", {})
-    assert "Mapping of columns to m/u log-odds must be provided" in str(e.value)
-
-    ri = ["John", "Shepard", "11-07-1980", "1234 Silversun Strip"]
-    rj = ["John", 6.0, None, "2345 Goldmoon Ave."]
-    col_to_idx = {"first": 0, "last": 1, "birthdate": 2, "address": 3}
-    log_odds = {"first": 4.0, "last": 6.5, "birthdate": 9.8, "address": 3.7}
-
-    assert (
-        feature_match_log_odds_exact(ri, rj, "first", col_to_idx, log_odds=log_odds)
-        == 4.0
-    )
-
-    for c in col_to_idx:
-        if c != "first":
-            assert (
-                feature_match_log_odds_exact(ri, rj, c, col_to_idx, log_odds=log_odds)
-                == 0.0
-            )
-
-
-def test_feature_match_log_odds_fuzzy():
-    with pytest.raises(KeyError) as e:
-        feature_match_log_odds_fuzzy_compare([], [], "c", {})
-    assert "Mapping of columns to m/u log-odds must be provided" in str(e.value)
-
-    ri = ["John", "Shepard", date(1980, 11, 7), "1234 Silversun Strip"]
-    rj = ["John", "Sheperd", datetime(1970, 6, 7), "asdfghjeki"]
-    col_to_idx = {"first": 0, "last": 1, "birthdate": 2, "address": 3}
-    log_odds = {"first": 4.0, "last": 6.5, "birthdate": 9.8, "address": 3.7}
-
-    assert (
-        feature_match_log_odds_fuzzy_compare(
-            ri, rj, "first", col_to_idx, log_odds=log_odds
-        )
-        == 4.0
-    )
-
-    assert (
-        round(
-            feature_match_log_odds_fuzzy_compare(
-                ri, rj, "last", col_to_idx, log_odds=log_odds
-            ),
-            3,
-        )
-        == 6.129
-    )
-
-    assert (
-        round(
-            feature_match_log_odds_fuzzy_compare(
-                ri, rj, "birthdate", col_to_idx, log_odds=log_odds
-            ),
-            3,
-        )
-        == 7.859
-    )
-
-    assert (
-        round(
-            feature_match_log_odds_fuzzy_compare(
-                ri, rj, "address", col_to_idx, log_odds=log_odds
-            ),
-            3,
-        )
-        == 0.0
-    )
 
 
 def test_algo_read():
@@ -467,15 +216,15 @@ def test_algo_read():
     assert dibbs_basic_algo == [
         {
             "funcs": {
-                "first_name": "feature_match_fuzzy_string",
-                "last_name": "feature_match_exact",
+                "first_name": "func:recordlinker.linkage.matchers.feature_match_fuzzy_string",
+                "last_name": "func:recordlinker.linkage.matchers.feature_match_exact",
             },
             "blocks": [
                 {"value": "birthdate"},
                 {"value": "mrn", "transformation": "last4"},
                 {"value": "sex"},
             ],
-            "matching_rule": "eval_perfect_match",
+            "matching_rule": "func:recordlinker.linkage.matchers.eval_perfect_match",
             "cluster_ratio": 0.9,
             "kwargs": {
                 "thresholds": {
@@ -490,8 +239,8 @@ def test_algo_read():
         },
         {
             "funcs": {
-                "address": "feature_match_fuzzy_string",
-                "birthdate": "feature_match_exact",
+                "address": "func:recordlinker.linkage.matchers.feature_match_fuzzy_string",
+                "birthdate": "func:recordlinker.linkage.matchers.feature_match_exact",
             },
             "blocks": [
                 {"value": "zip"},
@@ -499,7 +248,7 @@ def test_algo_read():
                 {"value": "last_name", "transformation": "first4"},
                 {"value": "sex"},
             ],
-            "matching_rule": "eval_perfect_match",
+            "matching_rule": "func:recordlinker.linkage.matchers.eval_perfect_match",
             "cluster_ratio": 0.9,
             "kwargs": {
                 "thresholds": {
@@ -523,15 +272,15 @@ def test_algo_read():
     assert dibbs_enhanced_algo == [
         {
             "funcs": {
-                "first_name": "feature_match_log_odds_fuzzy_compare",
-                "last_name": "feature_match_log_odds_fuzzy_compare",
+                "first_name": "func:recordlinker.linkage.matchers.feature_match_log_odds_fuzzy_compare",
+                "last_name": "func:recordlinker.linkage.matchers.feature_match_log_odds_fuzzy_compare",
             },
             "blocks": [
                 {"value": "birthdate"},
                 {"value": "mrn", "transformation": "last4"},
                 {"value": "sex"},
             ],
-            "matching_rule": "eval_log_odds_cutoff",
+            "matching_rule": "func:recordlinker.linkage.matchers.eval_log_odds_cutoff",
             "cluster_ratio": 0.9,
             "kwargs": {
                 "similarity_measure": "JaroWinkler",
@@ -559,8 +308,8 @@ def test_algo_read():
         },
         {
             "funcs": {
-                "address": "feature_match_log_odds_fuzzy_compare",
-                "birthdate": "feature_match_log_odds_fuzzy_compare",
+                "address": "func:recordlinker.linkage.matchers.feature_match_log_odds_fuzzy_compare",
+                "birthdate": "func:recordlinker.linkage.matchers.feature_match_log_odds_fuzzy_compare",
             },
             "blocks": [
                 {"value": "zip"},
@@ -568,7 +317,7 @@ def test_algo_read():
                 {"value": "last_name", "transformation": "first4"},
                 {"value": "sex"},
             ],
-            "matching_rule": "eval_log_odds_cutoff",
+            "matching_rule": "func:recordlinker.linkage.matchers.eval_log_odds_cutoff",
             "cluster_ratio": 0.9,
             "kwargs": {
                 "similarity_measure": "JaroWinkler",
@@ -613,20 +362,20 @@ def test_algo_write():
     sample_algo = [
         {
             "funcs": {
-                "first_name": feature_match_fuzzy_string,
-                "last_name": feature_match_exact,
+                "first_name": matchers.feature_match_fuzzy_string,
+                "last_name": matchers.feature_match_exact,
             },
             "blocks": ["MRN4", "ADDRESS4"],
-            "matching_rule": eval_perfect_match,
+            "matching_rule": matchers.eval_perfect_match,
         },
         {
             "funcs": {
-                "last_name": feature_match_four_char,
-                "sex": feature_match_log_odds_exact,
-                "address": feature_match_log_odds_fuzzy_compare,
+                "last_name": matchers.feature_match_four_char,
+                "sex": matchers.feature_match_log_odds_exact,
+                "address": matchers.feature_match_log_odds_fuzzy_compare,
             },
             "blocks": ["ZIP", "BIRTH_YEAR"],
-            "matching_rule": eval_log_odds_cutoff,
+            "matching_rule": matchers.eval_log_odds_cutoff,
             "cluster_ratio": 0.9,
             "kwargs": {"similarity_measure": "Levenshtein", "threshold": 0.85},
         },
@@ -909,7 +658,7 @@ def test_add_person_resource():
 
 def test_compare_address_elements():
     feature_funcs = {
-        "address": feature_match_four_char,
+        "address": matchers.feature_match_four_char,
     }
     col_to_idx = {"address": 2}
     record = [
@@ -958,7 +707,7 @@ def test_compare_address_elements():
 
 
 def test_compare_name_elements():
-    feature_funcs = {"first": feature_match_fuzzy_string}
+    feature_funcs = {"first": matchers.feature_match_fuzzy_string}
     col_to_idx = {"first": 0}
     record = [
         "123",

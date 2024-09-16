@@ -25,22 +25,22 @@ FUZZY_THRESHOLDS = {
 DIBBS_BASIC = [
     {
         "funcs": {
-            "first_name": "feature_match_fuzzy_string",
-            "last_name": "feature_match_exact",
+            "first_name": "func:recordlinker.linkage.matchers.feature_match_fuzzy_string",
+            "last_name": "func:recordlinker.linkage.matchers.feature_match_exact",
         },
         "blocks": [
             {"value": "birthdate"},
             {"value": "mrn", "transformation": "last4"},
             {"value": "sex"},
         ],
-        "matching_rule": "eval_perfect_match",
+        "matching_rule": "func:recordlinker.linkage.matchers.eval_perfect_match",
         "cluster_ratio": 0.9,
         "kwargs": {"thresholds": FUZZY_THRESHOLDS},
     },
     {
         "funcs": {
-            "address": "feature_match_fuzzy_string",
-            "birthdate": "feature_match_exact",
+            "address": "func:recordlinker.linkage.matchers.feature_match_fuzzy_string",
+            "birthdate": "func:recordlinker.linkage.matchers.feature_match_exact",
         },
         "blocks": [
             {"value": "zip"},
@@ -48,7 +48,7 @@ DIBBS_BASIC = [
             {"value": "last_name", "transformation": "first4"},
             {"value": "sex"},
         ],
-        "matching_rule": "eval_perfect_match",
+        "matching_rule": "func:recordlinker.linkage.matchers.eval_perfect_match",
         "cluster_ratio": 0.9,
         "kwargs": {"thresholds": FUZZY_THRESHOLDS},
     },
@@ -57,15 +57,15 @@ DIBBS_BASIC = [
 DIBBS_ENHANCED = [
     {
         "funcs": {
-            "first_name": "feature_match_log_odds_fuzzy_compare",
-            "last_name": "feature_match_log_odds_fuzzy_compare",
+            "first_name": "func:recordlinker.linkage.matchers.feature_match_log_odds_fuzzy_compare",
+            "last_name": "func:recordlinker.linkage.matchers.feature_match_log_odds_fuzzy_compare",
         },
         "blocks": [
             {"value": "birthdate"},
             {"value": "mrn", "transformation": "last4"},
             {"value": "sex"},
         ],
-        "matching_rule": "eval_log_odds_cutoff",
+        "matching_rule": "func:recordlinker.linkage.matchers.eval_log_odds_cutoff",
         "cluster_ratio": 0.9,
         "kwargs": {
             "similarity_measure": "JaroWinkler",
@@ -76,8 +76,8 @@ DIBBS_ENHANCED = [
     },
     {
         "funcs": {
-            "address": "feature_match_log_odds_fuzzy_compare",
-            "birthdate": "feature_match_log_odds_fuzzy_compare",
+            "address": "func:recordlinker.linkage.matchers.feature_match_log_odds_fuzzy_compare",
+            "birthdate": "func:recordlinker.linkage.matchers.feature_match_log_odds_fuzzy_compare",
         },
         "blocks": [
             {"value": "zip"},
@@ -85,7 +85,7 @@ DIBBS_ENHANCED = [
             {"value": "last_name", "transformation": "first4"},
             {"value": "sex"},
         ],
-        "matching_rule": "eval_log_odds_cutoff",
+        "matching_rule": "func:recordlinker.linkage.matchers.eval_log_odds_cutoff",
         "cluster_ratio": 0.9,
         "kwargs": {
             "similarity_measure": "JaroWinkler",
