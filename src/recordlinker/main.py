@@ -10,8 +10,8 @@ from fastapi import status
 from pydantic import BaseModel
 from pydantic import Field
 
-from recordlinker.config import settings
 from recordlinker.base_service import BaseService
+from recordlinker.config import settings
 from recordlinker.linkage.algorithms import DIBBS_BASIC
 from recordlinker.linkage.algorithms import DIBBS_ENHANCED
 from recordlinker.linkage.link import add_person_resource

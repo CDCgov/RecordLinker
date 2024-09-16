@@ -12,7 +12,6 @@ from typing import Union
 import fhirpathpy
 import rapidfuzz
 
-
 # TODO:  Not sure if we will need this or not
 # leaving in utils for now until it's determined that
 # we won't need to use this within any of the DAL/MPI/LINK
