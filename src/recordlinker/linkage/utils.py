@@ -188,7 +188,7 @@ def bind_functions(data: dict) -> dict:
         if isinstance(data, dict):
             return bind_functions(data)
         elif isinstance(data, str) and data.startswith("func:"):
-            return string_to_callable(data)
+            return str_to_callable(data)
         return data
 
     bound = copy.copy(data)
@@ -200,7 +200,7 @@ def bind_functions(data: dict) -> dict:
     return bound
 
 
-def string_to_callable(val: str) -> typing.Callable:
+def str_to_callable(val: str) -> typing.Callable:
     """
     Converts a string representation of a function to the function itself.
     """
@@ -213,3 +213,10 @@ def string_to_callable(val: str) -> typing.Callable:
     module = importlib.import_module(module_path)
     # Get the function from the module
     return getattr(module, func_name)
+
+
+def func_to_str(func: typing.Callable) -> str:
+    """
+    Converts a function to a string representation of the function.
+    """
+    return f"func:{func.__module__}.{func.__name__}"

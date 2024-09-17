@@ -82,14 +82,25 @@ def test_bind_functions():
     }
 
 
-def test_string_to_callable():
+def test_str_to_callable():
     val = "func:recordlinker.linkage.matchers.feature_match_exact"
-    assert utils.string_to_callable(val) == matchers.feature_match_exact
+    assert utils.str_to_callable(val) == matchers.feature_match_exact
     val = "recordlinker.linkage.matchers.feature_match_exact"
-    assert utils.string_to_callable(val) == matchers.feature_match_exact
+    assert utils.str_to_callable(val) == matchers.feature_match_exact
     val = "recordlinker.unknown_module.unknown_function"
     with pytest.raises(ImportError):
-        utils.string_to_callable(val)
+        utils.str_to_callable(val)
     val = "recordlinker.linkage.matchers.unknown_function"
     with pytest.raises(AttributeError):
-        utils.string_to_callable(val)
+        utils.str_to_callable(val)
+
+
+def test_func_to_str():
+    assert (
+        utils.func_to_str(matchers.feature_match_exact)
+        == "func:recordlinker.linkage.matchers.feature_match_exact"
+    )
+    assert (
+        utils.func_to_str(matchers.feature_match_fuzzy_string)
+        == "func:recordlinker.linkage.matchers.feature_match_fuzzy_string"
+    )

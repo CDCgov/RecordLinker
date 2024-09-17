@@ -490,9 +490,9 @@ def write_linkage_config(linkage_algo: list[dict], file_to_write: pathlib.Path) 
     algo_json = []
     for rl_pass in linkage_algo:
         pass_json = {}
-        pass_json["funcs"] = {col: f.__name__ for (col, f) in rl_pass["funcs"].items()}
+        pass_json["funcs"] = {col: utils.func_to_str(f) for (col, f) in rl_pass["funcs"].items()}
         pass_json["blocks"] = rl_pass["blocks"]
-        pass_json["matching_rule"] = rl_pass["matching_rule"].__name__
+        pass_json["matching_rule"] = utils.func_to_str(rl_pass["matching_rule"])
         if rl_pass.get("cluster_ratio", None) is not None:
             pass_json["cluster_ratio"] = rl_pass["cluster_ratio"]
         if rl_pass.get("kwargs", None) is not None:

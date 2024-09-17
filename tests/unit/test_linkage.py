@@ -389,20 +389,20 @@ def test_algo_write():
     assert loaded_algo == [
         {
             "funcs": {
-                "first_name": "feature_match_fuzzy_string",
-                "last_name": "feature_match_exact",
+                "first_name": "func:recordlinker.linkage.matchers.feature_match_fuzzy_string",
+                "last_name": "func:recordlinker.linkage.matchers.feature_match_exact",
             },
             "blocks": ["MRN4", "ADDRESS4"],
-            "matching_rule": "eval_perfect_match",
+            "matching_rule": "func:recordlinker.linkage.matchers.eval_perfect_match",
         },
         {
             "funcs": {
-                "last_name": "feature_match_four_char",
-                "sex": "feature_match_log_odds_exact",
-                "address": "feature_match_log_odds_fuzzy_compare",
+                "last_name": "func:recordlinker.linkage.matchers.feature_match_four_char",
+                "sex": "func:recordlinker.linkage.matchers.feature_match_log_odds_exact",
+                "address": "func:recordlinker.linkage.matchers.feature_match_log_odds_fuzzy_compare",
             },
             "blocks": ["ZIP", "BIRTH_YEAR"],
-            "matching_rule": "eval_log_odds_cutoff",
+            "matching_rule": "func:recordlinker.linkage.matchers.eval_log_odds_cutoff",
             "cluster_ratio": 0.9,
             "kwargs": {"similarity_measure": "Levenshtein", "threshold": 0.85},
         },
