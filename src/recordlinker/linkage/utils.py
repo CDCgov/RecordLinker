@@ -145,7 +145,7 @@ def apply_selection_criteria(
 def extract_value_with_resource_path(
     resource: dict,
     path: str,
-    selection_criteria: typing.Literal["first", "last", "random", "all"] = "first",
+    selection_criteria: selection_criteria_types = "first",
 ) -> typing.Union[typing.Any, None]:
     """
     Yields a single value from a resource based on a provided `fhir_path`.
