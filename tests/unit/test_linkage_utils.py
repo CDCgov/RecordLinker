@@ -93,5 +93,3 @@ def test_string_to_callable():
     val = "recordlinker.linkage.matchers.unknown_function"
     with pytest.raises(AttributeError):
         utils.string_to_callable(val)
-    
-
