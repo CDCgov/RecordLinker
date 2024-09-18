@@ -26,9 +26,6 @@ jobs:
           --health-retries 5
 
     steps:
-      - name: Setup Tmate session
-        uses: mxschmitt/action-tmate@v3
-
       - name: Checkout code
         uses: actions/checkout@v3
 
@@ -48,3 +45,7 @@ jobs:
           DB_URI: "postgresql+psycopg2://postgres:pw@localhost:5432/rldb"
         run: |
           pytest --cov=recordlinker --cov-report=xml tests/unit
+
+      - name: Setup Tmate session
+        uses: mxschmitt/action-tmate@v3
+
