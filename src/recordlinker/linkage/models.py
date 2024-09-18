@@ -1,7 +1,8 @@
+import datetime
 import enum
-import typing
 import uuid
 
+import dateutil.parser
 import dotenv
 from sqlalchemy import create_engine
 from sqlalchemy import orm
@@ -59,7 +60,7 @@ class BlockingKey(enum.Enum):
     the algorithm.  By defining them all upfront, we give the user flexibility in
     adjusting their algorithm configuration without having to reload the data.
 
-    **HERE BE DRAGONS**: IN A REAL SYSTEM, THESE ENUMS SHOULD NOT BE CHANGED!!!
+    **HERE BE DRAGONS**: IN A PRODUCTION SYSTEM, THESE ENUMS SHOULD NOT BE CHANGED!!!
     """
     BIRTHDATE = 1, "Date of Birth"
     MRN = 2, "Last 4 chars of MRN"
@@ -72,34 +73,70 @@ class BlockingKey(enum.Enum):
         self.id = id
         self.description = description
 
-    def to_value(self, data: dict) -> typing.Generator[str, None, None]:
+    def to_value(self, data: dict) -> list[str]:
         """
         Given a data dictionary of Patient PII data, return a generator of all
         possible values for this Key.  Many Keys will only have 1 possible value,
         but some (like first name) could have multiple values.
         """
         if self == BlockingKey.BIRTHDATE:
-            if "birthdate" in data:
-                yield data["birthdate"].isoformat()
+            return self._extract_birthdate(data)
         if self == BlockingKey.MRN:
-            if "mrn" in data:
-                yield data["mrn"][-4:]
+            return self._extract_mrn_last_four(data)
         if self == BlockingKey.SEX:
-            if "sex" in data:
-                # TODO: Normalize this
-                yield data["sex"]
+            return self._extract_sex(data)
         if self == BlockingKey.ZIP:
-            for address in data.get("address", []):
-                if "zip" in address:
-                    yield address["zip"]
+            return self._extract_zipcode(data)
         if self == BlockingKey.FIRST_NAME:
-            for name in data.get("name", []):
-                for given in name.get("given", []):
-                    yield given[:4]
+            return self._extract_first_name_first_four(data)
         if self == BlockingKey.LAST_NAME:
-            for name in data.get("name", []):
-                if "family" in name:
-                    yield name.get("family")[:4]
+            return self._extract_last_name_first_four(data)
+        return []
+
+    def _extract_birthdate(self, data: dict) -> list[str]:
+        if "birthdate" in data:
+            val = data["birthdate"]
+            if not isinstance(val, (datetime.date, datetime.datetime)):
+                # if not an instance of date or datetime, try to parse it
+                val = dateutil.parser.parse(str(val))
+            return [val.strftime("%Y-%m-%d")]
+        return []
+
+    def _extract_mrn_last_four(self, data: dict) -> list[str]:
+        if "mrn" in data:
+            return [data["mrn"].strip()[-4:]]
+        return []
+
+    def _extract_sex(self, data: dict) -> list[str]:
+        if "sex" in data:
+            val = str(data["sex"]).lower().strip()
+            if val in ["m", "male"]:
+                return ["m"]
+            elif val in ["f", "female"]:
+                return ["f"]
+            return ["u"]
+        return []
+
+    def _extract_zipcode(self, data: dict) -> list[str]:
+        zipcodes = []
+        for address in data.get("address", []):
+            if "zip" in address:
+                zipcodes.append(address["zip"].strip()[0:5])
+        return zipcodes
+
+    def _extract_first_name_first_four(self, data: dict) -> list[str]:
+        names = []
+        for name in data.get("name", []):
+            for given in name.get("given", []):
+                names.append(given[:4])
+        return names
+
+    def _extract_last_name_first_four(self, data: dict) -> list[str]:
+        names = []
+        for name in data.get("name", []):
+            if "family" in name:
+                names.append(name.get("family")[:4])
+        return names
 
 
 class BlockingValue(Base):
