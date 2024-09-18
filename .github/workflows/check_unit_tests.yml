@@ -40,12 +40,13 @@ jobs:
           python -m pip install --upgrade pip
           pip install '.[dev]'
 
+      - name: Setup Tmate session
+        uses: mxschmitt/action-tmate@v3
+
       - name: Run unit tests
         env:
           DB_URI: "postgresql+psycopg2://postgres:pw@localhost:5432/rldb"
         run: |
           pytest --cov=recordlinker --cov-report=xml tests/unit
 
-      - name: Setup Tmate session
-        uses: mxschmitt/action-tmate@v3
 
