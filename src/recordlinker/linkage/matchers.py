@@ -139,7 +139,7 @@ def feature_match_fuzzy_string(
     Determines whether two strings in a given pair of records are close
     enough to constitute a partial match. The exact nature of the match
     is determined by the specified string comparison function (see
-    harmonization/utils/compare_strings for more details) as well as a
+    compare_strings for more details) as well as a
     scoring threshold the comparison must meet or exceed.
 
     :param record_i: One of the records in the candidate pair to evaluate.
