@@ -8,6 +8,7 @@ from datetime import datetime
 from json.decoder import JSONDecodeError
 
 import pytest
+from recordlinker.config import settings
 from recordlinker.linkage.algorithms import DIBBS_BASIC
 from recordlinker.linkage.algorithms import DIBBS_ENHANCED
 from recordlinker.linkage.dal import DataAccessLayer
@@ -41,19 +42,8 @@ from sqlalchemy import text
 
 
 def _init_db() -> DataAccessLayer:
-    os.environ = {
-        "mpi_dbname": "testdb",
-        "mpi_user": "postgres",
-        "mpi_password": "pw",
-        "mpi_host": "localhost",
-        "mpi_port": "5432",
-        "mpi_db_type": "postgres",
-    }
-
     dal = DataAccessLayer()
-    dal.get_connection(
-        engine_url="postgresql+psycopg2://postgres:pw@localhost:5432/testdb"
-    )
+    dal.get_connection(engine_url=settings.db_uri)
     _clean_up(dal)
 
     # load ddl
