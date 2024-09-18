@@ -1,13 +1,13 @@
 import json
 import logging
-import os
 import pathlib
 import subprocess
 from typing import Literal
 
 from sqlalchemy import text
+from sqlalchemy.engine import url
 
-from recordlinker.config import get_settings
+from recordlinker.config import settings
 from recordlinker.linkage.dal import DataAccessLayer
 from recordlinker.linkage.mpi import DIBBsMPIConnectorClient
 
@@ -32,18 +32,23 @@ def run_pyway(
 
     logger = logging.getLogger(__name__)
 
+    # Extract the database type and its parts from the MPI database URI.
+    db_parts = url.make_url(settings.db_uri)
+    db_type = db_parts.drivername.split("+")[0]
+    if db_type == "postgresql":
+        db_type = "postgres"
+
     # Prepare the pyway command.
     migrations_dir = str(pathlib.Path(__file__).parent.parent.parent / "migrations")
-    settings = get_settings()
     pyway_args = [
         "--database-table public.pyway",
         f"--database-migration-dir {migrations_dir}",
-        f"--database-type {settings['mpi_db_type']}",
-        f"--database-host {settings['mpi_host']}",
-        f"--database-port {settings['mpi_port']}",
-        f"--database-name {settings['mpi_dbname']}",
-        f"--database-username {settings['mpi_user']}",
-        f"--database-password {settings['mpi_password']}",
+        f"--database-type {db_type}",
+        f"--database-host {db_parts.host}",
+        f"--database-port {db_parts.port}",
+        f"--database-name {db_parts.database}",
+        f"--database-username {db_parts.username}",
+        f"--database-password {db_parts.password}",
     ]
 
     full_command = ["pyway", pyway_command] + pyway_args
@@ -105,34 +110,6 @@ def run_migrations():
     else:
         logger.error("MPI database schema validations failed.")
         raise Exception(validation_response.stderr.decode("utf-8"))
-
-
-def set_mpi_env_vars():
-    """
-    Utility function for testing purposes that sets the environment variables
-    of the testing suite to prespecified valid values, and clears out any
-    old values from the DB Settings cache.
-    """
-    os.environ["mpi_db_type"] = "postgres"
-    os.environ["mpi_dbname"] = "testdb"
-    os.environ["mpi_user"] = "postgres"
-    os.environ["mpi_password"] = "pw"
-    os.environ["mpi_host"] = "localhost"
-    os.environ["mpi_port"] = "5432"
-    get_settings.cache_clear()
-
-
-def pop_mpi_env_vars():
-    """
-    Utility function for testing purposes that removes the environment variables
-    used for database access from the testing environment.
-    """
-    os.environ.pop("mpi_db_type", None)
-    os.environ.pop("mpi_dbname", None)
-    os.environ.pop("mpi_user", None)
-    os.environ.pop("mpi_password", None)
-    os.environ.pop("mpi_host", None)
-    os.environ.pop("mpi_port", None)
 
 
 def _clean_up(dal: DataAccessLayer | None = None) -> None:

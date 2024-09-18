@@ -13,10 +13,10 @@ from sqlalchemy import text
 from sqlalchemy.dialects.postgresql import aggregate_order_by
 from sqlalchemy.dialects.postgresql import array_agg
 
+from recordlinker.config import settings
 from recordlinker.linkage.core import BaseMPIConnectorClient
 from recordlinker.linkage.dal import DataAccessLayer
 from recordlinker.linkage.utils import extract_value_with_resource_path
-from recordlinker.linkage.utils import load_mpi_env_vars_os
 
 
 class DIBBsMPIConnectorClient(BaseMPIConnectorClient):
@@ -29,24 +29,15 @@ class DIBBsMPIConnectorClient(BaseMPIConnectorClient):
 
     """
 
-    def __init__(self, pool_size: int = 5, max_overflow: int = 10):
+    def __init__(self):
         """
         Initialize the MPI connector client with the MPI database.
-        :param pool_size: The number of connections to keep open to the database.
-        :param max_overflow: The number of connections to allow in connection pool.
         """
-        dbsettings = load_mpi_env_vars_os()
-        dbuser = dbsettings.get("user")
-        dbname = dbsettings.get("dbname")
-        dbpwd = dbsettings.get("password")
-        dbhost = dbsettings.get("host")
-        dbport = dbsettings.get("port")
         self.dal = DataAccessLayer()
         self.dal.get_connection(
-            engine_url=f"postgresql+psycopg2://{dbuser}:"
-            + f"{dbpwd}@{dbhost}:{dbport}/{dbname}",
-            pool_size=pool_size,
-            max_overflow=max_overflow,
+            engine_url=settings.db_uri,
+            pool_size=settings.connection_pool_size,
+            max_overflow=settings.connection_pool_max_overflow,
         )
         self.dal.initialize_schema()
         self.column_to_fhirpaths = {

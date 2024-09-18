@@ -4,17 +4,11 @@ from typing import Literal
 from unittest import mock
 
 import pytest
+from recordlinker.config import settings
 from recordlinker.utils import run_migrations
 from recordlinker.utils import run_pyway
 
-MOCK_SETTINGS = {
-    "mpi_db_type": "postgres",
-    "mpi_host": "localhost",
-    "mpi_port": "5432",
-    "mpi_dbname": "testdb",
-    "mpi_user": "postgres",
-    "mpi_password": "pw",
-}
+MOCK_SETTINGS = {"db_uri": "postgresql://postgres:pw@localhost:5432/testdb"}
 
 
 def make_pyway_command(
@@ -34,86 +28,83 @@ def make_pyway_command(
             pyway_command,
             "--database-table public.pyway",
             f"--database-migration-dir {migrations_dir}",
-            f"--database-type {MOCK_SETTINGS['mpi_db_type']}",
-            f"--database-host {MOCK_SETTINGS['mpi_host']}",
-            f"--database-port {MOCK_SETTINGS['mpi_port']}",
-            f"--database-name {MOCK_SETTINGS['mpi_dbname']}",
-            f"--database-username {MOCK_SETTINGS['mpi_user']}",
-            f"--database-password {MOCK_SETTINGS['mpi_password']}",
+            "--database-type postgres",
+            "--database-host localhost",
+            "--database-port 5432",
+            "--database-name testdb",
+            "--database-username postgres",
+            "--database-password pw",
         ]
     )
     return pyway_command
 
 
-@mock.patch("recordlinker.utils.get_settings")
 @mock.patch("recordlinker.utils.subprocess.run")
-def test_run_pyway_success(patched_subprocess, patched_get_settings):
+def test_run_pyway_success(patched_subprocess, monkeypatch):
     """
     Test the happy path in run_pyway()
     """
-    global MOCK_SETTINGS
-    patched_get_settings.return_value = MOCK_SETTINGS
-    run_pyway("info")
-    pyway_command = make_pyway_command("info")
-    patched_subprocess.assert_called_once_with(
-        pyway_command,
-        shell=True,
-        check=True,
-        capture_output=True,
-    )
+    with monkeypatch.context() as m:
+        m.setattr(settings, "db_uri", MOCK_SETTINGS["db_uri"])
+        run_pyway("info")
+        pyway_command = make_pyway_command("info")
+        patched_subprocess.assert_called_once_with(
+            pyway_command,
+            shell=True,
+            check=True,
+            capture_output=True,
+        )
 
 
-@mock.patch("recordlinker.utils.get_settings")
 @mock.patch("recordlinker.utils.subprocess.run")
-def test_run_pyway_failure(patched_subprocess, patched_get_settings):
+def test_run_pyway_failure(patched_subprocess, monkeypatch):
     """
     The general failure mode of run_pyway() when a subprocess.CalledProcessError is
     raised.
     """
 
-    global MOCK_SETTINGS
-    patched_get_settings.return_value = MOCK_SETTINGS
-    output = mock.Mock()
-    output.decode.return_value = "test"
-    patched_subprocess.side_effect = subprocess.CalledProcessError(
-        returncode=1, cmd="test", stderr="test", output=output
-    )
-    pyway_command = make_pyway_command("info")
-    with pytest.raises(subprocess.CalledProcessError):
-        run_pyway("info")
-    patched_subprocess.assert_called_once_with(
-        pyway_command,
-        shell=True,
-        check=True,
-        capture_output=True,
-    )
+    with monkeypatch.context() as m:
+        m.setattr(settings, "db_uri", MOCK_SETTINGS["db_uri"])
+        output = mock.Mock()
+        output.decode.return_value = "test"
+        patched_subprocess.side_effect = subprocess.CalledProcessError(
+            returncode=1, cmd="test", stderr="test", output=output
+        )
+        pyway_command = make_pyway_command("info")
+        with pytest.raises(subprocess.CalledProcessError):
+            run_pyway("info")
+        patched_subprocess.assert_called_once_with(
+            pyway_command,
+            shell=True,
+            check=True,
+            capture_output=True,
+        )
 
 
-@mock.patch("recordlinker.utils.get_settings")
 @mock.patch("recordlinker.utils.subprocess.run")
-def test_run_pyway_no_migrations(patched_subprocess, patched_get_settings):
+def test_run_pyway_no_migrations(patched_subprocess, monkeypatch):
     """
     Test the special case where 'pyway validate' returns an error if no migrations have
     been applied yet.
     """
 
-    global MOCK_SETTINGS
-    patched_get_settings.return_value = MOCK_SETTINGS
-    output = mock.Mock()
-    output.decode.return_value = (
-        "ERROR: no migrations applied yet, no validation necessary."
-    )
-    patched_subprocess.side_effect = subprocess.CalledProcessError(
-        returncode=1, cmd="test", stderr="test", output=output
-    )
-    pyway_command = make_pyway_command("validate")
-    run_pyway("validate")
-    patched_subprocess.assert_called_once_with(
-        pyway_command,
-        shell=True,
-        check=True,
-        capture_output=True,
-    )
+    with monkeypatch.context() as m:
+        m.setattr(settings, "db_uri", MOCK_SETTINGS["db_uri"])
+        output = mock.Mock()
+        output.decode.return_value = (
+            "ERROR: no migrations applied yet, no validation necessary."
+        )
+        patched_subprocess.side_effect = subprocess.CalledProcessError(
+            returncode=1, cmd="test", stderr="test", output=output
+        )
+        pyway_command = make_pyway_command("validate")
+        run_pyway("validate")
+        patched_subprocess.assert_called_once_with(
+            pyway_command,
+            shell=True,
+            check=True,
+            capture_output=True,
+        )
 
 
 @mock.patch("recordlinker.utils.run_pyway")
