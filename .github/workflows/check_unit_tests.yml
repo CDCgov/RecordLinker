@@ -40,6 +40,6 @@ jobs:
 
       - name: Run unit tests
         env:
-          DB_URI: "postgresql+psycopg2://postgres:pw@localhost:5432/postgres"
+          DB_URI: "postgresql+psycopg2://postgres:pw@postgres:5432/postgres"
         run: |
           pytest --cov=recordlinker --cov-report=xml tests/unit
