@@ -16,14 +16,7 @@ jobs:
         ports:
           - 5432:5432
         env:
-          POSTGRES_USER: postgres
           POSTGRES_PASSWORD: pw
-          POSTGRES_DB: rldb
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
 
     steps:
       - name: Checkout code
@@ -40,12 +33,13 @@ jobs:
           python -m pip install --upgrade pip
           pip install '.[dev]'
 
-      #- name: Setup Tmate session
-        #uses: mxschmitt/action-tmate@v3
+      - name: Wait for PostgreSQL to be ready
+        run: |
+          until pg_isready -h localhost -U postgres; do sleep 1; done
 
       - name: Run unit tests
         env:
-          DB_URI: "postgresql+psycopg2://postgres:pw@localhost:5432/rldb"
+          DB_URI: "postgresql+psycopg2://postgres:pw@localhost:5432/postgres"
         run: |
           pytest --cov=recordlinker --cov-report=xml tests/unit
 
