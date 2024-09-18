@@ -11,22 +11,18 @@ from pydantic import BaseModel
 from pydantic import Field
 
 from recordlinker.base_service import BaseService
+from recordlinker.config import settings
 from recordlinker.linkage.algorithms import DIBBS_BASIC
 from recordlinker.linkage.algorithms import DIBBS_ENHANCED
 from recordlinker.linkage.link import add_person_resource
 from recordlinker.linkage.link import link_record_against_mpi
 from recordlinker.linkage.mpi import DIBBsMPIConnectorClient
-from recordlinker.utils import get_settings
 from recordlinker.utils import read_json_from_assets
 from recordlinker.utils import run_migrations
 
 # Ensure MPI is configured as expected.
 run_migrations()
-settings = get_settings()
-MPI_CLIENT = DIBBsMPIConnectorClient(
-    pool_size=settings["connection_pool_size"],
-    max_overflow=settings["connection_pool_max_overflow"],
-)
+MPI_CLIENT = DIBBsMPIConnectorClient()
 # Instantiate FastAPI via DIBBs' BaseService class
 app = BaseService(
     service_name="DIBBs Record Linkage Service",
@@ -148,13 +144,12 @@ async def link_record(
 
     # Check that DB type is appropriately set up as Postgres so
     # we can fail fast if it's not
-    db_type = get_settings().get("mpi_db_type", "")
-    if db_type != "postgres":
+    if not settings.db_uri.startswith("postgres"):
         response.status_code = status.HTTP_422_UNPROCESSABLE_ENTITY
         return {
             "found_match": False,
             "updated_bundle": input_bundle,
-            "message": f"Unsupported database type {db_type} supplied. "
+            "message": f"Unsupported database {settings.db_uri} supplied. "
             + "Make sure your environment variables include an entry "
             + "for `mpi_db_type` and that it is set to 'postgres'.",
         }

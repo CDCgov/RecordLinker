@@ -9,25 +9,6 @@ from datetime import datetime
 
 import fhirpathpy
 
-from recordlinker.config import get_settings
-
-
-def load_mpi_env_vars_os():
-    """
-    Simple helper function to load some of the environment variables
-    needed to make a database connection as part of the DB migrations.
-    """
-    dbsettings = {
-        "dbname": get_settings().get("mpi_dbname"),
-        "user": get_settings().get("mpi_user"),
-        "password": get_settings().get("mpi_password"),
-        "host": get_settings().get("mpi_host"),
-        "port": get_settings().get("mpi_port"),
-        "db_type": get_settings().get("mpi_db_type"),
-    }
-    return dbsettings
-
-
 # TODO:  Not sure if we will need this or not
 # leaving in utils for now until it's determined that
 # we won't need to use this within any of the DAL/MPI/LINK

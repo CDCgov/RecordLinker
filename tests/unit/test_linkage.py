@@ -9,6 +9,7 @@ import pytest
 from sqlalchemy import select
 from sqlalchemy import text
 
+from recordlinker.config import settings
 from recordlinker.linkage import matchers
 from recordlinker.linkage.algorithms import DIBBS_BASIC
 from recordlinker.linkage.algorithms import DIBBS_ENHANCED
@@ -31,19 +32,8 @@ from recordlinker.utils import _clean_up
 
 
 def _init_db() -> DataAccessLayer:
-    os.environ = {
-        "mpi_dbname": "testdb",
-        "mpi_user": "postgres",
-        "mpi_password": "pw",
-        "mpi_host": "localhost",
-        "mpi_port": "5432",
-        "mpi_db_type": "postgres",
-    }
-
     dal = DataAccessLayer()
-    dal.get_connection(
-        engine_url="postgresql+psycopg2://postgres:pw@localhost:5432/testdb"
-    )
+    dal.get_connection(engine_url=settings.db_uri)
     _clean_up(dal)
 
     # load ddl
@@ -152,7 +142,6 @@ def test_generate_hash():
     assert hash_2 == "102818c623290c24069beb721c6eb465d281b3b67ecfb6aef924d14affa117b9"
 
 
-
 def test_score_linkage_vs_truth():
     num_records = 12
     matches = {
@@ -202,8 +191,6 @@ def test_load_json_probs_errors():
     assert "specified file is not valid JSON" in str(e.value)
 
     os.remove("not_valid_json.json")
-
-
 
 
 def test_algo_read():

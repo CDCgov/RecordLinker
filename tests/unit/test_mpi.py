@@ -6,12 +6,14 @@ import re
 import uuid
 
 import pytest
+from recordlinker.config import settings
 from recordlinker.linkage.dal import DataAccessLayer
 from recordlinker.linkage.mpi import DIBBsMPIConnectorClient
 from recordlinker.utils import _clean_up
 from sqlalchemy import Select
 from sqlalchemy import select
 from sqlalchemy import text
+
 
 patient_resource = json.load(
     open(
@@ -24,19 +26,8 @@ patient_resource = json.load(
 
 
 def _init_db() -> DataAccessLayer:
-    os.environ = {
-        "mpi_dbname": "testdb",
-        "mpi_user": "postgres",
-        "mpi_password": "pw",
-        "mpi_host": "localhost",
-        "mpi_port": "5432",
-        "mpi_db_type": "postgres",
-    }
-
     dal = DataAccessLayer()
-    dal.get_connection(
-        engine_url="postgresql+psycopg2://postgres:pw@localhost:5432/testdb"
-    )
+    dal.get_connection(engine_url=settings.db_uri)
     _clean_up(dal)
 
     # load ddl

@@ -6,13 +6,9 @@ import os
 import pathlib
 
 import pytest
-from recordlinker.config import get_settings
-from recordlinker.utils import pop_mpi_env_vars
-from recordlinker.utils import set_mpi_env_vars
+from recordlinker.config import settings
 from recordlinker.utils import run_migrations
 from recordlinker.utils import _clean_up
-
-set_mpi_env_vars()
 
 from fastapi import status
 from fastapi.testclient import TestClient
@@ -40,7 +36,6 @@ def load_test_bundle():
 def setup_and_clean_tests():
     # This code will always run before every test in this file
     # We want it to set up env variables and run migrations
-    set_mpi_env_vars()
     run_migrations()
 
     # pytest will automatically plug each test in this scoped file
@@ -49,7 +44,6 @@ def setup_and_clean_tests():
 
     # This code will run at the end of the test plugged into the yield
     _clean_up()
-    pop_mpi_env_vars()
 
 
 def test_health_check():
@@ -78,23 +72,24 @@ def test_linkage_bundle_with_no_patient():
     assert actual_response.status_code == status.HTTP_400_BAD_REQUEST
 
 
-def test_linkage_invalid_db_type():
-    invalid_db_type = "mssql"
-    os.environ["mpi_db_type"] = invalid_db_type
-    get_settings.cache_clear()
+def test_linkage_invalid_db_type(monkeypatch):
+    # temporarily set the db_uri to an invalid value using a with block
+    with monkeypatch.context() as m:
+        invalid_db_uri = "sqlite:///test.db"
+        m.setattr(settings, "db_uri", invalid_db_uri)
 
-    test_bundle = load_test_bundle()
+        test_bundle = load_test_bundle()
 
-    expected_response = {
-        "message": f"Unsupported database type {invalid_db_type} supplied. "
-        + "Make sure your environment variables include an entry "
-        + "for `mpi_db_type` and that it is set to 'postgres'.",
-        "found_match": False,
-        "updated_bundle": test_bundle,
-    }
-    actual_response = client.post("/link-record", json={"bundle": test_bundle})
-    assert actual_response.json() == expected_response
-    assert actual_response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
+        expected_response = {
+            "message": f"Unsupported database {invalid_db_uri} supplied. "
+            + "Make sure your environment variables include an entry "
+            + "for `mpi_db_type` and that it is set to 'postgres'.",
+            "found_match": False,
+            "updated_bundle": test_bundle,
+        }
+        actual_response = client.post("/link-record", json={"bundle": test_bundle})
+        assert actual_response.json() == expected_response
+        assert actual_response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
 
 
 def test_linkage_success():

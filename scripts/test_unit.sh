@@ -13,7 +13,7 @@ cd "$(dirname "$0")/.."
 
 TESTS=${1:-tests/unit/}
 
-DB_PID=$(docker run -d --rm -p 5432:5432 -e POSTGRES_PASSWORD=pw -e POSTGRES_DB=testdb postgres:13-alpine)
+DB_PID=$(docker run -d --rm -p 5432:5432 -e POSTGRES_PASSWORD=pw postgres:13-alpine)
 
 cleanup() {
     docker stop ${DB_PID} > /dev/null 2>&1
@@ -28,4 +28,5 @@ done
 
 trap cleanup EXIT
 
+# Run the tests
 pytest ${TESTS}
