@@ -17,11 +17,6 @@ jobs:
           - 5432:5432
         env:
           POSTGRES_PASSWORD: pw
-        healthcheck:
-          test: ["CMD", "pg_isready", "-U", "postgres"]
-          interval: 10s
-          timeout: 5s
-          retries: 5
 
     steps:
       - name: Checkout code
@@ -40,7 +35,7 @@ jobs:
 
       - name: Wait for PostgreSQL to be ready
         run: |
-          until pg_isready -h localhost -U postgres; do sleep 1; done
+          until pg_isready -h localhost -U postgres -p 5432; do sleep 1; done
 
       - name: Run unit tests
         env:
