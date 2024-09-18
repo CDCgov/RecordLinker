@@ -42,5 +42,3 @@ jobs:
           DB_URI: "postgresql+psycopg2://postgres:pw@localhost:5432/postgres"
         run: |
           pytest --cov=recordlinker --cov-report=xml tests/unit
-
-
