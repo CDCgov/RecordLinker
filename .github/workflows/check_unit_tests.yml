@@ -17,6 +17,11 @@ jobs:
           - 5432:5432
         env:
           POSTGRES_PASSWORD: pw
+        healthcheck:
+          test: ["CMD", "pg_isready", "-U", "postgres"]
+          interval: 10s
+          timeout: 5s
+          retries: 5
 
     steps:
       - name: Checkout code
