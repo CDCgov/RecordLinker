@@ -57,6 +57,7 @@ def insert_matched_patient(
     session: orm.Session,
     data: dict,
     person_id: typing.Optional[int] = None,
+    external_patient_id: typing.Optional[str] = None,
     external_person_id: typing.Optional[str] = None,
     commit: bool = True,
 ) -> models.Patient:
@@ -66,7 +67,9 @@ def insert_matched_patient(
     # create a new Person record if one isn't provided
     person = models.Person() if not person_id else session.get(models.Person, person_id)
 
-    patient = models.Patient(person=person, data=data)
+    patient = models.Patient(
+        person=person, data=data, external_patient_id=external_patient_id
+    )
     if external_person_id is not None:
         patient.external_person_id = external_person_id
         patient.external_person_source = "IRIS"

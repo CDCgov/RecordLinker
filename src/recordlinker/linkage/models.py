@@ -39,6 +39,7 @@ class Patient(Base):
     person_id: orm.Mapped[int] = orm.mapped_column(schema.ForeignKey("mpi_person.id"))
     person: orm.Mapped["Person"] = orm.relationship(back_populates="patients")
     data: orm.Mapped[dict] = orm.mapped_column(sqltypes.JSON)
+    external_patient_id: orm.Mapped[str] = orm.mapped_column(sqltypes.String(255), nullable=True)
     external_person_id: orm.Mapped[str] = orm.mapped_column(sqltypes.String(255), nullable=True)
     external_person_source: orm.Mapped[str] = orm.mapped_column(sqltypes.String(100), nullable=True)
     blocking_values: orm.Mapped[list["BlockingValue"]] = orm.relationship(back_populates="patient")

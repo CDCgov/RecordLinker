@@ -99,6 +99,19 @@ class TestInsertMatchedPatient:
         assert patient.external_person_source is None
         assert len(patient.blocking_values) == 3
 
+    def test_with_person_and_external_patient_id(self, session):
+        person = models.Person()
+        session.add(person)
+        session.flush()
+        data = {"name": [{"given": ["George",], "family": "Harrison"}]}
+        patient = simple_mpi.insert_matched_patient(session, data, person_id=person.id, external_patient_id="abc")
+        assert patient.person_id == person.id
+        assert patient.data == data
+        assert patient.external_patient_id == "abc"
+        assert patient.external_person_id is None
+        assert patient.external_person_source is None
+        assert len(patient.blocking_values) == 2
+
 
 class TestGetBlockData:
     @pytest.fixture
