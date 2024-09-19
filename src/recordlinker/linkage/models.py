@@ -31,15 +31,7 @@ class Person(Base):
 
     id: orm.Mapped[int] = orm.mapped_column(primary_key=True)
     internal_id: orm.Mapped[uuid.UUID] = orm.mapped_column(default=uuid.uuid4)
-
-
-class ExternalPerson(Base):
-    __tablename__ = "mpi_external_person"
-
-    id: orm.Mapped[int] = orm.mapped_column(primary_key=True)
-    person_id: orm.Mapped[int] = orm.mapped_column(schema.ForeignKey("mpi_person.id"))
-    external_id: orm.Mapped[str] = orm.mapped_column(sqltypes.String(255))
-    source: orm.Mapped[str] = orm.mapped_column(sqltypes.String(255))
+    patients: orm.Mapped[list["Patient"]] = orm.relationship(back_populates="person")
 
 
 class Patient(Base):
@@ -47,7 +39,11 @@ class Patient(Base):
 
     id: orm.Mapped[int] = orm.mapped_column(primary_key=True)
     person_id: orm.Mapped[int] = orm.mapped_column(schema.ForeignKey("mpi_person.id"))
+    person: orm.Mapped["Person"] = orm.relationship(back_populates="patients")
     data: orm.Mapped[dict] = orm.mapped_column(sqltypes.JSON)
+    external_person_id: orm.Mapped[str] = orm.mapped_column(sqltypes.String(255), nullable=True)
+    external_person_source: orm.Mapped[str] = orm.mapped_column(sqltypes.String(100), nullable=True)
+    blocking_values: orm.Mapped[list["BlockingValue"]] = orm.relationship(back_populates="patient")
 
 
 class BlockingKey(enum.Enum):
@@ -120,22 +116,25 @@ class BlockingKey(enum.Enum):
     def _extract_zipcode(self, data: dict) -> list[str]:
         zipcodes = []
         for address in data.get("address", []):
-            if "zip" in address:
-                zipcodes.append(address["zip"].strip()[0:5])
+            if isinstance(address, dict):
+                if "zip" in address:
+                    zipcodes.append(str(address["zip"]).strip()[0:5])
         return zipcodes
 
     def _extract_first_name_first_four(self, data: dict) -> list[str]:
         names = []
         for name in data.get("name", []):
-            for given in name.get("given", []):
-                names.append(given[:4])
+            if isinstance(name, dict):
+                for given in name.get("given", []):
+                    names.append(str(given)[:4])
         return names
 
     def _extract_last_name_first_four(self, data: dict) -> list[str]:
         names = []
         for name in data.get("name", []):
-            if "family" in name:
-                names.append(name.get("family")[:4])
+            if isinstance(name, dict):
+                if "family" in name:
+                    names.append(str(name["family"])[:4])
         return names
 
 
@@ -150,5 +149,6 @@ class BlockingValue(Base):
 
     id: orm.Mapped[int] = orm.mapped_column(primary_key=True)
     patient_id: orm.Mapped[int] = orm.mapped_column(schema.ForeignKey("mpi_patient.id"))
+    patient: orm.Mapped["Patient"] = orm.relationship(back_populates="blocking_values")
     blockingkey: orm.Mapped[int] = orm.mapped_column(sqltypes.Integer)
-    value: orm.Mapped[str] = orm.mapped_column(sqltypes.String(50), index=True)
+    value: orm.Mapped[str] = orm.mapped_column(sqltypes.String(50))
