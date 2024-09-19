@@ -25,7 +25,7 @@ dependencies = [
     "fhirpathpy",
     "rapidfuzz",
     # TODO: replace pyway with alembic for managing database migrations
-    "pyway"
+    "pyway==0.3.29"
 ]
 
 [project.optional-dependencies]
