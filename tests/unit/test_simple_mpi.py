@@ -134,3 +134,15 @@ class TestGetBlockData:
         algo_config = {"blocks": [{"value": "birthdate"}, {"value": "first_name"}]}
         matches = simple_mpi.get_block_data(session, data, algo_config)
         assert len(matches) == 4
+
+    def test_match_on_birthdate_first_name_and_last_name(self, session, prime_index):
+        data = {"name": [{"given": ["Johnathon", "Bill",], "family": "Smith"}], "birthdate": "01/01/1980"}
+        algo_config = {"blocks": [{"value": "birthdate"}, {"value": "first_name"}, {"value": "last_name"}]}
+        matches = simple_mpi.get_block_data(session, data, algo_config)
+        assert len(matches) == 3
+        data = {"name": [{"given": ["Billy",], "family": "Smitty"}], "birthdate": "Jan 1 1980"}
+        matches = simple_mpi.get_block_data(session, data, algo_config)
+        assert len(matches) == 2
+        data = {"name": [{"given": ["Johnathon", "Bill",], "family": "Doeherty"}], "birthdate": "Jan 1 1980"}
+        matches = simple_mpi.get_block_data(session, data, algo_config)
+        assert len(matches) == 0
