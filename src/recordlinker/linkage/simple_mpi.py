@@ -23,58 +23,55 @@ def get_block_data(
     # Create the base query
     query = session.query(models.Patient)
 
-    # Build the join criteria
-    for block in algo_config["blocks"]:
+    # Build the join criteria, we are joining the Blocking Value table
+    # multiple times, once for each Blocking Key.  If a Patient record
+    # has a matching Blocking Value for all the Blocking Keys, then it
+    # is considered a match.
+    for idx, block in enumerate(algo_config["blocks"]):
         key_name = block["value"].upper()
         # Get the matching Blocking Key based on the value in the algo_config
         assert hasattr(models.BlockingKey, key_name), f"Invalid Blocking Key: {block}"
         key = models.BlockingKey[key_name]
         # Get all the possible values from the data for this key
         vals = [v for v in key.to_value(data)]
+        # Create a dynamic alias for the Blocking Value table using the index
+        # this is necessary since we are potentially joining the same table
+        # multiple times with different conditions
+        alias = orm.aliased(models.BlockingValue, name=f"bv{idx}")
         # Add a join clause to the mpi_blocking_value table for each Blocking Key.
         # This results in multiple joins to the same table, one for each Key, but
         # with different joining conditions.
         query = query.join(
-            models.BlockingValue,
+            alias,
             expression.and_(
-                models.Patient.id == models.BlockingValue.patient_id,
-                models.BlockingValue.blockingkey == key.id,
-                models.BlockingValue.value.in_(vals),
+                models.Patient.id == alias.patient_id,
+                alias.blockingkey == key.id,
+                alias.value.in_(vals),
             ),
         )
-
     return query.all()
 
 
+# TODO: should this method be renamed to insert_patient
 def insert_matched_patient(
     session: orm.Session,
     data: dict,
-    person_id: typing.Optional[int],
-    external_person_id: typing.Optional[str],
+    person_id: typing.Optional[int] = None,
+    external_person_id: typing.Optional[str] = None,
     commit: bool = True,
 ) -> models.Patient:
     """
     Insert a new patient record into the database.
     """
-    if person_id is None:
-        # create a new Person record
-        person = models.Person()
-        session.add(person)
-        # flush the session to get the person_id
-        session.flush()
-        person_id = person.id
+    # create a new Person record if one isn't provided
+    person = models.Person() if not person_id else session.get(models.Person, person_id)
 
+    patient = models.Patient(person=person, data=data)
     if external_person_id is not None:
-        # create a new ExternalPerson record if it doesn't exist
-        external_person = models.ExternalPerson(
-            person_id=person_id,
-            external_id=external_person_id,
-            source="IRIS",
-        )
-        session.merge(external_person)
+        patient.external_person_id = external_person_id
+        patient.external_person_source = "IRIS"
 
     # create a new Patient record
-    patient = models.Patient(person_id=person_id, data=data)
     session.add(patient)
 
     # insert blocking keys
@@ -101,9 +98,7 @@ def insert_blocking_keys(
         # a PII data dict could have multiple given names
         for val in key.to_value(patient.data):
             values.append(
-                models.BlockingValue(
-                    patient_id=patient.id, blockingkey=key.id, value=val
-                )
+                models.BlockingValue(patient=patient, blockingkey=key.id, value=val)
             )
     session.add_all(values)
 
