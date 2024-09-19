@@ -2,8 +2,8 @@
   "algorithm": [
     {
       "funcs": {
-        "first_name": "feature_match_log_odds_fuzzy_compare",
-        "last_name": "feature_match_log_odds_fuzzy_compare"
+        "first_name": "func:recordlinker.linkage.matchers.feature_match_log_odds_fuzzy_compare",
+        "last_name": "func:recordlinker.linkage.matchers.feature_match_log_odds_fuzzy_compare"
       },
       "blocks": [
         {
@@ -17,7 +17,7 @@
           "value": "sex"
         }
       ],
-      "matching_rule": "eval_log_odds_cutoff",
+      "matching_rule": "func:recordlinker.linkage.matchers.eval_log_odds_cutoff",
       "cluster_ratio": 0.9,
       "kwargs": {
         "similarity_measure": "JaroWinkler",
@@ -45,8 +45,8 @@
     },
     {
       "funcs": {
-        "address": "feature_match_log_odds_fuzzy_compare",
-        "birthdate": "feature_match_log_odds_fuzzy_compare"
+        "address": "func:recordlinker.linkage.matchers.feature_match_log_odds_fuzzy_compare",
+        "birthdate": "func:recordlinker.linkage.matchers.feature_match_log_odds_fuzzy_compare"
       },
       "blocks": [
         {
@@ -64,7 +64,7 @@
           "value": "sex"
         }
       ],
-      "matching_rule": "eval_log_odds_cutoff",
+      "matching_rule": "func:recordlinker.linkage.matchers.eval_log_odds_cutoff",
       "cluster_ratio": 0.9,
       "kwargs": {
         "similarity_measure": "JaroWinkler",
