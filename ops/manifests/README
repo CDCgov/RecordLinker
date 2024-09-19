@@ -1,0 +1,40 @@
+# Local Minikube Record Linkage
+
+The intention for using minikube is to have the ability to use an environment during development that is aimed to pair as close as possible to production-like environments, locally before promoting container versions. The added benefits to this approach is to add more advanced experimentation with system scalability and networking in the future.
+
+## Prerequisites
+
+Before getting started, ensure you have the following installed:
+
+- [Docker](https://docs.docker.com/engine/install/)
+- [Minikube](https://minikube.sigs.k8s.io/docs/start/)
+- [Kubernetes](https://kubernetes.io/releases/download/)
+
+## Setup
+
+1. Run the `minikube-start.sh` script:
+
+    ```bash
+    sh scripts/minikube-start.sh
+    ```
+
+    This script will remove any existing minikube instances with a profile of `minikube` and create a new instance with all services running and configured loadbalancers for ease of access.
+
+2. Once the environment is up and running, you can verify that it worked by running `curl -X GET localhost:8080/` and connecting to a databases client with `localhost:5432`. Then run a POST with the `/link-record` endpoint to check the database is working with the api(If you need help with any of this please reach out to someone on the team).
+
+
+This setup is intented for locally built container images but if you want to run the GH registered image i.e. `ghcr.io/cdcgov/phdi/record-linkage`, Just pass the image as a variable to the script like so:
+
+```bash
+sh scripts/minikube-start.sh ghcr.io/cdcgov/phdi/record-linkage
+```
+
+**NOTE**: If your local machine is something other than amd64(like arm64), then the registered image may not work for you because Minikube typically runs with whatever architecture your machine is and isn't supplied with rosetta. I have tried using an amd64 Minikube version and still had no luck. Maybe in the future we will have images built for different architectures..
+
+## Cleanup
+
+After you've finished running Minikube, remove the it by running:
+
+```bash
+minikube delete
+```

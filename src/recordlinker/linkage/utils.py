@@ -1,16 +1,13 @@
+import copy
+import functools
+import importlib
 import json
 import random
+import typing
 from datetime import date
 from datetime import datetime
-from functools import cache
-from typing import Any
-from typing import Callable
-from typing import List
-from typing import Literal
-from typing import Union
 
 import fhirpathpy
-import rapidfuzz
 
 # TODO:  Not sure if we will need this or not
 # leaving in utils for now until it's determined that
@@ -38,7 +35,7 @@ import rapidfuzz
 
 
 def datetime_to_str(
-    input_date: Union[str, date, datetime], include_time: bool = False
+    input_date: typing.Union[str, date, datetime], include_time: bool = False
 ) -> str:
     """
     Convert a date or datetime object to a string; if a string is provided,
@@ -54,7 +51,7 @@ def datetime_to_str(
     """
     # Handle None or empty string
     if input_date is None or input_date == "":
-        return input_date
+        return ""
 
     # if input is str try to check that it follows the expected format
     if isinstance(input_date, str):
@@ -84,52 +81,13 @@ def datetime_to_str(
 
 
 # Originally from phdi/harmonization/utils.py
-def compare_strings(
-    string1: str,
-    string2: str,
-    similarity_measure: Literal[
-        "JaroWinkler", "Levenshtein", "DamerauLevenshtein"
-    ] = "JaroWinkler",
-) -> float:
-    """
-    Returns the normalized similarity measure between string1 and string2, as
-    determined by the similarlity measure. The higher the normalized similarity measure
-    (up to 1.0), the more similar string1 and string2 are. A normalized similarity
-    measure of 0.0 means string1 and string 2 are not at all similar. This function
-    expects basic text cleaning (e.g. removal of numeric characters, trimming of spaces,
-    etc.) to already have been performed on the input strings.
-
-    :param string1: First string for comparison.
-    :param string2: Second string for comparison.
-    :param similarity_measure: The method used to measure the similarity between two
-        strings, defaults to "JaroWinkler".
-     - JaroWinkler: a ratio of matching characters and transpositions needed to
-        transform string1 into string2.
-     - Levenshtein: the number of edits (excluding transpositions) needed to transform
-        string1 into string2.
-     - DamerauLevenshtein: the number of edits (including transpositions) needed to
-        transform string1 into string2.
-    :return: The normalized similarity between string1 and string2, with 0 representing
-        no similarity between string1 and string2, and 1 meaning string1 and string2 are
-        dentical words.
-    """
-    if similarity_measure == "JaroWinkler":
-        return rapidfuzz.distance.JaroWinkler.normalized_similarity(string1, string2)
-    elif similarity_measure == "Levenshtein":
-        return rapidfuzz.distance.Levenshtein.normalized_similarity(string1, string2)
-    elif similarity_measure == "DamerauLevenshtein":
-        return rapidfuzz.distance.DamerauLevenshtein.normalized_similarity(
-            string1, string2
-        )
 
 
-selection_criteria_types = Literal["first", "last", "random", "all"]
-
-
+selection_criteria_types = typing.Literal["first", "last", "random", "all"]
 def apply_selection_criteria(
-    value: List[Any],
+    value: list[typing.Any],
     selection_criteria: selection_criteria_types,
-) -> str | List:
+) -> str | list:
     """
     Returns value(s), according to the selection criteria, from a given list of values
     parsed from a FHIR resource. A single string value is returned - if the selected
@@ -168,8 +126,8 @@ def apply_selection_criteria(
 def extract_value_with_resource_path(
     resource: dict,
     path: str,
-    selection_criteria: Literal["first", "last", "random", "all"] = "first",
-) -> Union[Any, None]:
+    selection_criteria: selection_criteria_types = "first",
+) -> typing.Union[typing.Any, None]:
     """
     Yields a single value from a resource based on a provided `fhir_path`.
     If the path doesn't map to an extant value in the first, returns
@@ -190,8 +148,8 @@ def extract_value_with_resource_path(
         return value
 
 
-@cache
-def get_fhirpathpy_parser(fhirpath_expression: str) -> Callable:
+@functools.cache
+def get_fhirpathpy_parser(fhirpath_expression: str) -> typing.Callable:
     """
     Accepts a FHIRPath expression, and returns a callable function
     which returns the evaluated value at fhirpath_expression for
@@ -201,3 +159,45 @@ def get_fhirpathpy_parser(fhirpath_expression: str) -> Callable:
       will return value at `fhirpath_expression`.
     """
     return fhirpathpy.compile(fhirpath_expression)
+
+
+def bind_functions(data: dict) -> dict:
+    """
+    Binds the functions in the data to the functions in the module.
+    """
+    def _eval_non_list(data):
+        if isinstance(data, dict):
+            return bind_functions(data)
+        elif isinstance(data, str) and data.startswith("func:"):
+            return str_to_callable(data)
+        return data
+
+    bound = copy.copy(data)
+    for key, value in bound.items():
+        if isinstance(value, list):
+            bound[key] = [_eval_non_list(item) for item in value]
+        else:
+            bound[key] = _eval_non_list(value)
+    return bound
+
+
+def str_to_callable(val: str) -> typing.Callable:
+    """
+    Converts a string representation of a function to the function itself.
+    """
+    # Remove the "func:" prefix
+    if val.startswith("func:"):
+        val = val[5:]
+    # Split the string into module path and function name
+    module_path, func_name = val.rsplit(".", 1)
+    # Import the module
+    module = importlib.import_module(module_path)
+    # Get the function from the module
+    return getattr(module, func_name)
+
+
+def func_to_str(func: typing.Callable) -> str:
+    """
+    Converts a function to a string representation of the function.
+    """
+    return f"func:{func.__module__}.{func.__name__}"

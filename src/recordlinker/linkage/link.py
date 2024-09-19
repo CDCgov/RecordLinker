@@ -1,20 +1,15 @@
-import copy
 import datetime
 import hashlib
 import json
 import logging
 import pathlib
-from typing import Callable
-from typing import List
 from typing import Union
 
 from pydantic import Field
 
+from recordlinker.linkage import utils
 from recordlinker.linkage.mpi import BaseMPIConnectorClient
 from recordlinker.linkage.mpi import DIBBsMPIConnectorClient
-from recordlinker.linkage.utils import compare_strings
-from recordlinker.linkage.utils import datetime_to_str
-from recordlinker.linkage.utils import extract_value_with_resource_path
 
 LINKING_FIELDS_TO_FHIRPATHS = {
     "first_name": "Patient.name.given",
@@ -29,7 +24,7 @@ LINKING_FIELDS_TO_FHIRPATHS = {
 }
 
 
-def compile_match_lists(match_lists: List[dict], cluster_mode: bool = False):
+def compile_match_lists(match_lists: list[dict], cluster_mode: bool = False):
     """
     Turns a list of matches of either clusters or candidate pairs found
     during linkage into a single unified structure holding all found matches
@@ -67,37 +62,8 @@ def compile_match_lists(match_lists: List[dict], cluster_mode: bool = False):
     return matches
 
 
-def eval_perfect_match(feature_comparisons: List, **kwargs) -> bool:
-    """
-    Determines whether a given set of feature comparisons represent a
-    'perfect' match (i.e. whether all features that were compared match
-    in whatever criteria was specified for them).
-
-    :param feature_comparisons: A list of 1s and 0s, one for each feature
-      that was compared during the match algorithm.
-    :return: The evaluation of whether the given features all match.
-    """
-    return sum(feature_comparisons) == len(feature_comparisons)
-
-
-def eval_log_odds_cutoff(feature_comparisons: List, **kwargs) -> bool:
-    """
-    Determines whether a given set of feature comparisons matches enough
-    to be the result of a true patient link instead of just random chance.
-    This is represented using previously computed log-odds ratios.
-
-    :param feature_comparisons: A list of floats representing the log-odds
-      score of each field computed on.
-    :return: Whether the feature comparisons score well enough to be
-      considered a match.
-    """
-    if "true_match_threshold" not in kwargs:
-        raise KeyError("Cutoff threshold for true matches must be passed.")
-    return sum(feature_comparisons) >= kwargs["true_match_threshold"]
-
-
 def extract_blocking_values_from_record(
-    record: dict, blocking_fields: List[dict]
+    record: dict, blocking_fields: list[dict]
 ) -> dict:
     """
     Extracts values from a given patient record for eventual use in database
@@ -151,7 +117,7 @@ def extract_blocking_values_from_record(
         block = block_dict.get("value")
         try:
             # Apply utility extractor for safe parsing
-            value = extract_value_with_resource_path(
+            value = utils.extract_value_with_resource_path(
                 record,
                 LINKING_FIELDS_TO_FHIRPATHS[block],
                 selection_criteria="first",
@@ -186,164 +152,6 @@ def extract_blocking_values_from_record(
     return block_vals
 
 
-def feature_match_exact(
-    record_i: List,
-    record_j: List,
-    feature_col: str,
-    col_to_idx: dict[str, int],
-    **kwargs: dict,
-) -> bool:
-    """
-    Determines whether a single feature in a given pair of records
-    constitutes an exact match (perfect equality).
-
-    :param record_i: One of the records in the candidate pair to evaluate.
-    :param record_j: The second record in the candidate pair.
-    :param feature_col: The name of the column being evaluated (e.g. "city").
-    :param col_to_idx: A dictionary mapping column names to the numeric index
-      in which they occur in order in the data.
-    :return: A boolean indicating whether the features are an exact match.
-    """
-    idx = col_to_idx[feature_col]
-    return record_i[idx] == record_j[idx]
-
-
-def feature_match_four_char(
-    record_i: List,
-    record_j: List,
-    feature_col: str,
-    col_to_idx: dict[str, int],
-    **kwargs: dict,
-) -> bool:
-    """
-    Determines whether a string feature in a pair of records exactly matches
-    on the first four characters.
-
-    :param record_i: One of the records in the candidate pair to evaluate.
-    :param record_j: The second record in the candidate pair.
-    :param feature_col: The name of the column being evaluated (e.g. "city").
-    :param col_to_idx: A dictionary mapping column names to the numeric index
-      in which they occur in order in the data.
-    :return: A boolean indicating whether the features are a match.
-    """
-    idx = col_to_idx[feature_col]
-    first_four_i = record_i[idx][: min(4, len(record_i[idx]))]
-    first_four_j = record_j[idx][: min(4, len(record_j[idx]))]
-    return first_four_i == first_four_j
-
-
-def feature_match_fuzzy_string(
-    record_i: List,
-    record_j: List,
-    feature_col: str,
-    col_to_idx: dict[str, int],
-    **kwargs: dict,
-) -> bool:
-    """
-    Determines whether two strings in a given pair of records are close
-    enough to constitute a partial match. The exact nature of the match
-    is determined by the specified string comparison function (see
-    harmonization/utils/compare_strings for more details) as well as a
-    scoring threshold the comparison must meet or exceed.
-
-    :param record_i: One of the records in the candidate pair to evaluate.
-    :param record_j: The second record in the candidate pair.
-    :param feature_col: The name of the column being evaluated (e.g. "city").
-    :param col_to_idx: A dictionary mapping column names to the numeric index
-      in which they occur in order in the data.
-    :param **kwargs: Optionally, a dictionary including specifications for
-      the string comparison metric to use, as well as the cutoff score
-      beyond which to classify the strings as a partial match.
-    :return: A boolean indicating whether the features are a fuzzy match.
-    """
-    idx = col_to_idx[feature_col]
-
-    # Convert datetime obj to str using helper function
-    if feature_col == "birthdate":
-        record_i[idx] = datetime_to_str(record_i[idx])
-        record_j[idx] = datetime_to_str(record_j[idx])
-
-    # Special case for two empty strings, since we don't want vacuous
-    # equality (or in-) to penalize the score
-    if record_i[idx] == "" and record_j[idx] == "":
-        return True
-    if record_i[idx] is None and record_j[idx] is None:
-        return True
-
-    similarity_measure, threshold = _get_fuzzy_params(feature_col, **kwargs)
-    score = compare_strings(record_i[idx], record_j[idx], similarity_measure)
-    return score >= threshold
-
-
-def feature_match_log_odds_exact(
-    record_i: List,
-    record_j: List,
-    feature_col: str,
-    col_to_idx: dict[str, int],
-    **kwargs: dict,
-) -> float:
-    """
-    Determines whether two feature values in two records should earn the full
-    log-odds similarity score (i.e. they match exactly) or whether they
-    should earn no weight (they differ). Used for fields for which fuzzy
-    comparisons are inappropriate, such as sex.
-
-    :param record_i: One of the records in the candidate pair to evaluate.
-    :param record_j: The second record in the candidate pair.
-    :param feature_col: The name of the column being evaluated (e.g. "city").
-    :param col_to_idx: A dictionary mapping column names to the numeric index
-      in which they occur in order in the data.
-    :return: A float of the score the feature comparison earned.
-    """
-    if "log_odds" not in kwargs:
-        raise KeyError("Mapping of columns to m/u log-odds must be provided.")
-    col_odds = kwargs["log_odds"][feature_col]
-    idx = col_to_idx[feature_col]
-    if record_i[idx] == record_j[idx]:
-        return col_odds
-    else:
-        return 0.0
-
-
-def feature_match_log_odds_fuzzy_compare(
-    record_i: List,
-    record_j: List,
-    feature_col: str,
-    col_to_idx: dict[str, int],
-    **kwargs: dict,
-) -> float:
-    """
-    Determines the weighted string-odds similarly score earned by two
-    feature values in two records, as a function of the pre-computed
-    log-odds weights and the string similarity between the two features.
-    This scales the full score that would be earned from a perfect
-    match to a degree of partial weight appropriate to how similar the
-    two strings are.
-
-    :param record_i: One of the records in the candidate pair to evaluate.
-    :param record_j: The second record in the candidate pair.
-    :param feature_col: The name of the column being evaluated (e.g. "city").
-    :param col_to_idx: A dictionary mapping column names to the numeric index
-      in which they occur in order in the data.
-    :return: A float of the score the feature comparison earned.
-    """
-    if "log_odds" not in kwargs:
-        raise KeyError("Mapping of columns to m/u log-odds must be provided.")
-    col_odds = kwargs["log_odds"][feature_col]
-    idx = col_to_idx[feature_col]
-
-    # Convert datetime obj to str using helper function
-    if feature_col == "birthdate":
-        record_i[idx] = datetime_to_str(record_i[idx])
-        record_j[idx] = datetime_to_str(record_j[idx])
-
-    similarity_measure, threshold = _get_fuzzy_params(feature_col, **kwargs)
-    score = compare_strings(record_i[idx], record_j[idx], similarity_measure)
-    if score < threshold:
-        score = 0.0
-    return score * col_odds
-
-
 def generate_hash_str(linking_identifier: str, salt_str: str) -> str:
     """
     Generates a hash for a given string of concatenated patient information. The hash
@@ -363,7 +171,7 @@ def generate_hash_str(linking_identifier: str, salt_str: str) -> str:
 
 def link_record_against_mpi(
     record: dict,
-    algo_config: List[dict],
+    algo_config: list[dict],
     external_person_id: str = None,
     mpi_client: BaseMPIConnectorClient = None,
 ) -> tuple[bool, str]:
@@ -395,15 +203,7 @@ def link_record_against_mpi(
     # Need to bind function names back to their symbolic invocations
     # in context of the module--i.e. turn the string of a function
     # name back into the callable defined in link.py
-
-    algo_config = copy.deepcopy(algo_config)
-    logging.info(
-        f"Starting _bind_func_names_to_invocations at: {datetime.datetime.now().strftime('%m-%d-%yT%H:%M:%S.%f')}"  # noqa
-    )
-    algo_config = _bind_func_names_to_invocations(algo_config)
-    logging.info(
-        f"Done with _bind_func_names_to_invocations at:{datetime.datetime.now().strftime('%m-%d-%yT%H:%M:%S.%f')}"  # noqa
-    )
+    algo_config = [utils.bind_functions(linkage_pass) for linkage_pass in algo_config]
 
     # Membership ratios need to persist across linkage passes so that we can
     # find the highest scoring match across all trials
@@ -553,69 +353,7 @@ def load_json_probs(path: pathlib.Path):
         )
 
 
-def match_within_block(
-    block: List[List],
-    feature_funcs: dict[str, Callable],
-    col_to_idx: dict[str, int],
-    match_eval: Callable,
-    **kwargs,
-) -> List[tuple]:
-    """
-    Performs matching on all candidate pairs of records within a given block
-    of data. Actual partitioning of the data should be done outside this
-    function, as it compares all possible pairs within the provided partition.
-    Uses a given construction of feature comparison rules as well as a
-    match evaluation rule to determine the final verdict on whether two
-    records are indeed a match.
-
-    A feature function is of the form "feature_match_X" for some condition
-    X; it must accept two records (lists of data), an index i in which the
-    feature to compare is stored, and the parameter **kwargs. It must return
-    a boolean indicating whether the features "match" for whatever definition
-    of match the function uses (i.e. this allows modular logic to apply to
-    different features in the compared records). Note that not all features
-    in a record need a comparison function defined.
-
-    A match evaluation rule is a function of the form "eval_X" for some
-    condition X. It accepts as input a list of booleans, one for each feature
-    that was compared with feature funcs, and determines whether the
-    comparisons constitute a match according to X.
-
-    :param block: A list of records to check for matches. Each record in
-      the list is itself a list of features. The first feature of the
-      record must be an "id" for the record.
-    :param feature_funcs: A dictionary mapping feature indices to functions
-      used to evaluate those features for a match.
-    :param col_to_idx: A dictionary mapping column names to the numeric index
-      in which they occur in order in the data.
-    :param match_eval: A function for determining whether a given set of
-      feature comparisons constitutes a match for linkage.
-    :return: A list of 2-tuples of the form (i,j), where i,j give the indices
-      in the block of data of records deemed to match.
-    """
-    match_pairs = []
-
-    # Dynamic programming table: order doesn't matter, so only need to
-    # check each combo of i,j once
-    for i, record_i in enumerate(block):
-        for j in range(i + 1, len(block)):
-            record_j = block[j]
-            feature_comps = [
-                feature_funcs[feature_col](
-                    record_i, record_j, feature_col, col_to_idx, **kwargs
-                )
-                for feature_col in feature_funcs
-            ]
-
-            # If it's a match, store the result
-            is_match = match_eval(feature_comps, **kwargs)
-            if is_match:
-                match_pairs.append((i, j))
-
-    return match_pairs
-
-
-def read_linkage_config(config_file: pathlib.Path) -> List[dict]:
+def read_linkage_config(config_file: pathlib.Path) -> list[dict]:
     """
     Reads and generates a record linkage algorithm configuration list from
     the provided filepath, which should point to a JSON file. A record
@@ -724,7 +462,7 @@ def score_linkage_vs_truth(
     return (sensitivity, specificity, ppv, f1)
 
 
-def write_linkage_config(linkage_algo: List[dict], file_to_write: pathlib.Path) -> None:
+def write_linkage_config(linkage_algo: list[dict], file_to_write: pathlib.Path) -> None:
     """
     Save a provided algorithm description as a JSON dictionary at the provided
     filepath location. Algorithm descriptions are lists of dictionaries, one
@@ -752,9 +490,9 @@ def write_linkage_config(linkage_algo: List[dict], file_to_write: pathlib.Path) 
     algo_json = []
     for rl_pass in linkage_algo:
         pass_json = {}
-        pass_json["funcs"] = {col: f.__name__ for (col, f) in rl_pass["funcs"].items()}
+        pass_json["funcs"] = {col: utils.func_to_str(f) for (col, f) in rl_pass["funcs"].items()}
         pass_json["blocks"] = rl_pass["blocks"]
-        pass_json["matching_rule"] = rl_pass["matching_rule"].__name__
+        pass_json["matching_rule"] = utils.func_to_str(rl_pass["matching_rule"])
         if rl_pass.get("cluster_ratio", None) is not None:
             pass_json["cluster_ratio"] = rl_pass["cluster_ratio"]
         if rl_pass.get("kwargs", None) is not None:
@@ -767,58 +505,9 @@ def write_linkage_config(linkage_algo: List[dict], file_to_write: pathlib.Path) 
         out.write(json.dumps(linkage_json))
 
 
-def _bind_func_names_to_invocations(algo_config: List[dict]):
-    """
-    Helper method that re-maps the string names of functions to their
-    callable invocations as defined within the `link.py` module.
-    """
-    for lp in algo_config:
-        feature_funcs = lp["funcs"]
-        for func in feature_funcs:
-            if type(feature_funcs[func]) is str:  # noqa
-                feature_funcs[func] = globals()[feature_funcs[func]]
-        if type(lp["matching_rule"]) is str:  # noqa
-            lp["matching_rule"] = globals()[lp["matching_rule"]]
-    return algo_config
-
-
-def _eval_record_in_cluster(
-    block: List[List],
-    i: int,
-    cluster: set,
-    cluster_ratio: float,
-    feature_funcs: dict[str, Callable],
-    col_to_idx: dict[str, int],
-    match_eval: Callable,
-    **kwargs,
-):
-    """
-    A helper function used to evaluate whether a given incoming record
-    satisfies the matching proportion threshold of an existing cluster,
-    and therefore would belong to the cluster.
-    """
-    record_i = block[i]
-    num_matched = 0.0
-    for j in cluster:
-        record_j = block[j]
-        feature_comps = [
-            feature_funcs[feature_col](
-                record_i, record_j, feature_col, col_to_idx, **kwargs
-            )
-            for feature_col in feature_funcs
-        ]
-
-        is_match = match_eval(feature_comps)
-        if is_match:
-            num_matched += 1.0
-    if (num_matched / len(cluster)) >= cluster_ratio:
-        return True
-    return False
-
-
 def _compare_records(
-    record: List,
-    mpi_patient: List,
+    record: list,
+    mpi_patient: list,
     feature_funcs: dict,
     col_to_idx: dict[str, int],
     matching_rule: callable,
@@ -847,8 +536,8 @@ def _compare_records(
 
 
 def _compare_records_field_helper(
-    record: List,
-    mpi_patient: List,
+    record: list,
+    mpi_patient: list,
     feature_col: str,
     col_to_idx: dict[str, int],
     feature_funcs: dict,
@@ -869,8 +558,8 @@ def _compare_records_field_helper(
 
 
 def _compare_address_elements(
-    record: List,
-    mpi_patient: List,
+    record: list,
+    mpi_patient: list,
     feature_funcs: dict,
     feature_col: str,
     col_to_idx: dict[str, int],
@@ -893,8 +582,8 @@ def _compare_address_elements(
 
 
 def _compare_name_elements(
-    record: List,
-    mpi_patient: List,
+    record: list,
+    mpi_patient: list,
     feature_funcs: dict,
     feature_col: str,
     col_to_idx: dict[str, int],
@@ -927,7 +616,7 @@ def _condense_extract_address_from_resource(resource: dict, field: str):
     """
     expanded_address_fhirpath = LINKING_FIELDS_TO_FHIRPATHS[field]
     expanded_address_fhirpath = ".".join(expanded_address_fhirpath.split(".")[:-1])
-    list_of_address_objects = extract_value_with_resource_path(
+    list_of_address_objects = utils.extract_value_with_resource_path(
         resource, expanded_address_fhirpath, "all"
     )
     if field == "address":
@@ -958,7 +647,7 @@ def _find_strongest_link(linkage_scores: dict) -> str:
     return best_person
 
 
-def _flatten_patient_resource(resource: dict, col_to_idx: dict) -> List:
+def _flatten_patient_resource(resource: dict, col_to_idx: dict) -> list:
     """
     Helper method that flattens an incoming patient resource into a list whose
     elements are the keys of the FHIR dictionary, reformatted and ordered
@@ -986,7 +675,7 @@ def _flatten_patient_field_helper(resource: dict, field: str) -> any:
     algorithm.
     """
     if field == "first_name":
-        vals = extract_value_with_resource_path(
+        vals = utils.extract_value_with_resource_path(
             resource, LINKING_FIELDS_TO_FHIRPATHS[field], selection_criteria="all"
         )
         return vals if vals is not None else [""]
@@ -994,40 +683,13 @@ def _flatten_patient_field_helper(resource: dict, field: str) -> any:
         vals = _condense_extract_address_from_resource(resource, field)
         return vals if vals is not None else [""]
     else:
-        val = extract_value_with_resource_path(
+        val = utils.extract_value_with_resource_path(
             resource, LINKING_FIELDS_TO_FHIRPATHS[field], selection_criteria="first"
         )
         return val if val is not None else ""
 
 
-def _get_fuzzy_params(col: str, **kwargs) -> tuple[str, str]:
-    """
-    Helper method to quickly determine the appropriate similarity measure
-    and fuzzy matching threshold to use for fuzzy-comparing a particular
-    field between two records.
-
-    :param col: The string name of the column being used in a fuzzy
-      comparison.
-    :param kwargs: Optionally, a dictionary of keyword arguments containing
-      values for a similarity metric and appropriate fuzzy thresholds.
-    :return: A tuple containing the similarity metric to use and the
-      fuzzy comparison threshold to measure against.
-    """
-    similarity_measure = "JaroWinkler"
-    if "similarity_measure" in kwargs:
-        similarity_measure = kwargs["similarity_measure"]
-
-    threshold = 0.7
-    if "thresholds" in kwargs:
-        if col in kwargs["thresholds"]:
-            threshold = kwargs["thresholds"][col]
-    elif "threshold" in kwargs:
-        threshold = kwargs["threshold"]
-
-    return similarity_measure, threshold
-
-
-def _group_patient_block_by_person(data_block: List[list]) -> dict[str, List]:
+def _group_patient_block_by_person(data_block: list[list]) -> dict[str, list]:
     """
     Helper method that partitions the block of patient data returned from the MPI
     into clusters of records according to their linked Person ID.
@@ -1042,8 +704,8 @@ def _group_patient_block_by_person(data_block: List[list]) -> dict[str, List]:
 
 
 def _map_matches_to_record_ids(
-    match_list: Union[List[tuple], List[set]], data_block, cluster_mode: bool = False
-) -> List[tuple]:
+    match_list: Union[list[tuple], list[set]], data_block, cluster_mode: bool = False
+) -> list[tuple]:
     """
     Helper function to turn a list of tuples of row indices in a block
     of data into a list of tuples of the IDs of the records within
@@ -1064,71 +726,6 @@ def _map_matches_to_record_ids(
             id_j = data_block[matching_pair[1]][-1]
             matched_records.append((id_i, id_j))
     return matched_records
-
-
-def _match_within_block_cluster_ratio(
-    block: List[List],
-    cluster_ratio: float,
-    feature_funcs: dict[str, Callable],
-    col_to_idx: dict[str, int],
-    match_eval: Callable,
-    **kwargs,
-) -> List[set]:
-    """
-    A matching function for statistically testing the impact of membership
-    ratio to the quality of clusters formed. This function behaves similarly
-    to `match_within_block`, except that rather than identifying all pairwise
-    candidates which are deemed matches, the function creates a list of
-    clusters of patients, where each cluster constitutes what would be a
-    single "representative" patient in the database. The formation of
-    clusters is determined by the parameter `cluster_ratio`, which defines
-    the proportion of other records in an existing cluster that a new
-    incoming record must match in order to join the cluster.
-
-    :param block: A list of records to check for matches. Each record in
-      the list is itself a list of features. The first feature of the
-      record must be an "id" for the record.
-    :param cluster_ratio: A float giving the proportion of records in an
-      existing cluster that a new incoming record must match in order
-      to qualify for membership in the cluster.
-    :param feature_funcs: A dictionary mapping feature indices to functions
-      used to evaluate those features for a match.
-    :param col_to_idx: A dictionary mapping column names to the numeric index
-      in which they occur in order in the data.
-    :param match_eval: A function for determining whether a given set of
-      feature comparisons constitutes a match for linkage.
-    :return: A list of 2-tuples of the form (i,j), where i,j give the indices
-      in the block of data of records deemed to match.
-    """
-    clusters = []
-    for i in range(len(block)):
-        # Base case
-        if len(clusters) == 0:
-            clusters.append({i})
-            continue
-        found_master_cluster = False
-
-        # Iterate through clusters to find one that we match with
-        for cluster in clusters:
-            belongs = _eval_record_in_cluster(
-                block,
-                i,
-                cluster,
-                cluster_ratio,
-                feature_funcs,
-                col_to_idx,
-                match_eval,
-                **kwargs,
-            )
-            if belongs:
-                found_master_cluster = True
-                cluster.add(i)
-                break
-
-        # Create a new singleton if no other cluster qualified
-        if not found_master_cluster:
-            clusters.append({i})
-    return clusters
 
 
 def _is_empty_extraction_field(block_vals: dict, field: str):

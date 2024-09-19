@@ -1,0 +1,144 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: postgres-db-config
+  labels:
+    app: postgresql-db
+data:
+  POSTGRES_DB: testdb
+  POSTGRES_USER: postgres
+  POSTGRES_PASSWORD: pw
+  PGUSER: postgres
+  PGDATA: /data/pgdata
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres-db-lb
+spec:
+  selector:
+    app: postgresql-db
+  type: LoadBalancer
+  ports:
+    - port: 5432
+      targetPort: 5432
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: record-linkage-config
+  labels:
+    app: record-linkage
+data:
+  MPI_DB_TYPE: postgres
+  MPI_DBNAME: testdb
+  MPI_PORT: '5432'
+  MPI_USER: postgres
+  MPI_PASSWORD: pw
+  MPI_PATIENT_TABLE: patient
+  MPI_PERSON_TABLE: person
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: record-linkage-service
+spec:
+  selector:
+    app: record-linkage
+  type: LoadBalancer
+  ports:
+    - port: 8080
+      targetPort: 8080
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: postgresql-db
+spec:
+  serviceName: postgresql-db-service
+  replicas: 1
+  selector:
+    matchLabels:
+      app: postgresql-db
+  template:
+    metadata:
+      labels:
+        app: postgresql-db
+    spec:
+      containers:
+        - name: postgresql-db
+          image: postgres:latest
+          volumeMounts:
+            - name: postgresql-db-disk
+              mountPath: /data
+          envFrom:
+            - configMapRef:
+                name: postgres-db-config
+          livenessProbe:
+            exec:
+              command:
+                - pg_isready
+            failureThreshold: 20
+            periodSeconds: 2
+            timeoutSeconds: 5
+          ports:
+            - containerPort: 5432
+              name: "http"
+  volumeClaimTemplates:
+    - metadata:
+        name: postgresql-db-disk
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        resources:
+          requests:
+            storage: 25Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: record-linkage
+  labels:
+    app: record-linkage
+spec:
+  selector:
+    matchLabels:
+      app: record-linkage
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: record-linkage
+    spec:
+      containers:
+        - name: record-linkage
+          image: ${IMAGE}
+          ports:
+            - containerPort: 8080
+              name: "http"
+          volumeMounts:
+            - mountPath: "/app"
+              name: record-linkage-source-code-storage
+          envFrom:
+            - configMapRef:
+                name: record-linkage-config
+            - configMapRef:
+                name: postgres-db-config
+          env:
+            - name: CUSTOMCONNSTR_RecordLinkageContext
+              value: Host=$(POSTGRES_DB_LB_SERVICE_HOST);Database=$(POSTGRES_DB);Username=$(POSTGRES_USER);Password=$(POSTGRES_PASSWORD)
+            - name: MPI_HOST
+              value: $(POSTGRES_DB_LB_SERVICE_HOST)
+          imagePullPolicy: IfNotPresent
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 8080
+            initialDelaySeconds: 15
+            periodSeconds: 10
+          resources:
+            limits:
+              memory: 2Gi
+              cpu: "1"
+      volumes:
+        - name: record-linkage-source-code-storage
+          emptyDir: {}
