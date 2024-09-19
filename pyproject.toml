@@ -66,6 +66,7 @@ select = ["E4", "E7", "E9", "F", "I", "D102", "D103", "D104", "D105", "D106"] # 
 
 [tool.ruff.lint.per-file-ignores]
 "**/__init__.py" = ["D"]
+"tests/*.py" = ["D102", "D103"]  # Ignore the public docstring rules in test files
 
 [tool.ruff.lint.isort]
 # The following settings reduce the number of changes from reorder-python-imports
