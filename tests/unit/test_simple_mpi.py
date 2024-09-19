@@ -159,3 +159,9 @@ class TestGetBlockData:
         data = {"name": [{"given": ["Johnathon", "Bill",], "family": "Doeherty"}], "birthdate": "Jan 1 1980"}
         matches = simple_mpi.get_block_data(session, data, algo_config)
         assert len(matches) == 0
+
+    def test_match_on_multiple_names(self, session, prime_index):
+        data = {"name": [{"use": "official", "given": ["John", "Doe"], "family": "Smith"}, {"use": "maiden", "given": ["John"], "family": "Doe"}]}
+        algo_config = {"blocks": [{"value": "first_name"}, {"value": "last_name"}]}
+        matches = simple_mpi.get_block_data(session, data, algo_config)
+        assert len(matches) == 4

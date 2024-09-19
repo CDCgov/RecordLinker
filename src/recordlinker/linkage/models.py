@@ -59,7 +59,7 @@ class BlockingKey(enum.Enum):
     """
     BIRTHDATE = 1, "Date of Birth"
     MRN = 2, "Last 4 chars of MRN"
-    SEX = 3, "Gender"
+    SEX = 3, "Sex"
     ZIP = 4, "Zip Code"
     FIRST_NAME = 5, "First 4 chars of First Name"
     LAST_NAME = 6, "First 4 chars of Last Name"
@@ -68,9 +68,9 @@ class BlockingKey(enum.Enum):
         self.id = id
         self.description = description
 
-    def to_value(self, data: dict) -> list[str]:
+    def to_value(self, data: dict) -> set[str]:
         """
-        Given a data dictionary of Patient PII data, return a generator of all
+        Given a data dictionary of Patient PII data, return a set of all
         possible values for this Key.  Many Keys will only have 1 possible value,
         but some (like first name) could have multiple values.
         """
@@ -86,54 +86,54 @@ class BlockingKey(enum.Enum):
             return self._extract_first_name_first_four(data)
         if self == BlockingKey.LAST_NAME:
             return self._extract_last_name_first_four(data)
-        return []
+        return set()
 
-    def _extract_birthdate(self, data: dict) -> list[str]:
+    def _extract_birthdate(self, data: dict) -> set[str]:
         if "birthdate" in data:
             val = data["birthdate"]
             if not isinstance(val, (datetime.date, datetime.datetime)):
                 # if not an instance of date or datetime, try to parse it
                 val = dateutil.parser.parse(str(val))
-            return [val.strftime("%Y-%m-%d")]
-        return []
+            return {val.strftime("%Y-%m-%d")}
+        return set()
 
-    def _extract_mrn_last_four(self, data: dict) -> list[str]:
+    def _extract_mrn_last_four(self, data: dict) -> set[str]:
         if "mrn" in data:
-            return [data["mrn"].strip()[-4:]]
-        return []
+            return {data["mrn"].strip()[-4:]}
+        return set()
 
-    def _extract_sex(self, data: dict) -> list[str]:
+    def _extract_sex(self, data: dict) -> set[str]:
         if "sex" in data:
             val = str(data["sex"]).lower().strip()
             if val in ["m", "male"]:
-                return ["m"]
+                return {"m"}
             elif val in ["f", "female"]:
-                return ["f"]
-            return ["u"]
-        return []
+                return {"f"}
+            return {"u"}
+        return set()
 
-    def _extract_zipcode(self, data: dict) -> list[str]:
-        zipcodes = []
+    def _extract_zipcode(self, data: dict) -> set[str]:
+        zipcodes = set()
         for address in data.get("address", []):
             if isinstance(address, dict):
                 if "zip" in address:
-                    zipcodes.append(str(address["zip"]).strip()[0:5])
+                    zipcodes.add(str(address["zip"]).strip()[0:5])
         return zipcodes
 
-    def _extract_first_name_first_four(self, data: dict) -> list[str]:
-        names = []
+    def _extract_first_name_first_four(self, data: dict) -> set[str]:
+        names = set()
         for name in data.get("name", []):
             if isinstance(name, dict):
                 for given in name.get("given", []):
-                    names.append(str(given)[:4])
+                    names.add(str(given)[:4])
         return names
 
-    def _extract_last_name_first_four(self, data: dict) -> list[str]:
-        names = []
+    def _extract_last_name_first_four(self, data: dict) -> set[str]:
+        names = set()
         for name in data.get("name", []):
             if isinstance(name, dict):
                 if "family" in name:
-                    names.append(str(name["family"])[:4])
+                    names.add(str(name["family"])[:4])
         return names
 
 
