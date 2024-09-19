@@ -49,8 +49,8 @@ class BlockingValue(Base):
 class Algorithm(Base):
     __tablename__ = "algorithm"
 
-    id: orm.Mapped[int] = orm.mapped_column(primary_key=True, index=True)
-    is_default: orm.Mapped[bool] = orm.mapped_column(default=False)
+    id: orm.Mapped[int] = orm.mapped_column(primary_key=True)
+    is_default: orm.Mapped[bool] = orm.mapped_column(default=False, index=True)
     label: orm.Mapped[str] = orm.mapped_column(String(255), unique=True)
     description: orm.Mapped[str] = orm.mapped_column(Text())
 
@@ -58,7 +58,7 @@ def check_only_one_default(target):
     """
     Check if there is already a default algorithm before inserting or updating.
     If another default algorithm exists, an exception is raised to prevent the operation.
-    
+
     Parameters:
     connection: The database connection being used for the operation.
     target: The instance of the Algorithm class being inserted or updated.
