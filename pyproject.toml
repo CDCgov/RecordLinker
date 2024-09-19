@@ -38,7 +38,6 @@ dev = [
     "pyarrow",
     "httpx",
     "alembic",
-    "python-dotenv"
 ]
 prod = [
     # List any additional production-only dependencies here
