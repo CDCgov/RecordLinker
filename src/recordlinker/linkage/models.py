@@ -5,6 +5,7 @@ from sqlalchemy import ForeignKey
 from sqlalchemy import JSON
 from sqlalchemy import orm
 from sqlalchemy import String
+from sqlalchemy import Text
 
 
 class Base(orm.DeclarativeBase):
@@ -48,21 +49,16 @@ class BlockingValue(Base):
 class Algorithm(Base):
     __tablename__ = "algorithm"
 
-    id: orm.Mapped[int] = orm.mapped_column(primary_key=True)
+    id: orm.Mapped[int] = orm.mapped_column(primary_key=True, index=True)
     is_default: orm.Mapped[bool] = orm.mapped_column(default=False)
     label: orm.Mapped[str] = orm.mapped_column(String(255), unique=True)
-    description: orm.Mapped[str]
+    description: orm.Mapped[str] = orm.mapped_column(Text())
 
-def check_only_one_default(connection, target):
+def check_only_one_default(target):
     """
     Check if there is already a default algorithm before inserting or updating.
-
-    Called before an insert or update operation on the
-    Algorithm table. If the `is_default` attribute of the target object is
-    set to True, it checks the database to ensure that no other algorithm
-    is marked as default. If another default algorithm exists, an exception
-    is raised to prevent the operation.
-
+    If another default algorithm exists, an exception is raised to prevent the operation.
+    
     Parameters:
     connection: The database connection being used for the operation.
     target: The instance of the Algorithm class being inserted or updated.
@@ -70,11 +66,13 @@ def check_only_one_default(connection, target):
     Raises:
     Exception: If another algorithm is already marked as default.
     """
-     
+    session = orm.Session.object_session(target)
+  
     if target.is_default:
-        existing_default = connection.execute("SELECT COUNT(*) FROM algorithm WHERE is_default = TRUE").scalar()
-        if(existing_default > 0):
-            raise ValueError("There can only be one default algorithm.")
+        existing = session.query(Algorithm).filter(Algorithm.is_default is True).first()
+      
+        if existing and existing.id != target.id:
+            raise ValueError("There can only be one default algorithm")
 
 event.listen(Algorithm, 'before_insert', check_only_one_default)
 event.listen(Algorithm, 'before_update', check_only_one_default)
