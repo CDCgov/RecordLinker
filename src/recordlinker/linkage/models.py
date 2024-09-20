@@ -89,7 +89,7 @@ class BlockingKey(enum.Enum):
         return set()
 
     def _extract_birthdate(self, data: dict) -> set[str]:
-        if "birthdate" in data:
+        if data.get("birthdate"):
             val = data["birthdate"]
             if not isinstance(val, (datetime.date, datetime.datetime)):
                 # if not an instance of date or datetime, try to parse it
@@ -98,12 +98,12 @@ class BlockingKey(enum.Enum):
         return set()
 
     def _extract_mrn_last_four(self, data: dict) -> set[str]:
-        if "mrn" in data:
+        if data.get("mrn"):
             return {data["mrn"].strip()[-4:]}
         return set()
 
     def _extract_sex(self, data: dict) -> set[str]:
-        if "sex" in data:
+        if data.get("sex"):
             val = str(data["sex"]).lower().strip()
             if val in ["m", "male"]:
                 return {"m"}
@@ -116,7 +116,7 @@ class BlockingKey(enum.Enum):
         zipcodes = set()
         for address in data.get("address", []):
             if isinstance(address, dict):
-                if "zip" in address:
+                if address.get("zip"):
                     zipcodes.add(str(address["zip"]).strip()[0:5])
         return zipcodes
 
@@ -125,14 +125,15 @@ class BlockingKey(enum.Enum):
         for name in data.get("name", []):
             if isinstance(name, dict):
                 for given in name.get("given", []):
-                    names.add(str(given)[:4])
+                    if given:
+                        names.add(str(given)[:4])
         return names
 
     def _extract_last_name_first_four(self, data: dict) -> set[str]:
         names = set()
         for name in data.get("name", []):
             if isinstance(name, dict):
-                if "family" in name:
+                if name.get("family"):
                     names.add(str(name["family"])[:4])
         return names
 

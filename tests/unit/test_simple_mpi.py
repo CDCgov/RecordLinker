@@ -121,11 +121,24 @@ class TestGetBlockData:
             {"name": [{"given": ["Bill",], "family": "Smith"}], "birthdate": "1980-01-01"},
             {"name": [{"given": ["John",], "family": "Smith"}], "birthdate": "1980-01-01"},
             {"name": [{"given": ["John",], "family": "Smith"}], "birthdate": "1985-11-12"},
+            {"name": [{"given": ["Ferris",], "family": "Bueller"}], "birthdate": ""},
         ]
         for datum in data:
             simple_mpi.insert_matched_patient(session, datum)
 
-    def test_match_on_birthdate(self, session, prime_index):
+    def test_block_missing_data(self, session, prime_index):
+        data = {"name": [{"given": ["Johnathon", "Bill",], "family": "Smith"}]}
+        algo_config = {"blocks": [{"value": "birthdate"}]}
+        matches = simple_mpi.get_block_data(session, data, algo_config)
+        assert len(matches) == 0
+
+    def test_block_empty_block_key(self, session, prime_index):
+        data = {"name": [{"given": ["Ferris",], "family": "Bueller"}], "birthdate": ""}
+        algo_config = {"blocks": [{"value": "birthdate"}, {"value": "first_name"}]}
+        matches = simple_mpi.get_block_data(session, data, algo_config)
+        assert len(matches) == 0
+
+    def test_block_on_birthdate(self, session, prime_index):
         data = {"name": [{"given": ["Johnathon", "Bill",], "family": "Smith"}], "birthdate": "01/01/1980"}
         algo_config = {"blocks": [{"value": "birthdate"}]}
         matches = simple_mpi.get_block_data(session, data, algo_config)
@@ -134,19 +147,19 @@ class TestGetBlockData:
         matches = simple_mpi.get_block_data(session, data, algo_config)
         assert len(matches) == 1
 
-    def test_match_on_first_name(self, session, prime_index):
+    def test_block_on_first_name(self, session, prime_index):
         data = {"name": [{"given": ["Johnathon", "Bill",], "family": "Smith"}], "birthdate": "01/01/1980"}
         algo_config = {"blocks": [{"value": "first_name"}]}
         matches = simple_mpi.get_block_data(session, data, algo_config)
         assert len(matches) == 5
 
-    def test_match_on_birthdate_and_first_name(self, session, prime_index):
+    def test_block_on_birthdate_and_first_name(self, session, prime_index):
         data = {"name": [{"given": ["Johnathon", "Bill",], "family": "Smith"}], "birthdate": "01/01/1980"}
         algo_config = {"blocks": [{"value": "birthdate"}, {"value": "first_name"}]}
         matches = simple_mpi.get_block_data(session, data, algo_config)
         assert len(matches) == 4
 
-    def test_match_on_birthdate_first_name_and_last_name(self, session, prime_index):
+    def test_block_on_birthdate_first_name_and_last_name(self, session, prime_index):
         data = {"name": [{"given": ["Johnathon", "Bill",], "family": "Smith"}], "birthdate": "01/01/1980"}
         algo_config = {"blocks": [{"value": "birthdate"}, {"value": "first_name"}, {"value": "last_name"}]}
         matches = simple_mpi.get_block_data(session, data, algo_config)
@@ -158,7 +171,7 @@ class TestGetBlockData:
         matches = simple_mpi.get_block_data(session, data, algo_config)
         assert len(matches) == 0
 
-    def test_match_on_multiple_names(self, session, prime_index):
+    def test_block_on_multiple_names(self, session, prime_index):
         data = {"name": [{"use": "official", "given": ["John", "Doe"], "family": "Smith"}, {"use": "maiden", "given": ["John"], "family": "Doe"}]}
         algo_config = {"blocks": [{"value": "first_name"}, {"value": "last_name"}]}
         matches = simple_mpi.get_block_data(session, data, algo_config)
