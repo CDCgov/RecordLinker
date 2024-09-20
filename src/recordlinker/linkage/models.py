@@ -70,7 +70,7 @@ def check_only_one_default(mapping, connection, target):
     session = orm.Session.object_session(target)
   
     if target.is_default:
-        existing = session.query(Algorithm).filter(Algorithm.is_default == True).first()
+        existing = session.query(Algorithm).filter(Algorithm.is_default == True).first()    # noqa
       
         if existing and existing.id != target.id:
             raise ValueError("There can only be one default algorithm")
