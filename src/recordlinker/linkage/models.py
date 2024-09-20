@@ -1,5 +1,6 @@
 import datetime
 import enum
+import typing
 import uuid
 
 import dateutil.parser
@@ -39,16 +40,24 @@ class Patient(Base):
     person_id: orm.Mapped[int] = orm.mapped_column(schema.ForeignKey("mpi_person.id"))
     person: orm.Mapped["Person"] = orm.relationship(back_populates="patients")
     data: orm.Mapped[dict] = orm.mapped_column(sqltypes.JSON)
-    external_patient_id: orm.Mapped[str] = orm.mapped_column(sqltypes.String(255), nullable=True)
-    external_person_id: orm.Mapped[str] = orm.mapped_column(sqltypes.String(255), nullable=True)
-    external_person_source: orm.Mapped[str] = orm.mapped_column(sqltypes.String(100), nullable=True)
-    blocking_values: orm.Mapped[list["BlockingValue"]] = orm.relationship(back_populates="patient")
+    external_patient_id: orm.Mapped[str] = orm.mapped_column(
+        sqltypes.String(255), nullable=True
+    )
+    external_person_id: orm.Mapped[str] = orm.mapped_column(
+        sqltypes.String(255), nullable=True
+    )
+    external_person_source: orm.Mapped[str] = orm.mapped_column(
+        sqltypes.String(100), nullable=True
+    )
+    blocking_values: orm.Mapped[list["BlockingValue"]] = orm.relationship(
+        back_populates="patient"
+    )
 
 
 class BlockingKey(enum.Enum):
     """
     Enum for the different types of blocking keys that can be used for patient
-    matching. This is the universe of all possible blocking keys that a user can 
+    matching. This is the universe of all possible blocking keys that a user can
     choose from when configuring their algorithm.  When data is loaded into the
     MPI, all possible BlockingValues will be created for the defined BlockingKeys.
     However, only a subset will be used in matching, based on the configuration of
@@ -57,6 +66,7 @@ class BlockingKey(enum.Enum):
 
     **HERE BE DRAGONS**: IN A PRODUCTION SYSTEM, THESE ENUMS SHOULD NOT BE CHANGED!!!
     """
+
     BIRTHDATE = 1, "Date of Birth"
     MRN = 2, "Last 4 chars of MRN"
     SEX = 3, "Sex"
@@ -74,68 +84,72 @@ class BlockingKey(enum.Enum):
         possible values for this Key.  Many Keys will only have 1 possible value,
         but some (like first name) could have multiple values.
         """
+        vals: set[str] = set()
         if self == BlockingKey.BIRTHDATE:
-            return self._extract_birthdate(data)
+            vals.update(self._extract_birthdate(data))
         if self == BlockingKey.MRN:
-            return self._extract_mrn_last_four(data)
+            vals.update(self._extract_mrn_last4(data))
         if self == BlockingKey.SEX:
-            return self._extract_sex(data)
+            vals.update(self._extract_sex(data))
         if self == BlockingKey.ZIP:
-            return self._extract_zipcode(data)
+            vals.update(self._extract_zipcode(data))
         if self == BlockingKey.FIRST_NAME:
-            return self._extract_first_name_first_four(data)
+            vals.update(self._extract_first_name_first4(data))
         if self == BlockingKey.LAST_NAME:
-            return self._extract_last_name_first_four(data)
-        return set()
+            vals.update(self._extract_last_name_first4(data))
 
-    def _extract_birthdate(self, data: dict) -> set[str]:
-        if data.get("birthdate"):
-            val = data["birthdate"]
+        # remove all empty strings from the set, we never want to block on these
+        vals.discard("")
+        return vals
+
+    # FIXME: some of the type/isinstance checks below can be removed after we create
+    # a serializer to capture the input data, as type dict is too flexible
+    def _extract_birthdate(self, data: dict) -> typing.Iterator[str]:
+        val = data.get("birthdate")
+        if val:
             if not isinstance(val, (datetime.date, datetime.datetime)):
                 # if not an instance of date or datetime, try to parse it
                 val = dateutil.parser.parse(str(val))
-            return {val.strftime("%Y-%m-%d")}
-        return set()
+            yield val.strftime("%Y-%m-%d")
 
-    def _extract_mrn_last_four(self, data: dict) -> set[str]:
+    def _extract_mrn_last4(self, data: dict) -> typing.Iterator[str]:
         if data.get("mrn"):
-            return {data["mrn"].strip()[-4:]}
-        return set()
+            yield data["mrn"].strip()[-4:]
 
-    def _extract_sex(self, data: dict) -> set[str]:
+    def _extract_sex(self, data: dict) -> typing.Iterator[str]:
         if data.get("sex"):
             val = str(data["sex"]).lower().strip()
             if val in ["m", "male"]:
-                return {"m"}
+                yield "m"
             elif val in ["f", "female"]:
-                return {"f"}
-            return {"u"}
-        return set()
+                yield "f"
+            else:
+                yield "u"
 
-    def _extract_zipcode(self, data: dict) -> set[str]:
-        zipcodes = set()
-        for address in data.get("address", []):
-            if isinstance(address, dict):
-                if address.get("zip"):
-                    zipcodes.add(str(address["zip"]).strip()[0:5])
-        return zipcodes
+    def _extract_zipcode(self, data: dict) -> typing.Iterator[str]:
+        val = data.get("address")
+        if isinstance(val, (list, set)):
+            for address in val:
+                if isinstance(address, dict):
+                    if address.get("zip"):
+                        yield str(address["zip"]).strip()[0:5]
 
-    def _extract_first_name_first_four(self, data: dict) -> set[str]:
-        names = set()
-        for name in data.get("name", []):
-            if isinstance(name, dict):
-                for given in name.get("given", []):
-                    if given:
-                        names.add(str(given)[:4])
-        return names
+    def _extract_first_name_first4(self, data: dict) -> typing.Iterator[str]:
+        val = data.get("name")
+        if isinstance(val, (list, set)):
+            for name in val:
+                if isinstance(name, dict):
+                    for given in name.get("given", []):
+                        if given:
+                            yield str(given)[:4]
 
-    def _extract_last_name_first_four(self, data: dict) -> set[str]:
-        names = set()
-        for name in data.get("name", []):
-            if isinstance(name, dict):
-                if name.get("family"):
-                    names.add(str(name["family"])[:4])
-        return names
+    def _extract_last_name_first4(self, data: dict) -> typing.Iterator[str]:
+        val = data.get("name")
+        if isinstance(val, (list, set)):
+            for name in val:
+                if isinstance(name, dict):
+                    if name.get("family"):
+                        yield str(name["family"])[:4]
 
 
 class BlockingValue(Base):

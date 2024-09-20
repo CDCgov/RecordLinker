@@ -14,6 +14,8 @@ class TestBlockingKey:
     def test_extract_birthdate(self):
         data = {"dob": "01/01/1980"}
         assert models.BlockingKey.BIRTHDATE.to_value(data) == set()
+        data = {"birthdate": ""}
+        assert models.BlockingKey.BIRTHDATE.to_value(data) == set()
         data = {"birthdate": "01/01/1980"}
         assert models.BlockingKey.BIRTHDATE.to_value(data) == {"1980-01-01"}
         data = {"birthdate": datetime.date(1980, 1, 1)}
@@ -24,6 +26,8 @@ class TestBlockingKey:
     def test_extract_mrn_last_four(self):
         data = {"ssn": "123456789"}
         assert models.BlockingKey.MRN.to_value(data) == set()
+        data = {"mrn": None}
+        assert models.BlockingKey.MRN.to_value(data) == set()
         data = {"mrn": "123456789"}
         assert models.BlockingKey.MRN.to_value(data) == {"6789"}
         data = {"mrn": "89"}
@@ -31,6 +35,8 @@ class TestBlockingKey:
 
     def test_extract_sex(self):
         data = {"gender": "M"}
+        assert models.BlockingKey.SEX.to_value(data) == set()
+        data = {"sex": ""}
         assert models.BlockingKey.SEX.to_value(data) == set()
         data = {"sex": "M"}
         assert models.BlockingKey.SEX.to_value(data) == {"m"}
@@ -50,6 +56,8 @@ class TestBlockingKey:
     def test_extract_zipcode(self):
         data = {"zip": "12345"}
         assert models.BlockingKey.ZIP.to_value(data) == set()
+        data = {"address": [{"zip": None}]}
+        assert models.BlockingKey.ZIP.to_value(data) == set()
         data = {"address": [{"zip": "12345"}]}
         assert models.BlockingKey.ZIP.to_value(data) == {"12345"}
         data = {"address": [{"zip": "12345-6789"}]}
@@ -60,6 +68,8 @@ class TestBlockingKey:
     def test_extract_first_name_first_four(self):
         data = {"first_name": "John"}
         assert models.BlockingKey.FIRST_NAME.to_value(data) == set()
+        data = {"name": [{"given": ["", None]}]}
+        assert models.BlockingKey.FIRST_NAME.to_value(data) == set()
         data = {"name": [{"given": ["John", "Jane"]}]}
         assert models.BlockingKey.FIRST_NAME.to_value(data) == {"John", "Jane"}
         data = {"name": [{"given": ["Janet", "Johnathon"]}, {"given": ["Jane"]}]}
@@ -67,6 +77,8 @@ class TestBlockingKey:
 
     def test_extract_last_name_first_four(self):
         data = {"last_name": "Doe"}
+        assert models.BlockingKey.LAST_NAME.to_value(data) == set()
+        data = {"name": [{"family": ""}]}
         assert models.BlockingKey.LAST_NAME.to_value(data) == set()
         data = {"name": [{"family": "Doe"}]}
         assert models.BlockingKey.LAST_NAME.to_value(data) == {"Doe"}
