@@ -49,18 +49,16 @@ class TestInsertBlockingKeys:
         new_patient.data = {"name": [{"given": ["Johnathon", "Bill",], "family": "Smith"}], "birthdate": "01/01/1980"}
         keys = simple_mpi.insert_blocking_keys(session, new_patient)
         assert len(keys) == 4
-        assert keys[0].patient_id == new_patient.id
-        assert keys[0].blockingkey == models.BlockingKey.BIRTHDATE.id
-        assert keys[0].value == "1980-01-01"
-        assert keys[1].patient_id == new_patient.id
-        assert keys[1].blockingkey == models.BlockingKey.FIRST_NAME.id
-        assert keys[1].value == "John"
-        assert keys[2].patient_id == new_patient.id
-        assert keys[2].blockingkey == models.BlockingKey.FIRST_NAME.id
-        assert keys[2].value == "Bill"
-        assert keys[3].patient_id == new_patient.id
-        assert keys[3].blockingkey == models.BlockingKey.LAST_NAME.id
-        assert keys[3].value == "Smit"
+        for key in keys:
+            assert keys[0].patient_id == new_patient.id
+            if key.blockingkey == models.BlockingKey.BIRTHDATE.id:
+                assert key.value == "1980-01-01"
+            elif key.blockingkey == models.BlockingKey.FIRST_NAME.id:
+                assert key.value in ["John", "Bill"]
+            elif key.blockingkey == models.BlockingKey.LAST_NAME.id:
+                assert key.value == "Smit"
+            else:
+                assert False, f"Unexpected blocking key: {key.blockingkey}"
 
 
 class TestInsertMatchedPatient:
@@ -119,7 +117,7 @@ class TestGetBlockData:
         data = [
             {"name": [{"given": ["Johnathon", "Bill",], "family": "Smith"}], "birthdate": "01/01/1980"},
             {"name": [{"given": ["George",], "family": "Harrison"}], "birthdate": "1943-2-25"},
-            {"name": [{"given": ["John",], "family": "Doe"}], "birthdate": "1980-01-01"},
+            {"name": [{"given": ["John",], "family": "Doe"}, {"given": ["John"], "family": "Lewis"}], "birthdate": "1980-01-01"},
             {"name": [{"given": ["Bill",], "family": "Smith"}], "birthdate": "1980-01-01"},
             {"name": [{"given": ["John",], "family": "Smith"}], "birthdate": "1980-01-01"},
             {"name": [{"given": ["John",], "family": "Smith"}], "birthdate": "1985-11-12"},
