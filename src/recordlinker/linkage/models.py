@@ -54,7 +54,7 @@ class Algorithm(Base):
     label: orm.Mapped[str] = orm.mapped_column(String(255), unique=True)
     description: orm.Mapped[str] = orm.mapped_column(Text())
 
-def check_only_one_default(target):
+def check_only_one_default(mapping, connection, target):
     """
     Check if there is already a default algorithm before inserting or updating.
     If another default algorithm exists, an exception is raised to prevent the operation.
@@ -64,12 +64,13 @@ def check_only_one_default(target):
     target: The instance of the Algorithm class being inserted or updated.
     
     Raises:
-    Exception: If another algorithm is already marked as default.
+    ValueError: If another algorithm is already marked as default.
     """
+
     session = orm.Session.object_session(target)
   
     if target.is_default:
-        existing = session.query(Algorithm).filter(Algorithm.is_default is True).first()
+        existing = session.query(Algorithm).filter(Algorithm.is_default == True).first()
       
         if existing and existing.id != target.id:
             raise ValueError("There can only be one default algorithm")
