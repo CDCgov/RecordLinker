@@ -70,7 +70,10 @@ def check_only_one_default(mapping, connection, target):
     session = orm.Session.object_session(target)
   
     if target.is_default:
-        existing = session.query(Algorithm).filter(Algorithm.is_default == True).first()    # noqa
+        # ruff linting rule E712 ignored on this line. 
+        # ruff wants to enforce using the 'is' operator over '=='. 
+        # However since we only want to compare the truth value of the SQL query result we need to use '=='.
+        existing = session.query(Algorithm).filter(Algorithm.is_default == True).first()    # noqa: E712
       
         if existing and existing.id != target.id:
             raise ValueError("There can only be one default algorithm")
