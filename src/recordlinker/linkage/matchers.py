@@ -101,6 +101,12 @@ def feature_match_exact(
     :return: A boolean indicating whether the features are an exact match.
     """
     idx = col_to_idx[feature_col]
+
+    # Convert datetime obj to str using helper function
+    if feature_col == "birthdate":
+        record_i[idx] = utils.datetime_to_str(record_i[idx])
+        record_j[idx] = utils.datetime_to_str(record_j[idx])
+
     return record_i[idx] == record_j[idx]
 
 
