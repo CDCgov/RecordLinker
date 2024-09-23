@@ -16,6 +16,18 @@ class Person(Base):
     internal_id: orm.Mapped[uuid.UUID] = orm.mapped_column(default=uuid.uuid4)
     patients: orm.Mapped[list["Patient"]] = orm.relationship(back_populates="person")
 
+    def __hash__(self):
+        """
+        Hash the Person object based on the primary key.
+        """
+        return hash(self.id)
+
+    def __eq__(self, other):
+        """
+        Compare two Person objects based on the primary key.
+        """
+        return self.id == other.id if isinstance(other, Person) else False
+
 
 class Patient(Base):
     __tablename__ = "mpi_patient"
@@ -36,6 +48,12 @@ class Patient(Base):
     blocking_values: orm.Mapped[list["BlockingValue"]] = orm.relationship(
         back_populates="patient"
     )
+
+    def pii_data(self) -> PIIRecord:
+        """
+        Return a PIIRecord object with the data from this patient record.
+        """
+        return PIIRecord(**self.data)
 
 
 class BlockingKey(enum.Enum):
@@ -62,6 +80,7 @@ class BlockingKey(enum.Enum):
         self.id = id
         self.description = description
 
+    # FIXME: change this method to accept a PIIRecord object
     def to_value(self, data: dict) -> set[str]:
         """
         Given a data dictionary of Patient PII data, return a set of all

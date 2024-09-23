@@ -6,10 +6,23 @@ import dateutil.parser
 import pydantic
 import pydantic.types as pytypes
 
+# The Patient features that can be used for comparison.
+FEATURE = typing.Literal[
+    "birthdate",
+    "mrn",
+    "sex",
+    "first_name",
+    "last_name",
+    "line",
+    "city",
+    "state",
+    "zip",
+]
+
 
 class Sex(enum.Enum):
     """
-    Enum for the different
+    Enum for the Patient.sex field.
     """
 
     M = "MALE"
@@ -22,11 +35,11 @@ class Name(pydantic.BaseModel):
     The schema for a name record.
     """
 
-    use: typing.Optional[str] = None
-    prefix: typing.List[str] = []
-    suffix: typing.List[str] = []
     family: str
     given: typing.List[str] = []
+    use: typing.Optional[str] = None
+    prefix: typing.List[str] = []  # future use
+    suffix: typing.List[str] = []  # future use
 
 
 class Address(pydantic.BaseModel):
@@ -38,7 +51,7 @@ class Address(pydantic.BaseModel):
     city: typing.Optional[str] = None
     state: typing.Optional[str] = None
     postal_code: typing.Optional[str] = None
-    county: typing.Optional[str] = None
+    county: typing.Optional[str] = None  # future use
     country: typing.Optional[str] = None
 
 
@@ -47,8 +60,8 @@ class Telecom(pydantic.BaseModel):
     The schema for a telecom record.
     """
 
+    value: str  # future use
     system: typing.Optional[str] = None
-    value: str
     use: typing.Optional[str] = None
 
 
@@ -86,7 +99,7 @@ class PIIRecord(pydantic.BaseModel):
                 return Sex.F
             return Sex.U
 
-    def field_iter(self, field: str) -> typing.Iterator[str]:
+    def field_iter(self, field: FEATURE) -> typing.Iterator[str]:
         """
         Given a field name, return an iterator of all string values for that field.
         """
@@ -112,7 +125,8 @@ class PIIRecord(pydantic.BaseModel):
             for address in self.address:
                 if address.state:
                     yield address.state
-        elif field == "zipcode":
+        # FIXME: can we change this to "zipcode" some day
+        elif field == "zip":
             for address in self.address:
                 if address.postal_code:
                     # only use the first 5 digits for comparison
