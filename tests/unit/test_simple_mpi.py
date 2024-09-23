@@ -10,8 +10,8 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import scoped_session
 from sqlalchemy.orm import sessionmaker
 
+from recordlinker import models
 from recordlinker.config import settings
-from recordlinker.linkage import models
 from recordlinker.linkage import simple_mpi
 
 
@@ -42,7 +42,7 @@ def new_patient(session):
 
 class TestInsertBlockingKeys:
     def test_patient_no_blocking_keys(self, session, new_patient):
-        new_patient.data = {"name": "John Doe"}
+        new_patient.data = {"name": []}
         assert simple_mpi.insert_blocking_keys(session, new_patient) == []
 
     def test_patient_with_blocking_keys(self, session, new_patient):

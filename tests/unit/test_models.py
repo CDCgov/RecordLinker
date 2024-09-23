@@ -12,8 +12,8 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import scoped_session
 from sqlalchemy.orm import sessionmaker
 
+from recordlinker import models
 from recordlinker.config import settings
-from recordlinker.linkage import models
 
 
 @pytest.fixture(scope="function")

@@ -10,7 +10,7 @@ import typing
 from sqlalchemy import orm
 from sqlalchemy.sql import expression
 
-from recordlinker.linkage import models
+from recordlinker import models
 
 
 def get_block_data(

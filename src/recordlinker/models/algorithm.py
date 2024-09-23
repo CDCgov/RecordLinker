@@ -3,7 +3,7 @@ from sqlalchemy import orm
 from sqlalchemy import schema
 from sqlalchemy import types as sqltypes
 
-from . import Base
+from .base import Base
 
 
 class Algorithm(Base):
