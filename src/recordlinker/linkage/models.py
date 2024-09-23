@@ -4,6 +4,8 @@ import typing
 import uuid
 
 import dateutil.parser
+import pydantic
+import pydantic.types as pytypes
 from sqlalchemy import create_engine
 from sqlalchemy import event
 from sqlalchemy import orm
@@ -20,6 +22,123 @@ def get_session() -> orm.Session:
     engine = create_engine(settings.db_uri)
     Base.metadata.create_all(engine)
     return orm.Session(engine)
+
+
+class Sex(enum.Enum):
+    """
+    Enum for the different
+    """
+    M = "MALE"
+    F = "FEMLAE"
+    U = "UNKNOWN"
+
+
+class Name(pydantic.BaseModel):
+    """
+    The schema for a name record.
+    """
+    use: typing.Optional[str] = None
+    prefix: typing.List[str] = []
+    suffix: typing.List[str] = []
+    family: str
+    given: typing.List[str] = []
+
+
+class Address(pydantic.BaseModel):
+    """
+    The schema for an address record.
+    """
+    line: typing.List[str] = []
+    city: typing.Optional[str] = None
+    state: typing.Optional[str] = None
+    postal_code: typing.Optional[str] = None
+    county: typing.Optional[str] = None
+    country: typing.Optional[str] = None
+
+
+class Telecom(pydantic.BaseModel):
+    """
+    The schema for a telecom record.
+    """
+    system: typing.Optional[str] = None
+    value: str
+    use: typing.Optional[str] = None
+
+
+class PIIRecord(pydantic.BaseModel):
+    """
+    The schema for a PII record.
+    """
+
+    internal_id: typing.Optional[uuid.UUID] = None
+    birthdate: typing.Optional[pytypes.PastDate] = None
+    sex: typing.Optional[Sex] = None
+    mrn: typing.Optional[str] = None
+    address: typing.List[Address] = []
+    name: typing.List[Name] = []
+    telecom: typing.List[Telecom] = []
+
+    @pydantic.field_validator('birthdate', mode="before")
+    def parse_birthdate(cls, value):
+        """
+        Parse the birthdate string into a datetime object.
+        """
+        if value:
+            return dateutil.parser.parse(str(value))
+
+    @pydantic.field_validator('sex', mode="before")
+    def parse_sex(cls, value):
+        """
+        Parse the 
+        """
+        if value:
+            val = str(value).lower().strip()
+            if val in ["m", "male"]:
+                return Sex.M
+            elif val in ["f", "female"]:
+                return Sex.F
+            return Sex.U
+
+    def field_iter(self, field: str) -> typing.Iterator[str]:
+        """
+        Given a field name, return an iterator of all string values for that field.
+        """
+        if field == "birthdate":
+            if self.birthdate:
+                yield self.birthdate.strftime("%Y-%m-%d")
+        elif field == "mrn":
+            if self.mrn:
+                yield self.mrn
+        elif field == "sex":
+            if self.sex:
+                yield self.sex.name.lower()
+        elif field == "line":
+            for address in self.address:
+                for line in address.line:
+                    if line:
+                        yield line
+        elif field == "city":
+            for address in self.address:
+                if address.city:
+                    yield address.city
+        elif field == "state":
+            for address in self.address:
+                if address.state:
+                    yield address.state
+        elif field == "zipcode":
+            for address in self.address:
+                if address.postal_code:
+                    # only use the first 5 digits for comparison
+                    yield address.postal_code[:5]
+        elif field == "first_name":
+            for name in self.name:
+                for given in name.given:
+                    if given:
+                        yield given
+        elif field == "last_name":
+            for name in self.name:
+                if name.family:
+                    yield name.family
 
 
 class Base(orm.DeclarativeBase):
@@ -86,71 +205,24 @@ class BlockingKey(enum.Enum):
         but some (like first name) could have multiple values.
         """
         vals: set[str] = set()
+
+        pii = PIIRecord(**data)
         if self == BlockingKey.BIRTHDATE:
-            vals.update(self._extract_birthdate(data))
+            vals.update(pii.field_iter("birthdate"))
         if self == BlockingKey.MRN:
-            vals.update(self._extract_mrn_last4(data))
+            vals.update({x[-4:] for x in pii.field_iter("mrn")})
         if self == BlockingKey.SEX:
-            vals.update(self._extract_sex(data))
+            vals.update(pii.field_iter("sex"))
         if self == BlockingKey.ZIP:
-            vals.update(self._extract_zipcode(data))
+            vals.update(pii.field_iter("zipcode"))
         if self == BlockingKey.FIRST_NAME:
-            vals.update(self._extract_first_name_first4(data))
+            vals.update({x[:4] for x in pii.field_iter("first_name")})
         if self == BlockingKey.LAST_NAME:
-            vals.update(self._extract_last_name_first4(data))
+            vals.update({x[:4] for x in pii.field_iter("last_name")})
 
         # remove all empty strings from the set, we never want to block on these
         vals.discard("")
         return vals
-
-    # FIXME: some of the type/isinstance checks below can be removed after we create
-    # a serializer to capture the input data, as type dict is too flexible
-    def _extract_birthdate(self, data: dict) -> typing.Iterator[str]:
-        val = data.get("birthdate")
-        if val:
-            if not isinstance(val, (datetime.date, datetime.datetime)):
-                # if not an instance of date or datetime, try to parse it
-                val = dateutil.parser.parse(str(val))
-            yield val.strftime("%Y-%m-%d")
-
-    def _extract_mrn_last4(self, data: dict) -> typing.Iterator[str]:
-        if data.get("mrn"):
-            yield data["mrn"].strip()[-4:]
-
-    def _extract_sex(self, data: dict) -> typing.Iterator[str]:
-        if data.get("sex"):
-            val = str(data["sex"]).lower().strip()
-            if val in ["m", "male"]:
-                yield "m"
-            elif val in ["f", "female"]:
-                yield "f"
-            else:
-                yield "u"
-
-    def _extract_zipcode(self, data: dict) -> typing.Iterator[str]:
-        val = data.get("address")
-        if isinstance(val, (list, set)):
-            for address in val:
-                if isinstance(address, dict):
-                    if address.get("zip"):
-                        yield str(address["zip"]).strip()[0:5]
-
-    def _extract_first_name_first4(self, data: dict) -> typing.Iterator[str]:
-        val = data.get("name")
-        if isinstance(val, (list, set)):
-            for name in val:
-                if isinstance(name, dict):
-                    for given in name.get("given", []):
-                        if given:
-                            yield str(given)[:4]
-
-    def _extract_last_name_first4(self, data: dict) -> typing.Iterator[str]:
-        val = data.get("name")
-        if isinstance(val, (list, set)):
-            for name in val:
-                if isinstance(name, dict):
-                    if name.get("family"):
-                        yield str(name["family"])[:4]
 
 
 class BlockingValue(Base):
