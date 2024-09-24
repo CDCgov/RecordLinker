@@ -70,6 +70,8 @@ class PIIRecord(pydantic.BaseModel):
     The schema for a PII record.
     """
 
+    model_config = pydantic.ConfigDict(extra="allow")
+
     internal_id: typing.Optional[uuid.UUID] = None
     birthdate: typing.Optional[pytypes.PastDate] = None
     sex: typing.Optional[Sex] = None
@@ -103,6 +105,8 @@ class PIIRecord(pydantic.BaseModel):
         """
         Given a field name, return an iterator of all string values for that field.
         """
+        assert field in typing.get_args(FEATURE), f"Invalid feature: {field}"
+
         if field == "birthdate":
             if self.birthdate:
                 yield self.birthdate.strftime("%Y-%m-%d")

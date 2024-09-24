@@ -97,7 +97,7 @@ class BlockingKey(enum.Enum):
         if self == BlockingKey.SEX:
             vals.update(pii.field_iter("sex"))
         if self == BlockingKey.ZIP:
-            vals.update(pii.field_iter("zipcode"))
+            vals.update(pii.field_iter("zip"))
         if self == BlockingKey.FIRST_NAME:
             vals.update({x[:4] for x in pii.field_iter("first_name")})
         if self == BlockingKey.LAST_NAME:
