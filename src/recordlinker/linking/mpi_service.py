@@ -29,8 +29,9 @@ def get_block_data(
     # is considered a match.
     for idx, block in enumerate(algo_config["blocks"]):
         key_name = block["value"].upper()
+        if not hasattr(models.BlockingKey, key_name):
+            raise ValueError(f"Invalid Blocking Key: {block}")
         # Get the matching Blocking Key based on the value in the algo_config
-        assert hasattr(models.BlockingKey, key_name), f"Invalid Blocking Key: {block}"
         key = models.BlockingKey[key_name]
         # Get all the possible values from the data for this key
         vals = [v for v in key.to_value(record.model_dump())]

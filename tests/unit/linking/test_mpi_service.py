@@ -126,6 +126,12 @@ class TestGetBlockData:
         for datum in data:
             mpi_service.insert_patient(session, datum)
 
+    def test_block_invalid_key(self, session):
+        data = {"name": [{"given": ["Johnathon", "Bill",], "family": "Smith"}]}
+        algo_config = {"blocks": [{"value": "unknown"}]}
+        with pytest.raises(ValueError):
+            mpi_service.get_block_data(session, models.PIIRecord(**data), algo_config)
+
     def test_block_missing_data(self, session, prime_index):
         data = {"name": [{"given": ["Johnathon", "Bill",], "family": "Smith"}]}
         algo_config = {"blocks": [{"value": "birthdate"}]}
