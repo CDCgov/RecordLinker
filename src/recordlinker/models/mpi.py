@@ -91,15 +91,15 @@ class BlockingKey(enum.Enum):
         pii = PIIRecord(**data)
         if self == BlockingKey.BIRTHDATE:
             vals.update(pii.field_iter("birthdate"))
-        if self == BlockingKey.MRN:
+        elif self == BlockingKey.MRN:
             vals.update({x[-4:] for x in pii.field_iter("mrn")})
-        if self == BlockingKey.SEX:
+        elif self == BlockingKey.SEX:
             vals.update(pii.field_iter("sex"))
-        if self == BlockingKey.ZIP:
+        elif self == BlockingKey.ZIP:
             vals.update(pii.field_iter("zip"))
-        if self == BlockingKey.FIRST_NAME:
+        elif self == BlockingKey.FIRST_NAME:
             vals.update({x[:4] for x in pii.field_iter("first_name")})
-        if self == BlockingKey.LAST_NAME:
+        elif self == BlockingKey.LAST_NAME:
             vals.update({x[:4] for x in pii.field_iter("last_name")})
 
         # remove all empty strings from the set, we never want to block on these
