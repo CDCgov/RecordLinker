@@ -7,9 +7,10 @@ from typing import Union
 
 from pydantic import Field
 
-from recordlinker.linkage import utils
+from recordlinker import utils
 from recordlinker.linkage.mpi import BaseMPIConnectorClient
 from recordlinker.linkage.mpi import DIBBsMPIConnectorClient
+from recordlinker.linkage.utils import extract_value_with_resource_path
 
 LINKING_FIELDS_TO_FHIRPATHS = {
     "first_name": "Patient.name.given",
@@ -117,7 +118,7 @@ def extract_blocking_values_from_record(
         block = block_dict.get("value")
         try:
             # Apply utility extractor for safe parsing
-            value = utils.extract_value_with_resource_path(
+            value = extract_value_with_resource_path(
                 record,
                 LINKING_FIELDS_TO_FHIRPATHS[block],
                 selection_criteria="first",
@@ -490,7 +491,9 @@ def write_linkage_config(linkage_algo: list[dict], file_to_write: pathlib.Path) 
     algo_json = []
     for rl_pass in linkage_algo:
         pass_json = {}
-        pass_json["funcs"] = {col: utils.func_to_str(f) for (col, f) in rl_pass["funcs"].items()}
+        pass_json["funcs"] = {
+            col: utils.func_to_str(f) for (col, f) in rl_pass["funcs"].items()
+        }
         pass_json["blocks"] = rl_pass["blocks"]
         pass_json["matching_rule"] = utils.func_to_str(rl_pass["matching_rule"])
         if rl_pass.get("cluster_ratio", None) is not None:
@@ -616,7 +619,7 @@ def _condense_extract_address_from_resource(resource: dict, field: str):
     """
     expanded_address_fhirpath = LINKING_FIELDS_TO_FHIRPATHS[field]
     expanded_address_fhirpath = ".".join(expanded_address_fhirpath.split(".")[:-1])
-    list_of_address_objects = utils.extract_value_with_resource_path(
+    list_of_address_objects = extract_value_with_resource_path(
         resource, expanded_address_fhirpath, "all"
     )
     if field == "address":
@@ -675,7 +678,7 @@ def _flatten_patient_field_helper(resource: dict, field: str) -> any:
     algorithm.
     """
     if field == "first_name":
-        vals = utils.extract_value_with_resource_path(
+        vals = extract_value_with_resource_path(
             resource, LINKING_FIELDS_TO_FHIRPATHS[field], selection_criteria="all"
         )
         return vals if vals is not None else [""]
@@ -683,7 +686,7 @@ def _flatten_patient_field_helper(resource: dict, field: str) -> any:
         vals = _condense_extract_address_from_resource(resource, field)
         return vals if vals is not None else [""]
     else:
-        val = utils.extract_value_with_resource_path(
+        val = extract_value_with_resource_path(
             resource, LINKING_FIELDS_TO_FHIRPATHS[field], selection_criteria="first"
         )
         return val if val is not None else ""

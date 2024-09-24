@@ -1,8 +1,10 @@
+import copy
+import importlib
 import json
 import logging
 import pathlib
 import subprocess
-from typing import Literal
+import typing
 
 from sqlalchemy import text
 from sqlalchemy.engine import url
@@ -16,11 +18,13 @@ def read_json_from_assets(filename: str):
     """
     Loads a JSON file from the 'assets' directory.
     """
-    return json.load(open((pathlib.Path(__file__).parent.parent.parent / "assets" / filename)))
+    return json.load(
+        open((pathlib.Path(__file__).parent.parent.parent / "assets" / filename))
+    )
 
 
 def run_pyway(
-    pyway_command: Literal["info", "validate", "migrate", "import"],
+    pyway_command: typing.Literal["info", "validate", "migrate", "import"],
 ) -> subprocess.CompletedProcess:
     """
     Helper function to run the pyway CLI from Python.
@@ -143,6 +147,7 @@ def bind_functions(data: dict) -> dict:
     """
     Binds the functions in the data to the functions in the module.
     """
+
     def _eval_non_list(data):
         if isinstance(data, dict):
             return bind_functions(data)

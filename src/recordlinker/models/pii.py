@@ -1,6 +1,5 @@
 import enum
 import typing
-import uuid
 
 import dateutil.parser
 import pydantic
@@ -72,13 +71,21 @@ class PIIRecord(pydantic.BaseModel):
 
     model_config = pydantic.ConfigDict(extra="allow")
 
-    internal_id: typing.Optional[str] = None
+    external_id: typing.Optional[str] = None
     birthdate: typing.Optional[pytypes.PastDate] = None
     sex: typing.Optional[Sex] = None
     mrn: typing.Optional[str] = None
     address: typing.List[Address] = []
     name: typing.List[Name] = []
     telecom: typing.List[Telecom] = []
+
+    @pydantic.field_validator("external_id", mode="before")
+    def parse_external_id(cls, value):
+        """
+        Parse the external_id object into a string
+        """
+        if value:
+            return str(value)
 
     @pydantic.field_validator("birthdate", mode="before")
     def parse_birthdate(cls, value):
@@ -101,7 +108,6 @@ class PIIRecord(pydantic.BaseModel):
                 return Sex.F
             return Sex.U
 
-    # TODO: unit tests
     def field_iter(self, field: FEATURE) -> typing.Iterator[str]:
         """
         Given a field name, return an iterator of all string values for that field.

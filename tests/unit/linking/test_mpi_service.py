@@ -182,3 +182,9 @@ class TestGetBlockData:
         algo_config = {"blocks": [{"value": "first_name"}, {"value": "last_name"}]}
         matches = mpi_service.get_block_data(session, models.PIIRecord(**data), algo_config)
         assert len(matches) == 4
+
+    def test_block_missing_keys(self, session, prime_index):
+        data = {"birthdate": "01/01/1980"}
+        algo_config = {"blocks": [{"value": "birthdate"}, {"value": "last_name"}]}
+        matches = mpi_service.get_block_data(session, models.PIIRecord(**data), algo_config)
+        assert len(matches) == 0
