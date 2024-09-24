@@ -278,3 +278,22 @@ def test_simple_feature_match_exact():
 
     with pytest.raises(ValueError):
         matchers.simple_feature_match_exact(record, pat1, "unknown")
+
+
+def test_simple_feature_match_fuzzy_string():
+    record = models.PIIRecord(name=[{"given": ["John"], "family": "Smith"}, {"family": "Harrison"}], birthdate="1980-01-01")
+    pat1 = models.Patient(data={"name": [{"given": ["Jon", "Mike"], "family": "Doe"}], "birthdate": "Jan 1 1980"})
+    pat2 = models.Patient(data={"name": [{"given": ["Michael"], "family": "Smtih"}], "sex": "male"})
+    pat3 = models.Patient(data={"name": [{"family": "Smyth"}, {"family": "Williams"}]})
+
+    assert matchers.simple_feature_match_fuzzy_string(record, pat1, "first_name")
+    assert not matchers.simple_feature_match_fuzzy_string(record, pat1, "last_name")
+
+    assert not matchers.simple_feature_match_fuzzy_string(record, pat2, "first_name")
+    assert matchers.simple_feature_match_fuzzy_string(record, pat2, "last_name")
+
+    assert not matchers.simple_feature_match_fuzzy_string(record, pat3, "first_name")
+    assert matchers.simple_feature_match_fuzzy_string(record, pat3, "last_name")
+
+    with pytest.raises(ValueError):
+        matchers.simple_feature_match_fuzzy_string(record, pat1, "unknown")

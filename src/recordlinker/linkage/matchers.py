@@ -451,7 +451,6 @@ def simple_feature_match_exact(
     return False
 
 
-# TODO: unit tests
 def simple_feature_match_fuzzy_string(
     record: models.PIIRecord, patient: models.Patient, key: models.FEATURE, **kwargs: dict
 ) -> bool:
