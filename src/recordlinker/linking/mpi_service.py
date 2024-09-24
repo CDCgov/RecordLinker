@@ -1,6 +1,6 @@
 """
-recordlinker.linkage.simple_mpi
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+recordlinker.linking.mpi_service
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 This module provides the data access functions to the MPI tables
 """
