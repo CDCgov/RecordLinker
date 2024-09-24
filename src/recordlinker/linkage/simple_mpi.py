@@ -34,6 +34,10 @@ def get_block_data(
         key = models.BlockingKey[key_name]
         # Get all the possible values from the data for this key
         vals = [v for v in key.to_value(data)]
+        # If there are no values for a blocking key in the pass, we can skip
+        # the query and return an empty list, this is just an optimization
+        if not vals:
+            return []
         # Create a dynamic alias for the Blocking Value table using the index
         # this is necessary since we are potentially joining the same table
         # multiple times with different conditions
