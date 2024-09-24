@@ -26,7 +26,7 @@ class Sex(enum.Enum):
     """
 
     M = "MALE"
-    F = "FEMLAE"
+    F = "FEMALE"
     U = "UNKNOWN"
 
 
@@ -72,7 +72,7 @@ class PIIRecord(pydantic.BaseModel):
 
     model_config = pydantic.ConfigDict(extra="allow")
 
-    internal_id: typing.Optional[uuid.UUID] = None
+    internal_id: typing.Optional[str] = None
     birthdate: typing.Optional[pytypes.PastDate] = None
     sex: typing.Optional[Sex] = None
     mrn: typing.Optional[str] = None
@@ -101,11 +101,14 @@ class PIIRecord(pydantic.BaseModel):
                 return Sex.F
             return Sex.U
 
+    # TODO: unit tests
     def field_iter(self, field: FEATURE) -> typing.Iterator[str]:
         """
         Given a field name, return an iterator of all string values for that field.
+        Empty strings are not included in the iterator.
         """
-        assert field in typing.get_args(FEATURE), f"Invalid feature: {field}"
+        if field not in typing.get_args(FEATURE):
+            raise ValueError(f"Invalid feature: {field}")
 
         if field == "birthdate":
             if self.birthdate:
