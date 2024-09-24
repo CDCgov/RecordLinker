@@ -27,7 +27,8 @@ temp/
 *.tmp
 
 # macOS
-.DS_Store
+# ignore all files ending in .DS_Store
+**/.DS_Store
 
 # Python-Virtual Environments
 .venv
