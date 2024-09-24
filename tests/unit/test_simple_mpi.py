@@ -61,10 +61,10 @@ class TestInsertBlockingKeys:
                 assert False, f"Unexpected blocking key: {key.blockingkey}"
 
 
-class TestInsertMatchedPatient:
+class TestInsertPatient:
     def test_no_person(self, session):
         data = {"name": [{"given": ["Johnathon", "Bill",], "family": "Smith"}], "birthdate": "01/01/1980"}
-        patient = simple_mpi.insert_matched_patient(session, data)
+        patient = simple_mpi.insert_patient(session, data)
         assert patient.person_id is not None
         assert patient.data == data
         assert patient.external_person_id is None
@@ -75,7 +75,7 @@ class TestInsertMatchedPatient:
 
     def test_no_person_with_external_id(self, session):
         data = {"name": [{"given": ["Johnathon",], "family": "Smith"}], "birthdate": "01/01/1980"}
-        patient = simple_mpi.insert_matched_patient(session, data, external_person_id="123456")
+        patient = simple_mpi.insert_patient(session, data, external_person_id="123456")
         assert patient.person_id is not None
         assert patient.data == data
         assert patient.external_person_id == "123456"
@@ -90,7 +90,7 @@ class TestInsertMatchedPatient:
         session.add(person)
         session.flush()
         data = {"name": [{"given": ["George",], "family": "Harrison"}], "birthdate": "1943-2-25"}
-        patient = simple_mpi.insert_matched_patient(session, data, person_id=person.id)
+        patient = simple_mpi.insert_patient(session, data, person=person)
         assert patient.person_id == person.id
         assert patient.data == data
         assert patient.external_person_id is None
@@ -102,7 +102,7 @@ class TestInsertMatchedPatient:
         session.add(person)
         session.flush()
         data = {"name": [{"given": ["George",], "family": "Harrison"}]}
-        patient = simple_mpi.insert_matched_patient(session, data, person_id=person.id, external_patient_id="abc")
+        patient = simple_mpi.insert_patient(session, data, person=person, external_patient_id="abc")
         assert patient.person_id == person.id
         assert patient.data == data
         assert patient.external_patient_id == "abc"
@@ -124,55 +124,55 @@ class TestGetBlockData:
             {"name": [{"given": ["Ferris",], "family": "Bueller"}], "birthdate": ""},
         ]
         for datum in data:
-            simple_mpi.insert_matched_patient(session, datum)
+            simple_mpi.insert_patient(session, datum)
 
     def test_block_missing_data(self, session, prime_index):
         data = {"name": [{"given": ["Johnathon", "Bill",], "family": "Smith"}]}
         algo_config = {"blocks": [{"value": "birthdate"}]}
-        matches = simple_mpi.get_block_data(session, data, algo_config)
+        matches = simple_mpi.get_block_data(session, models.PIIRecord(**data), algo_config)
         assert len(matches) == 0
 
     def test_block_empty_block_key(self, session, prime_index):
         data = {"name": [{"given": ["Ferris",], "family": "Bueller"}], "birthdate": ""}
         algo_config = {"blocks": [{"value": "birthdate"}, {"value": "first_name"}]}
-        matches = simple_mpi.get_block_data(session, data, algo_config)
+        matches = simple_mpi.get_block_data(session, models.PIIRecord(**data), algo_config)
         assert len(matches) == 0
 
     def test_block_on_birthdate(self, session, prime_index):
         data = {"name": [{"given": ["Johnathon", "Bill",], "family": "Smith"}], "birthdate": "01/01/1980"}
         algo_config = {"blocks": [{"value": "birthdate"}]}
-        matches = simple_mpi.get_block_data(session, data, algo_config)
+        matches = simple_mpi.get_block_data(session, models.PIIRecord(**data), algo_config)
         assert len(matches) == 4
         data = {"name": [{"given": ["Johnathon", "Bill",], "family": "Smith"}], "birthdate": "11/12/1985"}
-        matches = simple_mpi.get_block_data(session, data, algo_config)
+        matches = simple_mpi.get_block_data(session, models.PIIRecord(**data), algo_config)
         assert len(matches) == 1
 
     def test_block_on_first_name(self, session, prime_index):
         data = {"name": [{"given": ["Johnathon", "Bill",], "family": "Smith"}], "birthdate": "01/01/1980"}
         algo_config = {"blocks": [{"value": "first_name"}]}
-        matches = simple_mpi.get_block_data(session, data, algo_config)
+        matches = simple_mpi.get_block_data(session, models.PIIRecord(**data), algo_config)
         assert len(matches) == 5
 
     def test_block_on_birthdate_and_first_name(self, session, prime_index):
         data = {"name": [{"given": ["Johnathon", "Bill",], "family": "Smith"}], "birthdate": "01/01/1980"}
         algo_config = {"blocks": [{"value": "birthdate"}, {"value": "first_name"}]}
-        matches = simple_mpi.get_block_data(session, data, algo_config)
+        matches = simple_mpi.get_block_data(session, models.PIIRecord(**data), algo_config)
         assert len(matches) == 4
 
     def test_block_on_birthdate_first_name_and_last_name(self, session, prime_index):
         data = {"name": [{"given": ["Johnathon", "Bill",], "family": "Smith"}], "birthdate": "01/01/1980"}
         algo_config = {"blocks": [{"value": "birthdate"}, {"value": "first_name"}, {"value": "last_name"}]}
-        matches = simple_mpi.get_block_data(session, data, algo_config)
+        matches = simple_mpi.get_block_data(session, models.PIIRecord(**data), algo_config)
         assert len(matches) == 3
         data = {"name": [{"given": ["Billy",], "family": "Smitty"}], "birthdate": "Jan 1 1980"}
-        matches = simple_mpi.get_block_data(session, data, algo_config)
+        matches = simple_mpi.get_block_data(session, models.PIIRecord(**data), algo_config)
         assert len(matches) == 2
         data = {"name": [{"given": ["Johnathon", "Bill",], "family": "Doeherty"}], "birthdate": "Jan 1 1980"}
-        matches = simple_mpi.get_block_data(session, data, algo_config)
+        matches = simple_mpi.get_block_data(session, models.PIIRecord(**data), algo_config)
         assert len(matches) == 0
 
     def test_block_on_multiple_names(self, session, prime_index):
         data = {"name": [{"use": "official", "given": ["John", "Doe"], "family": "Smith"}, {"use": "maiden", "given": ["John"], "family": "Doe"}]}
         algo_config = {"blocks": [{"value": "first_name"}, {"value": "last_name"}]}
-        matches = simple_mpi.get_block_data(session, data, algo_config)
+        matches = simple_mpi.get_block_data(session, models.PIIRecord(**data), algo_config)
         assert len(matches) == 4

@@ -14,7 +14,7 @@ from recordlinker import models
 
 
 def get_block_data(
-    session: orm.Session, data: dict, algo_config: dict
+    session: orm.Session, record: models.PIIRecord, algo_config: dict
 ) -> list[models.Patient]:
     """
     Get all of the matching Patients for the given data using the provided
@@ -33,7 +33,7 @@ def get_block_data(
         assert hasattr(models.BlockingKey, key_name), f"Invalid Blocking Key: {block}"
         key = models.BlockingKey[key_name]
         # Get all the possible values from the data for this key
-        vals = [v for v in key.to_value(data)]
+        vals = [v for v in key.to_value(record.model_dump())]
         # Create a dynamic alias for the Blocking Value table using the index
         # this is necessary since we are potentially joining the same table
         # multiple times with different conditions
@@ -52,11 +52,10 @@ def get_block_data(
     return query.all()
 
 
-# TODO: should this method be renamed to insert_patient
-def insert_matched_patient(
+def insert_patient(
     session: orm.Session,
     data: dict,
-    person_id: typing.Optional[int] = None,
+    person: typing.Optional[models.Person] = None,
     external_patient_id: typing.Optional[str] = None,
     external_person_id: typing.Optional[str] = None,
     commit: bool = True,
@@ -64,8 +63,11 @@ def insert_matched_patient(
     """
     Insert a new patient record into the database.
     """
+    # validate the data is a valid PIIRecord
+    models.PIIRecord.model_validate(data)
+
     # create a new Person record if one isn't provided
-    person = models.Person() if not person_id else session.get(models.Person, person_id)
+    person = person or models.Person()
 
     patient = models.Patient(
         person=person, data=data, external_patient_id=external_patient_id

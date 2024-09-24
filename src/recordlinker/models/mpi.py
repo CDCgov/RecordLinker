@@ -80,7 +80,6 @@ class BlockingKey(enum.Enum):
         self.id = id
         self.description = description
 
-    # FIXME: change this method to accept a PIIRecord object
     def to_value(self, data: dict) -> set[str]:
         """
         Given a data dictionary of Patient PII data, return a set of all
