@@ -38,6 +38,7 @@ dev = [
     "pyarrow",
     "httpx",
     "alembic",
+    "types-python-dateutil",
 ]
 prod = [
     # List any additional production-only dependencies here
