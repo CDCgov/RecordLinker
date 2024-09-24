@@ -79,3 +79,6 @@ pythonpath = ["src"]
 filterwarnings = [
     "ignore:typing.io is deprecated, import directly from typing instead:DeprecationWarning"
 ]
+
+[tool.mypy]
+mypy_path = ["src"]
