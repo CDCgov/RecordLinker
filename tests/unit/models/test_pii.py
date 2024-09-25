@@ -41,8 +41,6 @@ class TestPIIRecord:
 
     def test_parse_invalid_birthdate(self):
         with pytest.raises(pydantic.ValidationError):
-            models.PIIRecord(birthdate="1/1/4040")
-        with pytest.raises(pydantic.ValidationError):
             models.PIIRecord(birthdate="1 de enero de 1980")
 
     def test_parse_sex(self):

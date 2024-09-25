@@ -1,9 +1,9 @@
+import datetime
 import enum
 import typing
 
 import dateutil.parser
 import pydantic
-import pydantic.types as pytypes
 
 # The Patient features that can be used for comparison.
 FEATURE = typing.Literal[
@@ -69,10 +69,10 @@ class PIIRecord(pydantic.BaseModel):
     The schema for a PII record.
     """
 
-    model_config = pydantic.ConfigDict(extra="allow")
+    model_config = pydantic.ConfigDict(extra="allow", alias_generator=str.casefold)
 
     external_id: typing.Optional[str] = None
-    birthdate: typing.Optional[pytypes.PastDate] = None
+    birthdate: typing.Optional[datetime.date] = None
     sex: typing.Optional[Sex] = None
     mrn: typing.Optional[str] = None
     address: typing.List[Address] = []

@@ -34,7 +34,7 @@ def get_block_data(
         # Get the matching Blocking Key based on the value in the algo_config
         key = models.BlockingKey[key_name]
         # Get all the possible values from the data for this key
-        vals = [v for v in key.to_value(record.model_dump())]
+        vals = [v for v in key.to_value(record)]
         # Create a dynamic alias for the Blocking Value table using the index
         # this is necessary since we are potentially joining the same table
         # multiple times with different conditions
@@ -55,7 +55,7 @@ def get_block_data(
 
 def insert_patient(
     session: orm.Session,
-    data: dict,
+    record: models.PIIRecord,
     person: typing.Optional[models.Person] = None,
     external_patient_id: typing.Optional[str] = None,
     external_person_id: typing.Optional[str] = None,
@@ -64,15 +64,11 @@ def insert_patient(
     """
     Insert a new patient record into the database.
     """
-    # validate the data is a valid PIIRecord
-    models.PIIRecord.model_validate(data)
-
     # create a new Person record if one isn't provided
     person = person or models.Person()
 
-    patient = models.Patient(
-        person=person, data=data, external_patient_id=external_patient_id
-    )
+    patient = models.Patient(person=person, record=record, external_patient_id=external_patient_id)
+
     if external_person_id is not None:
         patient.external_person_id = external_person_id
         patient.external_person_source = "IRIS"
@@ -102,7 +98,7 @@ def insert_blocking_keys(
         # For each Key, get all the values from the data dictionary
         # Many Keys will only have 1 value, but its possible that
         # a PII data dict could have multiple given names
-        for val in key.to_value(patient.data):
+        for val in key.to_value(patient.record):
             values.append(
                 models.BlockingValue(patient=patient, blockingkey=key.id, value=val)
             )

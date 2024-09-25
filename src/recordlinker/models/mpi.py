@@ -1,4 +1,5 @@
 import enum
+import json
 import uuid
 
 from sqlalchemy import orm
@@ -49,11 +50,41 @@ class Patient(Base):
         back_populates="patient"
     )
 
-    def pii_data(self) -> PIIRecord:
+    @classmethod
+    def _scrub_empty(cls, data: dict) -> dict:
+        """
+        Recursively remove all None, empty lists and empty dicts from the data.
+        """
+        def is_empty(value):
+            return value is None or value == [] or value == {}
+
+        if isinstance(data, dict):
+            # Recursively process nested dictionaries
+            return {k: cls._scrub_empty(v) for k, v in data.items() if not is_empty(v)}
+        elif isinstance(data, list):
+            # Recursively process lists, removing None elements
+            return [cls._scrub_empty(v) for v in data if not is_empty(v)]
+        # Base case: return the value if it's not a dict or list
+        return data
+
+    @property
+    def record(self) -> PIIRecord | None:
         """
         Return a PIIRecord object with the data from this patient record.
         """
-        return PIIRecord(**self.data)
+        if self.data:
+            return PIIRecord(**self.data)
+
+    @record.setter
+    def record(self, value: PIIRecord):
+        assert isinstance(value, PIIRecord), "Expected a PIIRecord object"
+        # convert the data to a JSON string, then load it back as a dictionary
+        # this is necessary to ensure all data elements are JSON serializable
+        data = json.loads(value.model_dump_json())
+        # recursively remove all None, empty lists and empty dicts from the data
+        # this is an optimization to reduce the amount of data stored in the
+        # database, if a value is empty, no need to store it
+        self.data = self._scrub_empty(data)
 
 
 class BlockingKey(enum.Enum):
@@ -80,7 +111,7 @@ class BlockingKey(enum.Enum):
         self.id = id
         self.description = description
 
-    def to_value(self, data: dict) -> set[str]:
+    def to_value(self, record: PIIRecord) -> set[str]:
         """
         Given a data dictionary of Patient PII data, return a set of all
         possible values for this Key.  Many Keys will only have 1 possible value,
@@ -88,21 +119,23 @@ class BlockingKey(enum.Enum):
         """
         vals: set[str] = set()
 
-        pii = PIIRecord(**data)
+        assert isinstance(record, PIIRecord), "Expected a PIIRecord object"
+
         if self == BlockingKey.BIRTHDATE:
-            vals.update(pii.field_iter("birthdate"))
+            vals.update(record.field_iter("birthdate"))
         elif self == BlockingKey.MRN:
-            vals.update({x[-4:] for x in pii.field_iter("mrn")})
+            vals.update({x[-4:] for x in record.field_iter("mrn")})
         elif self == BlockingKey.SEX:
-            vals.update(pii.field_iter("sex"))
+            vals.update(record.field_iter("sex"))
         elif self == BlockingKey.ZIP:
-            vals.update(pii.field_iter("zip"))
+            vals.update(record.field_iter("zip"))
         elif self == BlockingKey.FIRST_NAME:
-            vals.update({x[:4] for x in pii.field_iter("first_name")})
+            vals.update({x[:4] for x in record.field_iter("first_name")})
         elif self == BlockingKey.LAST_NAME:
-            vals.update({x[:4] for x in pii.field_iter("last_name")})
+            vals.update({x[:4] for x in record.field_iter("last_name")})
 
         # remove all empty strings from the set, we never want to block on these
+        # FIXME: is this even necessary, shouldn't the field_iter guarantee no empty strings?
         vals.discard("")
         return vals
 
