@@ -14,13 +14,26 @@ from recordlinker.linkage.dal import DataAccessLayer
 from recordlinker.linkage.mpi import DIBBsMPIConnectorClient
 
 
-def read_json_from_assets(filename: str):
+def project_root() -> pathlib.Path:
+    """
+    Returns the path to the project root directory.
+    """
+    cwd = pathlib.Path(__file__).resolve()
+    root = cwd
+
+    while not (root / 'pyproject.toml').exists():
+        if root.parent == root:
+            raise FileNotFoundError("Project root with 'pyproject.toml' not found.")
+        root = root.parent
+    return root
+
+
+def read_json_from_assets(*filepaths: str) -> dict:
     """
     Loads a JSON file from the 'assets' directory.
     """
-    return json.load(
-        open((pathlib.Path(__file__).parent.parent.parent / "assets" / filename))
-    )
+    filename = pathlib.Path(project_root(), "assets", *filepaths)
+    return json.load(open(filename))
 
 
 def run_pyway(
@@ -43,7 +56,7 @@ def run_pyway(
         db_type = "postgres"
 
     # Prepare the pyway command.
-    migrations_dir = str(pathlib.Path(__file__).parent.parent.parent / "migrations")
+    migrations_dir = str(project_root() / "migrations")
     pyway_args = [
         "--database-table public.pyway",
         f"--database-migration-dir {migrations_dir}",
