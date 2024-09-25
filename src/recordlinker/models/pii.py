@@ -52,6 +52,8 @@ class Address(pydantic.BaseModel):
     postal_code: typing.Optional[str] = None
     county: typing.Optional[str] = None  # future use
     country: typing.Optional[str] = None
+    latitude: typing.Optional[float] = None
+    longitude: typing.Optional[float] = None
 
 
 class Telecom(pydantic.BaseModel):
