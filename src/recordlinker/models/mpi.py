@@ -9,11 +9,16 @@ from sqlalchemy import types as sqltypes
 from .base import Base
 from .pii import PIIRecord
 
+# The maximum length of a blocking value, we want to optimize this to be as small
+# as possible to reduce the amount of data stored in the database.  However, it needs
+# to be long enough to store the longest possible value for a blocking key.
+BLOCKING_VALUE_MAX_LENGTH = 20
+
 
 class Person(Base):
     __tablename__ = "mpi_person"
 
-    id: orm.Mapped[int] = orm.mapped_column(primary_key=True)
+    id: orm.Mapped[int] = orm.mapped_column(sqltypes.BigInteger, primary_key=True)
     internal_id: orm.Mapped[uuid.UUID] = orm.mapped_column(default=uuid.uuid4)
     patients: orm.Mapped[list["Patient"]] = orm.relationship(back_populates="person")
 
@@ -33,28 +38,21 @@ class Person(Base):
 class Patient(Base):
     __tablename__ = "mpi_patient"
 
-    id: orm.Mapped[int] = orm.mapped_column(primary_key=True)
+    id: orm.Mapped[int] = orm.mapped_column(sqltypes.BigInteger, primary_key=True)
     person_id: orm.Mapped[int] = orm.mapped_column(schema.ForeignKey("mpi_person.id"))
     person: orm.Mapped["Person"] = orm.relationship(back_populates="patients")
     data: orm.Mapped[dict] = orm.mapped_column(sqltypes.JSON)
-    external_patient_id: orm.Mapped[str] = orm.mapped_column(
-        sqltypes.String(255), nullable=True
-    )
-    external_person_id: orm.Mapped[str] = orm.mapped_column(
-        sqltypes.String(255), nullable=True
-    )
-    external_person_source: orm.Mapped[str] = orm.mapped_column(
-        sqltypes.String(100), nullable=True
-    )
-    blocking_values: orm.Mapped[list["BlockingValue"]] = orm.relationship(
-        back_populates="patient"
-    )
+    external_patient_id: orm.Mapped[str] = orm.mapped_column(sqltypes.String(255), nullable=True)
+    external_person_id: orm.Mapped[str] = orm.mapped_column(sqltypes.String(255), nullable=True)
+    external_person_source: orm.Mapped[str] = orm.mapped_column(sqltypes.String(100), nullable=True)
+    blocking_values: orm.Mapped[list["BlockingValue"]] = orm.relationship(back_populates="patient")
 
     @classmethod
     def _scrub_empty(cls, data: dict) -> dict:
         """
         Recursively remove all None, empty lists and empty dicts from the data.
         """
+
         def is_empty(value):
             return value is None or value == [] or value == {}
 
@@ -97,6 +95,9 @@ class BlockingKey(enum.Enum):
     the algorithm.  By defining them all upfront, we give the user flexibility in
     adjusting their algorithm configuration without having to reload the data.
 
+    NOTE: The database schema is designed to allow for blocking values up to 20 characters
+    in length.  All blocking keys should be designed to fit within this constraint.
+
     **HERE BE DRAGONS**: IN A PRODUCTION SYSTEM, THESE ENUMS SHOULD NOT BE CHANGED!!!
     """
 
@@ -122,6 +123,7 @@ class BlockingKey(enum.Enum):
         assert isinstance(record, PIIRecord), "Expected a PIIRecord object"
 
         if self == BlockingKey.BIRTHDATE:
+            # NOTE: we could optimize here and remove the dashes from the date
             vals.update(record.field_iter("birthdate"))
         elif self == BlockingKey.MRN:
             vals.update({x[-4:] for x in record.field_iter("mrn")})
@@ -134,9 +136,11 @@ class BlockingKey(enum.Enum):
         elif self == BlockingKey.LAST_NAME:
             vals.update({x[:4] for x in record.field_iter("last_name")})
 
-        # remove all empty strings from the set, we never want to block on these
-        # FIXME: is this even necessary, shouldn't the field_iter guarantee no empty strings?
-        vals.discard("")
+        # if any vals are longer than the BLOCKING_KEY_MAX_LENGTH, raise an error
+        if any(len(x) > BLOCKING_VALUE_MAX_LENGTH for x in vals):
+            raise RuntimeError(
+                f"BlockingKey {self} has a value longer than {BLOCKING_VALUE_MAX_LENGTH}"
+            )
         return vals
 
 
@@ -144,13 +148,11 @@ class BlockingValue(Base):
     __tablename__ = "mpi_blocking_value"
     # create a composite index on patient_id, blockingkey and value
     __table_args__ = (
-        schema.Index(
-            "idx_blocking_value_patient_key_value", "patient_id", "blockingkey", "value"
-        ),
+        schema.Index("idx_blocking_value_patient_key_value", "patient_id", "blockingkey", "value"),
     )
 
-    id: orm.Mapped[int] = orm.mapped_column(primary_key=True)
+    id: orm.Mapped[int] = orm.mapped_column(sqltypes.BigInteger, primary_key=True)
     patient_id: orm.Mapped[int] = orm.mapped_column(schema.ForeignKey("mpi_patient.id"))
     patient: orm.Mapped["Patient"] = orm.relationship(back_populates="blocking_values")
-    blockingkey: orm.Mapped[int] = orm.mapped_column(sqltypes.Integer)
-    value: orm.Mapped[str] = orm.mapped_column(sqltypes.String(50))
+    blockingkey: orm.Mapped[int] = orm.mapped_column(sqltypes.SmallInteger)
+    value: orm.Mapped[str] = orm.mapped_column(sqltypes.String(BLOCKING_VALUE_MAX_LENGTH))
