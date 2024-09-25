@@ -5,12 +5,14 @@ Revises: 0c90faa0378f
 Create Date: 2024-09-23 12:34:20.927323
 
 """
-from typing import Sequence, Union
+from typing import Sequence
+from typing import Union
 
-from alembic import op
 import sqlalchemy as sa
-from src.recordlinker.linkage.models import Algorithm, AlgorithmPass
 
+from src.recordlinker.linkage.models import Algorithm
+from src.recordlinker.linkage.models import AlgorithmPass
+from src.recordlinker.linkage.models import BlockingKey
 
 # revision identifiers, used by Alembic.
 revision: str = '9e8d40d923ea'
@@ -18,7 +20,6 @@ down_revision: Union[str, None] = '0c90faa0378f'
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 
-# TODO: figure out way to handle id without repeating integers
 FUZZY_THRESHOLDS = {
     "first_name": 0.9,
     "last_name": 0.9,
@@ -57,8 +58,8 @@ DIBBS_ENHANCED = {
 DIBBS_BASIC_PASS_ONE = {
     "id": 1,
     "algorithm_id": 1,
-    "blocking_keys": [],    #TODO
-    "evaluators": [""],     #TODO
+    "blocking_keys": [BlockingKey.BIRTHDATE, BlockingKey.MRN, BlockingKey.SEX],
+    "evaluators": [{"first_name": "func:recordlinker.linkage.matchers.feature_match_fuzzy_string", "last_name": "func:recordlinker.linkage.matchers.feature_match_exact"}],     #TODO
     "rule": "func:recordlinker.linkage.matchers.eval_perfect_match",
     "cluster_ratio": 0.9,
     "kwargs": {"thresholds": FUZZY_THRESHOLDS}
@@ -67,8 +68,8 @@ DIBBS_BASIC_PASS_ONE = {
 DIBBS_BASIC_PASS_TWO = {
     "id": 2,
     "algorithm_id": 1,
-    "blocking_keys": [],    #TODO
-    "evaluators": [""],     #TODO
+    "blocking_keys": [BlockingKey.ZIP, BlockingKey.FIRST_NAME, BlockingKey.LAST_NAME, BlockingKey.SEX],
+    "evaluators": [{"address": "func:recordlinker.linkage.matchers.feature_match_fuzzy_string", "birthdate": "func:recordlinker.linkage.matchers.feature_match_exact"}],     #TODO
     "rule": "func:recordlinker.linkage.matchers.eval_perfect_match",
     "cluster_ratio": 0.9,
     "kwargs": {"thresholds": FUZZY_THRESHOLDS}
@@ -77,8 +78,8 @@ DIBBS_BASIC_PASS_TWO = {
 DIBBS_ENHANCED_PASS_ONE = {
     "id": 3,
     "algorithm_id": 2,
-    "blocking_keys": [],    #TODO
-    "evaluators": [""],     #TODO
+    "blocking_keys": [BlockingKey.BIRTHDATE, BlockingKey.MRN, BlockingKey.SEX],
+    "evaluators": [{"first_name": "func:recordlinker.linkage.matchers.feature_match_log_odds_fuzzy_compare", "last_name": "func:recordlinker.linkage.matchers.feature_match_log_odds_fuzzy_compare"}],     #TODO
     "rule": "func:recordlinker.linkage.matchers.eval_log_odds_cutoff",
     "cluster_ratio": 0.9,
     "kwargs": {
@@ -92,8 +93,8 @@ DIBBS_ENHANCED_PASS_ONE = {
 DIBBS_ENHANCED_PASS_TWO = {
     "id": 4,
     "algorithm_id": 2,
-    "blocking_keys": [],    #TODO
-    "evaluators": [""],     #TODO
+    "blocking_keys": [BlockingKey.ZIP, BlockingKey.FIRST_NAME, BlockingKey.LAST_NAME, BlockingKey.SEX],
+    "evaluators": [{"address": "func:recordlinker.linkage.matchers.feature_match_log_odds_fuzzy_compare", "birthdate": "func:recordlinker.linkage.matchers.feature_match_log_odds_fuzzy_compare"}],     #TODO
     "rule": "func:recordlinker.linkage.matchers.eval_log_odds_cutoff",
     "cluster_ratio": 0.9,
     "kwargs": {
@@ -106,13 +107,13 @@ DIBBS_ENHANCED_PASS_TWO = {
 
 def upgrade() -> None:
     #insert alogithms
-    sa.insert(Algorithm).values(DIBBS_BASIC)  
-    sa.insert(Algorithm).values(DIBBS_ENHANCED) 
+    sa.insert(Algorithm).values(DIBBS_BASIC)
+    sa.insert(Algorithm).values(DIBBS_ENHANCED)
     
     #insert algorithm passes
-    sa.insert(AlgorithmPass).values(DIBBS_BASIC_PASS_ONE)  
-    sa.insert(AlgorithmPass).values(DIBBS_BASIC_PASS_TWO)  
-    sa.insert(AlgorithmPass).values(DIBBS_ENHANCED_PASS_ONE)  
+    sa.insert(AlgorithmPass).values(DIBBS_BASIC_PASS_ONE)
+    sa.insert(AlgorithmPass).values(DIBBS_BASIC_PASS_TWO)
+    sa.insert(AlgorithmPass).values(DIBBS_ENHANCED_PASS_ONE)
     sa.insert(AlgorithmPass).values(DIBBS_ENHANCED_PASS_TWO)
 
 def downgrade() -> None:
@@ -125,4 +126,3 @@ def downgrade() -> None:
     sa.delete(AlgorithmPass).where(AlgorithmPass.id == 2)
     sa.delete(AlgorithmPass).where(AlgorithmPass.id == 3)
     sa.delete(AlgorithmPass).where(AlgorithmPass.id == 4)
-    pass
