@@ -17,6 +17,11 @@ from recordlinker.linkage import utils
 
 SIMILARITY_MEASURES = typing.Literal["JaroWinkler", "Levenshtein", "DamerauLevenshtein"]
 
+# A Callable type for comparing a feature on two records
+FEATURE_COMPARE_FUNC = typing.Callable[[models.PIIRecord, models.Patient, models.FEATURE], bool]
+# A Callable type for evaluating whether a set of feature comparisons constitutes a match
+MATCH_RULE_FUNC = typing.Callable[[list[bool]], bool]
+
 
 def compare_strings(
     string1: str,
@@ -50,9 +55,7 @@ def compare_strings(
     elif similarity_measure == "Levenshtein":
         return rapidfuzz.distance.Levenshtein.normalized_similarity(string1, string2)
     elif similarity_measure == "DamerauLevenshtein":
-        return rapidfuzz.distance.DamerauLevenshtein.normalized_similarity(
-            string1, string2
-        )
+        return rapidfuzz.distance.DamerauLevenshtein.normalized_similarity(string1, string2)
 
 
 def eval_perfect_match(feature_comparisons: list, **kwargs) -> bool:
@@ -290,9 +293,7 @@ def match_within_block(
         for j in range(i + 1, len(block)):
             record_j = block[j]
             feature_comps = [
-                feature_funcs[feature_col](
-                    record_i, record_j, feature_col, col_to_idx, **kwargs
-                )
+                feature_funcs[feature_col](record_i, record_j, feature_col, col_to_idx, **kwargs)
                 for feature_col in feature_funcs
             ]
 
@@ -389,9 +390,7 @@ def _eval_record_in_cluster(
     for j in cluster:
         record_j = block[j]
         feature_comps = [
-            feature_funcs[feature_col](
-                record_i, record_j, feature_col, col_to_idx, **kwargs
-            )
+            feature_funcs[feature_col](record_i, record_j, feature_col, col_to_idx, **kwargs)
             for feature_col in feature_funcs
         ]
 
@@ -444,7 +443,7 @@ def simple_feature_match_exact(
     :param key: The name of the column being evaluated (e.g. "city").
     :return: A boolean indicating whether the features are an exact match.
     """
-    for x in patient.pii_data().field_iter(key):
+    for x in patient.record.field_iter(key):
         for y in record.field_iter(key):
             if x == y:
                 return True
@@ -473,7 +472,7 @@ def simple_feature_match_fuzzy_string(
     :return: A boolean indicating whether the features are a fuzzy match.
     """
     similarity_measure, threshold = _get_fuzzy_params(key, **kwargs)
-    for x in patient.pii_data().field_iter(key):
+    for x in patient.record.field_iter(key):
         for y in record.field_iter(key):
             score = compare_strings(x, y, similarity_measure)
             if score >= threshold:
