@@ -7,6 +7,7 @@ from sqlalchemy import schema
 from sqlalchemy import types as sqltypes
 
 from .base import Base
+from .base import get_bigint_pk
 from .pii import PIIRecord
 
 # The maximum length of a blocking value, we want to optimize this to be as small
@@ -18,7 +19,7 @@ BLOCKING_VALUE_MAX_LENGTH = 20
 class Person(Base):
     __tablename__ = "mpi_person"
 
-    id: orm.Mapped[int] = orm.mapped_column(sqltypes.BigInteger, primary_key=True)
+    id: orm.Mapped[int] = orm.mapped_column(get_bigint_pk(), autoincrement=True, primary_key=True)
     internal_id: orm.Mapped[uuid.UUID] = orm.mapped_column(default=uuid.uuid4)
     patients: orm.Mapped[list["Patient"]] = orm.relationship(back_populates="person")
 
@@ -38,7 +39,7 @@ class Person(Base):
 class Patient(Base):
     __tablename__ = "mpi_patient"
 
-    id: orm.Mapped[int] = orm.mapped_column(sqltypes.BigInteger, primary_key=True)
+    id: orm.Mapped[int] = orm.mapped_column(get_bigint_pk(), autoincrement=True, primary_key=True)
     person_id: orm.Mapped[int] = orm.mapped_column(schema.ForeignKey("mpi_person.id"))
     person: orm.Mapped["Person"] = orm.relationship(back_populates="patients")
     data: orm.Mapped[dict] = orm.mapped_column(sqltypes.JSON)
@@ -151,7 +152,7 @@ class BlockingValue(Base):
         schema.Index("idx_blocking_value_patient_key_value", "patient_id", "blockingkey", "value"),
     )
 
-    id: orm.Mapped[int] = orm.mapped_column(sqltypes.BigInteger, primary_key=True)
+    id: orm.Mapped[int] = orm.mapped_column(get_bigint_pk(), autoincrement=True, primary_key=True)
     patient_id: orm.Mapped[int] = orm.mapped_column(schema.ForeignKey("mpi_patient.id"))
     patient: orm.Mapped["Patient"] = orm.relationship(back_populates="blocking_values")
     blockingkey: orm.Mapped[int] = orm.mapped_column(sqltypes.SmallInteger)
