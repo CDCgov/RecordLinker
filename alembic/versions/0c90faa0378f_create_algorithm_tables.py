@@ -1,7 +1,7 @@
 """create algorithm tables
 
 Revision ID: 0c90faa0378f
-Revises: '6052c193a26a'
+Revises: 6052c193a26a
 Create Date: 2024-09-20 11:41:13.377954
 
 """
