@@ -4,19 +4,18 @@ on:
       types:
         - opened
         - reopened
-        - synchronize
         - ready_for_review
 
 jobs:
   slack-ready-for-review:
     runs-on: ubuntu-latest
-    if: ${{ !github.event.pull_request.draft }}
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
 
       - name: Send GitHub trigger payload to Slack 
+        if: ${{ !github.event.pull_request.draft }}
         id: slack
         uses: slackapi/slack-github-action@v1.27.0
         with:
