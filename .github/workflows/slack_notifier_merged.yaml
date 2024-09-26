@@ -1,0 +1,35 @@
+on:
+    pull_request:
+      branches: [main]
+      types:
+        - closed
+
+jobs:
+  slack-pr-merged:
+    runs-on: ubuntu-latest
+    if: ${{ github.event.pull_request.merged }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Send GitHub trigger payload to Slack 
+        id: slack
+        uses: slackapi/slack-github-action@v1.27.0
+        with:
+          payload: |
+            {
+              "text": "${{ github.event.pull_request.html_url }} has been merged! *TEST*",
+              "blocks": [
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": "${{ github.event.pull_request.html_url }} has been merged! *TEST*"
+                  }
+                }
+              ]
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
