@@ -9,13 +9,13 @@ on:
 jobs:
   slack-ready-for-review:
     runs-on: ubuntu-latest
+    if: ${{ github.event.pull_request.draft == false }}
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
 
       - name: Send GitHub trigger payload to Slack 
-        if: ${{ !github.event.pull_request.draft }}
         id: slack
         uses: slackapi/slack-github-action@v1.27.0
         with:
