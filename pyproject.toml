@@ -38,6 +38,7 @@ dev = [
     "pyarrow",
     "httpx",
     "alembic",
+    "types-python-dateutil",
 ]
 prod = [
     # List any additional production-only dependencies here
@@ -55,7 +56,7 @@ fallback_version = "0.0.0"
 
 [tool.ruff]
 exclude = [".git", ".pytest_cache", "__pycache__", "docs"]
-line-length = 88
+line-length = 100
 indent-width = 4
 target-version = "py310"
 show-fixes = true
@@ -78,3 +79,6 @@ pythonpath = ["src"]
 filterwarnings = [
     "ignore:typing.io is deprecated, import directly from typing instead:DeprecationWarning"
 ]
+
+[tool.mypy]
+mypy_path = ["src"]
