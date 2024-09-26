@@ -9,12 +9,12 @@ Create Date: 2024-09-26 15:10:15.179656
 from typing import Sequence
 from typing import Union
 
-from alembic import op
 import sqlalchemy as sa
 
-from recordlinker.models import BlockingKey
+from alembic import op
 from recordlinker.models import Algorithm
 from recordlinker.models import AlgorithmPass
+from recordlinker.models import BlockingKey
 
 # revision identifiers, used by Alembic.
 revision: str = 'a30b8bbccfdf'
@@ -47,14 +47,14 @@ DIBBS_BASIC = {
     "id": 1,
     "is_default": True,
     "label": "DIBBs Basic algorithm",
-    "description": "DIBBs Enhanced algorithm description"   #TODO
+    "description": "Compares the fields of two records using string similarity scoring. If similarity score is above fuzzy threshold then the fields agree. If all fields being considered agree, then the records are a match."
 }
 
 DIBBS_ENHANCED = {
     "id": 2, 
     "is_default": False,
     "label": "DIBBs Enhanced algorithm",
-    "description": "DIBBs Enhanced algorithm description"   #TODO
+    "description": "Similair to the basic algorithm with the addition of log odds scoring. String comparison scores are multiplied by unique scoring weights for each field. If the sum of all considered weights is greater than a threshold then the records are a match."
 }
 
 DIBBS_BASIC_PASS_ONE = {
@@ -124,7 +124,7 @@ def downgrade() -> None:
     op.execute(sa.delete(AlgorithmPass).where(AlgorithmPass.id == 2))
     op.execute(sa.delete(AlgorithmPass).where(AlgorithmPass.id == 3))
     op.execute(sa.delete(AlgorithmPass).where(AlgorithmPass.id == 4))
-    
+
     #delete algorithm rows
     op.execute(sa.delete(Algorithm).where(Algorithm.id == 1))
     op.execute(sa.delete(Algorithm).where(Algorithm.id == 2))
