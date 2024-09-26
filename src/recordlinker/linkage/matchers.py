@@ -428,7 +428,7 @@ def _get_fuzzy_params(col: str, **kwargs) -> tuple[SIMILARITY_MEASURES, float]:
     return (similarity_measure, threshold)
 
 
-def simple_feature_match_exact(
+def single_feature_match_exact(
     record: models.PIIRecord, patient: models.Patient, key: models.FEATURE, **kwargs: dict
 ) -> bool:
     """
@@ -450,7 +450,7 @@ def simple_feature_match_exact(
     return False
 
 
-def simple_feature_match_fuzzy_string(
+def single_feature_match_fuzzy_string(
     record: models.PIIRecord, patient: models.Patient, key: models.FEATURE, **kwargs: dict
 ) -> bool:
     """
