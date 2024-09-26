@@ -1,0 +1,38 @@
+on:
+    pull_request:
+      branches: [GHA-PR-notifier-25]
+      types:
+        - opened
+        - reopened
+        - synchronize
+        - ready_for_review
+
+jobs:
+  slack-ready-for-review:
+    runs-on: ubuntu-latest
+    if: ${{ !github.event.pull_request.draft }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Send GitHub trigger payload to Slack 
+        id: slack
+        uses: slackapi/slack-github-action@v1.27.0
+        with:
+          payload: |
+            {
+                "text": "${{ github.event.pull_request.user.name }} has a PR ready for review!: \n${{ github.event.pull_request.html_url || github.event.head_commit.url }}",
+                "blocks": [
+                {
+                    "type": "section",
+                    "text": {
+                    "type": "mrkdwn",
+                    "text": ""${{ github.event.pull_request.user.name }} has a PR ready for review!: \n${{ github.event.pull_request.html_url || github.event.head_commit.url }}""
+                    }
+                }
+                ]
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
