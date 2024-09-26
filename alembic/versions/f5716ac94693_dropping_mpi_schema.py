@@ -34,15 +34,6 @@ def downgrade() -> None:
     sa.Column('internal_id', sa.CHAR(length=32), nullable=False),
     sa.PrimaryKeyConstraint('id')
     )
-    op.create_table('mpi_blocking_value',
-    sa.Column('id', sa.INTEGER(), nullable=False),
-    sa.Column('patient_id', sa.INTEGER(), nullable=False),
-    sa.Column('blockingkey', sa.INTEGER(), nullable=False),
-    sa.Column('value', sa.VARCHAR(length=50), nullable=False),
-    sa.ForeignKeyConstraint(['patient_id'], ['mpi_patient.id'], ),
-    sa.PrimaryKeyConstraint('id')
-    )
-    op.create_index('idx_blocking_value_patient_key_value', 'mpi_blocking_value', ['patient_id', 'blockingkey', 'value'], unique=False)
     op.create_table('mpi_patient',
     sa.Column('id', sa.INTEGER(), nullable=False),
     sa.Column('person_id', sa.INTEGER(), nullable=False),
@@ -52,4 +43,13 @@ def downgrade() -> None:
     sa.ForeignKeyConstraint(['person_id'], ['mpi_person.id'], ),
     sa.PrimaryKeyConstraint('id')
     )
+    op.create_table('mpi_blocking_value',
+    sa.Column('id', sa.INTEGER(), nullable=False),
+    sa.Column('patient_id', sa.INTEGER(), nullable=False),
+    sa.Column('blockingkey', sa.INTEGER(), nullable=False),
+    sa.Column('value', sa.VARCHAR(length=50), nullable=False),
+    sa.ForeignKeyConstraint(['patient_id'], ['mpi_patient.id'], ),
+    sa.PrimaryKeyConstraint('id')
+    )
+    op.create_index('idx_blocking_value_patient_key_value', 'mpi_blocking_value', ['patient_id', 'blockingkey', 'value'], unique=False)
     # ### end Alembic commands ###
