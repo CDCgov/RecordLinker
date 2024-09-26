@@ -8,6 +8,7 @@ from sqlalchemy import types as sqltypes
 
 from .base import Base
 from .base import get_bigint_pk
+from .pii import Feature
 from .pii import PIIRecord
 
 # The maximum length of a blocking value, we want to optimize this to be as small
@@ -125,23 +126,21 @@ class BlockingKey(enum.Enum):
 
         if self == BlockingKey.BIRTHDATE:
             # NOTE: we could optimize here and remove the dashes from the date
-            vals.update(record.field_iter("birthdate"))
+            vals.update(record.field_iter(Feature.BIRTHDATE))
         elif self == BlockingKey.MRN:
-            vals.update({x[-4:] for x in record.field_iter("mrn")})
+            vals.update({x[-4:] for x in record.field_iter(Feature.MRN)})
         elif self == BlockingKey.SEX:
-            vals.update(record.field_iter("sex"))
+            vals.update(record.field_iter(Feature.SEX))
         elif self == BlockingKey.ZIP:
-            vals.update(record.field_iter("zip"))
+            vals.update(record.field_iter(Feature.ZIPCODE))
         elif self == BlockingKey.FIRST_NAME:
-            vals.update({x[:4] for x in record.field_iter("first_name")})
+            vals.update({x[:4] for x in record.field_iter(Feature.FIRST_NAME)})
         elif self == BlockingKey.LAST_NAME:
-            vals.update({x[:4] for x in record.field_iter("last_name")})
+            vals.update({x[:4] for x in record.field_iter(Feature.LAST_NAME)})
 
         # if any vals are longer than the BLOCKING_KEY_MAX_LENGTH, raise an error
         if any(len(x) > BLOCKING_VALUE_MAX_LENGTH for x in vals):
-            raise RuntimeError(
-                f"BlockingKey {self} has a value longer than {BLOCKING_VALUE_MAX_LENGTH}"
-            )
+            raise RuntimeError(f"{self} has a value longer than {BLOCKING_VALUE_MAX_LENGTH}")
         return vals
 
 

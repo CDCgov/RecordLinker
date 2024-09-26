@@ -6,13 +6,13 @@ from .mpi import BlockingKey
 from .mpi import BlockingValue
 from .mpi import Patient
 from .mpi import Person
-from .pii import FEATURE
+from .pii import Feature
 from .pii import PIIRecord
 
 __all__ = [
     "Base",
     "get_session",
-    "FEATURE",
+    "Feature",
     "PIIRecord",
     "Person",
     "Patient",

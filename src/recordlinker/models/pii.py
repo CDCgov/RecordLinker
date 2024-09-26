@@ -5,18 +5,21 @@ import typing
 import dateutil.parser
 import pydantic
 
-# The Patient features that can be used for comparison.
-FEATURE = typing.Literal[
-    "birthdate",
-    "mrn",
-    "sex",
-    "first_name",
-    "last_name",
-    "address",
-    "city",
-    "state",
-    "zip",
-]
+
+class Feature(enum.Enum):
+    """
+    Enum for the different Patient attributes that can be used for comparison.
+    """
+
+    BIRTHDATE = "birthdate"
+    MRN = "mrn"
+    SEX = "sex"
+    FIRST_NAME = "first_name"
+    LAST_NAME = "last_name"
+    ADDRESS = "address"
+    CITY = "city"
+    STATE = "state"
+    ZIPCODE = "zip"
 
 
 class Sex(enum.Enum):
@@ -120,48 +123,47 @@ class PIIRecord(pydantic.BaseModel):
                 return Sex.F
             return Sex.U
 
-    def field_iter(self, field: FEATURE) -> typing.Iterator[str]:
+    def field_iter(self, field: Feature) -> typing.Iterator[str]:
         """
         Given a field name, return an iterator of all string values for that field.
         Empty strings are not included in the iterator.
         """
-        if field not in typing.get_args(FEATURE):
+        if not isinstance(field, Feature):
             raise ValueError(f"Invalid feature: {field}")
 
-        if field == "birthdate":
+        if field == Feature.BIRTHDATE:
             if self.birth_date:
                 yield self.birth_date.strftime("%Y-%m-%d")
-        elif field == "mrn":
+        elif field == Feature.MRN:
             if self.mrn:
                 yield self.mrn
-        elif field == "sex":
+        elif field == Feature.SEX:
             if self.sex:
                 yield self.sex.name.lower()
-        elif field == "address":
+        elif field == Feature.ADDRESS:
             for address in self.address:
                 for line in address.line:
                     if line:
                         yield line
-        elif field == "city":
+        elif field == Feature.CITY:
             for address in self.address:
                 if address.city:
                     yield address.city
-        elif field == "state":
+        elif field == Feature.STATE:
             for address in self.address:
                 if address.state:
                     yield address.state
-        # FIXME: can we change this to "zipcode" some day
-        elif field == "zip":
+        elif field == Feature.ZIPCODE:
             for address in self.address:
                 if address.postal_code:
                     # only use the first 5 digits for comparison
                     yield address.postal_code[:5]
-        elif field == "first_name":
+        elif field == Feature.FIRST_NAME:
             for name in self.name:
                 for given in name.given:
                     if given:
                         yield given
-        elif field == "last_name":
+        elif field == Feature.LAST_NAME:
             for name in self.name:
                 if name.family:
                     yield name.family

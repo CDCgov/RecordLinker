@@ -266,19 +266,19 @@ def test_single_feature_match_exact():
     pat2 = models.Patient(data={"name": [{"given": ["Michael"], "family": "Smith"}], "sex": "male"})
     pat3 = models.Patient(data={"name": [{"family": "Smith"}, {"family": "Williams"}]})
 
-    assert matchers.single_feature_match_exact(record, pat1, "first_name")
-    assert not matchers.single_feature_match_exact(record, pat1, "last_name")
-    assert matchers.single_feature_match_exact(record, pat1, "birthdate")
-    assert not matchers.single_feature_match_exact(record, pat1, "zip")
+    assert matchers.single_feature_match_exact(record, pat1, models.Feature.FIRST_NAME)
+    assert not matchers.single_feature_match_exact(record, pat1, models.Feature.LAST_NAME)
+    assert matchers.single_feature_match_exact(record, pat1, models.Feature.BIRTHDATE)
+    assert not matchers.single_feature_match_exact(record, pat1, models.Feature.ZIPCODE)
 
-    assert not matchers.single_feature_match_exact(record, pat2, "first_name")
-    assert matchers.single_feature_match_exact(record, pat2, "last_name")
-    assert not matchers.single_feature_match_exact(record, pat2, "sex")
-    assert not matchers.single_feature_match_exact(record, pat1, "zip")
+    assert not matchers.single_feature_match_exact(record, pat2, models.Feature.FIRST_NAME)
+    assert matchers.single_feature_match_exact(record, pat2, models.Feature.LAST_NAME)
+    assert not matchers.single_feature_match_exact(record, pat2, models.Feature.SEX)
+    assert not matchers.single_feature_match_exact(record, pat1, models.Feature.ZIPCODE)
 
-    assert not matchers.single_feature_match_exact(record, pat3, "first_name")
-    assert matchers.single_feature_match_exact(record, pat3, "last_name")
-    assert not matchers.single_feature_match_exact(record, pat3, "birthdate")
+    assert not matchers.single_feature_match_exact(record, pat3, models.Feature.FIRST_NAME)
+    assert matchers.single_feature_match_exact(record, pat3, models.Feature.LAST_NAME)
+    assert not matchers.single_feature_match_exact(record, pat3, models.Feature.BIRTHDATE)
 
     with pytest.raises(ValueError):
         matchers.single_feature_match_exact(record, pat1, "unknown")
@@ -290,14 +290,14 @@ def test_single_feature_match_fuzzy_string():
     pat2 = models.Patient(data={"name": [{"given": ["Michael"], "family": "Smtih"}], "sex": "male"})
     pat3 = models.Patient(data={"name": [{"family": "Smyth"}, {"family": "Williams"}]})
 
-    assert matchers.single_feature_match_fuzzy_string(record, pat1, "first_name")
-    assert not matchers.single_feature_match_fuzzy_string(record, pat1, "last_name")
+    assert matchers.single_feature_match_fuzzy_string(record, pat1, models.Feature.FIRST_NAME)
+    assert not matchers.single_feature_match_fuzzy_string(record, pat1, models.Feature.LAST_NAME)
 
-    assert not matchers.single_feature_match_fuzzy_string(record, pat2, "first_name")
-    assert matchers.single_feature_match_fuzzy_string(record, pat2, "last_name")
+    assert not matchers.single_feature_match_fuzzy_string(record, pat2, models.Feature.FIRST_NAME)
+    assert matchers.single_feature_match_fuzzy_string(record, pat2, models.Feature.LAST_NAME)
 
-    assert not matchers.single_feature_match_fuzzy_string(record, pat3, "first_name")
-    assert matchers.single_feature_match_fuzzy_string(record, pat3, "last_name")
+    assert not matchers.single_feature_match_fuzzy_string(record, pat3, models.Feature.FIRST_NAME)
+    assert matchers.single_feature_match_fuzzy_string(record, pat3, models.Feature.LAST_NAME)
 
     with pytest.raises(ValueError):
-        matchers.single_feature_match_fuzzy_string(record, pat1, "unknown")
+        matchers.single_feature_match_fuzzy_string(record, pat1, "first_name")

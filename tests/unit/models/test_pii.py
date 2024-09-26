@@ -98,12 +98,12 @@ class TestPIIRecord:
         with pytest.raises(ValueError):
             list(record.field_iter("external_id"))
 
-        assert list(record.field_iter("birthdate")) == ["1980-02-01"]
-        assert list(record.field_iter("mrn")) == ["123456"]
-        assert list(record.field_iter("sex")) == ["m"]
-        assert list(record.field_iter("address")) == ["123 Main St", "456 Elm St"]
-        assert list(record.field_iter("city")) == ["Anytown", "Somecity"]
-        assert list(record.field_iter("state")) == ["NY", "CA"]
-        assert list(record.field_iter("zip")) == ["12345", "98765"]
-        assert list(record.field_iter("first_name")) == ["John", "L", "Jane"]
-        assert list(record.field_iter("last_name")) == ["Doe", "Smith"]
+        assert list(record.field_iter(models.Feature.BIRTHDATE)) == ["1980-02-01"]
+        assert list(record.field_iter(models.Feature.MRN)) == ["123456"]
+        assert list(record.field_iter(models.Feature.SEX)) == ["m"]
+        assert list(record.field_iter(models.Feature.ADDRESS)) == ["123 Main St", "456 Elm St"]
+        assert list(record.field_iter(models.Feature.CITY)) == ["Anytown", "Somecity"]
+        assert list(record.field_iter(models.Feature.STATE)) == ["NY", "CA"]
+        assert list(record.field_iter(models.Feature.ZIPCODE)) == ["12345", "98765"]
+        assert list(record.field_iter(models.Feature.FIRST_NAME)) == ["John", "L", "Jane"]
+        assert list(record.field_iter(models.Feature.LAST_NAME)) == ["Doe", "Smith"]

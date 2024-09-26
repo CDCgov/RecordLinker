@@ -18,7 +18,7 @@ from recordlinker.linkage import utils
 SIMILARITY_MEASURES = typing.Literal["JaroWinkler", "Levenshtein", "DamerauLevenshtein"]
 
 # A Callable type for comparing a feature on two records
-FEATURE_COMPARE_FUNC = typing.Callable[[models.PIIRecord, models.Patient, models.FEATURE], bool]
+FEATURE_COMPARE_FUNC = typing.Callable[[models.PIIRecord, models.Patient, models.Feature], bool]
 # A Callable type for evaluating whether a set of feature comparisons constitutes a match
 MATCH_RULE_FUNC = typing.Callable[[list[bool]], bool]
 
@@ -435,7 +435,7 @@ def _get_fuzzy_params(col: str, **kwargs) -> tuple[SIMILARITY_MEASURES, float]:
 
 
 def single_feature_match_exact(
-    record: models.PIIRecord, patient: models.Patient, key: models.FEATURE, **kwargs: dict
+    record: models.PIIRecord, patient: models.Patient, key: models.Feature, **kwargs: dict
 ) -> bool:
     """
     Determines whether a single feature in a given pair of records
@@ -457,7 +457,7 @@ def single_feature_match_exact(
 
 
 def single_feature_match_fuzzy_string(
-    record: models.PIIRecord, patient: models.Patient, key: models.FEATURE, **kwargs: dict
+    record: models.PIIRecord, patient: models.Patient, key: models.Feature, **kwargs: dict
 ) -> bool:
     """
     Determines whether two strings in a given pair of records are close
