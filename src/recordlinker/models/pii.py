@@ -12,7 +12,7 @@ FEATURE = typing.Literal[
     "sex",
     "first_name",
     "last_name",
-    "line",
+    "address",
     "city",
     "state",
     "zip",
@@ -34,6 +34,8 @@ class Name(pydantic.BaseModel):
     The schema for a name record.
     """
 
+    model_config = pydantic.ConfigDict(extra="allow")
+
     family: str
     given: typing.List[str] = []
     use: typing.Optional[str] = None
@@ -46,10 +48,14 @@ class Address(pydantic.BaseModel):
     The schema for an address record.
     """
 
+    model_config = pydantic.ConfigDict(extra="allow")
+
     line: typing.List[str] = []
     city: typing.Optional[str] = None
     state: typing.Optional[str] = None
-    postal_code: typing.Optional[str] = None
+    postal_code: typing.Optional[str] = pydantic.Field(
+        default=None, validation_alias=pydantic.AliasChoices("postal_code", "postalCode")
+    )
     county: typing.Optional[str] = None  # future use
     country: typing.Optional[str] = None
     latitude: typing.Optional[float] = None
@@ -61,6 +67,8 @@ class Telecom(pydantic.BaseModel):
     The schema for a telecom record.
     """
 
+    model_config = pydantic.ConfigDict(extra="allow")
+
     value: str  # future use
     system: typing.Optional[str] = None
     use: typing.Optional[str] = None
@@ -71,10 +79,12 @@ class PIIRecord(pydantic.BaseModel):
     The schema for a PII record.
     """
 
-    model_config = pydantic.ConfigDict(extra="allow", alias_generator=str.casefold)
+    model_config = pydantic.ConfigDict(extra="allow")
 
     external_id: typing.Optional[str] = None
-    birthdate: typing.Optional[datetime.date] = None
+    birth_date: typing.Optional[datetime.date] = pydantic.Field(
+        default=None, validation_alias=pydantic.AliasChoices("birth_date", "birthDate")
+    )
     sex: typing.Optional[Sex] = None
     mrn: typing.Optional[str] = None
     address: typing.List[Address] = []
@@ -89,8 +99,8 @@ class PIIRecord(pydantic.BaseModel):
         if value:
             return str(value)
 
-    @pydantic.field_validator("birthdate", mode="before")
-    def parse_birthdate(cls, value):
+    @pydantic.field_validator("birth_date", mode="before")
+    def parse_birth_date(cls, value):
         """
         Parse the birthdate string into a datetime object.
         """
@@ -119,15 +129,15 @@ class PIIRecord(pydantic.BaseModel):
             raise ValueError(f"Invalid feature: {field}")
 
         if field == "birthdate":
-            if self.birthdate:
-                yield self.birthdate.strftime("%Y-%m-%d")
+            if self.birth_date:
+                yield self.birth_date.strftime("%Y-%m-%d")
         elif field == "mrn":
             if self.mrn:
                 yield self.mrn
         elif field == "sex":
             if self.sex:
                 yield self.sex.name.lower()
-        elif field == "line":
+        elif field == "address":
             for address in self.address:
                 for line in address.line:
                     if line:

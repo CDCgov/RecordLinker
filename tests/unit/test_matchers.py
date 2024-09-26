@@ -261,8 +261,8 @@ def test_feature_match_log_odds_fuzzy():
 
 
 def test_single_feature_match_exact():
-    record = models.PIIRecord(name=[{"given": ["John"], "family": "Smith"}, {"family": "Harrison"}], birthdate="1980-01-01")
-    pat1 = models.Patient(data={"name": [{"given": ["John", "Michael"], "family": "Doe"}], "birthdate": "Jan 1 1980"})
+    record = models.PIIRecord(name=[{"given": ["John"], "family": "Smith"}, {"family": "Harrison"}], birthDate="1980-01-01")
+    pat1 = models.Patient(data={"name": [{"given": ["John", "Michael"], "family": "Doe"}], "birthDate": "Jan 1 1980"})
     pat2 = models.Patient(data={"name": [{"given": ["Michael"], "family": "Smith"}], "sex": "male"})
     pat3 = models.Patient(data={"name": [{"family": "Smith"}, {"family": "Williams"}]})
 
@@ -285,8 +285,8 @@ def test_single_feature_match_exact():
 
 
 def test_single_feature_match_fuzzy_string():
-    record = models.PIIRecord(name=[{"given": ["John"], "family": "Smith"}, {"family": "Harrison"}], birthdate="1980-01-01")
-    pat1 = models.Patient(data={"name": [{"given": ["Jon", "Mike"], "family": "Doe"}], "birthdate": "Jan 1 1980"})
+    record = models.PIIRecord(name=[{"given": ["John"], "family": "Smith"}, {"family": "Harrison"}], birthDate="1980-01-01")
+    pat1 = models.Patient(data={"name": [{"given": ["Jon", "Mike"], "family": "Doe"}], "birthDate": "Jan 1 1980"})
     pat2 = models.Patient(data={"name": [{"given": ["Michael"], "family": "Smtih"}], "sex": "male"})
     pat3 = models.Patient(data={"name": [{"family": "Smyth"}, {"family": "Williams"}]})
 

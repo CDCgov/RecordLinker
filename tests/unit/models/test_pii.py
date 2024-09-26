@@ -28,20 +28,20 @@ class TestPIIRecord:
         assert record.external_id is None
 
     def test_parse_birthdate(self):
-        record = models.PIIRecord(birthdate="1980-01-01")
-        assert record.birthdate == datetime.date(1980, 1, 1)
-        record = models.PIIRecord(birthdate="January 1, 1980")
-        assert record.birthdate == datetime.date(1980, 1, 1)
-        record = models.PIIRecord(birthdate="Jan 1 1980")
-        assert record.birthdate == datetime.date(1980, 1, 1)
-        record = models.PIIRecord(birthdate="1/1/1980")
-        assert record.birthdate == datetime.date(1980, 1, 1)
+        record = models.PIIRecord(birthDate="1980-01-01")
+        assert record.birth_date == datetime.date(1980, 1, 1)
+        record = models.PIIRecord(birthDate="January 1, 1980")
+        assert record.birth_date == datetime.date(1980, 1, 1)
+        record = models.PIIRecord(birth_date="Jan 1 1980")
+        assert record.birth_date == datetime.date(1980, 1, 1)
+        record = models.PIIRecord(birth_date="1/1/1980")
+        assert record.birth_date == datetime.date(1980, 1, 1)
         record = models.PIIRecord()
-        assert record.birthdate is None
+        assert record.birth_date is None
 
     def test_parse_invalid_birthdate(self):
         with pytest.raises(pydantic.ValidationError):
-            models.PIIRecord(birthdate="1 de enero de 1980")
+            models.PIIRecord(birth_date="1 de enero de 1980")
 
     def test_parse_sex(self):
         record = models.PIIRecord(sex="M")
@@ -66,7 +66,7 @@ class TestPIIRecord:
     def test_field_iter(self):
         record = models.PIIRecord(
             external_id="99",
-            birthdate="1980-2-1",
+            birth_date="1980-2-1",
             sex="M",
             mrn="123456",
             address=[
@@ -74,7 +74,7 @@ class TestPIIRecord:
                     line=["123 Main St"],
                     city="Anytown",
                     state="NY",
-                    postal_code="12345",
+                    postalCode="12345",
                     country="US",
                 ),
                 models.Address(
@@ -101,7 +101,7 @@ class TestPIIRecord:
         assert list(record.field_iter("birthdate")) == ["1980-02-01"]
         assert list(record.field_iter("mrn")) == ["123456"]
         assert list(record.field_iter("sex")) == ["m"]
-        assert list(record.field_iter("line")) == ["123 Main St", "456 Elm St"]
+        assert list(record.field_iter("address")) == ["123 Main St", "456 Elm St"]
         assert list(record.field_iter("city")) == ["Anytown", "Somecity"]
         assert list(record.field_iter("state")) == ["NY", "CA"]
         assert list(record.field_iter("zip")) == ["12345", "98765"]
