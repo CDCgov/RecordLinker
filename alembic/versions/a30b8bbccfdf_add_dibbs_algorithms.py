@@ -5,15 +5,15 @@ Revises: d9eba1bdbad1
 Create Date: 2024-09-26 15:10:15.179656
 
 """
+
 from typing import Sequence
 from typing import Union
 
 import sqlalchemy as sa
 
-from src.recordlinker.models import Algorithm
-from src.recordlinker.models import AlgorithmPass
-from src.recordlinker.models import BlockingKey
-
+from recordlinker.models import BlockingKey
+from recordlinker.models import Algorithm
+from recordlinker.models import AlgorithmPass
 
 # revision identifiers, used by Alembic.
 revision: str = 'a30b8bbccfdf'
