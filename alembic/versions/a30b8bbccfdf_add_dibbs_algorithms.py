@@ -1,8 +1,8 @@
 """add dibbs algorithms
 
-Revision ID: 9e8d40d923ea
-Revises: 0c90faa0378f
-Create Date: 2024-09-23 12:34:20.927323
+Revision ID: a30b8bbccfdf
+Revises: d9eba1bdbad1
+Create Date: 2024-09-26 15:10:15.179656
 
 """
 from typing import Sequence
@@ -10,13 +10,14 @@ from typing import Union
 
 import sqlalchemy as sa
 
-from src.recordlinker.linkage.models import Algorithm
-from src.recordlinker.linkage.models import AlgorithmPass
-from src.recordlinker.linkage.models import BlockingKey
+from src.recordlinker.models import Algorithm
+from src.recordlinker.models import AlgorithmPass
+from src.recordlinker.models import BlockingKey
+
 
 # revision identifiers, used by Alembic.
-revision: str = '9e8d40d923ea'
-down_revision: Union[str, None] = '0c90faa0378f'
+revision: str = 'a30b8bbccfdf'
+down_revision: Union[str, None] = 'd9eba1bdbad1'
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 
@@ -59,7 +60,7 @@ DIBBS_BASIC_PASS_ONE = {
     "id": 1,
     "algorithm_id": 1,
     "blocking_keys": [BlockingKey.BIRTHDATE, BlockingKey.MRN, BlockingKey.SEX],
-    "evaluators": [{"first_name": "func:recordlinker.linkage.matchers.feature_match_fuzzy_string", "last_name": "func:recordlinker.linkage.matchers.feature_match_exact"}],     #TODO
+    "evaluators": [{"first_name": "func:recordlinker.linkage.matchers.feature_match_fuzzy_string", "last_name": "func:recordlinker.linkage.matchers.feature_match_exact"}],
     "rule": "func:recordlinker.linkage.matchers.eval_perfect_match",
     "cluster_ratio": 0.9,
     "kwargs": {"thresholds": FUZZY_THRESHOLDS}
@@ -69,7 +70,7 @@ DIBBS_BASIC_PASS_TWO = {
     "id": 2,
     "algorithm_id": 1,
     "blocking_keys": [BlockingKey.ZIP, BlockingKey.FIRST_NAME, BlockingKey.LAST_NAME, BlockingKey.SEX],
-    "evaluators": [{"address": "func:recordlinker.linkage.matchers.feature_match_fuzzy_string", "birthdate": "func:recordlinker.linkage.matchers.feature_match_exact"}],     #TODO
+    "evaluators": [{"address": "func:recordlinker.linkage.matchers.feature_match_fuzzy_string", "birthdate": "func:recordlinker.linkage.matchers.feature_match_exact"}],
     "rule": "func:recordlinker.linkage.matchers.eval_perfect_match",
     "cluster_ratio": 0.9,
     "kwargs": {"thresholds": FUZZY_THRESHOLDS}
@@ -79,7 +80,7 @@ DIBBS_ENHANCED_PASS_ONE = {
     "id": 3,
     "algorithm_id": 2,
     "blocking_keys": [BlockingKey.BIRTHDATE, BlockingKey.MRN, BlockingKey.SEX],
-    "evaluators": [{"first_name": "func:recordlinker.linkage.matchers.feature_match_log_odds_fuzzy_compare", "last_name": "func:recordlinker.linkage.matchers.feature_match_log_odds_fuzzy_compare"}],     #TODO
+    "evaluators": [{"first_name": "func:recordlinker.linkage.matchers.feature_match_log_odds_fuzzy_compare", "last_name": "func:recordlinker.linkage.matchers.feature_match_log_odds_fuzzy_compare"}],
     "rule": "func:recordlinker.linkage.matchers.eval_log_odds_cutoff",
     "cluster_ratio": 0.9,
     "kwargs": {
@@ -94,7 +95,7 @@ DIBBS_ENHANCED_PASS_TWO = {
     "id": 4,
     "algorithm_id": 2,
     "blocking_keys": [BlockingKey.ZIP, BlockingKey.FIRST_NAME, BlockingKey.LAST_NAME, BlockingKey.SEX],
-    "evaluators": [{"address": "func:recordlinker.linkage.matchers.feature_match_log_odds_fuzzy_compare", "birthdate": "func:recordlinker.linkage.matchers.feature_match_log_odds_fuzzy_compare"}],     #TODO
+    "evaluators": [{"address": "func:recordlinker.linkage.matchers.feature_match_log_odds_fuzzy_compare", "birthdate": "func:recordlinker.linkage.matchers.feature_match_log_odds_fuzzy_compare"}],
     "rule": "func:recordlinker.linkage.matchers.eval_log_odds_cutoff",
     "cluster_ratio": 0.9,
     "kwargs": {
