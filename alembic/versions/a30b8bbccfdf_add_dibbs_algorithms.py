@@ -9,6 +9,7 @@ Create Date: 2024-09-26 15:10:15.179656
 from typing import Sequence
 from typing import Union
 
+from alembic import op
 import sqlalchemy as sa
 
 from recordlinker.models import BlockingKey
@@ -59,7 +60,7 @@ DIBBS_ENHANCED = {
 DIBBS_BASIC_PASS_ONE = {
     "id": 1,
     "algorithm_id": 1,
-    "blocking_keys": [BlockingKey.BIRTHDATE, BlockingKey.MRN, BlockingKey.SEX],
+    "blocking_keys": [BlockingKey.BIRTHDATE.id, BlockingKey.MRN.id, BlockingKey.SEX.id],
     "evaluators": [{"first_name": "func:recordlinker.linkage.matchers.feature_match_fuzzy_string", "last_name": "func:recordlinker.linkage.matchers.feature_match_exact"}],
     "rule": "func:recordlinker.linkage.matchers.eval_perfect_match",
     "cluster_ratio": 0.9,
@@ -69,7 +70,7 @@ DIBBS_BASIC_PASS_ONE = {
 DIBBS_BASIC_PASS_TWO = {
     "id": 2,
     "algorithm_id": 1,
-    "blocking_keys": [BlockingKey.ZIP, BlockingKey.FIRST_NAME, BlockingKey.LAST_NAME, BlockingKey.SEX],
+    "blocking_keys": [BlockingKey.ZIP.id, BlockingKey.FIRST_NAME.id, BlockingKey.LAST_NAME.id, BlockingKey.SEX.id],
     "evaluators": [{"address": "func:recordlinker.linkage.matchers.feature_match_fuzzy_string", "birthdate": "func:recordlinker.linkage.matchers.feature_match_exact"}],
     "rule": "func:recordlinker.linkage.matchers.eval_perfect_match",
     "cluster_ratio": 0.9,
@@ -79,7 +80,7 @@ DIBBS_BASIC_PASS_TWO = {
 DIBBS_ENHANCED_PASS_ONE = {
     "id": 3,
     "algorithm_id": 2,
-    "blocking_keys": [BlockingKey.BIRTHDATE, BlockingKey.MRN, BlockingKey.SEX],
+    "blocking_keys": [BlockingKey.BIRTHDATE.id, BlockingKey.MRN.id, BlockingKey.SEX.id],
     "evaluators": [{"first_name": "func:recordlinker.linkage.matchers.feature_match_log_odds_fuzzy_compare", "last_name": "func:recordlinker.linkage.matchers.feature_match_log_odds_fuzzy_compare"}],
     "rule": "func:recordlinker.linkage.matchers.eval_log_odds_cutoff",
     "cluster_ratio": 0.9,
@@ -94,7 +95,7 @@ DIBBS_ENHANCED_PASS_ONE = {
 DIBBS_ENHANCED_PASS_TWO = {
     "id": 4,
     "algorithm_id": 2,
-    "blocking_keys": [BlockingKey.ZIP, BlockingKey.FIRST_NAME, BlockingKey.LAST_NAME, BlockingKey.SEX],
+    "blocking_keys": [BlockingKey.ZIP.id, BlockingKey.FIRST_NAME.id, BlockingKey.LAST_NAME.id, BlockingKey.SEX.id],
     "evaluators": [{"address": "func:recordlinker.linkage.matchers.feature_match_log_odds_fuzzy_compare", "birthdate": "func:recordlinker.linkage.matchers.feature_match_log_odds_fuzzy_compare"}],
     "rule": "func:recordlinker.linkage.matchers.eval_log_odds_cutoff",
     "cluster_ratio": 0.9,
@@ -108,22 +109,22 @@ DIBBS_ENHANCED_PASS_TWO = {
 
 def upgrade() -> None:
     #insert alogithms
-    sa.insert(Algorithm).values(DIBBS_BASIC)
-    sa.insert(Algorithm).values(DIBBS_ENHANCED)
+    op.execute(sa.insert(Algorithm).values(DIBBS_BASIC))
+    op.execute(sa.insert(Algorithm).values(DIBBS_ENHANCED))
     
-    #insert algorithm passes
-    sa.insert(AlgorithmPass).values(DIBBS_BASIC_PASS_ONE)
-    sa.insert(AlgorithmPass).values(DIBBS_BASIC_PASS_TWO)
-    sa.insert(AlgorithmPass).values(DIBBS_ENHANCED_PASS_ONE)
-    sa.insert(AlgorithmPass).values(DIBBS_ENHANCED_PASS_TWO)
+    # #insert algorithm passes
+    op.execute(sa.insert(AlgorithmPass).values(DIBBS_BASIC_PASS_ONE))
+    op.execute(sa.insert(AlgorithmPass).values(DIBBS_BASIC_PASS_TWO))
+    op.execute(sa.insert(AlgorithmPass).values(DIBBS_ENHANCED_PASS_ONE))
+    op.execute(sa.insert(AlgorithmPass).values(DIBBS_ENHANCED_PASS_TWO))
 
 def downgrade() -> None:
+    # #delete algorithm pass rows
+    op.execute(sa.delete(AlgorithmPass).where(AlgorithmPass.id == 1))
+    op.execute(sa.delete(AlgorithmPass).where(AlgorithmPass.id == 2))
+    op.execute(sa.delete(AlgorithmPass).where(AlgorithmPass.id == 3))
+    op.execute(sa.delete(AlgorithmPass).where(AlgorithmPass.id == 4))
+    
     #delete algorithm rows
-    sa.delete(Algorithm).where(Algorithm.id == 1)
-    sa.delete(Algorithm).where(Algorithm.id == 2)
-
-    #delete algorithm pass rows
-    sa.delete(AlgorithmPass).where(AlgorithmPass.id == 1)
-    sa.delete(AlgorithmPass).where(AlgorithmPass.id == 2)
-    sa.delete(AlgorithmPass).where(AlgorithmPass.id == 3)
-    sa.delete(AlgorithmPass).where(AlgorithmPass.id == 4)
+    op.execute(sa.delete(Algorithm).where(Algorithm.id == 1))
+    op.execute(sa.delete(Algorithm).where(Algorithm.id == 2))
