@@ -474,14 +474,14 @@ def test_link_record_against_mpi():
     # First patient inserted into empty MPI, no match
     # Second patient blocks with first patient in first pass, then fuzzy matches name
     # Third patient is entirely new individual, no match
-    # Fourth patient fails blocking with first pass then fails on second
-    # Fifth patient: in first pass MRN blocks with one cluster but fails name,
-    # in second pass name blocks with different cluster but fails address, no match
-    # Sixth patient: in first pass, MRN blocks with one cluster and name matches in it,
-    # in second pass name blocks on different cluster and address matches it,
-    # finds greatest strength match and correctly assigns to larger cluster
-    assert matches == [False, True, False, False, False, False]
-    assert sorted(list(mapped_patients.values())) == [1, 1, 1, 1, 2]
+    # Fourth patient fails blocking in first pass, blocks with first patient in second
+    # pass, then fuzzy matches on address and exact matches on birthdate, joins cluster
+    # with first and second patient
+    # Fifth patient: fails blocking in first and second pass, no match
+    # Sixth patient: fails blocking in first pass, blocks with fifth patient in second pass,
+    # then matches on birthdate but fails on address, no match
+    assert matches == [False, True, False, True, False, False]
+    assert sorted(list(mapped_patients.values())) == [1, 1, 1, 3]
 
     # Re-open connection to check for all insertions
     patient_records = MPI.dal.select_results(select(MPI.dal.PATIENT_TABLE))
