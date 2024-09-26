@@ -1,6 +1,6 @@
 on:
     pull_request:
-      branches: [GHA-PR-notifier-25]
+      branches: [main]
       types:
         - opened
         - reopened
