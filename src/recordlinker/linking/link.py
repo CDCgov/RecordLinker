@@ -94,7 +94,7 @@ def compare(
 
     results: list[float] = []
     for field, func in funcs.items():
-        if field not in models.Feature:
+        if field not in {i.value for i in models.Feature}:
             raise ValueError(f"Invalid comparison field: {field}")
         # Evaluate the comparison function and append the result to the list
         is_match: bool = func(record, patient, models.Feature(field), **kwargs)
