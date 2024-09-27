@@ -21,6 +21,12 @@ class Feature(enum.Enum):
     STATE = "state"
     ZIPCODE = "zip"
 
+    def __str__(self):
+        """
+        Return the value of the enum as a string.
+        """
+        return self.value
+
 
 class Sex(enum.Enum):
     """
