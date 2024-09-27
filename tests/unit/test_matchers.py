@@ -284,20 +284,20 @@ def test_single_feature_match_exact():
         matchers.single_feature_match_exact(record, pat1, "unknown")
 
 
-def test_single_feature_match_fuzzy_string():
+def test_single_feature_match_fuzzy():
     record = models.PIIRecord(name=[{"given": ["John"], "family": "Smith"}, {"family": "Harrison"}], birthDate="1980-01-01")
     pat1 = models.Patient(data={"name": [{"given": ["Jon", "Mike"], "family": "Doe"}], "birthDate": "Jan 1 1980"})
     pat2 = models.Patient(data={"name": [{"given": ["Michael"], "family": "Smtih"}], "sex": "male"})
     pat3 = models.Patient(data={"name": [{"family": "Smyth"}, {"family": "Williams"}]})
 
-    assert matchers.single_feature_match_fuzzy_string(record, pat1, models.Feature.FIRST_NAME)
-    assert not matchers.single_feature_match_fuzzy_string(record, pat1, models.Feature.LAST_NAME)
+    assert matchers.single_feature_match_fuzzy(record, pat1, models.Feature.FIRST_NAME)
+    assert not matchers.single_feature_match_fuzzy(record, pat1, models.Feature.LAST_NAME)
 
-    assert not matchers.single_feature_match_fuzzy_string(record, pat2, models.Feature.FIRST_NAME)
-    assert matchers.single_feature_match_fuzzy_string(record, pat2, models.Feature.LAST_NAME)
+    assert not matchers.single_feature_match_fuzzy(record, pat2, models.Feature.FIRST_NAME)
+    assert matchers.single_feature_match_fuzzy(record, pat2, models.Feature.LAST_NAME)
 
-    assert not matchers.single_feature_match_fuzzy_string(record, pat3, models.Feature.FIRST_NAME)
-    assert matchers.single_feature_match_fuzzy_string(record, pat3, models.Feature.LAST_NAME)
+    assert not matchers.single_feature_match_fuzzy(record, pat3, models.Feature.FIRST_NAME)
+    assert matchers.single_feature_match_fuzzy(record, pat3, models.Feature.LAST_NAME)
 
     with pytest.raises(ValueError):
-        matchers.single_feature_match_fuzzy_string(record, pat1, "first_name")
+        matchers.single_feature_match_fuzzy(record, pat1, "first_name")
