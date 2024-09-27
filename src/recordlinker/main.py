@@ -201,3 +201,8 @@ async def link_record(
             "updated_bundle": input_bundle,
             "message": f"Could not connect to database: {err}",
         }
+
+@app.get("/algorithms")
+async def get_algorithms():
+    return {"status": "OK"}
+
