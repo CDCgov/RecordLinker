@@ -4,6 +4,7 @@ unit.test_matchers
 
 This module contains unit tests for the :mod:`~recordlinker.linkage.matchers` module.
 """
+
 import datetime
 
 import pytest
@@ -160,13 +161,73 @@ def test_feature_match_four_char():
 
 
 def test_feature_match_exact():
-    record_i = ["240 Rippin Ranch Apt 66", "1980-01-01", "Los Angeles", "Verónica Eva", "Reynoso", "834d436b-9e1f-2e8e-f28a-ad40bef9f365", "female", "CA", "90502"]
-    record_j = ["240 Rippin Ranch Apt 66", "1980-01-01", "Los Angeles", "Verónica Eva", "Reynoso", "834d436b-9e1f-2e8e-f28a-ad40bef9f365", "female", "CA", "90502"]
-    record_k = ["240 Rippin Ranch Apt 66", datetime.date(1980, 1, 1), "Los Angeles", "Verónica Eva", "Reynoso", "834d436b-9e1f-2e8e-f28a-ad40bef9f365", "female", "CA", "90502"]
-    record_l = ["123 X St Unit 2", "1995-06-20", "Chicago", "Alejandra", "Arenas", "124d436b-9e1f-2e8e-f28a-ad40bef9f367", "male", "IL", "60615"]
-    record_m = ["123 X St Unit 2", datetime.date(1980, 6, 20), "Chicago", "Alejandra", "Arenas", "124d436b-9e1f-2e8e-f28a-ad40bef9f367", "male", "IL", "60615"]
+    record_i = [
+        "240 Rippin Ranch Apt 66",
+        "1980-01-01",
+        "Los Angeles",
+        "Verónica Eva",
+        "Reynoso",
+        "834d436b-9e1f-2e8e-f28a-ad40bef9f365",
+        "female",
+        "CA",
+        "90502",
+    ]
+    record_j = [
+        "240 Rippin Ranch Apt 66",
+        "1980-01-01",
+        "Los Angeles",
+        "Verónica Eva",
+        "Reynoso",
+        "834d436b-9e1f-2e8e-f28a-ad40bef9f365",
+        "female",
+        "CA",
+        "90502",
+    ]
+    record_k = [
+        "240 Rippin Ranch Apt 66",
+        datetime.date(1980, 1, 1),
+        "Los Angeles",
+        "Verónica Eva",
+        "Reynoso",
+        "834d436b-9e1f-2e8e-f28a-ad40bef9f365",
+        "female",
+        "CA",
+        "90502",
+    ]
+    record_l = [
+        "123 X St Unit 2",
+        "1995-06-20",
+        "Chicago",
+        "Alejandra",
+        "Arenas",
+        "124d436b-9e1f-2e8e-f28a-ad40bef9f367",
+        "male",
+        "IL",
+        "60615",
+    ]
+    record_m = [
+        "123 X St Unit 2",
+        datetime.date(1980, 6, 20),
+        "Chicago",
+        "Alejandra",
+        "Arenas",
+        "124d436b-9e1f-2e8e-f28a-ad40bef9f367",
+        "male",
+        "IL",
+        "60615",
+    ]
 
-    cols = {"address": 0, "birthdate": 1, "city": 2, "first_name": 3, "last_name": 4, "mrn": 5, "sex": 6, "state": 7, "zip": 8}
+    cols = {
+        "address": 0,
+        "birthdate": 1,
+        "city": 2,
+        "first_name": 3,
+        "last_name": 4,
+        "mrn": 5,
+        "sex": 6,
+        "state": 7,
+        "zip": 8,
+    }
 
     # Simultaneously test matches and non-matches of different data types
     for c in cols:
@@ -200,8 +261,7 @@ def test_feature_match_log_odds_exact():
     log_odds = {"first": 4.0, "last": 6.5, "birthdate": 9.8, "address": 3.7}
 
     assert (
-        matchers.feature_match_log_odds_exact(ri, rj, "first", col_to_idx, log_odds=log_odds)
-        == 4.0
+        matchers.feature_match_log_odds_exact(ri, rj, "first", col_to_idx, log_odds=log_odds) == 4.0
     )
 
     for c in col_to_idx:
@@ -261,8 +321,13 @@ def test_feature_match_log_odds_fuzzy():
 
 
 def test_single_feature_match_exact():
-    record = models.PIIRecord(name=[{"given": ["John"], "family": "Smith"}, {"family": "Harrison"}], birthDate="1980-01-01")
-    pat1 = models.Patient(data={"name": [{"given": ["John", "Michael"], "family": "Doe"}], "birthDate": "Jan 1 1980"})
+    record = models.PIIRecord(
+        name=[{"given": ["John"], "family": "Smith"}, {"family": "Harrison"}],
+        birthDate="1980-01-01",
+    )
+    pat1 = models.Patient(
+        data={"name": [{"given": ["John", "Michael"], "family": "Doe"}], "birthDate": "Jan 1 1980"}
+    )
     pat2 = models.Patient(data={"name": [{"given": ["Michael"], "family": "Smith"}], "sex": "male"})
     pat3 = models.Patient(data={"name": [{"family": "Smith"}, {"family": "Williams"}]})
 
@@ -285,8 +350,13 @@ def test_single_feature_match_exact():
 
 
 def test_single_feature_match_fuzzy():
-    record = models.PIIRecord(name=[{"given": ["John"], "family": "Smith"}, {"family": "Harrison"}], birthDate="1980-01-01")
-    pat1 = models.Patient(data={"name": [{"given": ["Jon", "Mike"], "family": "Doe"}], "birthDate": "Jan 1 1980"})
+    record = models.PIIRecord(
+        name=[{"given": ["John"], "family": "Smith"}, {"family": "Harrison"}],
+        birthDate="1980-01-01",
+    )
+    pat1 = models.Patient(
+        data={"name": [{"given": ["Jon", "Mike"], "family": "Doe"}], "birthDate": "Jan 1 1980"}
+    )
     pat2 = models.Patient(data={"name": [{"given": ["Michael"], "family": "Smtih"}], "sex": "male"})
     pat3 = models.Patient(data={"name": [{"family": "Smyth"}, {"family": "Williams"}]})
 
@@ -301,3 +371,68 @@ def test_single_feature_match_fuzzy():
 
     with pytest.raises(ValueError):
         matchers.single_feature_match_fuzzy(record, pat1, "first_name")
+
+
+def test_single_feature_match_log_odds_fuzzy():
+    with pytest.raises(ValueError):
+        matchers.single_feature_match_log_odds_fuzzy(
+            models.PIIRecord(),
+            models.Patient(),
+            models.Feature.MRN,
+        )
+
+    rec = models.PIIRecord(
+        name=[{"given": ["John"], "family": "Shepard"}],
+        birthDate="1980-11-7",
+        address=[{"line": ["1234 Silversun Strip"]}],
+    )
+    pat = models.Patient(
+        data={
+            "name": [{"given": ["John"], "family": "Sheperd"}],
+            "birthDate": "1970-06-07",
+            "address": [{"line": ["asdfghjeki"]}],
+        }
+    )
+    log_odds = {
+        models.Feature.FIRST_NAME.value: 4.0,
+        models.Feature.LAST_NAME.value: 6.5,
+        models.Feature.BIRTHDATE.value: 9.8,
+        models.Feature.ADDRESS.value: 3.7,
+    }
+
+    assert (
+        matchers.single_feature_match_log_odds_fuzzy(
+            rec, pat, models.Feature.FIRST_NAME, log_odds=log_odds
+        )
+        == 4.0
+    )
+
+    assert (
+        round(
+            matchers.single_feature_match_log_odds_fuzzy(
+                rec, pat, models.Feature.LAST_NAME, log_odds=log_odds
+            ),
+            3,
+        )
+        == 6.129
+    )
+
+    assert (
+        round(
+            matchers.single_feature_match_log_odds_fuzzy(
+                rec, pat, models.Feature.BIRTHDATE, log_odds=log_odds
+            ),
+            3,
+        )
+        == 7.859
+    )
+
+    assert (
+        round(
+            matchers.single_feature_match_log_odds_fuzzy(
+                rec, pat, models.Feature.ADDRESS, log_odds=log_odds
+            ),
+            3,
+        )
+        == 0.0
+    )

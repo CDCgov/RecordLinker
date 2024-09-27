@@ -486,7 +486,6 @@ def single_feature_match_fuzzy(
     return 0
 
 
-# TODO: unit tests
 def single_feature_match_log_odds_fuzzy(
     record: models.PIIRecord, patient: models.Patient, key: models.Feature, **kwargs: dict
 ) -> float:
