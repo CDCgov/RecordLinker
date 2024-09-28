@@ -16,7 +16,7 @@ class TestBlockingKey:
         assert models.BlockingKey.BIRTHDATE.to_value(rec) == set()
         rec = models.PIIRecord(**{"birth_date": "1980-01-01"})
         assert models.BlockingKey.BIRTHDATE.to_value(rec) == {"1980-01-01"}
-        rec = models.PIIRecord(**{"birth_date": datetime.date(1980, 1, 1)})
+        rec = models.PIIRecord(**{"birthdate": datetime.date(1980, 1, 1)})
         assert models.BlockingKey.BIRTHDATE.to_value(rec) == {"1980-01-01"}
         rec = models.PIIRecord(**{"birthDate": "01/01/1980"})
         assert models.BlockingKey.BIRTHDATE.to_value(rec) == {"1980-01-01"}
@@ -54,15 +54,15 @@ class TestBlockingKey:
         assert models.BlockingKey.SEX.to_value(rec) == {"u"}
 
     def test_extract_zipcode(self):
-        rec = models.PIIRecord(**{"zipcode": "12345"})
+        rec = models.PIIRecord(**{"zip_code": "12345"})
         assert models.BlockingKey.ZIP.to_value(rec) == set()
         rec = models.PIIRecord(**{"address": [{"postalCode": None}]})
         assert models.BlockingKey.ZIP.to_value(rec) == set()
-        rec = models.PIIRecord(**{"address": [{"postalCode": "12345"}]})
+        rec = models.PIIRecord(**{"address": [{"zipcode": "12345"}]})
         assert models.BlockingKey.ZIP.to_value(rec) == {"12345"}
         rec = models.PIIRecord(**{"address": [{"postal_code": "12345-6789"}]})
         assert models.BlockingKey.ZIP.to_value(rec) == {"12345"}
-        rec = models.PIIRecord(**{"address": [{"postal_code": "12345-6789"}, {"postal_code": "54321"}]})
+        rec = models.PIIRecord(**{"address": [{"zipCode": "12345-6789"}, {"zip": "54321"}]})
         assert models.BlockingKey.ZIP.to_value(rec) == {"12345", "54321"}
 
     def test_extract_first_name_first_four(self):

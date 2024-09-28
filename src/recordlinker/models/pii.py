@@ -63,7 +63,10 @@ class Address(pydantic.BaseModel):
     city: typing.Optional[str] = None
     state: typing.Optional[str] = None
     postal_code: typing.Optional[str] = pydantic.Field(
-        default=None, validation_alias=pydantic.AliasChoices("postal_code", "postalCode")
+        default=None,
+        validation_alias=pydantic.AliasChoices(
+            "postal_code", "postalcode", "postalCode", "zip_code", "zipcode", "zipCode", "zip"
+        ),
     )
     county: typing.Optional[str] = None  # future use
     country: typing.Optional[str] = None
@@ -92,7 +95,7 @@ class PIIRecord(pydantic.BaseModel):
 
     external_id: typing.Optional[str] = None
     birth_date: typing.Optional[datetime.date] = pydantic.Field(
-        default=None, validation_alias=pydantic.AliasChoices("birth_date", "birthDate")
+        default=None, validation_alias=pydantic.AliasChoices("birth_date", "birthdate", "birthDate")
     )
     sex: typing.Optional[Sex] = None
     mrn: typing.Optional[str] = None
