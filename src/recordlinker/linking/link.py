@@ -13,7 +13,7 @@ from sqlalchemy import orm
 
 from recordlinker import models
 from recordlinker import utils
-from recordlinker.linkage import matchers
+from recordlinker.linking import matchers
 
 from . import mpi_service
 

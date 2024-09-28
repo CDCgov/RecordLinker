@@ -9,7 +9,6 @@ import datetime
 
 import pytest
 
-from recordlinker import models
 from recordlinker.linkage import matchers
 
 
@@ -313,124 +312,6 @@ def test_feature_match_log_odds_fuzzy():
         round(
             matchers.feature_match_log_odds_fuzzy_compare(
                 ri, rj, "address", col_to_idx, log_odds=log_odds
-            ),
-            3,
-        )
-        == 0.0
-    )
-
-
-def test_single_feature_match_exact():
-    record = models.PIIRecord(
-        name=[{"given": ["John"], "family": "Smith"}, {"family": "Harrison"}],
-        birthDate="1980-01-01",
-    )
-    pat1 = models.Patient(
-        data={"name": [{"given": ["John", "Michael"], "family": "Doe"}], "birthDate": "Jan 1 1980"}
-    )
-    pat2 = models.Patient(data={"name": [{"given": ["Michael"], "family": "Smith"}], "sex": "male"})
-    pat3 = models.Patient(data={"name": [{"family": "Smith"}, {"family": "Williams"}]})
-
-    assert matchers.single_feature_match_exact(record, pat1, models.Feature.FIRST_NAME)
-    assert not matchers.single_feature_match_exact(record, pat1, models.Feature.LAST_NAME)
-    assert matchers.single_feature_match_exact(record, pat1, models.Feature.BIRTHDATE)
-    assert not matchers.single_feature_match_exact(record, pat1, models.Feature.ZIPCODE)
-
-    assert not matchers.single_feature_match_exact(record, pat2, models.Feature.FIRST_NAME)
-    assert matchers.single_feature_match_exact(record, pat2, models.Feature.LAST_NAME)
-    assert not matchers.single_feature_match_exact(record, pat2, models.Feature.SEX)
-    assert not matchers.single_feature_match_exact(record, pat1, models.Feature.ZIPCODE)
-
-    assert not matchers.single_feature_match_exact(record, pat3, models.Feature.FIRST_NAME)
-    assert matchers.single_feature_match_exact(record, pat3, models.Feature.LAST_NAME)
-    assert not matchers.single_feature_match_exact(record, pat3, models.Feature.BIRTHDATE)
-
-    with pytest.raises(ValueError):
-        matchers.single_feature_match_exact(record, pat1, "unknown")
-
-
-def test_single_feature_match_fuzzy():
-    record = models.PIIRecord(
-        name=[{"given": ["John"], "family": "Smith"}, {"family": "Harrison"}],
-        birthDate="1980-01-01",
-    )
-    pat1 = models.Patient(
-        data={"name": [{"given": ["Jon", "Mike"], "family": "Doe"}], "birthDate": "Jan 1 1980"}
-    )
-    pat2 = models.Patient(data={"name": [{"given": ["Michael"], "family": "Smtih"}], "sex": "male"})
-    pat3 = models.Patient(data={"name": [{"family": "Smyth"}, {"family": "Williams"}]})
-
-    assert matchers.single_feature_match_fuzzy(record, pat1, models.Feature.FIRST_NAME)
-    assert not matchers.single_feature_match_fuzzy(record, pat1, models.Feature.LAST_NAME)
-
-    assert not matchers.single_feature_match_fuzzy(record, pat2, models.Feature.FIRST_NAME)
-    assert matchers.single_feature_match_fuzzy(record, pat2, models.Feature.LAST_NAME)
-
-    assert not matchers.single_feature_match_fuzzy(record, pat3, models.Feature.FIRST_NAME)
-    assert matchers.single_feature_match_fuzzy(record, pat3, models.Feature.LAST_NAME)
-
-    with pytest.raises(ValueError):
-        matchers.single_feature_match_fuzzy(record, pat1, "first_name")
-
-
-def test_single_feature_match_log_odds_fuzzy():
-    with pytest.raises(ValueError):
-        matchers.single_feature_match_log_odds_fuzzy(
-            models.PIIRecord(),
-            models.Patient(),
-            models.Feature.MRN,
-        )
-
-    rec = models.PIIRecord(
-        name=[{"given": ["John"], "family": "Shepard"}],
-        birthDate="1980-11-7",
-        address=[{"line": ["1234 Silversun Strip"]}],
-    )
-    pat = models.Patient(
-        data={
-            "name": [{"given": ["John"], "family": "Sheperd"}],
-            "birthDate": "1970-06-07",
-            "address": [{"line": ["asdfghjeki"]}],
-        }
-    )
-    log_odds = {
-        models.Feature.FIRST_NAME.value: 4.0,
-        models.Feature.LAST_NAME.value: 6.5,
-        models.Feature.BIRTHDATE.value: 9.8,
-        models.Feature.ADDRESS.value: 3.7,
-    }
-
-    assert (
-        matchers.single_feature_match_log_odds_fuzzy(
-            rec, pat, models.Feature.FIRST_NAME, log_odds=log_odds
-        )
-        == 4.0
-    )
-
-    assert (
-        round(
-            matchers.single_feature_match_log_odds_fuzzy(
-                rec, pat, models.Feature.LAST_NAME, log_odds=log_odds
-            ),
-            3,
-        )
-        == 6.129
-    )
-
-    assert (
-        round(
-            matchers.single_feature_match_log_odds_fuzzy(
-                rec, pat, models.Feature.BIRTHDATE, log_odds=log_odds
-            ),
-            3,
-        )
-        == 7.859
-    )
-
-    assert (
-        round(
-            matchers.single_feature_match_log_odds_fuzzy(
-                rec, pat, models.Feature.ADDRESS, log_odds=log_odds
             ),
             3,
         )

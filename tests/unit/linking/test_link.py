@@ -4,6 +4,7 @@ unit.linking.test_link.py
 
 This module contains the unit tests for the recordlinker.linking.link module.
 """
+
 import collections
 import copy
 import uuid
@@ -15,8 +16,8 @@ from sqlalchemy import orm
 from recordlinker import models
 from recordlinker import utils
 from recordlinker.config import settings
-from recordlinker.linkage import matchers
 from recordlinker.linking import link
+from recordlinker.linking import matchers
 
 
 @pytest.fixture(scope="function")
@@ -36,26 +37,70 @@ def session():
 
 class TestCompare:
     def test_compare_match(self):
-        rec = models.PIIRecord(**{"name": [{"given": ["John",], "family": "Doe"}]})
-        pat = models.Patient(data={"name": [{"given": ["John",], "family": "Doey"}]})
+        rec = models.PIIRecord(
+            **{
+                "name": [
+                    {
+                        "given": [
+                            "John",
+                        ],
+                        "family": "Doe",
+                    }
+                ]
+            }
+        )
+        pat = models.Patient(
+            data={
+                "name": [
+                    {
+                        "given": [
+                            "John",
+                        ],
+                        "family": "Doey",
+                    }
+                ]
+            }
+        )
         linkage_pass = {
             "funcs": {
-                "first_name": matchers.single_feature_match_exact,
-                "last_name": matchers.single_feature_match_fuzzy,
+                "first_name": matchers.feature_match_exact,
+                "last_name": matchers.feature_match_fuzzy_string,
             },
-            "matching_rule": matchers.eval_perfect_match
+            "matching_rule": matchers.eval_perfect_match,
         }
         assert link.compare(rec, pat, linkage_pass) is True
 
     def test_compare_no_match(self):
-        rec = models.PIIRecord(**{"name": [{"given": ["John",], "family": "Doe"}]})
-        pat = models.Patient(data={"name": [{"given": ["John",], "family": "Doey"}]})
+        rec = models.PIIRecord(
+            **{
+                "name": [
+                    {
+                        "given": [
+                            "John",
+                        ],
+                        "family": "Doe",
+                    }
+                ]
+            }
+        )
+        pat = models.Patient(
+            data={
+                "name": [
+                    {
+                        "given": [
+                            "John",
+                        ],
+                        "family": "Doey",
+                    }
+                ]
+            }
+        )
         linkage_pass = {
             "funcs": {
-                "first_name": matchers.single_feature_match_exact,
-                "last_name": matchers.single_feature_match_exact,
+                "first_name": matchers.feature_match_exact,
+                "last_name": matchers.feature_match_exact,
             },
-            "matching_rule": matchers.eval_perfect_match
+            "matching_rule": matchers.eval_perfect_match,
         }
         assert link.compare(rec, pat, linkage_pass) is False
 

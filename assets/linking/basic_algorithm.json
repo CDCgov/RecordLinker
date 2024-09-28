@@ -2,8 +2,8 @@
   "algorithm": [
     {
       "funcs": {
-        "first_name": "func:recordlinker.linkage.matchers.single_feature_match_fuzzy",
-        "last_name": "func:recordlinker.linkage.matchers.single_feature_match_exact"
+        "first_name": "func:recordlinker.linking.matchers.feature_match_fuzzy_string",
+        "last_name": "func:recordlinker.linking.matchers.feature_match_exact"
       },
       "blocks": [
         {
@@ -17,7 +17,7 @@
           "value": "sex"
         }
       ],
-      "matching_rule": "func:recordlinker.linkage.matchers.eval_perfect_match",
+      "matching_rule": "func:recordlinker.linking.matchers.eval_perfect_match",
       "cluster_ratio": 0.9,
       "kwargs": {
         "thresholds": {
@@ -32,8 +32,8 @@
     },
     {
       "funcs": {
-        "address": "func:recordlinker.linkage.matchers.single_feature_match_fuzzy",
-        "birthdate": "func:recordlinker.linkage.matchers.single_feature_match_exact"
+        "address": "func:recordlinker.linking.matchers.feature_match_fuzzy_string",
+        "birthdate": "func:recordlinker.linking.matchers.feature_match_exact"
       },
       "blocks": [
         {
@@ -51,7 +51,7 @@
           "value": "sex"
         }
       ],
-      "matching_rule": "func:recordlinker.linkage.matchers.eval_perfect_match",
+      "matching_rule": "func:recordlinker.linking.matchers.eval_perfect_match",
       "cluster_ratio": 0.9,
       "kwargs": {
         "thresholds": {
