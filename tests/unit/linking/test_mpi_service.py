@@ -192,3 +192,12 @@ class TestGetBlockData:
         algo_config = {"blocks": [{"value": "birthdate"}, {"value": "last_name"}]}
         matches = mpi_service.get_block_data(session, models.PIIRecord(**data), algo_config)
         assert len(matches) == 0
+
+def test_get_algorithms(session):
+    testLabel = "basic algorithm"
+    algo1 = models.Algorithm(label=testLabel, is_default=True, description="First algorithm")
+    session.add(algo1)
+    session.commit()
+    
+    algorithmsList = mpi_service.get_all_algorithms(session)
+    assert algorithmsList == [testLabel]

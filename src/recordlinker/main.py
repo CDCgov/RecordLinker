@@ -10,6 +10,7 @@ from fastapi import status
 from pydantic import BaseModel
 from pydantic import Field
 
+from recordlinker import models
 from recordlinker.base_service import BaseService
 from recordlinker.config import settings
 from recordlinker.linkage.algorithms import DIBBS_BASIC
@@ -17,6 +18,7 @@ from recordlinker.linkage.algorithms import DIBBS_ENHANCED
 from recordlinker.linkage.link import add_person_resource
 from recordlinker.linkage.link import link_record_against_mpi
 from recordlinker.linkage.mpi import DIBBsMPIConnectorClient
+from recordlinker.linking import mpi_service
 from recordlinker.utils import read_json_from_assets
 from recordlinker.utils import run_migrations
 
@@ -204,5 +206,11 @@ async def link_record(
 
 @app.get("/algorithms")
 async def get_algorithms():
-    return {"status": "OK"}
+    """
+    Get a list of all available algorithms from the database
+    """
+    session = models.get_session()
+    algorithmsList = mpi_service.get_all_algorithms(session)
+
+    return {"algorithms": algorithmsList}
 
