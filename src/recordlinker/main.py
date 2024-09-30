@@ -34,7 +34,6 @@ app = BaseService(
     # openapi_url="/record-linkage/openapi.json",
 ).start()
 
-
 # Request and response models
 class LinkRecordInput(BaseModel):
     """
@@ -45,21 +44,10 @@ class LinkRecordInput(BaseModel):
         description="A FHIR bundle containing a patient resource to be checked "
         "for links to existing patient records"
     )
-    use_enhanced: Optional[bool] = Field(
-        description="Optionally, a boolean flag indicating whether to use the "
-        "DIBBs enhanced algorithm (with statistical correction) for record linkage. "
-        "If `False` and no optional `algo_config` is provided, the service will use "
-        "the DIBBs basic algorithm. If this parameter is set to `True`, the enhanced "
-        "algorithm will be used in place of any configuration supplied in "
-        "`algo_config`.",
-        default=False,
-    )
-    algo_config: Optional[dict] = Field(
-        description="A JSON dictionary containing the specification for a "
-        "linkage algorithm, as defined in the SDK functions `read_algo_config` "
-        "and `write_algo_config`. Default value uses the DIBBS in-house basic "
-        "algorithm.",
-        default={},
+    algorithm: Optional[str] = Field(
+        description="Optionally, a string that maps to an algorithm label stored in "
+        "algorithm table",
+        default=None
     )
     external_person_id: Optional[str] = Field(
         description="The External Identifier, provided by the client,"
@@ -157,14 +145,20 @@ async def link_record(
         }
 
     # Determine which algorithm to use; default is DIBBS basic
-    # Check for enhanced algo before checking custom algo
-    use_enhanced = input.get("use_enhanced", False)
-    if use_enhanced:
-        algo_config = DIBBS_ENHANCED
-    else:
-        algo_config = input.get("algo_config", {}).get("algorithm", [])
-        if algo_config == []:
-            algo_config = DIBBS_BASIC
+    algorithm_label = input.get("algorithm")
+    session = models.get_session()
+    algorithm = mpi_service.get_algorithm_by_label(session, algorithm_label)
+
+    if algorithm is None:
+        response.status_code = status.HTTP_422_UNPROCESSABLE_ENTITY
+        return {
+            "message": "Error: Invalid algorithm specified"
+        }
+    
+    if algorithm.label == "DIBBS_ENHANCED":
+        algo_config = DIBBS_ENHANCED   
+    else: 
+        algo_config = DIBBS_BASIC 
 
     # Now extract the patient record we want to link
     try:

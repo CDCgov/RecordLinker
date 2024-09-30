@@ -194,10 +194,39 @@ class TestGetBlockData:
         assert len(matches) == 0
 
 def test_get_algorithms(session):
-    testLabel = "basic algorithm"
+    testLabel = "DIBBS_BASIC"
     algo1 = models.Algorithm(label=testLabel, is_default=True, description="First algorithm")
     session.add(algo1)
     session.commit()
     
     algorithmsList = mpi_service.get_all_algorithms(session)
     assert algorithmsList == [testLabel]
+
+def test_get_algorithm_by_label_match(session):
+    testLabel = "DIBBS_BASIC"
+    algo1 = models.Algorithm(label=testLabel, is_default=True, description="First algorithm")
+    session.add(algo1)
+    session.commit()
+    
+    algorithm = mpi_service.get_algorithm_by_label(session, testLabel)
+    assert algorithm == algo1
+
+def test_get_algorithm_by_label_no_match(session):
+    #inserting the defauly algorithm
+    algo1 = models.Algorithm(label="DIBBS_BASIC", is_default=True, description="First algorithm")
+    session.add(algo1)
+    session.commit()
+    
+    algorithm = mpi_service.get_algorithm_by_label(session, "WRONG_LABEL")
+    assert algorithm is None
+
+def test_get_algorithm_by_label_empty(session):
+    #inserting the defauly algorithm
+    algo1 = models.Algorithm(label="DIBBS_BASIC", is_default=True, description="First algorithm")
+    session.add(algo1)
+    session.commit()
+    
+    algorithm = mpi_service.get_algorithm_by_label(session, "")
+    
+    #returned algorithm should just be the default
+    assert algorithm is algo1

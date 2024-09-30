@@ -108,7 +108,7 @@ def insert_blocking_keys(
         session.commit()
     return values
 
-def get_all_algorithms(session: orm.Session):
+def get_all_algorithms(session: orm.Session) -> list[str]:
     """
     Gets a list of algorithms from the MPI database.
     returns: list of all labels column from algorithms table
@@ -117,3 +117,17 @@ def get_all_algorithms(session: orm.Session):
     algorithmsList = session.query(models.Algorithm.label).all()
 
     return [algorithm[0] for algorithm in algorithmsList]
+
+def get_algorithm_by_label(session: orm.Session, label: str) -> models.Algorithm | None:
+    """
+    Gets a single algorithm by searching for the unique label
+    returns: algorithm json string
+    """
+
+    if not label:
+        algorithm = session.query(models.Algorithm).filter(models.Algorithm.is_default == True).first() # noqa: E712
+    else:
+        algorithm = session.query(models.Algorithm).filter(models.Algorithm.label == label).first()
+  
+    return algorithm
+    

@@ -46,14 +46,14 @@ LOG_ODDS_SCORES = {
 DIBBS_BASIC = {
     "id": 1,
     "is_default": True,
-    "label": "DIBBs Basic algorithm",
+    "label": "DIBBS_BASIC",
     "description": "Compares the fields of two records using string similarity scoring. If similarity score is above fuzzy threshold then the fields agree. If all fields being considered agree, then the records are a match."
 }
 
 DIBBS_ENHANCED = {
     "id": 2, 
     "is_default": False,
-    "label": "DIBBs Enhanced algorithm",
+    "label": "DIBBS_ENHANCED",
     "description": "Similair to the basic algorithm with the addition of log odds scoring. String comparison scores are multiplied by unique scoring weights for each field. If the sum of all considered weights is greater than a threshold then the records are a match."
 }
 
