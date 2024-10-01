@@ -39,19 +39,19 @@ class TestBlockingKey:
         rec = models.PIIRecord(**{"sex": ""})
         assert models.BlockingKey.SEX.to_value(rec) == set()
         rec = models.PIIRecord(**{"sex": "M"})
-        assert models.BlockingKey.SEX.to_value(rec) == {"m"}
+        assert models.BlockingKey.SEX.to_value(rec) == {"M"}
         rec = models.PIIRecord(**{"sex": "Male"})
-        assert models.BlockingKey.SEX.to_value(rec) == {"m"}
+        assert models.BlockingKey.SEX.to_value(rec) == {"M"}
         rec = models.PIIRecord(**{"sex": "f"})
-        assert models.BlockingKey.SEX.to_value(rec) == {"f"}
+        assert models.BlockingKey.SEX.to_value(rec) == {"F"}
         rec = models.PIIRecord(**{"sex": "FEMALE"})
-        assert models.BlockingKey.SEX.to_value(rec) == {"f"}
+        assert models.BlockingKey.SEX.to_value(rec) == {"F"}
         rec = models.PIIRecord(**{"sex": "other"})
-        assert models.BlockingKey.SEX.to_value(rec) == {"u"}
+        assert models.BlockingKey.SEX.to_value(rec) == {"U"}
         rec = models.PIIRecord(**{"sex": "unknown"})
-        assert models.BlockingKey.SEX.to_value(rec) == {"u"}
+        assert models.BlockingKey.SEX.to_value(rec) == {"U"}
         rec = models.PIIRecord(**{"sex": "?"})
-        assert models.BlockingKey.SEX.to_value(rec) == {"u"}
+        assert models.BlockingKey.SEX.to_value(rec) == {"U"}
 
     def test_extract_zipcode(self):
         rec = models.PIIRecord(**{"zip_code": "12345"})

@@ -14,10 +14,10 @@ from recordlinker.linking import matchers
 def test_feature_match_any():
     record = models.PIIRecord(
         name=[{"given": ["John"], "family": "Smith"}, {"family": "Harrison"}],
-        birthDate="1980-01-01",
+        birthDate="Jan 1 1980",
     )
     pat1 = models.Patient(
-        data={"name": [{"given": ["John", "Michael"], "family": "Doe"}], "birthDate": "Jan 1 1980"}
+        data={"name": [{"given": ["John", "Michael"], "family": "Doe"}], "birthDate": "1980-01-01"}
     )
     pat2 = models.Patient(data={"name": [{"given": ["Michael"], "family": "Smith"}], "sex": "male"})
     pat3 = models.Patient(data={"name": [{"family": "Smith"}, {"family": "Williams"}]})
@@ -43,10 +43,10 @@ def test_feature_match_any():
 def test_feature_match_exact():
     record = models.PIIRecord(
         name=[{"given": ["John"], "family": "Smith"}, {"family": "Harrison"}],
-        birthDate="1980-01-01",
+        birthDate="December 31, 1999",
     )
     pat1 = models.Patient(
-        data={"name": [{"given": ["John", "Michael"], "family": "Doe"}], "birthDate": "Jan 1 1980"}
+        data={"name": [{"given": ["John", "Michael"], "family": "Doe"}], "birthDate": "1999-12-31"}
     )
     pat2 = models.Patient(
         data={

@@ -43,7 +43,7 @@ class TestInsertBlockingKeys:
         assert mpi_service.insert_blocking_keys(session, new_patient) == []
 
     def test_patient_with_blocking_keys(self, session, new_patient):
-        new_patient.data = {"name": [{"given": ["Johnathon", "Bill",], "family": "Smith"}], "birthdate": "01/01/1980"}
+        new_patient.data = {"name": [{"given": ["Johnathon", "Bill",], "family": "Smith"}], "birthdate": "1980-01-01"}
         keys = mpi_service.insert_blocking_keys(session, new_patient)
         assert len(keys) == 4
         for key in keys:

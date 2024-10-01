@@ -45,21 +45,21 @@ class TestPIIRecord:
 
     def test_parse_sex(self):
         record = models.PIIRecord(sex="M")
-        assert record.sex == models.Sex.M
+        assert record.sex == models.Sex.MALE
         record = models.PIIRecord(sex="m")
-        assert record.sex == models.Sex.M
+        assert record.sex == models.Sex.MALE
         record = models.PIIRecord(sex="Male")
-        assert record.sex == models.Sex.M
+        assert record.sex == models.Sex.MALE
         record = models.PIIRecord(sex="F")
-        assert record.sex == models.Sex.F
+        assert record.sex == models.Sex.FEMALE
         record = models.PIIRecord(sex="f")
-        assert record.sex == models.Sex.F
+        assert record.sex == models.Sex.FEMALE
         record = models.PIIRecord(sex="FEMALE")
-        assert record.sex == models.Sex.F
+        assert record.sex == models.Sex.FEMALE
         record = models.PIIRecord(sex="U")
-        assert record.sex == models.Sex.U
+        assert record.sex == models.Sex.UNKNOWN
         record = models.PIIRecord(sex="Unknown")
-        assert record.sex == models.Sex.U
+        assert record.sex == models.Sex.UNKNOWN
         record = models.PIIRecord()
         assert record.sex is None
 
@@ -67,7 +67,7 @@ class TestPIIRecord:
         record = models.PIIRecord(
             external_id="99",
             birth_date="1980-2-1",
-            sex="M",
+            sex="male",
             mrn="123456",
             address=[
                 models.Address(
@@ -100,7 +100,7 @@ class TestPIIRecord:
 
         assert list(record.field_iter(models.Feature.BIRTHDATE)) == ["1980-02-01"]
         assert list(record.field_iter(models.Feature.MRN)) == ["123456"]
-        assert list(record.field_iter(models.Feature.SEX)) == ["m"]
+        assert list(record.field_iter(models.Feature.SEX)) == ["M"]
         assert list(record.field_iter(models.Feature.ADDRESS)) == ["123 Main St", "456 Elm St"]
         assert list(record.field_iter(models.Feature.CITY)) == ["Anytown", "Somecity"]
         assert list(record.field_iter(models.Feature.STATE)) == ["NY", "CA"]
