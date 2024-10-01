@@ -108,7 +108,7 @@ def insert_blocking_keys(
         session.commit()
     return values
 
-def get_all_algorithms(session: orm.Session) -> list[str]:
+def get_all_algorithm_labels(session: orm.Session) -> list[str]:
     """
     Gets a list of algorithms from the MPI database.
     returns: list of all labels column from algorithms table
