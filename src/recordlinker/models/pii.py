@@ -33,9 +33,15 @@ class Sex(enum.Enum):
     Enum for the Patient.sex field.
     """
 
-    M = "MALE"
-    F = "FEMALE"
-    U = "UNKNOWN"
+    MALE = "M"
+    FEMALE = "F"
+    UNKNOWN = "U"
+
+    def __str__(self):
+        """
+        Return the value of the enum as a string.
+        """
+        return self.value
 
 
 class Name(pydantic.BaseModel):
@@ -127,10 +133,10 @@ class PIIRecord(pydantic.BaseModel):
         if value:
             val = str(value).lower().strip()
             if val in ["m", "male"]:
-                return Sex.M
+                return Sex.MALE
             elif val in ["f", "female"]:
-                return Sex.F
-            return Sex.U
+                return Sex.FEMALE
+            return Sex.UNKNOWN
 
     def field_iter(self, field: Feature) -> typing.Iterator[str]:
         """
@@ -142,13 +148,13 @@ class PIIRecord(pydantic.BaseModel):
 
         if field == Feature.BIRTHDATE:
             if self.birth_date:
-                yield self.birth_date.strftime("%Y-%m-%d")
+                yield str(self.birth_date)
         elif field == Feature.MRN:
             if self.mrn:
                 yield self.mrn
         elif field == Feature.SEX:
             if self.sex:
-                yield self.sex.name.lower()
+                yield str(self.sex)
         elif field == Feature.ADDRESS:
             for address in self.address:
                 for line in address.line:
