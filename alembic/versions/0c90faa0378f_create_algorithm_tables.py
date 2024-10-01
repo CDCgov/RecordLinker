@@ -1,7 +1,7 @@
 """create algorithm tables
 
 Revision ID: 0c90faa0378f
-Revises: 6052c193a26a
+Revises: 64ed9566f189
 Create Date: 2024-09-20 11:41:13.377954
 
 """
@@ -13,7 +13,7 @@ import sqlalchemy as sa
 
 # revision identifiers, used by Alembic.
 revision: str = '0c90faa0378f'
-down_revision: Union[str, None] = '6052c193a26a'
+down_revision: Union[str, None] = '64ed9566f189'
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 

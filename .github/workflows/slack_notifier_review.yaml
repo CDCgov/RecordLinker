@@ -1,0 +1,37 @@
+on:
+    pull_request:
+      branches: [main]
+      types:
+        - opened
+        - reopened
+        - ready_for_review
+
+jobs:
+  slack-ready-for-review:
+    runs-on: ubuntu-latest
+    if: ${{ !github.event.pull_request.draft }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Send GitHub trigger payload to Slack 
+        id: slack
+        uses: slackapi/slack-github-action@v1.27.0
+        with:
+          payload: |
+            {
+              "text": "${{ github.event.pull_request.user.login }} has a PR ready for review! :speech_balloon: \n${{ github.event.pull_request.html_url }}",
+              "blocks": [
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": "${{ github.event.pull_request.user.login }} has a PR ready for review! :speech_balloon: \n${{ github.event.pull_request.html_url }}"
+                  }
+                }
+              ]
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
