@@ -109,6 +109,21 @@ class PIIRecord(pydantic.BaseModel):
     name: typing.List[Name] = []
     telecom: typing.List[Telecom] = []
 
+    @classmethod
+    def construct(cls, data: dict) -> typing.Self:
+        """
+        Construct a PIIRecord object from a dictionary. This is similar to the
+        `pydantic.BaseModel.models_construct` method, but allows for additional parsing
+        of nested objects.  The key difference between this and the __init__ constructor
+        is this method will not parse and validate the data, thus should only be used
+        when the data is already cleaned and validated.
+        """
+        obj = cls.model_construct(**data)
+        obj.address = [Address.model_construct(**a) for a in obj.address]
+        obj.name = [Name.model_construct(**n) for n in obj.name]
+        obj.telecom = [Telecom.model_construct(**t) for t in obj.telecom]
+        return obj
+
     @pydantic.field_validator("external_id", mode="before")
     def parse_external_id(cls, value):
         """

@@ -72,8 +72,9 @@ class Patient(Base):
         """
         Return a PIIRecord object with the data from this patient record.
         """
-        if self.data:
-            return PIIRecord(**self.data)
+        if not hasattr(self, "_record"):
+            self._record = PIIRecord.construct(**self.data) if self.data else None
+        return self._record
 
     @record.setter
     def record(self, value: PIIRecord):
@@ -85,6 +86,8 @@ class Patient(Base):
         # this is an optimization to reduce the amount of data stored in the
         # database, if a value is empty, no need to store it
         self.data = self._scrub_empty(data)
+        if hasattr(self, "_record"):
+            del self._record
 
 
 class BlockingKey(enum.Enum):
