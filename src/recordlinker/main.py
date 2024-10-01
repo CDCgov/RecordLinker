@@ -153,8 +153,7 @@ async def link_record(
         response.status_code = status.HTTP_422_UNPROCESSABLE_ENTITY
         return {
             "message": "Error: Invalid algorithm specified"
-        }
-    
+        }   
     if algorithm.label == "DIBBS_ENHANCED":
         algo_config = DIBBS_ENHANCED   
     else: 
@@ -207,4 +206,3 @@ async def get_algorithms():
     algorithmsList = mpi_service.get_all_algorithms(session)
 
     return {"algorithms": algorithmsList}
-
