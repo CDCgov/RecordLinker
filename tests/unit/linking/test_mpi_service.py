@@ -213,7 +213,7 @@ class TestGetAlgorithmByLabel:
         assert algorithm == algo1
 
     def test_get_algorithm_by_label_no_match(self, session):
-        #inserting the defauly algorithm
+        #inserting the default algorithm
         algo1 = models.Algorithm(label="DIBBS_BASIC", is_default=True, description="First algorithm")
         session.add(algo1)
         session.commit()
@@ -222,7 +222,7 @@ class TestGetAlgorithmByLabel:
         assert algorithm is None
 
     def test_get_algorithm_by_label_empty(self, session):
-        #inserting the defauly algorithm
+        #inserting the default algorithm
         algo1 = models.Algorithm(label="DIBBS_BASIC", is_default=True, description="First algorithm")
         session.add(algo1)
         session.commit()

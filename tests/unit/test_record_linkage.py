@@ -6,6 +6,8 @@ import os
 import pathlib
 
 import pytest
+from unittest import mock
+from recordlinker import models
 from recordlinker.config import settings
 from recordlinker.utils import run_migrations
 from recordlinker.utils import _clean_up
@@ -51,20 +53,6 @@ def setup_and_clean_tests():
     # This code will run at the end of the test plugged into the yield
     _clean_up()
 
-@pytest.fixture(scope="function")
-def session():
-    engine = create_engine(settings.test_db_uri)
-    models.Base.metadata.create_all(engine)
-
-    # Create a new session factory and scoped session
-    Session = orm.scoped_session(orm.sessionmaker(bind=engine))
-    session = Session()
-
-    yield session  # This is where the testing happens
-
-    session.close()  # Cleanup after test
-    models.Base.metadata.drop_all(engine)  # Drop all tables after the test
-
 def test_health_check():
     actual_response = client.get("/")
     assert actual_response.status_code == 200
@@ -75,10 +63,12 @@ def test_openapi():
     actual_response = client.get("/openapi.json")
     assert actual_response.status_code == 200
 
-def test_get_algorithms():
+@mock.patch("recordlinker.linking.mpi_service.get_all_algorithm_labels")
+def test_get_algorithms(patched_subprocess):
+    patched_subprocess.return_value = ["DIBBS_BASIC"]
     actual_response = client.get("/algorithms")
     
-    assert actual_response.json() == {"algorithms": ["DIBBS_BASIC", "DIBBS_ENHANCED"]}
+    assert actual_response.json() == {"algorithms": ["DIBBS_BASIC"]}
     assert actual_response.status_code == status.HTTP_200_OK
 
 
@@ -178,8 +168,10 @@ def test_linkage_success():
     ][0]
     assert not resp_6.json()["found_match"]
 
+@mock.patch("recordlinker.linking.mpi_service.get_algorithm_by_label")
+def test_use_enhanced_algo(patched_subprocess):
+    patched_subprocess.return_value = models.Algorithm(label="DIBBS_ENHANCED", is_default=False, description="Enhanced algo")
 
-def test_use_enhanced_algo():
     test_bundle = load_test_bundle()
     entry_list = copy.deepcopy(test_bundle["entry"])
 
@@ -251,7 +243,10 @@ def test_use_enhanced_algo():
     ][0]
     assert not resp_6.json()["found_match"]
 
-def test_invalid_algorithm_param():
+@mock.patch("recordlinker.linking.mpi_service.get_algorithm_by_label")
+def test_invalid_algorithm_param(patched_subprocess):
+    patched_subprocess.return_value = None
+
     test_bundle = load_test_bundle()
     expected_response = {
                 "found_match": False,
