@@ -5,18 +5,27 @@ import typing
 import dateutil.parser
 import pydantic
 
-# The Patient features that can be used for comparison.
-FEATURE = typing.Literal[
-    "birthdate",
-    "mrn",
-    "sex",
-    "first_name",
-    "last_name",
-    "line",
-    "city",
-    "state",
-    "zip",
-]
+
+class Feature(enum.Enum):
+    """
+    Enum for the different Patient attributes that can be used for comparison.
+    """
+
+    BIRTHDATE = "birthdate"
+    MRN = "mrn"
+    SEX = "sex"
+    FIRST_NAME = "first_name"
+    LAST_NAME = "last_name"
+    ADDRESS = "address"
+    CITY = "city"
+    STATE = "state"
+    ZIPCODE = "zip"
+
+    def __str__(self):
+        """
+        Return the value of the enum as a string.
+        """
+        return self.value
 
 
 class Sex(enum.Enum):
@@ -24,15 +33,23 @@ class Sex(enum.Enum):
     Enum for the Patient.sex field.
     """
 
-    M = "MALE"
-    F = "FEMALE"
-    U = "UNKNOWN"
+    MALE = "M"
+    FEMALE = "F"
+    UNKNOWN = "U"
+
+    def __str__(self):
+        """
+        Return the value of the enum as a string.
+        """
+        return self.value
 
 
 class Name(pydantic.BaseModel):
     """
     The schema for a name record.
     """
+
+    model_config = pydantic.ConfigDict(extra="allow")
 
     family: str
     given: typing.List[str] = []
@@ -46,10 +63,17 @@ class Address(pydantic.BaseModel):
     The schema for an address record.
     """
 
+    model_config = pydantic.ConfigDict(extra="allow")
+
     line: typing.List[str] = []
     city: typing.Optional[str] = None
     state: typing.Optional[str] = None
-    postal_code: typing.Optional[str] = None
+    postal_code: typing.Optional[str] = pydantic.Field(
+        default=None,
+        validation_alias=pydantic.AliasChoices(
+            "postal_code", "postalcode", "postalCode", "zip_code", "zipcode", "zipCode", "zip"
+        ),
+    )
     county: typing.Optional[str] = None  # future use
     country: typing.Optional[str] = None
     latitude: typing.Optional[float] = None
@@ -61,6 +85,8 @@ class Telecom(pydantic.BaseModel):
     The schema for a telecom record.
     """
 
+    model_config = pydantic.ConfigDict(extra="allow")
+
     value: str  # future use
     system: typing.Optional[str] = None
     use: typing.Optional[str] = None
@@ -71,15 +97,32 @@ class PIIRecord(pydantic.BaseModel):
     The schema for a PII record.
     """
 
-    model_config = pydantic.ConfigDict(extra="allow", alias_generator=str.casefold)
+    model_config = pydantic.ConfigDict(extra="allow")
 
     external_id: typing.Optional[str] = None
-    birthdate: typing.Optional[datetime.date] = None
+    birth_date: typing.Optional[datetime.date] = pydantic.Field(
+        default=None, validation_alias=pydantic.AliasChoices("birth_date", "birthdate", "birthDate")
+    )
     sex: typing.Optional[Sex] = None
     mrn: typing.Optional[str] = None
     address: typing.List[Address] = []
     name: typing.List[Name] = []
     telecom: typing.List[Telecom] = []
+
+    @classmethod
+    def construct(cls, **data: dict[str, str]) -> typing.Self:
+        """
+        Construct a PIIRecord object from a dictionary. This is similar to the
+        `pydantic.BaseModel.models_construct` method, but allows for additional parsing
+        of nested objects.  The key difference between this and the __init__ constructor
+        is this method will not parse and validate the data, thus should only be used
+        when the data is already cleaned and validated.
+        """
+        obj = cls.model_construct(**data)
+        obj.address = [Address.model_construct(**a) for a in obj.address]
+        obj.name = [Name.model_construct(**n) for n in obj.name]
+        obj.telecom = [Telecom.model_construct(**t) for t in obj.telecom]
+        return obj
 
     @pydantic.field_validator("external_id", mode="before")
     def parse_external_id(cls, value):
@@ -89,8 +132,8 @@ class PIIRecord(pydantic.BaseModel):
         if value:
             return str(value)
 
-    @pydantic.field_validator("birthdate", mode="before")
-    def parse_birthdate(cls, value):
+    @pydantic.field_validator("birth_date", mode="before")
+    def parse_birth_date(cls, value):
         """
         Parse the birthdate string into a datetime object.
         """
@@ -105,53 +148,52 @@ class PIIRecord(pydantic.BaseModel):
         if value:
             val = str(value).lower().strip()
             if val in ["m", "male"]:
-                return Sex.M
+                return Sex.MALE
             elif val in ["f", "female"]:
-                return Sex.F
-            return Sex.U
+                return Sex.FEMALE
+            return Sex.UNKNOWN
 
-    def field_iter(self, field: FEATURE) -> typing.Iterator[str]:
+    def field_iter(self, field: Feature) -> typing.Iterator[str]:
         """
         Given a field name, return an iterator of all string values for that field.
         Empty strings are not included in the iterator.
         """
-        if field not in typing.get_args(FEATURE):
+        if not isinstance(field, Feature):
             raise ValueError(f"Invalid feature: {field}")
 
-        if field == "birthdate":
-            if self.birthdate:
-                yield self.birthdate.strftime("%Y-%m-%d")
-        elif field == "mrn":
+        if field == Feature.BIRTHDATE:
+            if self.birth_date:
+                yield str(self.birth_date)
+        elif field == Feature.MRN:
             if self.mrn:
                 yield self.mrn
-        elif field == "sex":
+        elif field == Feature.SEX:
             if self.sex:
-                yield self.sex.name.lower()
-        elif field == "line":
+                yield str(self.sex)
+        elif field == Feature.ADDRESS:
             for address in self.address:
                 for line in address.line:
                     if line:
                         yield line
-        elif field == "city":
+        elif field == Feature.CITY:
             for address in self.address:
                 if address.city:
                     yield address.city
-        elif field == "state":
+        elif field == Feature.STATE:
             for address in self.address:
                 if address.state:
                     yield address.state
-        # FIXME: can we change this to "zipcode" some day
-        elif field == "zip":
+        elif field == Feature.ZIPCODE:
             for address in self.address:
                 if address.postal_code:
                     # only use the first 5 digits for comparison
                     yield address.postal_code[:5]
-        elif field == "first_name":
+        elif field == Feature.FIRST_NAME:
             for name in self.name:
                 for given in name.given:
                     if given:
                         yield given
-        elif field == "last_name":
+        elif field == Feature.LAST_NAME:
             for name in self.name:
                 if name.family:
                     yield name.family

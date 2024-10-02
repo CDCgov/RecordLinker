@@ -4,11 +4,11 @@ unit.test_matchers
 
 This module contains unit tests for the :mod:`~recordlinker.linkage.matchers` module.
 """
+
 import datetime
 
 import pytest
 
-from recordlinker import models
 from recordlinker.linkage import matchers
 
 
@@ -160,13 +160,73 @@ def test_feature_match_four_char():
 
 
 def test_feature_match_exact():
-    record_i = ["240 Rippin Ranch Apt 66", "1980-01-01", "Los Angeles", "Verónica Eva", "Reynoso", "834d436b-9e1f-2e8e-f28a-ad40bef9f365", "female", "CA", "90502"]
-    record_j = ["240 Rippin Ranch Apt 66", "1980-01-01", "Los Angeles", "Verónica Eva", "Reynoso", "834d436b-9e1f-2e8e-f28a-ad40bef9f365", "female", "CA", "90502"]
-    record_k = ["240 Rippin Ranch Apt 66", datetime.date(1980, 1, 1), "Los Angeles", "Verónica Eva", "Reynoso", "834d436b-9e1f-2e8e-f28a-ad40bef9f365", "female", "CA", "90502"]
-    record_l = ["123 X St Unit 2", "1995-06-20", "Chicago", "Alejandra", "Arenas", "124d436b-9e1f-2e8e-f28a-ad40bef9f367", "male", "IL", "60615"]
-    record_m = ["123 X St Unit 2", datetime.date(1980, 6, 20), "Chicago", "Alejandra", "Arenas", "124d436b-9e1f-2e8e-f28a-ad40bef9f367", "male", "IL", "60615"]
+    record_i = [
+        "240 Rippin Ranch Apt 66",
+        "1980-01-01",
+        "Los Angeles",
+        "Verónica Eva",
+        "Reynoso",
+        "834d436b-9e1f-2e8e-f28a-ad40bef9f365",
+        "female",
+        "CA",
+        "90502",
+    ]
+    record_j = [
+        "240 Rippin Ranch Apt 66",
+        "1980-01-01",
+        "Los Angeles",
+        "Verónica Eva",
+        "Reynoso",
+        "834d436b-9e1f-2e8e-f28a-ad40bef9f365",
+        "female",
+        "CA",
+        "90502",
+    ]
+    record_k = [
+        "240 Rippin Ranch Apt 66",
+        datetime.date(1980, 1, 1),
+        "Los Angeles",
+        "Verónica Eva",
+        "Reynoso",
+        "834d436b-9e1f-2e8e-f28a-ad40bef9f365",
+        "female",
+        "CA",
+        "90502",
+    ]
+    record_l = [
+        "123 X St Unit 2",
+        "1995-06-20",
+        "Chicago",
+        "Alejandra",
+        "Arenas",
+        "124d436b-9e1f-2e8e-f28a-ad40bef9f367",
+        "male",
+        "IL",
+        "60615",
+    ]
+    record_m = [
+        "123 X St Unit 2",
+        datetime.date(1980, 6, 20),
+        "Chicago",
+        "Alejandra",
+        "Arenas",
+        "124d436b-9e1f-2e8e-f28a-ad40bef9f367",
+        "male",
+        "IL",
+        "60615",
+    ]
 
-    cols = {"address": 0, "birthdate": 1, "city": 2, "first_name": 3, "last_name": 4, "mrn": 5, "sex": 6, "state": 7, "zip": 8}
+    cols = {
+        "address": 0,
+        "birthdate": 1,
+        "city": 2,
+        "first_name": 3,
+        "last_name": 4,
+        "mrn": 5,
+        "sex": 6,
+        "state": 7,
+        "zip": 8,
+    }
 
     # Simultaneously test matches and non-matches of different data types
     for c in cols:
@@ -200,8 +260,7 @@ def test_feature_match_log_odds_exact():
     log_odds = {"first": 4.0, "last": 6.5, "birthdate": 9.8, "address": 3.7}
 
     assert (
-        matchers.feature_match_log_odds_exact(ri, rj, "first", col_to_idx, log_odds=log_odds)
-        == 4.0
+        matchers.feature_match_log_odds_exact(ri, rj, "first", col_to_idx, log_odds=log_odds) == 4.0
     )
 
     for c in col_to_idx:
@@ -258,46 +317,3 @@ def test_feature_match_log_odds_fuzzy():
         )
         == 0.0
     )
-
-
-def test_single_feature_match_exact():
-    record = models.PIIRecord(name=[{"given": ["John"], "family": "Smith"}, {"family": "Harrison"}], birthdate="1980-01-01")
-    pat1 = models.Patient(data={"name": [{"given": ["John", "Michael"], "family": "Doe"}], "birthdate": "Jan 1 1980"})
-    pat2 = models.Patient(data={"name": [{"given": ["Michael"], "family": "Smith"}], "sex": "male"})
-    pat3 = models.Patient(data={"name": [{"family": "Smith"}, {"family": "Williams"}]})
-
-    assert matchers.single_feature_match_exact(record, pat1, "first_name")
-    assert not matchers.single_feature_match_exact(record, pat1, "last_name")
-    assert matchers.single_feature_match_exact(record, pat1, "birthdate")
-    assert not matchers.single_feature_match_exact(record, pat1, "zip")
-
-    assert not matchers.single_feature_match_exact(record, pat2, "first_name")
-    assert matchers.single_feature_match_exact(record, pat2, "last_name")
-    assert not matchers.single_feature_match_exact(record, pat2, "sex")
-    assert not matchers.single_feature_match_exact(record, pat1, "zip")
-
-    assert not matchers.single_feature_match_exact(record, pat3, "first_name")
-    assert matchers.single_feature_match_exact(record, pat3, "last_name")
-    assert not matchers.single_feature_match_exact(record, pat3, "birthdate")
-
-    with pytest.raises(ValueError):
-        matchers.single_feature_match_exact(record, pat1, "unknown")
-
-
-def test_single_feature_match_fuzzy_string():
-    record = models.PIIRecord(name=[{"given": ["John"], "family": "Smith"}, {"family": "Harrison"}], birthdate="1980-01-01")
-    pat1 = models.Patient(data={"name": [{"given": ["Jon", "Mike"], "family": "Doe"}], "birthdate": "Jan 1 1980"})
-    pat2 = models.Patient(data={"name": [{"given": ["Michael"], "family": "Smtih"}], "sex": "male"})
-    pat3 = models.Patient(data={"name": [{"family": "Smyth"}, {"family": "Williams"}]})
-
-    assert matchers.single_feature_match_fuzzy_string(record, pat1, "first_name")
-    assert not matchers.single_feature_match_fuzzy_string(record, pat1, "last_name")
-
-    assert not matchers.single_feature_match_fuzzy_string(record, pat2, "first_name")
-    assert matchers.single_feature_match_fuzzy_string(record, pat2, "last_name")
-
-    assert not matchers.single_feature_match_fuzzy_string(record, pat3, "first_name")
-    assert matchers.single_feature_match_fuzzy_string(record, pat3, "last_name")
-
-    with pytest.raises(ValueError):
-        matchers.single_feature_match_fuzzy_string(record, pat1, "unknown")

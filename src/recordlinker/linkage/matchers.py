@@ -12,15 +12,9 @@ import typing
 
 import rapidfuzz
 
-from recordlinker import models
 from recordlinker.linkage import utils
 
 SIMILARITY_MEASURES = typing.Literal["JaroWinkler", "Levenshtein", "DamerauLevenshtein"]
-
-# A Callable type for comparing a feature on two records
-FEATURE_COMPARE_FUNC = typing.Callable[[models.PIIRecord, models.Patient, models.FEATURE], bool]
-# A Callable type for evaluating whether a set of feature comparisons constitutes a match
-MATCH_RULE_FUNC = typing.Callable[[list[bool]], bool]
 
 
 def compare_strings(
@@ -432,55 +426,3 @@ def _get_fuzzy_params(col: str, **kwargs) -> tuple[SIMILARITY_MEASURES, float]:
         threshold = kwargs["threshold"]
 
     return (similarity_measure, threshold)
-
-
-def single_feature_match_exact(
-    record: models.PIIRecord, patient: models.Patient, key: models.FEATURE, **kwargs: dict
-) -> bool:
-    """
-    Determines whether a single feature in a given pair of records
-    constitutes an exact match (perfect equality). A single feature
-    can contain multiple values per record (eg multiple given names), thus
-    we must compare all permutations of values between the two records.
-    If any pair of values match, the features are considered a match.
-
-    :param record: The incoming record to evaluate.
-    :param patient: The patient record to compare against.
-    :param key: The name of the column being evaluated (e.g. "city").
-    :return: A boolean indicating whether the features are an exact match.
-    """
-    for x in patient.record.field_iter(key):
-        for y in record.field_iter(key):
-            if x == y:
-                return True
-    return False
-
-
-def single_feature_match_fuzzy_string(
-    record: models.PIIRecord, patient: models.Patient, key: models.FEATURE, **kwargs: dict
-) -> bool:
-    """
-    Determines whether two strings in a given pair of records are close
-    enough to constitute a partial match. The exact nature of the match
-    is determined by the specified string comparison function (see
-    compare_strings for more details) as well as a scoring threshold the
-    comparison must meet or exceed.  A single feature can contain multiple
-    values per record (eg multiple given names), thus we must compare all
-    permutations of values between the two records. If any pair of values
-    match, the features are considered a match.
-
-    :param record: The incoming record to evaluate.
-    :param patient: The patient record to compare against.
-    :param key: The name of the column being evaluated (e.g. "city").
-    :param **kwargs: Optionally, a dictionary including specifications for
-      the string comparison metric to use, as well as the cutoff score
-      beyond which to classify the strings as a partial match.
-    :return: A boolean indicating whether the features are a fuzzy match.
-    """
-    similarity_measure, threshold = _get_fuzzy_params(key, **kwargs)
-    for x in patient.record.field_iter(key):
-        for y in record.field_iter(key):
-            score = compare_strings(x, y, similarity_measure)
-            if score >= threshold:
-                return True
-    return False

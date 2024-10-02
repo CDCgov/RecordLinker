@@ -17,7 +17,7 @@ from recordlinker.linking import mpi_service
 @pytest.fixture(scope="function")
 def session():
     engine = create_engine(settings.test_db_uri)
-    models.Base.metadata.create_all(engine)  # Create all tables in the in-memory database
+    models.Base.metadata.create_all(engine)
 
     # Create a new session factory and scoped session
     Session = orm.scoped_session(orm.sessionmaker(bind=engine))
@@ -43,7 +43,7 @@ class TestInsertBlockingKeys:
         assert mpi_service.insert_blocking_keys(session, new_patient) == []
 
     def test_patient_with_blocking_keys(self, session, new_patient):
-        new_patient.data = {"name": [{"given": ["Johnathon", "Bill",], "family": "Smith"}], "birthdate": "01/01/1980"}
+        new_patient.data = {"name": [{"given": ["Johnathon", "Bill",], "family": "Smith"}], "birthdate": "1980-01-01"}
         keys = mpi_service.insert_blocking_keys(session, new_patient)
         assert len(keys) == 4
         for key in keys:
@@ -64,7 +64,7 @@ class TestInsertPatient:
         record = models.PIIRecord(**data)
         patient = mpi_service.insert_patient(session, record)
         assert patient.person_id is not None
-        assert patient.data["birthdate"] == "1980-01-01"
+        assert patient.data["birth_date"] == "1980-01-01"
         assert patient.data["name"] == [{"given": ["Johnathon", "Bill",], "family": "Smith"}]
         assert patient.external_person_id is None
         assert patient.external_person_source is None
@@ -77,7 +77,7 @@ class TestInsertPatient:
         record = models.PIIRecord(**data)
         patient = mpi_service.insert_patient(session, record, external_person_id="123456")
         assert patient.person_id is not None
-        assert patient.data["birthdate"] == "1980-01-01"
+        assert patient.data["birth_date"] == "1980-01-01"
         assert patient.data["name"] == [{"given": ["Johnathon",], "family": "Smith"}]
         assert patient.external_person_id == "123456"
         assert patient.external_person_source == "IRIS"
@@ -94,7 +94,7 @@ class TestInsertPatient:
         record = models.PIIRecord(**data)
         patient = mpi_service.insert_patient(session, record, person=person)
         assert patient.person_id == person.id
-        assert patient.data["birthdate"] == "1943-02-25"
+        assert patient.data["birth_date"] == "1943-02-25"
         assert patient.data["name"] == [{"given": ["George",], "family": "Harrison"}]
         assert patient.external_person_id is None
         assert patient.external_person_source is None

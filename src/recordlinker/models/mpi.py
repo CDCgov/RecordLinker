@@ -8,6 +8,7 @@ from sqlalchemy import types as sqltypes
 
 from .base import Base
 from .base import get_bigint_pk
+from .pii import Feature
 from .pii import PIIRecord
 
 # The maximum length of a blocking value, we want to optimize this to be as small
@@ -42,7 +43,11 @@ class Patient(Base):
     id: orm.Mapped[int] = orm.mapped_column(get_bigint_pk(), autoincrement=True, primary_key=True)
     person_id: orm.Mapped[int] = orm.mapped_column(schema.ForeignKey("mpi_person.id"))
     person: orm.Mapped["Person"] = orm.relationship(back_populates="patients")
-    data: orm.Mapped[dict] = orm.mapped_column(sqltypes.JSON)
+    # NOTE: We're using a protected attribute here to store the data string, as we
+    # want getter/setter access to the data dictionary to trigger updating the 
+    # calculated record property.  Mainly this is to ensure that the cached record
+    # property, self._record, is cleared when the data is updated.
+    _data: orm.Mapped[dict] = orm.mapped_column("data", sqltypes.JSON)
     external_patient_id: orm.Mapped[str] = orm.mapped_column(sqltypes.String(255), nullable=True)
     external_person_id: orm.Mapped[str] = orm.mapped_column(sqltypes.String(255), nullable=True)
     external_person_source: orm.Mapped[str] = orm.mapped_column(sqltypes.String(100), nullable=True)
@@ -67,12 +72,32 @@ class Patient(Base):
         return data
 
     @property
+    def data(self) -> dict | None:
+        """
+        Return the data dictionary for this patient record.
+        """
+        return self._data
+
+    @property
     def record(self) -> PIIRecord | None:
         """
         Return a PIIRecord object with the data from this patient record.
         """
-        if self.data:
-            return PIIRecord(**self.data)
+        if not hasattr(self, "_record"):
+            # caching the result of the record property for performance
+            self._record = PIIRecord.construct(**self.data) if self.data else None
+        return self._record
+
+    @data.setter
+    def data(self, value: dict | None):
+        """
+        Set the patient record data from a dictionary.
+
+        """
+        self._data = value
+        if hasattr(self, "_record"):
+            # if the record property is cached, delete it
+            del self._record
 
     @record.setter
     def record(self, value: PIIRecord):
@@ -84,6 +109,9 @@ class Patient(Base):
         # this is an optimization to reduce the amount of data stored in the
         # database, if a value is empty, no need to store it
         self.data = self._scrub_empty(data)
+        if hasattr(self, "_record"):
+            # if the record property is cached, delete it
+            del self._record
 
 
 class BlockingKey(enum.Enum):
@@ -125,23 +153,21 @@ class BlockingKey(enum.Enum):
 
         if self == BlockingKey.BIRTHDATE:
             # NOTE: we could optimize here and remove the dashes from the date
-            vals.update(record.field_iter("birthdate"))
+            vals.update(record.field_iter(Feature.BIRTHDATE))
         elif self == BlockingKey.MRN:
-            vals.update({x[-4:] for x in record.field_iter("mrn")})
+            vals.update({x[-4:] for x in record.field_iter(Feature.MRN)})
         elif self == BlockingKey.SEX:
-            vals.update(record.field_iter("sex"))
+            vals.update(record.field_iter(Feature.SEX))
         elif self == BlockingKey.ZIP:
-            vals.update(record.field_iter("zip"))
+            vals.update(record.field_iter(Feature.ZIPCODE))
         elif self == BlockingKey.FIRST_NAME:
-            vals.update({x[:4] for x in record.field_iter("first_name")})
+            vals.update({x[:4] for x in record.field_iter(Feature.FIRST_NAME)})
         elif self == BlockingKey.LAST_NAME:
-            vals.update({x[:4] for x in record.field_iter("last_name")})
+            vals.update({x[:4] for x in record.field_iter(Feature.LAST_NAME)})
 
         # if any vals are longer than the BLOCKING_KEY_MAX_LENGTH, raise an error
         if any(len(x) > BLOCKING_VALUE_MAX_LENGTH for x in vals):
-            raise RuntimeError(
-                f"BlockingKey {self} has a value longer than {BLOCKING_VALUE_MAX_LENGTH}"
-            )
+            raise RuntimeError(f"{self} has a value longer than {BLOCKING_VALUE_MAX_LENGTH}")
         return vals
 
 
