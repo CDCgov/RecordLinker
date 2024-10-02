@@ -227,7 +227,7 @@ class TestGetAlgorithmByLabel:
         session.add(algo1)
         session.commit()
         
-        algorithm = mpi_service.get_algorithm_by_label(session, "")
+        algorithm = mpi_service.get_algorithm_by_label(session, None)
         
         #returned algorithm should just be the default
         assert algorithm is algo1
