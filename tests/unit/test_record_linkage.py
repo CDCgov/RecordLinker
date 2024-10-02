@@ -17,6 +17,12 @@ import copy
 import json
 import pathlib
 
+from sqlalchemy import create_engine
+from sqlalchemy import orm
+
+from recordlinker import models
+from recordlinker.config import settings
+
 # fmt: on
 client = TestClient(app)
 
@@ -45,6 +51,19 @@ def setup_and_clean_tests():
     # This code will run at the end of the test plugged into the yield
     _clean_up()
 
+@pytest.fixture(scope="function")
+def session():
+    engine = create_engine(settings.test_db_uri)
+    models.Base.metadata.create_all(engine)
+
+    # Create a new session factory and scoped session
+    Session = orm.scoped_session(orm.sessionmaker(bind=engine))
+    session = Session()
+
+    yield session  # This is where the testing happens
+
+    session.close()  # Cleanup after test
+    models.Base.metadata.drop_all(engine)  # Drop all tables after the test
 
 def test_health_check():
     actual_response = client.get("/")
