@@ -1,6 +1,6 @@
 on:
     pull_request_target:
-      branches: [main]
+      branches: [fix-allow-dependabot-see-serets]
       types:
         - opened
         - reopened
