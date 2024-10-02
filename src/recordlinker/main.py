@@ -89,6 +89,15 @@ class HealthCheckResponse(BaseModel):
         description="Returns status of connection to Master Patient Index(MPI)"
     )
 
+class GetAlgorithmsResponse(BaseModel):
+    """
+    The schema for response fromt he record linkage get algorithms endpoint
+    """
+
+    algorithms: list[str] = Field(
+        description="Returns a list of algorithms available from the database"
+    )
+
 @app.get("/")
 async def health_check() -> HealthCheckResponse:
     """
@@ -203,7 +212,7 @@ async def link_record(
         }
 
 @app.get("/algorithms")
-async def get_algorithms():
+async def get_algorithms() -> GetAlgorithmsResponse:
     """
     Get a list of all available algorithms from the database
     """
