@@ -143,21 +143,23 @@ async def link_record(
             + "Make sure your environment variables include an entry "
             + "for `mpi_db_type` and that it is set to 'postgres'.",
         }
-
-    # Determine which algorithm to use; default is DIBBS basic
+    
+    #get label from params
     algorithm_label = input.get("algorithm")
-    session = models.get_session()
-    algorithm = mpi_service.get_algorithm_by_label(session, algorithm_label)
+    algo_config = DIBBS_BASIC
 
-    if algorithm is None:
-        response.status_code = status.HTTP_422_UNPROCESSABLE_ENTITY
-        return {
-            "message": "Error: Invalid algorithm specified"
-        }   
-    if algorithm.label == "DIBBS_ENHANCED":
-        algo_config = DIBBS_ENHANCED   
-    else: 
-        algo_config = DIBBS_BASIC 
+    #if we do have an algorithm label specified
+    if algorithm_label:
+        session = models.get_session()
+        algorithm = mpi_service.get_algorithm_by_label(session, algorithm_label)
+
+        if not algorithm:
+            response.status_code = status.HTTP_422_UNPROCESSABLE_ENTITY
+            return {"message": "Error: Invalid algorithm specified"}
+        
+        #temp to map the algorithm to our predefined config file for now
+        if algorithm.label == "DIBBS_ENHANCED":
+            algo_config = DIBBS_ENHANCED
 
     # Now extract the patient record we want to link
     try:
