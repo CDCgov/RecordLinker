@@ -113,7 +113,6 @@ def get_all_algorithm_labels(session: orm.Session) -> list[str]:
     Gets a list of algorithms from the MPI database.
     returns: list of all labels column from algorithms table
     """
-
     algorithmsList = session.query(models.Algorithm.label).all()
 
     return [algorithm[0] for algorithm in algorithmsList]
@@ -121,13 +120,12 @@ def get_all_algorithm_labels(session: orm.Session) -> list[str]:
 def get_algorithm_by_label(session: orm.Session, label: str) -> models.Algorithm | None:
     """
     Gets a single algorithm by searching for the unique label
-    returns: algorithm json string
+    returns: algorithm object
     """
-
     if not label:
         algorithm = session.query(models.Algorithm).filter(models.Algorithm.is_default == True).first() # noqa: E712
     else:
         algorithm = session.query(models.Algorithm).filter(models.Algorithm.label == label).first()
-  
+
     return algorithm
     

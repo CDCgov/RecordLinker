@@ -89,7 +89,6 @@ class HealthCheckResponse(BaseModel):
         description="Returns status of connection to Master Patient Index(MPI)"
     )
 
-
 @app.get("/")
 async def health_check() -> HealthCheckResponse:
     """
@@ -155,7 +154,11 @@ async def link_record(
 
         if not algorithm:
             response.status_code = status.HTTP_422_UNPROCESSABLE_ENTITY
-            return {"message": "Error: Invalid algorithm specified"}
+            return {
+                "found_match": False,
+                "updated_bundle": input_bundle,
+                "message": "Error: Invalid algorithm specified"
+            }
         
         #temp to map the algorithm to our predefined config file for now
         if algorithm.label == "DIBBS_ENHANCED":
