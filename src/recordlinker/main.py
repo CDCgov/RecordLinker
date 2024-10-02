@@ -208,6 +208,6 @@ async def get_algorithms():
     Get a list of all available algorithms from the database
     """
     session = models.get_session()
-    algorithmsList = mpi_service.get_all_algorithm_labels(session)
+    algorithms_list = mpi_service.get_all_algorithm_labels(session)
 
-    return {"algorithms": algorithmsList}
+    return {"algorithms": algorithms_list}
