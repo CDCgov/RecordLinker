@@ -79,7 +79,7 @@ class Patient(Base):
         return self._data
 
     @data.setter  # type: ignore
-    def data_setter(self, value: dict):
+    def data(self, value: dict):
         """
         Set the Patient data from a dictionary.
 
@@ -100,11 +100,10 @@ class Patient(Base):
         return self._record
 
     @record.setter  # type: ignore
-    def record_setter(self, value: PIIRecord):
+    def record(self, value: PIIRecord):
         """
         Set the Patient data from a PIIRecord object.
         """
-        # TODO: Add unit tests
         assert isinstance(value, PIIRecord), "Expected a PIIRecord object"
         # convert the data to a JSON string, then load it back as a dictionary
         # this is necessary to ensure all data elements are JSON serializable
