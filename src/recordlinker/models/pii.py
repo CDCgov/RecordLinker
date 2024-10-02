@@ -118,8 +118,7 @@ class PIIRecord(pydantic.BaseModel):
         is this method will not parse and validate the data, thus should only be used
         when the data is already cleaned and validated.
         """
-        # TODO: Add unit tests
-        obj = cls.model_construct(_fields_set=_fields_set, **values)
+        obj = super(PIIRecord, cls).model_construct(_fields_set=_fields_set, **values)
         obj.address = [Address.model_construct(**a) for a in values.get("address", [])]
         obj.name = [Name.model_construct(**n) for n in values.get("name", [])]
         obj.telecom = [Telecom.model_construct(**t) for t in values.get("telecom", [])]
