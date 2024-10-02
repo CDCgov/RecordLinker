@@ -104,6 +104,7 @@ class Patient(Base):
         """
         Set the Patient data from a PIIRecord object.
         """
+        # TODO: Add unit tests
         assert isinstance(value, PIIRecord), "Expected a PIIRecord object"
         # convert the data to a JSON string, then load it back as a dictionary
         # this is necessary to ensure all data elements are JSON serializable
@@ -139,6 +140,7 @@ class BlockingKey(enum.Enum):
     ZIP = 4, "Zip Code"
     FIRST_NAME = 5, "First 4 chars of First Name"
     LAST_NAME = 6, "First 4 chars of Last Name"
+    ADDRESS = 7, "First 4 chars of Address"
 
     def __init__(self, id: int, description: str):
         self.id = id
@@ -167,6 +169,8 @@ class BlockingKey(enum.Enum):
             vals.update({x[:4] for x in record.field_iter(Feature.FIRST_NAME)})
         elif self == BlockingKey.LAST_NAME:
             vals.update({x[:4] for x in record.field_iter(Feature.LAST_NAME)})
+        elif self == BlockingKey.ADDRESS:
+            vals.update({x[:4] for x in record.field_iter(Feature.ADDRESS)})
 
         # if any vals are longer than the BLOCKING_KEY_MAX_LENGTH, raise an error
         if any(len(x) > BLOCKING_VALUE_MAX_LENGTH for x in vals):

@@ -78,7 +78,7 @@ class TestPIIRecord:
                     country="US",
                 ),
                 models.Address(
-                    line=["456 Elm St"],
+                    line=["456 Elm St", "Apt 2"],
                     city="Somecity",
                     state="CA",
                     postal_code="98765-4321",
@@ -107,3 +107,4 @@ class TestPIIRecord:
         assert list(record.field_iter(models.Feature.ZIPCODE)) == ["12345", "98765"]
         assert list(record.field_iter(models.Feature.FIRST_NAME)) == ["John", "L", "Jane"]
         assert list(record.field_iter(models.Feature.LAST_NAME)) == ["Doe", "Smith"]
+        assert list(record.field_iter(models.Feature.ADDRESS)) == ["123 Main St", "456 Elm St"]

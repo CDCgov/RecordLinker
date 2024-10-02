@@ -110,7 +110,7 @@ class PIIRecord(pydantic.BaseModel):
     telecom: typing.List[Telecom] = []
 
     @classmethod
-    def construct(cls, **data: dict[str, str]) -> typing.Self:
+    def model_construct(cls, _fields_set: set[str] | None = None, **values: typing.Any) -> typing.Self:
         """
         Construct a PIIRecord object from a dictionary. This is similar to the
         `pydantic.BaseModel.models_construct` method, but allows for additional parsing
@@ -118,10 +118,11 @@ class PIIRecord(pydantic.BaseModel):
         is this method will not parse and validate the data, thus should only be used
         when the data is already cleaned and validated.
         """
-        obj = cls.model_construct(**data)
-        obj.address = [Address.model_construct(**a) for a in obj.address]
-        obj.name = [Name.model_construct(**n) for n in obj.name]
-        obj.telecom = [Telecom.model_construct(**t) for t in obj.telecom]
+        # TODO: Add unit tests
+        obj = cls.model_construct(_fields_set=_fields_set, **values)
+        obj.address = [Address.model_construct(**a) for a in values.get("address", [])]
+        obj.name = [Name.model_construct(**n) for n in values.get("name", [])]
+        obj.telecom = [Telecom.model_construct(**t) for t in values.get("telecom", [])]
         return obj
 
     @pydantic.field_validator("external_id", mode="before")
@@ -172,9 +173,10 @@ class PIIRecord(pydantic.BaseModel):
                 yield str(self.sex)
         elif field == Feature.ADDRESS:
             for address in self.address:
-                for line in address.line:
-                    if line:
-                        yield line
+                # The 2nd, 3rd, etc lines of an address are not as important as
+                # the first line, so we only include the first line in the comparison.
+                if address.line and address.line[0]:
+                    yield address.line[0]
         elif field == Feature.CITY:
             for address in self.address:
                 if address.city:

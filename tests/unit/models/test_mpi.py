@@ -89,3 +89,13 @@ class TestBlockingKey:
         assert models.BlockingKey.LAST_NAME.to_value(rec) == {"Doe"}
         rec = models.PIIRecord(**{"name": [{"family": "Smith"}, {"family": "Doe"}]})
         assert models.BlockingKey.LAST_NAME.to_value(rec) == {"Smit", "Doe"}
+
+    def test_extract_address_first_four(self):
+        rec = models.PIIRecord(**{"line": "123 Main St"})
+        assert models.BlockingKey.ADDRESS.to_value(rec) == set()
+        rec = models.PIIRecord(**{"address": [{"line": ["123 Main St"]}]})
+        assert models.BlockingKey.ADDRESS.to_value(rec) == {"123 "}
+        rec = models.PIIRecord(**{"address": [{"line": ["123 Main St", "Apt 2"]}]})
+        assert models.BlockingKey.ADDRESS.to_value(rec) == {"123 "}
+        rec = models.PIIRecord(**{"address": [{"line": ["123 Main St"]}, {"line": ["456 Elm St"]}]})
+        assert models.BlockingKey.ADDRESS.to_value(rec) == {"123 ", "456 "}
