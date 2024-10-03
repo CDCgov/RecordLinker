@@ -2,7 +2,6 @@
 # fmt: off
 import copy
 import json
-import os
 import pathlib
 
 import pytest
@@ -18,9 +17,6 @@ from recordlinker.main import app
 import copy
 import json
 import pathlib
-
-from sqlalchemy import create_engine
-from sqlalchemy import orm
 
 from recordlinker import models
 from recordlinker.config import settings
@@ -63,7 +59,7 @@ def test_openapi():
     actual_response = client.get("/openapi.json")
     assert actual_response.status_code == 200
 
-@mock.patch("recordlinker.linking.mpi_service.get_all_algorithm_labels")
+@mock.patch("recordlinker.linking.algorithm_service.get_all_algorithm_labels")
 def test_get_algorithms(patched_subprocess):
     patched_subprocess.return_value = ["DIBBS_BASIC"]
     actual_response = client.get("/algorithms")
@@ -168,7 +164,7 @@ def test_linkage_success():
     ][0]
     assert not resp_6.json()["found_match"]
 
-@mock.patch("recordlinker.linking.mpi_service.get_algorithm_by_label")
+@mock.patch("recordlinker.linking.algorithm_service.get_algorithm_by_label")
 def test_use_enhanced_algo(patched_subprocess):
     patched_subprocess.return_value = models.Algorithm(label="DIBBS_ENHANCED", is_default=False, description="Enhanced algo")
 
@@ -243,7 +239,7 @@ def test_use_enhanced_algo(patched_subprocess):
     ][0]
     assert not resp_6.json()["found_match"]
 
-@mock.patch("recordlinker.linking.mpi_service.get_algorithm_by_label")
+@mock.patch("recordlinker.linking.algorithm_service.get_algorithm_by_label")
 def test_invalid_algorithm_param(patched_subprocess):
     patched_subprocess.return_value = None
 

@@ -18,7 +18,7 @@ from recordlinker.linkage.algorithms import DIBBS_ENHANCED
 from recordlinker.linkage.link import add_person_resource
 from recordlinker.linkage.link import link_record_against_mpi
 from recordlinker.linkage.mpi import DIBBsMPIConnectorClient
-from recordlinker.linking import mpi_service
+from recordlinker.linking import algorithm_service
 from recordlinker.utils import read_json_from_assets
 from recordlinker.utils import run_migrations
 
@@ -159,7 +159,7 @@ async def link_record(
     #if we do have an algorithm label specified
     if algorithm_label:
         session = models.get_session()
-        algorithm = mpi_service.get_algorithm_by_label(session, algorithm_label)
+        algorithm = algorithm_service.get_algorithm_by_label(session, algorithm_label)
 
         if not algorithm:
             response.status_code = status.HTTP_422_UNPROCESSABLE_ENTITY
@@ -217,6 +217,6 @@ async def get_algorithm_labels() -> GetAlgorithmsResponse:
     Get a list of all available algorithms from the database
     """
     session = models.get_session()
-    algorithms_list = mpi_service.get_all_algorithm_labels(session)
+    algorithms_list = algorithm_service.get_all_algorithm_labels(session)
 
     return {"algorithms": algorithms_list}
