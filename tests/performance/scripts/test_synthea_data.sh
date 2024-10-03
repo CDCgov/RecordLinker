@@ -22,7 +22,7 @@ scripts/generate_synthetic.sh $POPULATION_SIZE $SYNTHEA_OUTPUT_DIR "${STATE}" "$
 mkdir -p $(dirname $POSTGRES_LOG) && echo "" > $POSTGRES_LOG
 
 # SEND SYNTHETIC DATA TO THE LINKAGE API
-scripts/send_linkage_requests.sh "${SYNTHEA_OUTPUT_DIR}/fhir" $LINKAGE_API_URL $ITERATIONS
+time scripts/send_linkage_requests.sh "${SYNTHEA_OUTPUT_DIR}/fhir" $LINKAGE_API_URL $ITERATIONS
 
 # GENERATE PDBADGER REPORT
 pgbadger $POSTGRES_LOG -o $PGBADGER_REPORT
