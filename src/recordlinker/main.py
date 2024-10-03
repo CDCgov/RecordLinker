@@ -91,7 +91,7 @@ class HealthCheckResponse(BaseModel):
 
 class GetAlgorithmsResponse(BaseModel):
     """
-    The schema for response fromt he record linkage get algorithms endpoint
+    The schema for response from he record linkage get algorithms endpoint
     """
 
     algorithms: list[str] = Field(
@@ -212,7 +212,7 @@ async def link_record(
         }
 
 @app.get("/algorithms")
-async def get_algorithms() -> GetAlgorithmsResponse:
+async def get_algorithm_labels() -> GetAlgorithmsResponse:
     """
     Get a list of all available algorithms from the database
     """
