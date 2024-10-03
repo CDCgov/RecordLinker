@@ -47,7 +47,7 @@ class Patient(Base):
     # want getter/setter access to the data dictionary to trigger updating the 
     # calculated record property.  Mainly this is to ensure that the cached record
     # property, self._record, is cleared when the data is updated.
-    _data: orm.Mapped[dict] = orm.mapped_column("data", sqltypes.JSON)
+    _data: orm.Mapped[dict] = orm.mapped_column("data", sqltypes.JSON, default=dict)
     external_patient_id: orm.Mapped[str] = orm.mapped_column(sqltypes.String(255), nullable=True)
     external_person_id: orm.Mapped[str] = orm.mapped_column(sqltypes.String(255), nullable=True)
     external_person_source: orm.Mapped[str] = orm.mapped_column(sqltypes.String(100), nullable=True)
@@ -72,26 +72,16 @@ class Patient(Base):
         return data
 
     @property
-    def data(self) -> dict | None:
+    def data(self) -> dict:
         """
         Return the data dictionary for this patient record.
         """
         return self._data
 
-    @property
-    def record(self) -> PIIRecord | None:
+    @data.setter  # type: ignore
+    def data(self, value: dict):
         """
-        Return a PIIRecord object with the data from this patient record.
-        """
-        if not hasattr(self, "_record"):
-            # caching the result of the record property for performance
-            self._record = PIIRecord.construct(**self.data) if self.data else None
-        return self._record
-
-    @data.setter
-    def data(self, value: dict | None):
-        """
-        Set the patient record data from a dictionary.
+        Set the Patient data from a dictionary.
 
         """
         self._data = value
@@ -99,8 +89,21 @@ class Patient(Base):
             # if the record property is cached, delete it
             del self._record
 
-    @record.setter
+    @property
+    def record(self) -> PIIRecord:
+        """
+        Return a PIIRecord object with the data from this patient record.
+        """
+        if not hasattr(self, "_record"):
+            # caching the result of the record property for performance
+            self._record = PIIRecord.model_construct(**(self._data or {}))
+        return self._record
+
+    @record.setter  # type: ignore
     def record(self, value: PIIRecord):
+        """
+        Set the Patient data from a PIIRecord object.
+        """
         assert isinstance(value, PIIRecord), "Expected a PIIRecord object"
         # convert the data to a JSON string, then load it back as a dictionary
         # this is necessary to ensure all data elements are JSON serializable
@@ -108,7 +111,7 @@ class Patient(Base):
         # recursively remove all None, empty lists and empty dicts from the data
         # this is an optimization to reduce the amount of data stored in the
         # database, if a value is empty, no need to store it
-        self.data = self._scrub_empty(data)
+        self._data = self._scrub_empty(data)
         if hasattr(self, "_record"):
             # if the record property is cached, delete it
             del self._record
@@ -136,6 +139,7 @@ class BlockingKey(enum.Enum):
     ZIP = 4, "Zip Code"
     FIRST_NAME = 5, "First 4 chars of First Name"
     LAST_NAME = 6, "First 4 chars of Last Name"
+    ADDRESS = 7, "First 4 chars of Address"
 
     def __init__(self, id: int, description: str):
         self.id = id
@@ -164,6 +168,8 @@ class BlockingKey(enum.Enum):
             vals.update({x[:4] for x in record.field_iter(Feature.FIRST_NAME)})
         elif self == BlockingKey.LAST_NAME:
             vals.update({x[:4] for x in record.field_iter(Feature.LAST_NAME)})
+        elif self == BlockingKey.ADDRESS:
+            vals.update({x[:4] for x in record.field_iter(Feature.ADDRESS)})
 
         # if any vals are longer than the BLOCKING_KEY_MAX_LENGTH, raise an error
         if any(len(x) > BLOCKING_VALUE_MAX_LENGTH for x in vals):

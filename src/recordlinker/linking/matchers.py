@@ -135,8 +135,8 @@ def feature_match_fuzzy_string(
     """
     similarity_measure, threshold = _get_fuzzy_params(str(key), **kwargs)
     comp_func = getattr(rapidfuzz.distance, similarity_measure).normalized_similarity
-    for x in patient.record.field_iter(key):
-        for y in record.field_iter(key):
+    for x in record.field_iter(key):
+        for y in patient.record.field_iter(key):
             score = comp_func(x, y)
             if score >= threshold:
                 return 1

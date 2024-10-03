@@ -15,6 +15,45 @@ from recordlinker.models import pii as models
 
 
 class TestPIIRecord:
+    def test_moddel_construct(self):
+        data = {
+            "mrn": "99",
+            "birth_date": "1980-2-1",
+            "name": [{"family": "Doe", "given": ["John", "L"]}, {"family": "Smith", "given": ["Jane"]}],
+            "address": [
+                {
+                    "line": ["123 Main St"],
+                    "city": "Anytown",
+                    "state": "NY",
+                    "postalCode": "12345",
+                    "country": "US",
+                },
+                {
+                    "line": ["456 Elm St", "Apt 2"],
+                    "city": "Somecity",
+                    "state": "CA",
+                    "postal_code": "98765-4321",
+                    "country": "US",
+                },
+            ],
+            "telecom": [{"value": "555-123-4567"}, {"value": "555-987-6543"}],
+        }
+        record = models.PIIRecord.model_construct(**data)
+        assert record.mrn == "99"
+        assert record.birth_date == "1980-2-1"
+        assert record.name[0].family == "Doe"
+        assert record.name[0].given == ["John", "L"]
+        assert record.name[1].family == "Smith"
+        assert record.name[1].given == ["Jane"]
+        assert record.address[0].line == ["123 Main St"]
+        assert record.address[0].city == "Anytown"
+        assert record.address[0].state == "NY"
+        assert record.address[0].postal_code == "12345"
+        assert record.address[1].line == ["456 Elm St", "Apt 2"]
+        assert record.address[1].city == "Somecity"
+        assert record.address[1].state == "CA"
+        assert record.address[1].postal_code == "98765-4321"
+
     def test_parse_external_id(self):
         record = models.PIIRecord(
             external_id=uuid.UUID("7ca699d9-1986-4c0c-a0fd-ac4ae0dfa297")
@@ -78,7 +117,7 @@ class TestPIIRecord:
                     country="US",
                 ),
                 models.Address(
-                    line=["456 Elm St"],
+                    line=["456 Elm St", "Apt 2"],
                     city="Somecity",
                     state="CA",
                     postal_code="98765-4321",
@@ -107,3 +146,4 @@ class TestPIIRecord:
         assert list(record.field_iter(models.Feature.ZIPCODE)) == ["12345", "98765"]
         assert list(record.field_iter(models.Feature.FIRST_NAME)) == ["John", "L", "Jane"]
         assert list(record.field_iter(models.Feature.LAST_NAME)) == ["Doe", "Smith"]
+        assert list(record.field_iter(models.Feature.ADDRESS)) == ["123 Main St", "456 Elm St"]

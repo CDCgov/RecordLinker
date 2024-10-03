@@ -86,7 +86,7 @@ def compare(
     Compare the incoming record to the linked patient
     """
     # all the functions used for comparison
-    funcs: dict[models.FEATURE, matchers.FEATURE_COMPARE_FUNC] = linkage_pass["funcs"]
+    funcs: dict[models.Feature, matchers.FEATURE_COMPARE_FUNC] = linkage_pass["funcs"]
     # a function to determine a match based on the comparison results
     matching_rule: matchers.MATCH_RULE_FUNC = linkage_pass["matching_rule"]
     # keyword arguments to pass to comparison functions and matching rule
@@ -97,8 +97,8 @@ def compare(
         if field not in {i.value for i in models.Feature}:
             raise ValueError(f"Invalid comparison field: {field}")
         # Evaluate the comparison function and append the result to the list
-        is_match: bool = func(record, patient, models.Feature(field), **kwargs)
-        results.append(is_match)
+        result: float = func(record, patient, models.Feature(field), **kwargs)
+        results.append(result)
     return matching_rule(results, **kwargs)
 
 
