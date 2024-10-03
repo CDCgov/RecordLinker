@@ -106,4 +106,4 @@ def insert_blocking_keys(
 
     if commit:
         session.commit()
-    return values    
+    return values
