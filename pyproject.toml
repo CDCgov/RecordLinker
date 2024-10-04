@@ -11,7 +11,8 @@ authors = [
     {name = "Dan Paseltiner", email = "dan@skylight.digital"},
     {name = "Marcelle Goggins", email = "marcelle@skylight.digital"},
     {name = "Eric Buckley", email = "ericbuckley@skylight.digital"},
-    {name = "Alex Hayward", email = "alex.hayward@skylight.digital"}
+    {name = "Alex Hayward", email = "alex.hayward@skylight.digital"},
+    {name = "Cason Brinson", email = "cbrinson@rise8.us"}
 ]
 license = { file = "LICENSE" }
 readme = "README.md"
