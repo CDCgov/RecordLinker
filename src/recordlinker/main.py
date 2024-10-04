@@ -13,23 +13,15 @@ from fastapi import status
 from pydantic import BaseModel
 from pydantic import Field
 from sqlalchemy import orm
+from sqlalchemy.sql import expression
 
+from recordlinker import utils
 from recordlinker.base_service import BaseService
-from recordlinker.config import settings
 from recordlinker.database import get_session
-from recordlinker.linkage.algorithms import DIBBS_BASIC
-from recordlinker.linkage.algorithms import DIBBS_ENHANCED
-from recordlinker.linkage.link import add_person_resource
-from recordlinker.linkage.link import link_record_against_mpi
-from recordlinker.linkage.mpi import DIBBsMPIConnectorClient
+from recordlinker.linkage import algorithms as DIBBS_ALGOS
 from recordlinker.linking import algorithm_service
-from recordlinker.linking.link import link_record_against_mpi as simple_link_record_against_mpi
-from recordlinker.utils import read_json_from_assets
-from recordlinker.utils import run_migrations
+from recordlinker.linking import link
 
-# Ensure MPI is configured as expected.
-run_migrations()
-MPI_CLIENT = DIBBsMPIConnectorClient()
 # Instantiate FastAPI via DIBBs' BaseService class
 app = BaseService(
     service_name="DIBBs Record Linkage Service",
@@ -91,10 +83,6 @@ class HealthCheckResponse(BaseModel):
 
     status: str = Field(description="Returns status of this service")
 
-    mpi_connection_status: str = Field(
-        description="Returns status of connection to Master Patient Index(MPI)"
-    )
-
 
 class GetAlgorithmsResponse(BaseModel):
     """
@@ -107,26 +95,23 @@ class GetAlgorithmsResponse(BaseModel):
 
 
 @app.get("/")
-async def health_check() -> HealthCheckResponse:
+async def health_check(db_session: orm.Session = Depends(get_session)) -> HealthCheckResponse:
     """
     Check the status of this service and its connection to Master Patient Index(MPI). If
     an HTTP 200 status code is returned along with '{"status": "OK"}' then the record
     linkage service is available and running properly. The mpi_connection_status field
     contains a description of the connection health to the MPI database.
     """
-
     try:
-        mpi_client = DIBBsMPIConnectorClient()  # noqa: F841
-    except Exception as err:
-        # Return a 503 status code with an error message
-        msg = {"status": "Service Unavailable", "mpi_connection_status": str(err)}
-        raise HTTPException(status_code=503, detail=msg)
-    return {"status": "OK", "mpi_connection_status": "OK"}
+        db_session.execute(expression.text("SELECT 1")).all()
+        return {"status": "OK"}
+    except Exception:
+        raise HTTPException(status_code=503, detail={"status": "Service Unavailable"})
 
 
 # Sample requests and responses for docs
-sample_link_record_requests = read_json_from_assets("sample_link_record_requests.json")
-sample_link_record_responses = read_json_from_assets("sample_link_record_responses.json")
+sample_link_record_requests = utils.read_json_from_assets("sample_link_record_requests.json")
+sample_link_record_responses = utils.read_json_from_assets("sample_link_record_responses.json")
 
 
 @app.post("/link-record", status_code=200, responses={200: sample_link_record_responses})
@@ -146,21 +131,9 @@ async def link_record(
     input_bundle = input.get("bundle", {})
     external_id = input.get("external_person_id", None)
 
-    # Check that DB type is appropriately set up as Postgres so
-    # we can fail fast if it's not
-    if not settings.db_uri.startswith("postgres"):
-        response.status_code = status.HTTP_422_UNPROCESSABLE_ENTITY
-        return {
-            "found_match": False,
-            "updated_bundle": input_bundle,
-            "message": f"Unsupported database {settings.db_uri} supplied. "
-            + "Make sure your environment variables include an entry "
-            + "for `mpi_db_type` and that it is set to 'postgres'.",
-        }
-
     # get label from params
     algorithm_label = input.get("algorithm")
-    algo_config = DIBBS_BASIC
+    algo_config = DIBBS_ALGOS.DIBBS_BASIC
 
     # if we do have an algorithm label specified
     if algorithm_label:
@@ -176,7 +149,7 @@ async def link_record(
 
         # temp to map the algorithm to our predefined config file for now
         if algorithm.label == "DIBBS_ENHANCED":
-            algo_config = DIBBS_ENHANCED
+            algo_config = DIBBS_ALGOS.DIBBS_ENHANCED
 
     # Now extract the patient record we want to link
     try:
@@ -193,32 +166,21 @@ async def link_record(
             "message": "Supplied bundle contains no Patient resource to link on.",
         }
 
-    # Check if the user wants to use the new schema, by looking at the X-Use-Simple-Link header
-    use_simple_link = request.headers.get("X-Use-Simple-Link", "") in ("True", "true", "t", "1")
 
     # Now link the record
     try:
         # Make a copy of record_to_link so we don't modify the original
         record = copy.deepcopy(record_to_link)
-        if use_simple_link:
-            # update the algo_config to use the new linking.matchers
-            update_algo = json.dumps(algo_config)
-            update_algo = update_algo.replace(".linkage.", ".linking.")
-            algo_config = json.loads(update_algo)
-            (found_match, new_person_id) = simple_link_record_against_mpi(
-                record=record,
-                session=db_session,
-                algo_config=algo_config,
-                external_person_id=external_id,
-            )
-        else:
-            (found_match, new_person_id) = link_record_against_mpi(
-                record=record,
-                algo_config=algo_config,
-                external_person_id=external_id,
-                mpi_client=MPI_CLIENT,
-            )
-        updated_bundle = add_person_resource(
+        update_algo = json.dumps(algo_config)
+        update_algo = update_algo.replace(".linkage.", ".linking.")
+        algo_config = json.loads(update_algo)
+        (found_match, new_person_id) = link.link_record_against_mpi(
+            record=record,
+            session=db_session,
+            algo_config=algo_config,
+            external_person_id=external_id,
+        )
+        updated_bundle = link.add_person_resource(
             new_person_id, record_to_link.get("id", ""), input_bundle
         )
         return {"found_match": found_match, "updated_bundle": updated_bundle}

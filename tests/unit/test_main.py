@@ -3,56 +3,45 @@
 import copy
 import json
 import pathlib
+from unittest import mock
 
 import pytest
-from unittest import mock
+from sqlalchemy import create_engine
+from sqlalchemy import orm
+
+from recordlinker import database
 from recordlinker import models
+from recordlinker import utils
 from recordlinker.config import settings
-from recordlinker.utils import run_migrations
-from recordlinker.utils import _clean_up
 
 from fastapi import status
 from fastapi.testclient import TestClient
 from recordlinker.main import app
-import copy
-import json
-import pathlib
 
-from recordlinker import models
-from recordlinker.config import settings
 
 # fmt: on
 client = TestClient(app)
 
 
-def load_test_bundle():
-    test_bundle = json.load(
-        open(
-            pathlib.Path(__file__).parent.parent.parent
-            / "assets"
-            / "patient_bundle_to_link_with_mpi.json"
-        )
-    )
-    return test_bundle
+@pytest.fixture(scope="function")
+def db_session():
+    engine = create_engine(settings.test_db_uri)
+    models.Base.metadata.create_all(engine)  # Create all tables in the in-memory database
 
+    # Create a new session factory and scoped session
+    Session = orm.scoped_session(orm.sessionmaker(bind=engine))
+    session = Session()
 
-@pytest.fixture(autouse=True)
-def setup_and_clean_tests():
-    # This code will always run before every test in this file
-    # We want it to set up env variables and run migrations
-    run_migrations()
+    yield session  # This is where the testing happens
 
-    # pytest will automatically plug each test in this scoped file
-    # in place of this yield
-    yield
+    session.close()  # Cleanup after test
+    models.Base.metadata.drop_all(engine)  # Drop all tables after the test
 
-    # This code will run at the end of the test plugged into the yield
-    _clean_up()
 
 def test_health_check():
     actual_response = client.get("/")
     assert actual_response.status_code == 200
-    assert actual_response.json() == {"status": "OK", "mpi_connection_status": "OK"}
+    assert actual_response.json() == {"status": "OK"}
 
 
 def test_openapi():
@@ -68,7 +57,8 @@ def test_get_algorithms(patched_subprocess):
     assert actual_response.status_code == status.HTTP_200_OK
 
 
-def test_linkage_bundle_with_no_patient():
+def test_linkage_bundle_with_no_patient(db_session):
+    app.dependency_overrides[database.get_session] = lambda: db_session
     bad_bundle = {"entry": []}
     expected_response = {
         "message": "Supplied bundle contains no Patient resource to link on.",
@@ -83,28 +73,9 @@ def test_linkage_bundle_with_no_patient():
     assert actual_response.status_code == status.HTTP_400_BAD_REQUEST
 
 
-def test_linkage_invalid_db_type(monkeypatch):
-    # temporarily set the db_uri to an invalid value using a with block
-    with monkeypatch.context() as m:
-        invalid_db_uri = "sqlite:///test.db"
-        m.setattr(settings, "db_uri", invalid_db_uri)
-
-        test_bundle = load_test_bundle()
-
-        expected_response = {
-            "message": f"Unsupported database {invalid_db_uri} supplied. "
-            + "Make sure your environment variables include an entry "
-            + "for `mpi_db_type` and that it is set to 'postgres'.",
-            "found_match": False,
-            "updated_bundle": test_bundle,
-        }
-        actual_response = client.post("/link-record", json={"bundle": test_bundle})
-        assert actual_response.json() == expected_response
-        assert actual_response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
-
-
-def test_linkage_success():
-    test_bundle = load_test_bundle()
+def test_linkage_success(db_session):
+    app.dependency_overrides[database.get_session] = lambda: db_session
+    test_bundle = utils.read_json_from_assets("patient_bundle_to_link_with_mpi.json")
     entry_list = copy.deepcopy(test_bundle["entry"])
 
     bundle_1 = test_bundle
@@ -165,10 +136,11 @@ def test_linkage_success():
     assert not resp_6.json()["found_match"]
 
 @mock.patch("recordlinker.linking.algorithm_service.get_algorithm_by_label")
-def test_use_enhanced_algo(patched_subprocess):
+def test_use_enhanced_algo(patched_subprocess, db_session):
+    app.dependency_overrides[database.get_session] = lambda: db_session
     patched_subprocess.return_value = models.Algorithm(label="DIBBS_ENHANCED", is_default=False, description="Enhanced algo")
 
-    test_bundle = load_test_bundle()
+    test_bundle = utils.read_json_from_assets("patient_bundle_to_link_with_mpi.json")
     entry_list = copy.deepcopy(test_bundle["entry"])
 
     bundle_1 = test_bundle
@@ -243,7 +215,7 @@ def test_use_enhanced_algo(patched_subprocess):
 def test_invalid_algorithm_param(patched_subprocess):
     patched_subprocess.return_value = None
 
-    test_bundle = load_test_bundle()
+    test_bundle = utils.read_json_from_assets("patient_bundle_to_link_with_mpi.json")
     expected_response = {
                 "found_match": False,
                 "updated_bundle": test_bundle,

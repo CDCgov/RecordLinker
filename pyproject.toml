@@ -24,12 +24,9 @@ dependencies = [
     "pydantic-settings",
     "python-dateutil==2.9.0.post0",
     "sqlalchemy",
-    "fhirpathpy",
     "rapidfuzz",
     "opentelemetry-api",
     "opentelemetry-sdk",
-    # TODO: replace pyway with alembic for managing database migrations
-    "pyway==0.3.29"
 ]
 
 [project.optional-dependencies]
@@ -38,8 +35,6 @@ dev = [
     "pytest-cov",
     "ruff",
     "mypy",
-    "pyarrow",
-    "httpx",
     "alembic",
     "types-python-dateutil"
 ]
