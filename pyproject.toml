@@ -26,6 +26,8 @@ dependencies = [
     "sqlalchemy",
     "fhirpathpy",
     "rapidfuzz",
+    "opentelemetry-api",
+    "opentelemetry-sdk",
     # TODO: replace pyway with alembic for managing database migrations
     "pyway==0.3.29"
 ]
@@ -39,7 +41,7 @@ dev = [
     "pyarrow",
     "httpx",
     "alembic",
-    "types-python-dateutil",
+    "types-python-dateutil"
 ]
 prod = [
     # List any additional production-only dependencies here
