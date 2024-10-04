@@ -41,6 +41,7 @@ dev = [
     "ruff",
     "mypy",
     "alembic",
+    "httpx",
     "types-python-dateutil"
 ]
 prod = [
