@@ -155,6 +155,7 @@ def link_record_against_mpi(
             # evaluate each Person cluster to see if the incoming record is a match
             with TRACER.start_as_current_span("link.evaluate"):
                 for person, patients in clusters.items():
+                    assert patients, "Patient cluster should not be empty"
                     matched_count = 0
                     for patient in patients:
                         # increment our match count if the pii_record matches the patient
