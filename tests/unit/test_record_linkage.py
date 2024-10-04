@@ -2,10 +2,11 @@
 # fmt: off
 import copy
 import json
-import os
 import pathlib
 
 import pytest
+from unittest import mock
+from recordlinker import models
 from recordlinker.config import settings
 from recordlinker.utils import run_migrations
 from recordlinker.utils import _clean_up
@@ -16,6 +17,9 @@ from recordlinker.main import app
 import copy
 import json
 import pathlib
+
+from recordlinker import models
+from recordlinker.config import settings
 
 # fmt: on
 client = TestClient(app)
@@ -45,7 +49,6 @@ def setup_and_clean_tests():
     # This code will run at the end of the test plugged into the yield
     _clean_up()
 
-
 def test_health_check():
     actual_response = client.get("/")
     assert actual_response.status_code == 200
@@ -55,6 +58,14 @@ def test_health_check():
 def test_openapi():
     actual_response = client.get("/openapi.json")
     assert actual_response.status_code == 200
+
+@mock.patch("recordlinker.linking.algorithm_service.get_all_algorithm_labels")
+def test_get_algorithms(patched_subprocess):
+    patched_subprocess.return_value = ["DIBBS_BASIC"]
+    actual_response = client.get("/algorithms")
+    
+    assert actual_response.json() == {"algorithms": ["DIBBS_BASIC"]}
+    assert actual_response.status_code == status.HTTP_200_OK
 
 
 def test_linkage_bundle_with_no_patient():
@@ -153,15 +164,17 @@ def test_linkage_success():
     ][0]
     assert not resp_6.json()["found_match"]
 
+@mock.patch("recordlinker.linking.algorithm_service.get_algorithm_by_label")
+def test_use_enhanced_algo(patched_subprocess):
+    patched_subprocess.return_value = models.Algorithm(label="DIBBS_ENHANCED", is_default=False, description="Enhanced algo")
 
-def test_use_enhanced_algo():
     test_bundle = load_test_bundle()
     entry_list = copy.deepcopy(test_bundle["entry"])
 
     bundle_1 = test_bundle
     bundle_1["entry"] = [entry_list[0]]
     resp_1 = client.post(
-        "/link-record", json={"bundle": bundle_1, "use_enhanced": True}
+        "/link-record", json={"bundle": bundle_1, "algorithm": "DIBBS_ENHANCED"}
     )
     new_bundle = resp_1.json()["updated_bundle"]
     person_1 = [
@@ -174,7 +187,7 @@ def test_use_enhanced_algo():
     bundle_2 = test_bundle
     bundle_2["entry"] = [entry_list[1]]
     resp_2 = client.post(
-        "/link-record", json={"bundle": bundle_2, "use_enhanced": True}
+        "/link-record", json={"bundle": bundle_2, "algorithm": "DIBBS_ENHANCED"}
     )
     new_bundle = resp_2.json()["updated_bundle"]
     person_2 = [
@@ -188,14 +201,14 @@ def test_use_enhanced_algo():
     bundle_3 = test_bundle
     bundle_3["entry"] = [entry_list[2]]
     resp_3 = client.post(
-        "/link-record", json={"bundle": bundle_3, "use_enhanced": True}
+        "/link-record", json={"bundle": bundle_3, "algorithm": "DIBBS_ENHANCED"}
     )
     assert not resp_3.json()["found_match"]
 
     bundle_4 = test_bundle
     bundle_4["entry"] = [entry_list[3]]
     resp_4 = client.post(
-        "/link-record", json={"bundle": bundle_4, "use_enhanced": True}
+        "/link-record", json={"bundle": bundle_4, "algorithm": "DIBBS_ENHANCED"}
     )
     new_bundle = resp_4.json()["updated_bundle"]
     person_4 = [
@@ -209,14 +222,14 @@ def test_use_enhanced_algo():
     bundle_5 = test_bundle
     bundle_5["entry"] = [entry_list[4]]
     resp_5 = client.post(
-        "/link-record", json={"bundle": bundle_5, "use_enhanced": True}
+        "/link-record", json={"bundle": bundle_5, "algorithm": "DIBBS_ENHANCED"}
     )
     assert not resp_5.json()["found_match"]
 
     bundle_6 = test_bundle
     bundle_6["entry"] = [entry_list[5]]
     resp_6 = client.post(
-        "/link-record", json={"bundle": bundle_6, "use_enhanced": True}
+        "/link-record", json={"bundle": bundle_6, "algorithm": "DIBBS_ENHANCED"}
     )
     new_bundle = resp_6.json()["updated_bundle"]
     person_6 = [
@@ -225,3 +238,21 @@ def test_use_enhanced_algo():
         if r.get("resource").get("resourceType") == "Person"
     ][0]
     assert not resp_6.json()["found_match"]
+
+@mock.patch("recordlinker.linking.algorithm_service.get_algorithm_by_label")
+def test_invalid_algorithm_param(patched_subprocess):
+    patched_subprocess.return_value = None
+
+    test_bundle = load_test_bundle()
+    expected_response = {
+                "found_match": False,
+                "updated_bundle": test_bundle,
+                "message": "Error: Invalid algorithm specified"
+            }
+    
+    actual_response = client.post(
+        "/link-record", json={"bundle": test_bundle, "algorithm": "INVALID"}
+    )
+    
+    assert actual_response.json() == expected_response
+    assert actual_response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
