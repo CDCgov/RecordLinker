@@ -28,14 +28,11 @@ def create_sessionmaker(init_tables: bool = True) -> orm.sessionmaker:
     return orm.sessionmaker(autocommit=False, bind=engine)
 
 
-Session = create_sessionmaker()
-
-
 def get_session() -> typing.Iterator[orm.Session]:
     """
     Get a new session from the sessionmaker.
     """
-    with Session() as session:
+    with SessionMaker() as session:
         try:
             yield session
             session.commit()
@@ -44,3 +41,6 @@ def get_session() -> typing.Iterator[orm.Session]:
             raise
         finally:
             session.close()
+
+
+SessionMaker = create_sessionmaker()
