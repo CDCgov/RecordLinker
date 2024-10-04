@@ -28,6 +28,10 @@ dependencies = [
     "rapidfuzz",
     "opentelemetry-api",
     "opentelemetry-sdk",
+    # Database drivers
+    "psycopg2-binary",  # PostgreSQL
+    "PyMySQL",  # MySQL & MariaDB
+    "pyodbc", # Microsoft SQL Server
 ]
 
 [project.optional-dependencies]
