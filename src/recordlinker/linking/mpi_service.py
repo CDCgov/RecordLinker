@@ -21,7 +21,7 @@ def get_block_data(
     blocking keys defined in the algo_config.
     """
     # Create the base query
-    query = session.query(models.Patient)
+    expr = expression.Select(models.Patient.id).distinct()
 
     # Build the join criteria, we are joining the Blocking Value table
     # multiple times, once for each Blocking Key.  If a Patient record
@@ -42,7 +42,7 @@ def get_block_data(
         # Add a join clause to the mpi_blocking_value table for each Blocking Key.
         # This results in multiple joins to the same table, one for each Key, but
         # with different joining conditions.
-        query = query.join(
+        expr = expr.join(
             alias,
             expression.and_(
                 models.Patient.id == alias.patient_id,
@@ -50,7 +50,10 @@ def get_block_data(
                 alias.value.in_(vals),
             ),
         )
-    return query.all()
+
+    # Using the subquery of unique Patient IDs, select all the Patients
+    expr = expression.Select(models.Patient).where(models.Patient.id.in_(expr))
+    return session.execute(expr).scalars().all()
 
 
 def insert_patient(
