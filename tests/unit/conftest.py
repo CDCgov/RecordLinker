@@ -28,10 +28,10 @@ def client():
 
 
 @pytest.fixture
-def basic_algorithm(self):
+def basic_algorithm():
     return utils.read_json_from_assets("linking", "basic_algorithm.json")["algorithm"]
 
 
 @pytest.fixture
-def enhanced_algorithm(self):
+def enhanced_algorithm():
     return utils.read_json_from_assets("linking", "enhanced_algorithm.json")["algorithm"]
