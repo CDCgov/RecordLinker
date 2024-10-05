@@ -12,11 +12,9 @@ class Settings(pydantic_settings.BaseSettings):
     )
 
     db_uri: str = pydantic.Field(description="The URI for the MPI database")
-    # FIXME: A separate URI for testing is temporary, this is necessary right now
-    # because the old schema only works with postgresql.  Once the old schema is
-    # removed we can consolidate
     test_db_uri: str = pydantic.Field(
-        description="The URI for the MPI database to run tests against"
+        description="The URI for the MPI database to run tests against",
+        default="sqlite:///testdb.sqlite3",
     )
     connection_pool_size: typing.Optional[int] = pydantic.Field(
         description="The number of MPI database connections in the connection pool",
