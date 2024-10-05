@@ -1,64 +1,33 @@
-# flake8: noqa
-# fmt: off
 import copy
-import json
-import pathlib
 from unittest import mock
 
-import pytest
-from sqlalchemy import create_engine
-from sqlalchemy import orm
+from fastapi import status
 
-from recordlinker import database
 from recordlinker import models
 from recordlinker import utils
-from recordlinker.config import settings
-
-from fastapi import status
-from fastapi.testclient import TestClient
-from recordlinker.main import app
 
 
-# fmt: on
-client = TestClient(app)
-
-
-@pytest.fixture(scope="function")
-def db_session():
-    engine = create_engine(settings.test_db_uri)
-    models.Base.metadata.create_all(engine)  # Create all tables in the in-memory database
-
-    # Create a new session factory and scoped session
-    Session = orm.scoped_session(orm.sessionmaker(bind=engine))
-    session = Session()
-
-    yield session  # This is where the testing happens
-
-    session.close()  # Cleanup after test
-    models.Base.metadata.drop_all(engine)  # Drop all tables after the test
-
-
-def test_health_check():
+def test_health_check(client):
     actual_response = client.get("/")
     assert actual_response.status_code == 200
     assert actual_response.json() == {"status": "OK"}
 
 
-def test_openapi():
+def test_openapi(client):
     actual_response = client.get("/openapi.json")
     assert actual_response.status_code == 200
 
+
 @mock.patch("recordlinker.linking.algorithm_service.get_all_algorithm_labels")
-def test_get_algorithms(patched_subprocess):
+def test_get_algorithms(patched_subprocess, client):
     patched_subprocess.return_value = ["DIBBS_BASIC"]
     actual_response = client.get("/algorithms")
-    
+
     assert actual_response.json() == {"algorithms": ["DIBBS_BASIC"]}
     assert actual_response.status_code == status.HTTP_200_OK
 
 
-def test_linkage_bundle_with_no_patient(db_session):
-    app.dependency_overrides[database.get_session] = lambda: db_session
+def test_linkage_bundle_with_no_patient(client):
     bad_bundle = {"entry": []}
     expected_response = {
         "message": "Supplied bundle contains no Patient resource to link on.",
@@ -73,8 +42,7 @@ def test_linkage_bundle_with_no_patient(db_session):
     assert actual_response.status_code == status.HTTP_400_BAD_REQUEST
 
 
-def test_linkage_success(db_session):
-    app.dependency_overrides[database.get_session] = lambda: db_session
+def test_linkage_success(client):
     test_bundle = utils.read_json_from_assets("patient_bundle_to_link_with_mpi.json")
     entry_list = copy.deepcopy(test_bundle["entry"])
 
@@ -135,19 +103,19 @@ def test_linkage_success(db_session):
     ][0]
     assert not resp_6.json()["found_match"]
 
+
 @mock.patch("recordlinker.linking.algorithm_service.get_algorithm_by_label")
-def test_use_enhanced_algo(patched_subprocess, db_session):
-    app.dependency_overrides[database.get_session] = lambda: db_session
-    patched_subprocess.return_value = models.Algorithm(label="DIBBS_ENHANCED", is_default=False, description="Enhanced algo")
+def test_use_enhanced_algo(patched_subprocess, client):
+    patched_subprocess.return_value = models.Algorithm(
+        label="DIBBS_ENHANCED", is_default=False, description="Enhanced algo"
+    )
 
     test_bundle = utils.read_json_from_assets("patient_bundle_to_link_with_mpi.json")
     entry_list = copy.deepcopy(test_bundle["entry"])
 
     bundle_1 = test_bundle
     bundle_1["entry"] = [entry_list[0]]
-    resp_1 = client.post(
-        "/link-record", json={"bundle": bundle_1, "algorithm": "DIBBS_ENHANCED"}
-    )
+    resp_1 = client.post("/link-record", json={"bundle": bundle_1, "algorithm": "DIBBS_ENHANCED"})
     new_bundle = resp_1.json()["updated_bundle"]
     person_1 = [
         r.get("resource")
@@ -158,9 +126,7 @@ def test_use_enhanced_algo(patched_subprocess, db_session):
 
     bundle_2 = test_bundle
     bundle_2["entry"] = [entry_list[1]]
-    resp_2 = client.post(
-        "/link-record", json={"bundle": bundle_2, "algorithm": "DIBBS_ENHANCED"}
-    )
+    resp_2 = client.post("/link-record", json={"bundle": bundle_2, "algorithm": "DIBBS_ENHANCED"})
     new_bundle = resp_2.json()["updated_bundle"]
     person_2 = [
         r.get("resource")
@@ -172,16 +138,12 @@ def test_use_enhanced_algo(patched_subprocess, db_session):
 
     bundle_3 = test_bundle
     bundle_3["entry"] = [entry_list[2]]
-    resp_3 = client.post(
-        "/link-record", json={"bundle": bundle_3, "algorithm": "DIBBS_ENHANCED"}
-    )
+    resp_3 = client.post("/link-record", json={"bundle": bundle_3, "algorithm": "DIBBS_ENHANCED"})
     assert not resp_3.json()["found_match"]
 
     bundle_4 = test_bundle
     bundle_4["entry"] = [entry_list[3]]
-    resp_4 = client.post(
-        "/link-record", json={"bundle": bundle_4, "algorithm": "DIBBS_ENHANCED"}
-    )
+    resp_4 = client.post("/link-record", json={"bundle": bundle_4, "algorithm": "DIBBS_ENHANCED"})
     new_bundle = resp_4.json()["updated_bundle"]
     person_4 = [
         r.get("resource")
@@ -193,16 +155,12 @@ def test_use_enhanced_algo(patched_subprocess, db_session):
 
     bundle_5 = test_bundle
     bundle_5["entry"] = [entry_list[4]]
-    resp_5 = client.post(
-        "/link-record", json={"bundle": bundle_5, "algorithm": "DIBBS_ENHANCED"}
-    )
+    resp_5 = client.post("/link-record", json={"bundle": bundle_5, "algorithm": "DIBBS_ENHANCED"})
     assert not resp_5.json()["found_match"]
 
     bundle_6 = test_bundle
     bundle_6["entry"] = [entry_list[5]]
-    resp_6 = client.post(
-        "/link-record", json={"bundle": bundle_6, "algorithm": "DIBBS_ENHANCED"}
-    )
+    resp_6 = client.post("/link-record", json={"bundle": bundle_6, "algorithm": "DIBBS_ENHANCED"})
     new_bundle = resp_6.json()["updated_bundle"]
     person_6 = [
         r.get("resource")
@@ -211,20 +169,21 @@ def test_use_enhanced_algo(patched_subprocess, db_session):
     ][0]
     assert not resp_6.json()["found_match"]
 
+
 @mock.patch("recordlinker.linking.algorithm_service.get_algorithm_by_label")
-def test_invalid_algorithm_param(patched_subprocess):
+def test_invalid_algorithm_param(patched_subprocess, client):
     patched_subprocess.return_value = None
 
     test_bundle = utils.read_json_from_assets("patient_bundle_to_link_with_mpi.json")
     expected_response = {
-                "found_match": False,
-                "updated_bundle": test_bundle,
-                "message": "Error: Invalid algorithm specified"
-            }
-    
+        "found_match": False,
+        "updated_bundle": test_bundle,
+        "message": "Error: Invalid algorithm specified",
+    }
+
     actual_response = client.post(
         "/link-record", json={"bundle": test_bundle, "algorithm": "INVALID"}
     )
-    
+
     assert actual_response.json() == expected_response
     assert actual_response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY

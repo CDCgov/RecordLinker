@@ -10,29 +10,11 @@ import copy
 import uuid
 
 import pytest
-from sqlalchemy import create_engine
-from sqlalchemy import orm
 
 from recordlinker import models
 from recordlinker import utils
-from recordlinker.config import settings
 from recordlinker.linking import link
 from recordlinker.linking import matchers
-
-
-@pytest.fixture(scope="function")
-def session():
-    engine = create_engine(settings.test_db_uri)
-    models.Base.metadata.create_all(engine)  # Create all tables in the in-memory database
-
-    # Create a new session factory and scoped session
-    Session = orm.scoped_session(orm.sessionmaker(bind=engine))
-    session = Session()
-
-    yield session  # This is where the testing happens
-
-    session.close()  # Cleanup after test
-    models.Base.metadata.drop_all(engine)  # Drop all tables after the test
 
 
 class TestAddPersonResource:
@@ -130,14 +112,6 @@ class TestCompare:
 
 
 class TestLinkRecordAgainstMpi:
-    @pytest.fixture
-    def basic_algorithm(self):
-        return utils.read_json_from_assets("linking", "basic_algorithm.json")["algorithm"]
-
-    @pytest.fixture
-    def enhanced_algorithm(self):
-        return utils.read_json_from_assets("linking", "enhanced_algorithm.json")["algorithm"]
-
     @pytest.fixture
     def patients(self):
         bundle = utils.read_json_from_assets("linking", "patient_bundle_to_link_with_mpi.json")
