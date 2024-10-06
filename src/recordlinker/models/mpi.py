@@ -6,10 +6,10 @@ from sqlalchemy import orm
 from sqlalchemy import schema
 from sqlalchemy import types as sqltypes
 
+from recordlinker.schemas import pii
+
 from .base import Base
 from .base import get_bigint_pk
-from .pii import Feature
-from .pii import PIIRecord
 
 # The maximum length of a blocking value, we want to optimize this to be as small
 # as possible to reduce the amount of data stored in the database.  However, it needs
@@ -44,7 +44,7 @@ class Patient(Base):
     person_id: orm.Mapped[int] = orm.mapped_column(schema.ForeignKey("mpi_person.id"))
     person: orm.Mapped["Person"] = orm.relationship(back_populates="patients")
     # NOTE: We're using a protected attribute here to store the data string, as we
-    # want getter/setter access to the data dictionary to trigger updating the 
+    # want getter/setter access to the data dictionary to trigger updating the
     # calculated record property.  Mainly this is to ensure that the cached record
     # property, self._record, is cleared when the data is updated.
     _data: orm.Mapped[dict] = orm.mapped_column("data", sqltypes.JSON, default=dict)
@@ -90,21 +90,21 @@ class Patient(Base):
             del self._record
 
     @property
-    def record(self) -> PIIRecord:
+    def record(self) -> pii.PIIRecord:
         """
         Return a PIIRecord object with the data from this patient record.
         """
         if not hasattr(self, "_record"):
             # caching the result of the record property for performance
-            self._record = PIIRecord.model_construct(**(self._data or {}))
+            self._record = pii.PIIRecord.model_construct(**(self._data or {}))
         return self._record
 
     @record.setter  # type: ignore
-    def record(self, value: PIIRecord):
+    def record(self, value: pii.PIIRecord):
         """
         Set the Patient data from a PIIRecord object.
         """
-        assert isinstance(value, PIIRecord), "Expected a PIIRecord object"
+        assert isinstance(value, pii.PIIRecord), "Expected a PIIRecord object"
         # convert the data to a JSON string, then load it back as a dictionary
         # this is necessary to ensure all data elements are JSON serializable
         data = json.loads(value.model_dump_json())
@@ -145,7 +145,7 @@ class BlockingKey(enum.Enum):
         self.id = id
         self.description = description
 
-    def to_value(self, record: PIIRecord) -> set[str]:
+    def to_value(self, record: pii.PIIRecord) -> set[str]:
         """
         Given a data dictionary of Patient PII data, return a set of all
         possible values for this Key.  Many Keys will only have 1 possible value,
@@ -153,23 +153,23 @@ class BlockingKey(enum.Enum):
         """
         vals: set[str] = set()
 
-        assert isinstance(record, PIIRecord), "Expected a PIIRecord object"
+        assert isinstance(record, pii.PIIRecord), "Expected a PIIRecord object"
 
         if self == BlockingKey.BIRTHDATE:
             # NOTE: we could optimize here and remove the dashes from the date
-            vals.update(record.field_iter(Feature.BIRTHDATE))
+            vals.update(record.field_iter(pii.Feature.BIRTHDATE))
         elif self == BlockingKey.MRN:
-            vals.update({x[-4:] for x in record.field_iter(Feature.MRN)})
+            vals.update({x[-4:] for x in record.field_iter(pii.Feature.MRN)})
         elif self == BlockingKey.SEX:
-            vals.update(record.field_iter(Feature.SEX))
+            vals.update(record.field_iter(pii.Feature.SEX))
         elif self == BlockingKey.ZIP:
-            vals.update(record.field_iter(Feature.ZIPCODE))
+            vals.update(record.field_iter(pii.Feature.ZIPCODE))
         elif self == BlockingKey.FIRST_NAME:
-            vals.update({x[:4] for x in record.field_iter(Feature.FIRST_NAME)})
+            vals.update({x[:4] for x in record.field_iter(pii.Feature.FIRST_NAME)})
         elif self == BlockingKey.LAST_NAME:
-            vals.update({x[:4] for x in record.field_iter(Feature.LAST_NAME)})
+            vals.update({x[:4] for x in record.field_iter(pii.Feature.LAST_NAME)})
         elif self == BlockingKey.ADDRESS:
-            vals.update({x[:4] for x in record.field_iter(Feature.ADDRESS)})
+            vals.update({x[:4] for x in record.field_iter(pii.Feature.ADDRESS)})
 
         # if any vals are longer than the BLOCKING_KEY_MAX_LENGTH, raise an error
         if any(len(x) > BLOCKING_VALUE_MAX_LENGTH for x in vals):
