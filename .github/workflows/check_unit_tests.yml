@@ -2,7 +2,7 @@ name: unit tests check
 
 on:
   push:
-    branches: [main]
+    branches: [32-codecov-GHA]
   pull_request:
     branches: [main]
 
@@ -42,3 +42,9 @@ jobs:
           DB_URI: "postgresql+psycopg2://postgres:pw@localhost:5432/postgres"
         run: |
           pytest --cov=recordlinker --cov-report=xml tests/unit
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          verbose: true
