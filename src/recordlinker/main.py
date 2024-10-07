@@ -96,12 +96,21 @@ class HealthCheckResponse(BaseModel):
     )
 
 
+class Algorithm(BaseModel):
+    """
+    The schema for an algorithm record.
+    """
+
+    label: str = Field(description="The label of the algorithm")
+    description: str = Field(description="The description of the algorithm")
+    is_default: bool = Field(description="Whether the algorithm is the default")
+
 class GetAlgorithmsResponse(BaseModel):
     """
     The schema for response from he record linkage get algorithms endpoint
     """
 
-    algorithms: list[str] = Field(
+    algorithms: list[Algorithm] = Field(
         description="Returns a list of algorithms available from the database"
     )
 
@@ -164,7 +173,7 @@ async def link_record(
 
     # if we do have an algorithm label specified
     if algorithm_label:
-        algorithm = algorithm_service.get_algorithm_by_label(db_session, algorithm_label)
+        algorithm = algorithm_service.get_algorithm(db_session, algorithm_label)
 
         if not algorithm:
             response.status_code = status.HTTP_422_UNPROCESSABLE_ENTITY
@@ -239,6 +248,6 @@ async def get_algorithm_labels(
     """
     Get a list of all available algorithms from the database
     """
-    algorithms_list = algorithm_service.get_all_algorithm_labels(db_session)
+    algorithms = algorithm_service.list_algorithms(db_session)
 
-    return {"algorithms": algorithms_list}
+    return {"algorithms": algorithms}
