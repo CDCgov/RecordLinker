@@ -12,6 +12,7 @@ import pydantic
 import pytest
 
 from recordlinker.schemas import pii
+from recordlinker.models import BlockingKey
 
 
 class TestPIIRecord:
@@ -147,3 +148,92 @@ class TestPIIRecord:
         assert list(record.field_iter(pii.Feature.FIRST_NAME)) == ["John", "L", "Jane"]
         assert list(record.field_iter(pii.Feature.LAST_NAME)) == ["Doe", "Smith"]
         assert list(record.field_iter(pii.Feature.ADDRESS)) == ["123 Main St", "456 Elm St"]
+
+    def test_blocking_keys_birthdate(self):
+        rec = pii.PIIRecord(**{"dob": "01/01/1980"})
+        assert rec.blocking_keys(BlockingKey.BIRTHDATE) == set()
+        rec = pii.PIIRecord(**{"birth_date": "1980-01-01"})
+        assert rec.blocking_keys(BlockingKey.BIRTHDATE) == {"1980-01-01"}
+        rec = pii.PIIRecord(**{"birthdate": datetime.date(1980, 1, 1)})
+        assert rec.blocking_keys(BlockingKey.BIRTHDATE) == {"1980-01-01"}
+        rec = pii.PIIRecord(**{"birthDate": "01/01/1980"})
+        assert rec.blocking_keys(BlockingKey.BIRTHDATE) == {"1980-01-01"}
+        rec = pii.PIIRecord(**{"birthDate": ""})
+        assert rec.blocking_keys(BlockingKey.BIRTHDATE) == set()
+
+    def test_blocking_keys_mrn_last_four(self):
+        rec = pii.PIIRecord(**{"ssn": "123456789"})
+        assert rec.blocking_keys(BlockingKey.MRN) == set()
+        rec = pii.PIIRecord(**{"mrn": None})
+        assert rec.blocking_keys(BlockingKey.MRN) == set()
+        rec = pii.PIIRecord(**{"mrn": "123456789"})
+        assert rec.blocking_keys(BlockingKey.MRN) == {"6789"}
+        rec = pii.PIIRecord(**{"mrn": "89"})
+        assert rec.blocking_keys(BlockingKey.MRN) == {"89"}
+
+    def test_blocking_keys_sex(self):
+        rec = pii.PIIRecord(**{"gender": "M"})
+        assert rec.blocking_keys(BlockingKey.SEX) == set()
+        rec = pii.PIIRecord(**{"sex": ""})
+        assert rec.blocking_keys(BlockingKey.SEX) == set()
+        rec = pii.PIIRecord(**{"sex": "M"})
+        assert rec.blocking_keys(BlockingKey.SEX) == {"M"}
+        rec = pii.PIIRecord(**{"sex": "Male"})
+        assert rec.blocking_keys(BlockingKey.SEX) == {"M"}
+        rec = pii.PIIRecord(**{"sex": "f"})
+        assert rec.blocking_keys(BlockingKey.SEX) == {"F"}
+        rec = pii.PIIRecord(**{"sex": "FEMALE"})
+        assert rec.blocking_keys(BlockingKey.SEX) == {"F"}
+        rec = pii.PIIRecord(**{"sex": "other"})
+        assert rec.blocking_keys(BlockingKey.SEX) == {"U"}
+        rec = pii.PIIRecord(**{"sex": "unknown"})
+        assert rec.blocking_keys(BlockingKey.SEX) == {"U"}
+        rec = pii.PIIRecord(**{"sex": "?"})
+        assert rec.blocking_keys(BlockingKey.SEX) == {"U"}
+
+    def test_blocking_keys_zipcode(self):
+        rec = pii.PIIRecord(**{"zip_code": "12345"})
+        assert rec.blocking_keys(BlockingKey.ZIP) == set()
+        rec = pii.PIIRecord(**{"address": [{"postalCode": None}]})
+        assert rec.blocking_keys(BlockingKey.ZIP) == set()
+        rec = pii.PIIRecord(**{"address": [{"zipcode": "12345"}]})
+        assert rec.blocking_keys(BlockingKey.ZIP) == {"12345"}
+        rec = pii.PIIRecord(**{"address": [{"postal_code": "12345-6789"}]})
+        assert rec.blocking_keys(BlockingKey.ZIP) == {"12345"}
+        rec = pii.PIIRecord(**{"address": [{"zipCode": "12345-6789"}, {"zip": "54321"}]})
+        assert rec.blocking_keys(BlockingKey.ZIP) == {"12345", "54321"}
+
+    def test_blocking_keys_first_name_first_four(self):
+        rec = pii.PIIRecord(**{"first_name": "John"})
+        assert rec.blocking_keys(BlockingKey.FIRST_NAME) == set()
+        rec = pii.PIIRecord(**{"name": [{"given": [""], "family": "Doe"}]})
+        assert rec.blocking_keys(BlockingKey.FIRST_NAME) == set()
+        rec = pii.PIIRecord(**{"name": [{"given": ["John", "Jane"], "family": "Doe"}]})
+        assert rec.blocking_keys(BlockingKey.FIRST_NAME) == {"John", "Jane"}
+        rec = pii.PIIRecord(**{
+            "name": [
+                {"given": ["Janet", "Johnathon"], "family": "Doe"},
+                {"given": ["Jane"], "family": "Smith"},
+            ]
+        })
+        assert rec.blocking_keys(BlockingKey.FIRST_NAME) == {"Jane", "John"}
+
+    def test_blocking_keys_last_name_first_four(self):
+        rec = pii.PIIRecord(**{"last_name": "Doe"})
+        assert rec.blocking_keys(BlockingKey.LAST_NAME) == set()
+        rec = pii.PIIRecord(**{"name": [{"family": ""}]})
+        assert rec.blocking_keys(BlockingKey.LAST_NAME) == set()
+        rec = pii.PIIRecord(**{"name": [{"family": "Doe"}]})
+        assert rec.blocking_keys(BlockingKey.LAST_NAME) == {"Doe"}
+        rec = pii.PIIRecord(**{"name": [{"family": "Smith"}, {"family": "Doe"}]})
+        assert rec.blocking_keys(BlockingKey.LAST_NAME) == {"Smit", "Doe"}
+
+    def test_blocking_keys_address_first_four(self):
+        rec = pii.PIIRecord(**{"line": "123 Main St"})
+        assert rec.blocking_keys(BlockingKey.ADDRESS) == set()
+        rec = pii.PIIRecord(**{"address": [{"line": ["123 Main St"]}]})
+        assert rec.blocking_keys(BlockingKey.ADDRESS) == {"123 "}
+        rec = pii.PIIRecord(**{"address": [{"line": ["123 Main St", "Apt 2"]}]})
+        assert rec.blocking_keys(BlockingKey.ADDRESS) == {"123 "}
+        rec = pii.PIIRecord(**{"address": [{"line": ["123 Main St"]}, {"line": ["456 Elm St"]}]})
+        assert rec.blocking_keys(BlockingKey.ADDRESS) == {"123 ", "456 "}

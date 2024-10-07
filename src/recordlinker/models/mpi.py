@@ -6,8 +6,6 @@ from sqlalchemy import orm
 from sqlalchemy import schema
 from sqlalchemy import types as sqltypes
 
-from recordlinker.schemas import pii
-
 from .base import Base
 from .base import get_bigint_pk
 
@@ -89,21 +87,25 @@ class Patient(Base):
             # if the record property is cached, delete it
             del self._record
 
+    # TODO: remove references to PIIRecord
     @property
-    def record(self) -> pii.PIIRecord:
+    def record(self):
         """
         Return a PIIRecord object with the data from this patient record.
         """
+        from recordlinker.schemas import pii
         if not hasattr(self, "_record"):
             # caching the result of the record property for performance
             self._record = pii.PIIRecord.model_construct(**(self._data or {}))
         return self._record
 
+    # TODO: remove references to PIIRecord
     @record.setter  # type: ignore
-    def record(self, value: pii.PIIRecord):
+    def record(self, value):
         """
         Set the Patient data from a PIIRecord object.
         """
+        from recordlinker.schemas import pii
         assert isinstance(value, pii.PIIRecord), "Expected a PIIRecord object"
         # convert the data to a JSON string, then load it back as a dictionary
         # this is necessary to ensure all data elements are JSON serializable
@@ -144,37 +146,6 @@ class BlockingKey(enum.Enum):
     def __init__(self, id: int, description: str):
         self.id = id
         self.description = description
-
-    def to_value(self, record: pii.PIIRecord) -> set[str]:
-        """
-        Given a data dictionary of Patient PII data, return a set of all
-        possible values for this Key.  Many Keys will only have 1 possible value,
-        but some (like first name) could have multiple values.
-        """
-        vals: set[str] = set()
-
-        assert isinstance(record, pii.PIIRecord), "Expected a PIIRecord object"
-
-        if self == BlockingKey.BIRTHDATE:
-            # NOTE: we could optimize here and remove the dashes from the date
-            vals.update(record.field_iter(pii.Feature.BIRTHDATE))
-        elif self == BlockingKey.MRN:
-            vals.update({x[-4:] for x in record.field_iter(pii.Feature.MRN)})
-        elif self == BlockingKey.SEX:
-            vals.update(record.field_iter(pii.Feature.SEX))
-        elif self == BlockingKey.ZIP:
-            vals.update(record.field_iter(pii.Feature.ZIPCODE))
-        elif self == BlockingKey.FIRST_NAME:
-            vals.update({x[:4] for x in record.field_iter(pii.Feature.FIRST_NAME)})
-        elif self == BlockingKey.LAST_NAME:
-            vals.update({x[:4] for x in record.field_iter(pii.Feature.LAST_NAME)})
-        elif self == BlockingKey.ADDRESS:
-            vals.update({x[:4] for x in record.field_iter(pii.Feature.ADDRESS)})
-
-        # if any vals are longer than the BLOCKING_KEY_MAX_LENGTH, raise an error
-        if any(len(x) > BLOCKING_VALUE_MAX_LENGTH for x in vals):
-            raise RuntimeError(f"{self} has a value longer than {BLOCKING_VALUE_MAX_LENGTH}")
-        return vals
 
 
 class BlockingValue(Base):

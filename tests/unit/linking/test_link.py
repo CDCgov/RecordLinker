@@ -14,6 +14,7 @@ from sqlalchemy import create_engine
 from sqlalchemy import orm
 
 from recordlinker import models
+from recordlinker import schemas
 from recordlinker import utils
 from recordlinker.config import settings
 from recordlinker.linking import link
@@ -37,7 +38,7 @@ def session():
 
 class TestCompare:
     def test_compare_match(self):
-        rec = models.PIIRecord(
+        rec = schemas.PIIRecord(
             **{
                 "name": [
                     {
@@ -71,7 +72,7 @@ class TestCompare:
         assert link.compare(rec, pat, linkage_pass) is True
 
     def test_compare_no_match(self):
-        rec = models.PIIRecord(
+        rec = schemas.PIIRecord(
             **{
                 "name": [
                     {
