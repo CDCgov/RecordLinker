@@ -17,7 +17,7 @@ jobs:
     - run: pip install ".[dev]"
     - name: Get Python changed files
       id: changed-py-files
-      uses: tj-actions/changed-files@v23
+      uses: tj-actions/changed-files@45
       with:
         files: |
           src/recordlinker/models/*.py
