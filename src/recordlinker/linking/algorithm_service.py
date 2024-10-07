@@ -15,7 +15,6 @@ from recordlinker import models
 from recordlinker import schemas
 
 
-# TODO: test cases
 def list_algorithms(session: orm.Session) -> typing.Sequence[models.Algorithm]:
     """
     List all algorithms from the MPI database.
@@ -26,7 +25,6 @@ def list_algorithms(session: orm.Session) -> typing.Sequence[models.Algorithm]:
     return session.scalars(select(models.Algorithm)).all()
 
 
-# TODO: test cases
 def default_algorithm(session: orm.Session) -> models.Algorithm:
     """
     Get the default algorithm from the MPI database.
@@ -36,13 +34,12 @@ def default_algorithm(session: orm.Session) -> models.Algorithm:
     """
     query = select(models.Algorithm).where(models.Algorithm.is_default.is_(True))
     res = session.scalars(query).all()
-    if res is None:
+    if not res:
         raise ValueError("No default algorithm found in the database.")
     assert len(res) == 1, "Multiple default algorithms found in the database."
     return res[0]
 
 
-# TODO: test cases
 def get_algorithm(session: orm.Session, label: str) -> models.Algorithm | None:
     """
     Get an algorithm by its label from the MPI database.
@@ -59,7 +56,6 @@ def get_algorithm(session: orm.Session, label: str) -> models.Algorithm | None:
     return None
 
 
-# TODO: test cases
 def load_algorithm(
     session: orm.Session,
     data: schemas.Algorithm,
@@ -75,7 +71,7 @@ def load_algorithm(
     :param commit: Commit the transaction
     :returns: The algorithm object and a boolean indicating if it was created
     """
-    algo = data.dict()
+    algo = data.model_dump()
     passes = algo.pop("passes")
     # use the existing Algorithm or create a new one
     created = False if obj else True
@@ -85,6 +81,8 @@ def load_algorithm(
         setattr(obj, key, value)
     if created:
         session.add(obj)
+    # Delete the existing AlgorithmPasses
+    session.execute(delete(models.AlgorithmPass).where(models.AlgorithmPass.algorithm_id == obj.id))
     # Create and add the AlgorithmPasses
     session.add_all([models.AlgorithmPass(**p, algorithm=obj) for p in passes])
 
@@ -93,7 +91,6 @@ def load_algorithm(
     return obj, created
 
 
-# TODO: test cases
 def delete_algorithm(session: orm.Session, obj: models.Algorithm, commit: bool = False) -> None:
     """
     Deletes an algorithm from the database
@@ -107,7 +104,6 @@ def delete_algorithm(session: orm.Session, obj: models.Algorithm, commit: bool =
         session.commit()
 
 
-# TODO: test cases
 def clear_algorithms(session: orm.Session, commit: bool = False) -> None:
     """
     Purge all algorithms from the database
