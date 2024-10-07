@@ -26,12 +26,12 @@ def test_feature_match_any():
     assert matchers.feature_match_any(record, pat1, schemas.Feature.FIRST_NAME)
     assert not matchers.feature_match_any(record, pat1, schemas.Feature.LAST_NAME)
     assert matchers.feature_match_any(record, pat1, schemas.Feature.BIRTHDATE)
-    assert not matchers.feature_match_any(record, pat1, schemas.Feature.ZIPCODE)
+    assert not matchers.feature_match_any(record, pat1, schemas.Feature.ZIP)
 
     assert not matchers.feature_match_any(record, pat2, schemas.Feature.FIRST_NAME)
     assert matchers.feature_match_any(record, pat2, schemas.Feature.LAST_NAME)
     assert not matchers.feature_match_any(record, pat2, schemas.Feature.SEX)
-    assert not matchers.feature_match_any(record, pat1, schemas.Feature.ZIPCODE)
+    assert not matchers.feature_match_any(record, pat1, schemas.Feature.ZIP)
 
     assert not matchers.feature_match_any(record, pat3, schemas.Feature.FIRST_NAME)
     assert matchers.feature_match_any(record, pat3, schemas.Feature.LAST_NAME)
@@ -61,12 +61,12 @@ def test_feature_match_exact():
     assert not matchers.feature_match_exact(record, pat1, schemas.Feature.FIRST_NAME)
     assert not matchers.feature_match_exact(record, pat1, schemas.Feature.LAST_NAME)
     assert matchers.feature_match_exact(record, pat1, schemas.Feature.BIRTHDATE)
-    assert not matchers.feature_match_exact(record, pat1, schemas.Feature.ZIPCODE)
+    assert not matchers.feature_match_exact(record, pat1, schemas.Feature.ZIP)
 
     assert matchers.feature_match_exact(record, pat2, schemas.Feature.FIRST_NAME)
     assert not matchers.feature_match_exact(record, pat2, schemas.Feature.LAST_NAME)
     assert not matchers.feature_match_exact(record, pat2, schemas.Feature.SEX)
-    assert not matchers.feature_match_exact(record, pat2, schemas.Feature.ZIPCODE)
+    assert not matchers.feature_match_exact(record, pat2, schemas.Feature.ZIP)
 
     assert not matchers.feature_match_exact(record, pat3, schemas.Feature.FIRST_NAME)
     assert matchers.feature_match_exact(record, pat3, schemas.Feature.LAST_NAME)
