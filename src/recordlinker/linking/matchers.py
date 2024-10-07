@@ -12,14 +12,17 @@ import typing
 
 import rapidfuzz
 
-from recordlinker import models
+# FIXME: can we make this a dynamic import to avoid circular imports?
+from recordlinker.models.mpi import Patient
+from recordlinker.schemas.pii import Feature
+from recordlinker.schemas.pii import PIIRecord
 
 SIMILARITY_MEASURES = typing.Literal["JaroWinkler", "Levenshtein", "DamerauLevenshtein"]
 
 # A Callable type for comparing a feature on two records
-FEATURE_COMPARE_FUNC = typing.Callable[[models.PIIRecord, models.Patient, models.Feature], float]
+FEATURE_COMPARE_FUNC = typing.Callable[[PIIRecord, Patient, Feature, dict[str, typing.Any]], float]
 # A Callable type for evaluating whether a set of feature comparisons constitutes a match
-MATCH_RULE_FUNC = typing.Callable[[list[float]], bool]
+MATCH_RULE_FUNC = typing.Callable[[list[float], dict[str, typing.Any]], bool]
 
 
 def _get_fuzzy_params(col: str, **kwargs) -> tuple[SIMILARITY_MEASURES, float]:
@@ -82,7 +85,7 @@ def eval_log_odds_cutoff(feature_comparisons: list, **kwargs) -> bool:
 
 
 def feature_match_any(
-    record: models.PIIRecord, patient: models.Patient, key: models.Feature, **kwargs: dict
+    record: PIIRecord, patient: Patient, key: Feature, **kwargs: dict
 ) -> float:
     """
     ...
@@ -101,7 +104,7 @@ def feature_match_any(
 
 # TODO: rename to feature_match_all
 def feature_match_exact(
-    record: models.PIIRecord, patient: models.Patient, key: models.Feature, **kwargs: dict
+    record: PIIRecord, patient: Patient, key: Feature, **kwargs: dict
 ) -> float:
     """
     ...
@@ -120,7 +123,7 @@ def feature_match_exact(
 
 # TODO: rename to feature_match_fuzzy_any
 def feature_match_fuzzy_string(
-    record: models.PIIRecord, patient: models.Patient, key: models.Feature, **kwargs: dict
+    record: PIIRecord, patient: Patient, key: Feature, **kwargs: dict
 ) -> float:
     """
     ...
@@ -145,7 +148,7 @@ def feature_match_fuzzy_string(
 
 # TODO: rename to feature_match_log_odds_fuzzy_any
 def feature_match_log_odds_fuzzy_compare(
-    record: models.PIIRecord, patient: models.Patient, key: models.Feature, **kwargs: dict
+    record: PIIRecord, patient: Patient, key: Feature, **kwargs: dict
 ) -> float:
     """
     ...
