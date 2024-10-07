@@ -12,7 +12,6 @@ import typing
 
 import rapidfuzz
 
-# FIXME: can we make this a dynamic import to avoid circular imports?
 from recordlinker.models.mpi import Patient
 from recordlinker.schemas.pii import Feature
 from recordlinker.schemas.pii import PIIRecord
