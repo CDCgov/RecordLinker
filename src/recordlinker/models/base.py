@@ -12,3 +12,4 @@ def get_bigint_pk():
     does not support it.  Thus for the SQLite dialect, we need to use INTEGER instead.
     """
     return sqltypes.BigInteger().with_variant(sqltypes.INTEGER, "sqlite")
+
