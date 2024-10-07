@@ -66,7 +66,6 @@ class LinkRecordInput(BaseModel):
     )
 
 
-
 class LinkRecordResponse(BaseModel):
     """
     The schema for responses from the /link-record endpoint.
