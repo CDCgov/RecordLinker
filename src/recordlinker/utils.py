@@ -152,6 +152,11 @@ def _clean_up(dal: DataAccessLayer | None = None) -> None:
         pg_connection.execute(text("""DROP TABLE IF EXISTS patient CASCADE;"""))
         pg_connection.execute(text("""DROP TABLE IF EXISTS person CASCADE;"""))
         pg_connection.execute(text("""DROP TABLE IF EXISTS public.pyway CASCADE;"""))
+        pg_connection.execute(text("""DROP TABLE IF EXISTS algorithm_pass CASCADE;"""))
+        pg_connection.execute(text("""DROP TABLE IF EXISTS algorithm CASCADE;"""))
+        pg_connection.execute(text("""DROP TABLE IF EXISTS mpi_blocking_value CASCADE;"""))
+        pg_connection.execute(text("""DROP TABLE IF EXISTS mpi_patient CASCADE;"""))
+        pg_connection.execute(text("""DROP TABLE IF EXISTS mpi_person CASCADE;"""))
         pg_connection.commit()
         pg_connection.close()
 

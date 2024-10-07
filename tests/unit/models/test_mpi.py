@@ -7,7 +7,22 @@ This module contains the unit tests for the recordlinker.models.mpi module.
 
 import datetime
 
+import pytest
+
 from recordlinker import models
+
+
+class TestPatient:
+    def test_record_setter(self):
+        patient = models.Patient()
+        with pytest.raises(AssertionError):
+            patient.record = "invalid"
+        patient.record = models.PIIRecord()
+        assert patient.data == {}
+        patient.record = models.PIIRecord(birthDate="1980-01-01", sex="male")
+        assert patient.data == {"birth_date": "1980-01-01", "sex": "M"}
+        patient.record = models.PIIRecord(birthDate="1980-01-01", sex="male", mrn="", name=[])
+        assert patient.data == {"birth_date": "1980-01-01", "sex": "M", "mrn": ""}
 
 
 class TestBlockingKey:
@@ -89,3 +104,13 @@ class TestBlockingKey:
         assert models.BlockingKey.LAST_NAME.to_value(rec) == {"Doe"}
         rec = models.PIIRecord(**{"name": [{"family": "Smith"}, {"family": "Doe"}]})
         assert models.BlockingKey.LAST_NAME.to_value(rec) == {"Smit", "Doe"}
+
+    def test_extract_address_first_four(self):
+        rec = models.PIIRecord(**{"line": "123 Main St"})
+        assert models.BlockingKey.ADDRESS.to_value(rec) == set()
+        rec = models.PIIRecord(**{"address": [{"line": ["123 Main St"]}]})
+        assert models.BlockingKey.ADDRESS.to_value(rec) == {"123 "}
+        rec = models.PIIRecord(**{"address": [{"line": ["123 Main St", "Apt 2"]}]})
+        assert models.BlockingKey.ADDRESS.to_value(rec) == {"123 "}
+        rec = models.PIIRecord(**{"address": [{"line": ["123 Main St"]}, {"line": ["456 Elm St"]}]})
+        assert models.BlockingKey.ADDRESS.to_value(rec) == {"123 ", "456 "}

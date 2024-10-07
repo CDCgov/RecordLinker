@@ -1,22 +1,29 @@
 import copy
+import json
 from pathlib import Path
 from typing import Annotated
 from typing import Optional
 
 from fastapi import Body
+from fastapi import Depends
 from fastapi import HTTPException
+from fastapi import Request
 from fastapi import Response
 from fastapi import status
 from pydantic import BaseModel
 from pydantic import Field
+from sqlalchemy import orm
 
 from recordlinker.base_service import BaseService
 from recordlinker.config import settings
+from recordlinker.database import get_session
 from recordlinker.linkage.algorithms import DIBBS_BASIC
 from recordlinker.linkage.algorithms import DIBBS_ENHANCED
 from recordlinker.linkage.link import add_person_resource
 from recordlinker.linkage.link import link_record_against_mpi
 from recordlinker.linkage.mpi import DIBBsMPIConnectorClient
+from recordlinker.linking import algorithm_service
+from recordlinker.linking.link import link_record_against_mpi as simple_link_record_against_mpi
 from recordlinker.utils import read_json_from_assets
 from recordlinker.utils import run_migrations
 
@@ -43,21 +50,10 @@ class LinkRecordInput(BaseModel):
         description="A FHIR bundle containing a patient resource to be checked "
         "for links to existing patient records"
     )
-    use_enhanced: Optional[bool] = Field(
-        description="Optionally, a boolean flag indicating whether to use the "
-        "DIBBs enhanced algorithm (with statistical correction) for record linkage. "
-        "If `False` and no optional `algo_config` is provided, the service will use "
-        "the DIBBs basic algorithm. If this parameter is set to `True`, the enhanced "
-        "algorithm will be used in place of any configuration supplied in "
-        "`algo_config`.",
-        default=False,
-    )
-    algo_config: Optional[dict] = Field(
-        description="A JSON dictionary containing the specification for a "
-        "linkage algorithm, as defined in the SDK functions `read_algo_config` "
-        "and `write_algo_config`. Default value uses the DIBBS in-house basic "
-        "algorithm.",
-        default={},
+    algorithm: Optional[str] = Field(
+        description="Optionally, a string that maps to an algorithm label stored in "
+        "algorithm table",
+        default=None,
     )
     external_person_id: Optional[str] = Field(
         description="The External Identifier, provided by the client,"
@@ -100,6 +96,16 @@ class HealthCheckResponse(BaseModel):
     )
 
 
+class GetAlgorithmsResponse(BaseModel):
+    """
+    The schema for response from he record linkage get algorithms endpoint
+    """
+
+    algorithms: list[str] = Field(
+        description="Returns a list of algorithms available from the database"
+    )
+
+
 @app.get("/")
 async def health_check() -> HealthCheckResponse:
     """
@@ -120,17 +126,15 @@ async def health_check() -> HealthCheckResponse:
 
 # Sample requests and responses for docs
 sample_link_record_requests = read_json_from_assets("sample_link_record_requests.json")
-sample_link_record_responses = read_json_from_assets(
-    "sample_link_record_responses.json"
-)
+sample_link_record_responses = read_json_from_assets("sample_link_record_responses.json")
 
 
-@app.post(
-    "/link-record", status_code=200, responses={200: sample_link_record_responses}
-)
+@app.post("/link-record", status_code=200, responses={200: sample_link_record_responses})
 async def link_record(
+    request: Request,
     input: Annotated[LinkRecordInput, Body(examples=sample_link_record_requests)],
     response: Response,
+    db_session: orm.Session = Depends(get_session),
 ) -> LinkRecordResponse:
     """
     Compare a FHIR bundle with records in the Master Patient Index (MPI) to
@@ -154,15 +158,25 @@ async def link_record(
             + "for `mpi_db_type` and that it is set to 'postgres'.",
         }
 
-    # Determine which algorithm to use; default is DIBBS basic
-    # Check for enhanced algo before checking custom algo
-    use_enhanced = input.get("use_enhanced", False)
-    if use_enhanced:
-        algo_config = DIBBS_ENHANCED
-    else:
-        algo_config = input.get("algo_config", {}).get("algorithm", [])
-        if algo_config == []:
-            algo_config = DIBBS_BASIC
+    # get label from params
+    algorithm_label = input.get("algorithm")
+    algo_config = DIBBS_BASIC
+
+    # if we do have an algorithm label specified
+    if algorithm_label:
+        algorithm = algorithm_service.get_algorithm_by_label(db_session, algorithm_label)
+
+        if not algorithm:
+            response.status_code = status.HTTP_422_UNPROCESSABLE_ENTITY
+            return {
+                "found_match": False,
+                "updated_bundle": input_bundle,
+                "message": "Error: Invalid algorithm specified",
+            }
+
+        # temp to map the algorithm to our predefined config file for now
+        if algorithm.label == "DIBBS_ENHANCED":
+            algo_config = DIBBS_ENHANCED
 
     # Now extract the patient record we want to link
     try:
@@ -179,16 +193,31 @@ async def link_record(
             "message": "Supplied bundle contains no Patient resource to link on.",
         }
 
+    # Check if the user wants to use the new schema, by looking at the X-Use-Simple-Link header
+    use_simple_link = request.headers.get("X-Use-Simple-Link", "") in ("True", "true", "t", "1")
+
     # Now link the record
     try:
         # Make a copy of record_to_link so we don't modify the original
         record = copy.deepcopy(record_to_link)
-        (found_match, new_person_id) = link_record_against_mpi(
-            record=record,
-            algo_config=algo_config,
-            external_person_id=external_id,
-            mpi_client=MPI_CLIENT,
-        )
+        if use_simple_link:
+            # update the algo_config to use the new linking.matchers
+            update_algo = json.dumps(algo_config)
+            update_algo = update_algo.replace(".linkage.", ".linking.")
+            algo_config = json.loads(update_algo)
+            (found_match, new_person_id) = simple_link_record_against_mpi(
+                record=record,
+                session=db_session,
+                algo_config=algo_config,
+                external_person_id=external_id,
+            )
+        else:
+            (found_match, new_person_id) = link_record_against_mpi(
+                record=record,
+                algo_config=algo_config,
+                external_person_id=external_id,
+                mpi_client=MPI_CLIENT,
+            )
         updated_bundle = add_person_resource(
             new_person_id, record_to_link.get("id", ""), input_bundle
         )
@@ -201,3 +230,15 @@ async def link_record(
             "updated_bundle": input_bundle,
             "message": f"Could not connect to database: {err}",
         }
+
+
+@app.get("/algorithms")
+async def get_algorithm_labels(
+    db_session: orm.Session = Depends(get_session),
+) -> GetAlgorithmsResponse:
+    """
+    Get a list of all available algorithms from the database
+    """
+    algorithms_list = algorithm_service.get_all_algorithm_labels(db_session)
+
+    return {"algorithms": algorithms_list}

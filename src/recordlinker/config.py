@@ -8,6 +8,7 @@ class Settings(pydantic_settings.BaseSettings):
     model_config = pydantic_settings.SettingsConfigDict(
         env_file=".env",
         env_file_encoding="utf-8",
+        extra="ignore",
     )
 
     db_uri: str = pydantic.Field(description="The URI for the MPI database")

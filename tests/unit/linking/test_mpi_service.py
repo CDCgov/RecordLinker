@@ -192,3 +192,12 @@ class TestGetBlockData:
         algo_config = {"blocks": [{"value": "birthdate"}, {"value": "last_name"}]}
         matches = mpi_service.get_block_data(session, models.PIIRecord(**data), algo_config)
         assert len(matches) == 0
+
+    def test_block_on_duplicates(self, session):
+        data = {"external_id": "d3ecb447-d05f-4ec1-8ef1-ce4bbda59a25", "birth_date": "1997-12-09", "sex": "F", "mrn": "7bb85f23-044b-1f92-3521-f2cf258601b0", "address": [{"line": ["783 Cronin Stravenue"], "city": "Los Angeles", "state": "CA", "postal_code": "90405", "country": "US", "latitude": 34.12688209447149, "longitude": -118.56442326530481, "extension": [{"url": "http://hl7.org/fhir/StructureDefinition/geolocation", "extension": [{"url": "latitude", "valueDecimal": 34.12688209447149}, {"url": "longitude", "valueDecimal": -118.56442326530481}]}]}], "name": [{"family": "Rodr\u00edguez701", "given": ["Lourdes258", "Blanca837"], "use": "official", "prefix": ["Ms."]}], "phone": [{"system": "phone", "value": "555-401-5073", "use": "home"}]}
+        mpi_service.insert_patient(session, models.PIIRecord(**data))
+        mpi_service.insert_patient(session, models.PIIRecord(**data))
+        mpi_service.insert_patient(session, models.PIIRecord(**data))
+        algo_config = {"blocks": [{"value": "first_name"}, {"value": "last_name"}, {"value": "zip"}, {"value": "sex"}]}
+        matches = mpi_service.get_block_data(session, models.PIIRecord(**data), algo_config)
+        assert len(matches) == 3
