@@ -12,16 +12,53 @@ cd "$(dirname "$0")/.."
 
 PATHS=${*:-$(git status -s | sed "s@^[^ ]* @$PWD/@")}
 
-non_python_list=()
-for p in ${PATHS}; do
-  if [[ $p == *.py ]]; then
-      mypy $p --ignore-missing-imports
-  else
-      non_python_list+=(1)
+# non_python_list=()
+# for p in ${PATHS}; do
+#   echo "$p"
+#   if [[ $p == *.py ]]; then
+#       mypy $p --ignore-missing-imports
+#   else
+#       non_python_list+=(1)
+#   fi
+# done
+
+full_directory() {
+  for p in ${PATHS}**/*/; do
+    target="src/recordlinker/linkage/"
+    if [ "$p" != "$target" ]; then
+      # echo "$p"
+      for f in $p*; do
+        base=$(basename $f)
+        # echo "$base"
+        if [[ $base == *.py ]]; then
+          # echo "$f"
+          mypy "$f"
+        fi
+      done
+    fi
+  done
+}
+
+single_files() {
+  non_python_list=()
+  for p in ${PATHS}; do
+    echo "$p"
+    if [[ $p == *.py ]]; then
+        echo "$p"
+        mypy $p --ignore-missing-imports --follow-imports=skip
+    fi
+  done
+
+  if [[ -n ${non_python_list[@]} ]]; then
+      echo "Either no git changes or no python files"
   fi
-done
+}
 
-
-if [[ -n ${non_python_list[@]} ]]; then
-    echo "Either no git changes or no python files"
+if [[ -d $PATHS  ]]; then
+    echo "from full dir"
+    full_directory
+else
+    echo "from single dir"
+    single_files
 fi
+
