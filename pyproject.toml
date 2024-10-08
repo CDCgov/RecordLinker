@@ -15,7 +15,7 @@ authors = [
     {name = "Cason Brinson", email = "cbrinson@rise8.us"}
 ]
 license = { file = "LICENSE" }
-readme = "README.md"
+readme = {file = "README.md", content-type = "text/markdown"}
 requires-python = ">=3.11"
 dependencies = [
     "uvicorn",
@@ -28,18 +28,19 @@ dependencies = [
     "rapidfuzz",
     "opentelemetry-api",
     "opentelemetry-sdk",
+    "PyYAML",  # TODO: this can be removed when scripts/algorithm_config.py is removed
     # TODO: replace pyway with alembic for managing database migrations
     "pyway==0.3.29"
 ]
 
 [project.optional-dependencies]
 dev = [
+    "fastapi[standard]",
     "pytest>=8.3",
     "pytest-cov",
     "ruff",
     "mypy",
     "pyarrow",
-    "httpx",
     "alembic",
     "types-python-dateutil"
 ]
