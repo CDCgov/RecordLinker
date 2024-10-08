@@ -54,7 +54,7 @@ def _get_fuzzy_params(col: str, **kwargs) -> tuple[SIMILARITY_MEASURES, float]:
     return (similarity_measure, threshold)
 
 
-def eval_perfect_match(feature_comparisons: list, **kwargs) -> bool:
+def eval_perfect_match(feature_comparisons: list[float], **kwargs: dict[str, typing.Any]) -> bool:
     """
     Determines whether a given set of feature comparisons represent a
     'perfect' match (i.e. whether all features that were compared match
@@ -67,7 +67,7 @@ def eval_perfect_match(feature_comparisons: list, **kwargs) -> bool:
     return sum(feature_comparisons) == len(feature_comparisons)
 
 
-def eval_log_odds_cutoff(feature_comparisons: list, **kwargs) -> bool:
+def eval_log_odds_cutoff(feature_comparisons: list[float], **kwargs: dict[str, typing.Any]) -> bool:
     """
     Determines whether a given set of feature comparisons matches enough
     to be the result of a true patient link instead of just random chance.
@@ -84,7 +84,7 @@ def eval_log_odds_cutoff(feature_comparisons: list, **kwargs) -> bool:
 
 
 def feature_match_any(
-    record: PIIRecord, patient: Patient, key: Feature, **kwargs: dict
+    record: PIIRecord, patient: Patient, key: Feature, **kwargs: dict[str, typing.Any]
 ) -> float:
     """
     ...
@@ -103,7 +103,7 @@ def feature_match_any(
 
 # TODO: rename to feature_match_all
 def feature_match_exact(
-    record: PIIRecord, patient: Patient, key: Feature, **kwargs: dict
+    record: PIIRecord, patient: Patient, key: Feature, **kwargs: dict[str, typing.Any]
 ) -> float:
     """
     ...
@@ -122,7 +122,7 @@ def feature_match_exact(
 
 # TODO: rename to feature_match_fuzzy_any
 def feature_match_fuzzy_string(
-    record: PIIRecord, patient: Patient, key: Feature, **kwargs: dict
+    record: PIIRecord, patient: Patient, key: Feature, **kwargs: dict[str, typing.Any]
 ) -> float:
     """
     ...
@@ -147,7 +147,7 @@ def feature_match_fuzzy_string(
 
 # TODO: rename to feature_match_log_odds_fuzzy_any
 def feature_match_log_odds_fuzzy_compare(
-    record: PIIRecord, patient: Patient, key: Feature, **kwargs: dict
+    record: PIIRecord, patient: Patient, key: Feature, **kwargs: dict[str, typing.Any]
 ) -> float:
     """
     ...
