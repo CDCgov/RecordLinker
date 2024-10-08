@@ -26,14 +26,8 @@ full_directory() {
   for p in ${PATHS}**/*/; do
     target="src/recordlinker/linkage/"
     if [ "$p" != "$target" ]; then
-      # echo "$p"
-      for f in $p*; do
-        base=$(basename $f)
-        # echo "$base"
-        if [[ $base == *.py ]]; then
-          # echo "$f"
-          mypy "$f"
-        fi
+      for f in $p**; do
+        mypy "$f" --ignore-missing-imports --follow-imports=skip
       done
     fi
   done
@@ -42,7 +36,6 @@ full_directory() {
 single_files() {
   non_python_list=()
   for p in ${PATHS}; do
-    echo "$p"
     if [[ $p == *.py ]]; then
         echo "$p"
         mypy $p --ignore-missing-imports --follow-imports=skip
