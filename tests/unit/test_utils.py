@@ -1,11 +1,13 @@
 import pathlib
 import subprocess
+import typing
 from typing import Literal
 from unittest import mock
 
 import pytest
-from recordlinker.config import settings
+
 from recordlinker import utils
+from recordlinker.config import settings
 from recordlinker.linkage import matchers
 
 MOCK_SETTINGS = {"db_uri": "postgresql://postgres:pw@localhost:5432/testdb"}
@@ -91,9 +93,7 @@ def test_run_pyway_no_migrations(patched_subprocess, monkeypatch):
     with monkeypatch.context() as m:
         m.setattr(settings, "db_uri", MOCK_SETTINGS["db_uri"])
         output = mock.Mock()
-        output.decode.return_value = (
-            "ERROR: no migrations applied yet, no validation necessary."
-        )
+        output.decode.return_value = "ERROR: no migrations applied yet, no validation necessary."
         patched_subprocess.side_effect = subprocess.CalledProcessError(
             returncode=1, cmd="test", stderr="test", output=output
         )
@@ -193,11 +193,14 @@ def test_str_to_callable():
     assert utils.str_to_callable(val) == matchers.feature_match_exact
     val = "recordlinker.linkage.matchers.feature_match_exact"
     assert utils.str_to_callable(val) == matchers.feature_match_exact
+    val = "feature_match_exact"
+    with pytest.raises(ValueError):
+        utils.str_to_callable(val)
     val = "recordlinker.unknown_module.unknown_function"
-    with pytest.raises(ImportError):
+    with pytest.raises(ValueError):
         utils.str_to_callable(val)
     val = "recordlinker.linkage.matchers.unknown_function"
-    with pytest.raises(AttributeError):
+    with pytest.raises(ValueError):
         utils.str_to_callable(val)
 
 
@@ -210,3 +213,23 @@ def test_func_to_str():
         utils.func_to_str(matchers.feature_match_fuzzy_string)
         == "func:recordlinker.linkage.matchers.feature_match_fuzzy_string"
     )
+
+
+class TestCheckSignature:
+    @staticmethod
+    def func1(a: int, b: str) -> None:
+        pass
+
+    @staticmethod
+    def func2(a: int, b: list[int]) -> float:
+        pass
+
+    def test_check_signature(self):
+        assert not utils.check_signature(self.func1, typing.Callable[[str], str])
+        assert not utils.check_signature(self.func1, typing.Callable[[int, str], str])
+        assert utils.check_signature(self.func1, typing.Callable[[int, str], None])
+        assert not utils.check_signature(self.func2, typing.Callable[[int, int], float])
+        assert not utils.check_signature(self.func2, typing.Callable[[int, list], float])
+        assert not utils.check_signature(self.func2, typing.Callable[[int, list[int]], None])
+        assert utils.check_signature(self.func2, typing.Callable[[int, list[int]], float])
+
