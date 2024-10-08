@@ -5,8 +5,6 @@ unit.models.test_mpi.py
 This module contains the unit tests for the recordlinker.models.mpi module.
 """
 
-import datetime
-
 import pytest
 
 from recordlinker import models
