@@ -13,20 +13,5 @@ cd "$(dirname "$0")/.."
 
 PORT=${1:-8000}
 
-DB_PID=$(docker run -d --rm -p 5432:5432 -e POSTGRES_PASSWORD=pw postgres:13-alpine)
-
-cleanup() {
-    docker stop ${DB_PID} > /dev/null 2>&1
-    docker rm ${DB_PID} > /dev/null 2>&1
-}
-
-# Wait for the database to start
-while ! docker exec ${DB_PID} pg_isready -q -h localhost -U postgres; do
-    sleep 1
-done
-
-
-trap cleanup EXIT
-
 # Start the API server
 uvicorn recordlinker.main:app --app-dir src --reload --host 0 --port ${PORT} --log-config src/recordlinker/log_config.yml

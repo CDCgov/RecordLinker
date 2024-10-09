@@ -1,18 +1,17 @@
 """
-recordlinker.linkage.matchers
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+recordlinker.linking.old_matchers
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 This module contains functions for evaluating whether two records are
 a match based on the similarity of their features. These functions are
 used by the record linkage algorithm to determine whether a candidate
 pair of records should be considered a match or not.
 """
+# FIXME: Most of these functions need to be ported to linking.matchers
 
 import typing
 
 import rapidfuzz
-
-from recordlinker.linkage import utils
 
 SIMILARITY_MEASURES = typing.Literal["JaroWinkler", "Levenshtein", "DamerauLevenshtein"]
 
@@ -103,8 +102,8 @@ def feature_match_exact(
 
     # Convert datetime obj to str using helper function
     if feature_col == "birthdate":
-        record_i[idx] = utils.datetime_to_str(record_i[idx])
-        record_j[idx] = utils.datetime_to_str(record_j[idx])
+        record_i[idx] = str(record_i[idx])
+        record_j[idx] = str(record_j[idx])
 
     return record_i[idx] == record_j[idx]
 
@@ -161,8 +160,8 @@ def feature_match_fuzzy_string(
 
     # Convert datetime obj to str using helper function
     if feature_col == "birthdate":
-        record_i[idx] = utils.datetime_to_str(record_i[idx])
-        record_j[idx] = utils.datetime_to_str(record_j[idx])
+        record_i[idx] = str(record_i[idx])
+        record_j[idx] = str(record_j[idx])
 
     # Special case for two empty strings, since we don't want vacuous
     # equality (or in-) to penalize the score
@@ -235,8 +234,8 @@ def feature_match_log_odds_fuzzy_compare(
 
     # Convert datetime obj to str using helper function
     if feature_col == "birthdate":
-        record_i[idx] = utils.datetime_to_str(record_i[idx])
-        record_j[idx] = utils.datetime_to_str(record_j[idx])
+        record_i[idx] = str(record_i[idx])
+        record_j[idx] = str(record_j[idx])
 
     similarity_measure, threshold = _get_fuzzy_params(feature_col, **kwargs)
     score = compare_strings(record_i[idx], record_j[idx], similarity_measure)
