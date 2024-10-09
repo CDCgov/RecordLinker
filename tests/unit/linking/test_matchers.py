@@ -11,6 +11,18 @@ from recordlinker import models
 from recordlinker.linking import matchers
 
 
+def test_get_fuzzy_params():
+    assert matchers._get_fuzzy_params("last_name") == ("JaroWinkler", 0.7)
+
+    kwargs = {
+        "similarity_measure": "Levenshtein",
+        "thresholds": {"city": 0.95, "address": 0.98},
+    }
+    assert matchers._get_fuzzy_params("city", **kwargs) == ("Levenshtein", 0.95)
+    assert matchers._get_fuzzy_params("address", **kwargs) == ("Levenshtein", 0.98)
+    assert matchers._get_fuzzy_params("first_name", **kwargs) == ("Levenshtein", 0.7)
+
+
 def test_feature_match_any():
     record = models.PIIRecord(
         name=[{"given": ["John"], "family": "Smith"}, {"family": "Harrison"}],

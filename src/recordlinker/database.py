@@ -5,6 +5,7 @@ recordlinker.database
 This module contains the database connection and session management functions.
 """
 
+import contextlib
 import typing
 
 from sqlalchemy import create_engine
@@ -41,6 +42,23 @@ def get_session() -> typing.Iterator[orm.Session]:
             raise
         finally:
             session.close()
+
+
+@contextlib.contextmanager
+def get_test_session() -> typing.Iterator[orm.Session]:
+    """
+    Get a new session from the sessionmaker for testing.
+    """
+    engine = create_engine(settings.test_db_uri)
+    # Create all the tables
+    models.Base.metadata.create_all(engine)
+    session = orm.scoped_session(orm.sessionmaker(bind=engine))()
+    try:
+        yield session
+    finally:
+        # Tear down the session and drop the schema
+        session.close()
+        models.Base.metadata.drop_all(engine)
 
 
 SessionMaker = create_sessionmaker()
