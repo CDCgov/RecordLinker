@@ -39,6 +39,17 @@ jobs:
 
       - name: Run unit tests
         env:
-          DB_URI: "postgresql+psycopg2://postgres:pw@localhost:5432/postgres"
+          TEST_DB_URI: "postgresql+psycopg2://postgres:pw@localhost:5432/postgres"
         run: |
           pytest --cov=recordlinker --cov-report=xml tests/unit
+      - name: Upload test results to Codecov
+        if: ${{ !cancelled() }}
+        uses: codecov/test-results-action@v1
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          verbose: true

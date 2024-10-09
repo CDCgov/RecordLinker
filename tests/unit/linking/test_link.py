@@ -10,30 +10,36 @@ import copy
 import uuid
 
 import pytest
-from sqlalchemy import create_engine
-from sqlalchemy import orm
 
 from recordlinker import models
 from recordlinker import schemas
 from recordlinker import utils
-from recordlinker.config import settings
 from recordlinker.linking import link
 from recordlinker.linking import matchers
 
 
-@pytest.fixture(scope="function")
-def session():
-    engine = create_engine(settings.test_db_uri)
-    models.Base.metadata.create_all(engine)  # Create all tables in the in-memory database
+class TestAddPersonResource:
+    def test_add_person_resource(self):
+        bundle = utils.read_json_from_assets("general", "patient_bundle.json")
+        raw_bundle = copy.deepcopy(bundle)
+        patient_id = "TEST_PATIENT_ID"
+        person_id = "TEST_PERSON_ID"
 
-    # Create a new session factory and scoped session
-    Session = orm.scoped_session(orm.sessionmaker(bind=engine))
-    session = Session()
+        returned_bundle = link.add_person_resource(
+            person_id=person_id, patient_id=patient_id, bundle=raw_bundle
+        )
 
-    yield session  # This is where the testing happens
+        # Assert returned_bundle has added element in "entry"
+        assert len(returned_bundle.get("entry")) == len(bundle.get("entry")) + 1
 
-    session.close()  # Cleanup after test
-    models.Base.metadata.drop_all(engine)  # Drop all tables after the test
+        # Assert the added element is the person_resource bundle
+        assert (
+            returned_bundle.get("entry")[-1].get("resource").get("resourceType") == "Person"
+        )
+        assert (
+            returned_bundle.get("entry")[-1].get("request").get("url")
+            == "Person/TEST_PERSON_ID"
+        )
 
 
 class TestCompare:
@@ -108,16 +114,8 @@ class TestCompare:
 
 class TestLinkRecordAgainstMpi:
     @pytest.fixture
-    def basic_algorithm(self):
-        return utils.read_json_from_assets("linking", "basic_algorithm.json")["algorithm"]
-
-    @pytest.fixture
-    def enhanced_algorithm(self):
-        return utils.read_json_from_assets("linking", "enhanced_algorithm.json")["algorithm"]
-
-    @pytest.fixture
     def patients(self):
-        bundle = utils.read_json_from_assets("linkage", "patient_bundle_to_link_with_mpi.json")
+        bundle = utils.read_json_from_assets("linking", "patient_bundle_to_link_with_mpi.json")
         patients = []
         for entry in bundle["entry"]:
             if entry.get("resource", {}).get("resourceType", {}) == "Patient":

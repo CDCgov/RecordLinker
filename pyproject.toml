@@ -12,7 +12,8 @@ authors = [
     {name = "Marcelle Goggins", email = "marcelle@skylight.digital"},
     {name = "Eric Buckley", email = "ericbuckley@skylight.digital"},
     {name = "Alex Hayward", email = "alex.hayward@skylight.digital"},
-    {name = "Cason Brinson", email = "cbrinson@rise8.us"}
+    {name = "Cason Brinson", email = "cbrinson@rise8.us"},
+    {name = "Derek Dombek", email = "ddombek@rise8.us"}
 ]
 license = { file = "LICENSE" }
 readme = {file = "README.md", content-type = "text/markdown"}
@@ -24,13 +25,14 @@ dependencies = [
     "pydantic-settings",
     "python-dateutil==2.9.0.post0",
     "sqlalchemy",
-    "fhirpathpy",
     "rapidfuzz",
     "opentelemetry-api",
     "opentelemetry-sdk",
     "PyYAML",  # TODO: this can be removed when scripts/algorithm_config.py is removed
-    # TODO: replace pyway with alembic for managing database migrations
-    "pyway==0.3.29"
+    # Database drivers
+    "psycopg2-binary",  # PostgreSQL
+    "PyMySQL",  # MySQL & MariaDB
+    "pyodbc", # Microsoft SQL Server
 ]
 
 [project.optional-dependencies]
@@ -40,7 +42,6 @@ dev = [
     "pytest-cov",
     "ruff",
     "mypy",
-    "pyarrow",
     "alembic",
     "types-python-dateutil"
 ]

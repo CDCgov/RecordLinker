@@ -1,5 +1,7 @@
 # RecordLinker
 
+[![codecov](https://codecov.io/github/CDCgov/RecordLinker/graph/badge.svg?token=V0FH691B9B)](https://codecov.io/github/CDCgov/RecordLinker)
+
 [ADD TABLE OF CONTENTS HERE]
 
 **General disclaimer** This repository was created for use by CDC programs to collaborate on public health related projects in support of the [CDC mission](https://www.cdc.gov/about/organization/mission.htm).  GitHub is not hosted by the CDC, but is a third party website used by CDC and its partners to share information and collaborate on software. CDC use of GitHub does not imply an endorsement of any one particular service, product, or enterprise. 
@@ -44,7 +46,7 @@ To run all the unit tests, use the following command:
 
 To run a single unit test, use the following command:
 ```bash
-./scripts/test_unit.sh tests/unit/test_linkage.py::test_link_record_against_mpi
+./scripts/test_unit.sh tests/unit/test_main.py::test_linkage_success
 ```
 
 ## Standard Notices
