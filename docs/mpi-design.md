@@ -1,4 +1,4 @@
-# Overview of MPI Person-Person Linking Models
+# Overview of MPI Models
 
 This document provides an overview of the key database models involved in the Master Patient Index (MPI) system and explains how they interact to facilitate person linking via an algorithm.
 
@@ -66,17 +66,17 @@ The MPI system is designed to link records from different sources that potential
    We use the **BlockingValue** records from the incoming patient to quickly find potential matches against existing patients in the MPI (matching on their blocking values).
 
 3. **Record Linkage**:  
-   The system compares patient records that share the same blocking values. It uses other details stored in the **Patient** model, such as name, address, MRN, etc, to calculate a **belongingness ratio**, indicating the number of patients within a person cluster that are likely the same individual.
+   The system compares patient records that share the same blocking values. It uses other details stored in the **Patient** model, such as name, address, MRN, etc, to calculate a **belongingness ratio**, indicating the percentage of patients within a person cluster that the new patient record matches with.
 
 4. **Person Linking**:  
-   Once the belongingness ratio exceeds a threshold, the patient is linked to an existing **Person** in the MPI, or a new **Person** record is created if no suitable match is found. The relationship between `Person` and `Patient` ensures that each person in the MPI can have multiple external records.
+   If the belongingness ratio exceeds a threshold, the patient is linked to an existing **Person** in the MPI. If it does not exceed the threshold, that means no suitable match was found, and a new **Person** record is created.
 
 ---
 
 ## Key Relationships
 
 - **Person-Patient Relationship**:  
-  A **`Person`** can have multiple **`Patient`** records linked to it. This many-to-one relationship allows the system to handle multiple external representations of the same person across different systems.
+  A **`Person`** can have multiple **`Patient`** records linked to it. This one-to-many relationship allows the system to handle multiple external representations of the same person across different systems.
 
 - **Patient-BlockingValue Relationship**:  
   Each **`Patient`** has multiple **`BlockingValue`** records. These represent simplified versions of PII, used to efficiently group similar patients during the matching process.
