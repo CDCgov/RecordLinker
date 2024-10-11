@@ -15,4 +15,4 @@ if [ -z "$PATHS" ]; then
   PATHS=("src/")
  fi
  
-mypy --follow-imports=silent ${PATHS[@]}
+mypy ${PATHS[@]}
