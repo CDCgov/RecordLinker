@@ -1,5 +1,5 @@
+import typing
 from pathlib import Path
-from typing import Literal
 
 from fastapi import FastAPI
 from fastapi import Request
@@ -31,7 +31,7 @@ class StatusResponse(BaseModel):
     The schema for the response from the health check endpoint.
     """
 
-    status: Literal["OK"]
+    status: typing.Literal["OK"]
 
 
 class BaseService:
@@ -41,7 +41,7 @@ class BaseService:
         service_path: str,
         description_path: str,
         include_health_check_endpoint: bool = True,
-        license_info: Literal["CreativeCommonsZero", "MIT"] = "CreativeCommonsZero",
+        license_info: typing.Literal["CreativeCommonsZero", "MIT"] = "CreativeCommonsZero",
         openapi_url: str = "/openapi.json",
     ):
         """
@@ -91,7 +91,7 @@ class BaseService:
         """
 
         @self.app.middleware("http")
-        async def rewrite_path(request: Request, call_next: callable) -> Response:
+        async def rewrite_path(request: Request, call_next: typing.Callable) -> Response:
             if (
                 request.url.path.startswith(self.service_path)
                 and "openapi.json" not in request.url.path
@@ -109,7 +109,7 @@ class BaseService:
         """
 
         @self.app.get("/")
-        async def health_check() -> StatusResponse:
+        async def health_check() -> dict[str, str]:
             """
             Check service status. If an HTTP 200 status code is returned along with
             '{"status": "OK"}' then the service is available and running properly.

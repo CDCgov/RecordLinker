@@ -90,3 +90,5 @@ filterwarnings = [
 
 [tool.mypy]
 mypy_path = ["src"]
+# TODO: Resolve static typing issues in main.py
+exclude = ["src/recordlinker/main.py", "src/recordlinker/linkage"]

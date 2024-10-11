@@ -16,13 +16,13 @@ from recordlinker import schemas
 
 def get_block_data(
     session: orm.Session, record: schemas.PIIRecord, algo_config: dict
-) -> list[models.Patient]:
+) -> typing.Sequence[models.Patient]:
     """
     Get all of the matching Patients for the given data using the provided
     blocking keys defined in the algo_config.
     """
     # Create the base query
-    expr = expression.select(models.Patient.id).distinct()
+    base = expression.select(models.Patient.id).distinct()
 
     # Build the join criteria, we are joining the Blocking Value table
     # multiple times, once for each Blocking Key.  If a Patient record
@@ -43,7 +43,7 @@ def get_block_data(
         # Add a join clause to the mpi_blocking_value table for each Blocking Key.
         # This results in multiple joins to the same table, one for each Key, but
         # with different joining conditions.
-        expr = expr.join(
+        base = base.join(
             alias,
             expression.and_(
                 models.Patient.id == alias.patient_id,
@@ -53,7 +53,7 @@ def get_block_data(
         )
 
     # Using the subquery of unique Patient IDs, select all the Patients
-    expr = expression.select(models.Patient).where(models.Patient.id.in_(expr))
+    expr = expression.select(models.Patient).where(models.Patient.id.in_(base))
     return session.execute(expr).scalars().all()
 
 
@@ -103,9 +103,7 @@ def insert_blocking_keys(
         # Many Keys will only have 1 value, but its possible that
         # a PII data dict could have multiple given names
         for val in patient.record.blocking_keys(key):
-            values.append(
-                models.BlockingValue(patient=patient, blockingkey=key.id, value=val)
-            )
+            values.append(models.BlockingValue(patient=patient, blockingkey=key.id, value=val))
     session.add_all(values)
 
     if commit:
