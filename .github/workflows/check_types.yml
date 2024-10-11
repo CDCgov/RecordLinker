@@ -21,10 +21,7 @@ jobs:
       uses: tj-actions/changed-files@v45
       with:
         files: |
-          src/recordlinker/models/*.py
-          src/recordlinker/models/**/*.py
-          src/recordlinker/linking/*.py
-          src/recordlinker/linking/**/*.py
+          src/**/*.py
     - name: Run if any of the listed files above is changed
       if: steps.changed-py-files.outputs.any_changed == 'true'
       run: mypy ${{ steps.changed-py-files.outputs.all_changed_files }}
