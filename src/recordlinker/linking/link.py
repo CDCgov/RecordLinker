@@ -99,9 +99,9 @@ def compare(record: schemas.PIIRecord, patient: models.Patient, linkage_pass: di
         if field not in {i.value for i in schemas.Feature}:
             raise ValueError(f"Invalid comparison field: {field}")
         # Evaluate the comparison function and append the result to the list
-        result: float = func(record, patient, schemas.Feature(field), **kwargs)
+        result: float = func(record, patient, schemas.Feature(field), **kwargs) # type: ignore
         results.append(result)
-    return matching_rule(results, **kwargs)
+    return matching_rule(results, **kwargs) # type: ignore
 
 
 def link_record_against_mpi(
