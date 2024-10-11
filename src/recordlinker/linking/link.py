@@ -92,16 +92,16 @@ def compare(record: schemas.PIIRecord, patient: models.Patient, linkage_pass: di
     # a function to determine a match based on the comparison results
     matching_rule: matchers.MATCH_RULE_FUNC = linkage_pass["matching_rule"]
     # keyword arguments to pass to comparison functions and matching rule
-    kwargs: dict[typing.Any, typing.Any] = linkage_pass.get("kwargs", {})
+    kwargs: dict[str, typing.Any] = linkage_pass.get("kwargs", {})
 
     results: list[float] = []
     for field, func in funcs.items():
         if field not in {i.value for i in schemas.Feature}:
             raise ValueError(f"Invalid comparison field: {field}")
         # Evaluate the comparison function and append the result to the list
-        result: float = func(record, patient, schemas.Feature(field), **kwargs)
+        result: float = func(record, patient, schemas.Feature(field), **kwargs)  # type: ignore
         results.append(result)
-    return matching_rule(results, **kwargs)
+    return matching_rule(results, **kwargs) # type: ignore
 
 
 def link_record_against_mpi(

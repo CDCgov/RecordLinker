@@ -61,7 +61,7 @@ def load_algorithm(
     data: schemas.Algorithm,
     obj: models.Algorithm | None = None,
     commit: bool = False,
-) -> [models.Algorithm, bool]:
+) -> tuple[models.Algorithm, bool]:
     """
     Adds or updates an algorithm in the database
 

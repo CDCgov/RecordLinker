@@ -106,7 +106,7 @@ def check_signature(fn: typing.Callable, expected: typing.Callable) -> bool:
         return actual_args == expected_args
 
     # Extract the expected argument and return types from the `typing.Callable`
-    expected_args, expected_return = expected.__args__[:-1], expected.__args__[-1]
+    expected_args, expected_return = expected.__args__[:-1], expected.__args__[-1]  # type: ignore
 
     # Get the function signature of `fn`
     try:
