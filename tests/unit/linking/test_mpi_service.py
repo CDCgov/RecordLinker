@@ -6,27 +6,9 @@ This module contains the unit tests for the recordlinker.linking.mpi_service mod
 """
 
 import pytest
-from sqlalchemy import create_engine
-from sqlalchemy import orm
 
 from recordlinker import models
-from recordlinker.config import settings
 from recordlinker.linking import mpi_service
-
-
-@pytest.fixture(scope="function")
-def session():
-    engine = create_engine(settings.test_db_uri)
-    models.Base.metadata.create_all(engine)
-
-    # Create a new session factory and scoped session
-    Session = orm.scoped_session(orm.sessionmaker(bind=engine))
-    session = Session()
-
-    yield session  # This is where the testing happens
-
-    session.close()  # Cleanup after test
-    models.Base.metadata.drop_all(engine)  # Drop all tables after the test
 
 
 @pytest.fixture(scope="function")

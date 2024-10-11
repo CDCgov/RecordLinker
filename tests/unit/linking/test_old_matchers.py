@@ -9,7 +9,7 @@ import datetime
 
 import pytest
 
-from recordlinker.linkage import matchers
+from recordlinker.linking import old_matchers as matchers
 
 
 def test_get_fuzzy_params():
@@ -269,51 +269,3 @@ def test_feature_match_log_odds_exact():
                 matchers.feature_match_log_odds_exact(ri, rj, c, col_to_idx, log_odds=log_odds)
                 == 0.0
             )
-
-
-def test_feature_match_log_odds_fuzzy():
-    with pytest.raises(KeyError) as e:
-        matchers.feature_match_log_odds_fuzzy_compare([], [], "c", {})
-    assert "Mapping of columns to m/u log-odds must be provided" in str(e.value)
-
-    ri = ["John", "Shepard", datetime.date(1980, 11, 7), "1234 Silversun Strip"]
-    rj = ["John", "Sheperd", datetime.datetime(1970, 6, 7), "asdfghjeki"]
-    col_to_idx = {"first": 0, "last": 1, "birthdate": 2, "address": 3}
-    log_odds = {"first": 4.0, "last": 6.5, "birthdate": 9.8, "address": 3.7}
-
-    assert (
-        matchers.feature_match_log_odds_fuzzy_compare(
-            ri, rj, "first", col_to_idx, log_odds=log_odds
-        )
-        == 4.0
-    )
-
-    assert (
-        round(
-            matchers.feature_match_log_odds_fuzzy_compare(
-                ri, rj, "last", col_to_idx, log_odds=log_odds
-            ),
-            3,
-        )
-        == 6.129
-    )
-
-    assert (
-        round(
-            matchers.feature_match_log_odds_fuzzy_compare(
-                ri, rj, "birthdate", col_to_idx, log_odds=log_odds
-            ),
-            3,
-        )
-        == 7.859
-    )
-
-    assert (
-        round(
-            matchers.feature_match_log_odds_fuzzy_compare(
-                ri, rj, "address", col_to_idx, log_odds=log_odds
-            ),
-            3,
-        )
-        == 0.0
-    )
