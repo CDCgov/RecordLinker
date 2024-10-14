@@ -6,21 +6,25 @@ This module contains the unit tests for the recordlinker.schemas.pii module.
 """
 
 import datetime
+import unittest.mock
 import uuid
 
 import pydantic
 import pytest
 
-from recordlinker.schemas import pii
 from recordlinker.models import BlockingKey
+from recordlinker.schemas import pii
 
 
 class TestPIIRecord:
-    def test_moddel_construct(self):
+    def test_model_construct(self):
         data = {
             "mrn": "99",
             "birth_date": "1980-2-1",
-            "name": [{"family": "Doe", "given": ["John", "L"]}, {"family": "Smith", "given": ["Jane"]}],
+            "name": [
+                {"family": "Doe", "given": ["John", "L"]},
+                {"family": "Smith", "given": ["Jane"]},
+            ],
             "address": [
                 {
                     "line": ["123 Main St"],
@@ -56,9 +60,7 @@ class TestPIIRecord:
         assert record.address[1].postal_code == "98765-4321"
 
     def test_parse_external_id(self):
-        record = pii.PIIRecord(
-            external_id=uuid.UUID("7ca699d9-1986-4c0c-a0fd-ac4ae0dfa297")
-        )
+        record = pii.PIIRecord(external_id=uuid.UUID("7ca699d9-1986-4c0c-a0fd-ac4ae0dfa297"))
         assert record.external_id == "7ca699d9-1986-4c0c-a0fd-ac4ae0dfa297"
         record = pii.PIIRecord(external_id=12345)
         assert record.external_id == "12345"
@@ -149,6 +151,17 @@ class TestPIIRecord:
         assert list(record.field_iter(pii.Feature.LAST_NAME)) == ["Doe", "Smith"]
         assert list(record.field_iter(pii.Feature.ADDRESS)) == ["123 Main St", "456 Elm St"]
 
+    def test_blocking_keys_invalid(self):
+        rec = pii.PIIRecord()
+        with pytest.raises(ValueError):
+            rec.blocking_keys("birthdate")
+
+    @unittest.mock.patch("recordlinker.models.BLOCKING_VALUE_MAX_LENGTH", 1)
+    def test_blocking_keys_value_too_long(self):
+        rec = pii.PIIRecord(**{"mrn": "123456789"})
+        with pytest.raises(RuntimeError):
+            rec.blocking_keys(BlockingKey.MRN)
+
     def test_blocking_keys_birthdate(self):
         rec = pii.PIIRecord(**{"dob": "01/01/1980"})
         assert rec.blocking_keys(BlockingKey.BIRTHDATE) == set()
@@ -210,12 +223,14 @@ class TestPIIRecord:
         assert rec.blocking_keys(BlockingKey.FIRST_NAME) == set()
         rec = pii.PIIRecord(**{"name": [{"given": ["John", "Jane"], "family": "Doe"}]})
         assert rec.blocking_keys(BlockingKey.FIRST_NAME) == {"John", "Jane"}
-        rec = pii.PIIRecord(**{
-            "name": [
-                {"given": ["Janet", "Johnathon"], "family": "Doe"},
-                {"given": ["Jane"], "family": "Smith"},
-            ]
-        })
+        rec = pii.PIIRecord(
+            **{
+                "name": [
+                    {"given": ["Janet", "Johnathon"], "family": "Doe"},
+                    {"given": ["Jane"], "family": "Smith"},
+                ]
+            }
+        )
         assert rec.blocking_keys(BlockingKey.FIRST_NAME) == {"Jane", "John"}
 
     def test_blocking_keys_last_name_first_four(self):
