@@ -1,4 +1,5 @@
 import copy
+import typing
 from pathlib import Path
 from typing import Annotated
 from typing import Optional
@@ -82,12 +83,12 @@ class HealthCheckResponse(BaseModel):
     status: str = Field(description="Returns status of this service")
 
 
-class GetAlgorithmsResponse(BaseModel):
+class GetAlgorithmLabelsResponse(BaseModel):
     """
     The schema for response from he record linkage get algorithms endpoint
     """
 
-    algorithms: list[str] = Field(
+    algorithms: typing.Sequence[str] = Field(
         description="Returns a list of algorithms available from the database"
     )
 
@@ -137,11 +138,11 @@ async def link_record(
 
     if not algorithm:
         response.status_code = status.HTTP_422_UNPROCESSABLE_ENTITY
-        return {
-            "found_match": False,
-            "updated_bundle": input_bundle,
-            "message": "Error: Invalid algorithm specified",
-        }
+        return LinkRecordResponse(
+                found_match=False,
+                updated_bundle=input_bundle,
+                message="Error: Invalid algorithm specified"
+            )
 
     # Now extract the patient record we want to link
     try:
@@ -152,12 +153,11 @@ async def link_record(
         ][0]
     except IndexError:
         response.status_code = status.HTTP_400_BAD_REQUEST
-        return {
-            "found_match": False,
-            "updated_bundle": input_bundle,
-            "message": "Supplied bundle contains no Patient resource to link on.",
-        }
-
+        return LinkRecordResponse(
+            found_match=False,
+            updated_bundle=input_bundle,
+            message="Supplied bundle contains no Patient resource to link on."
+        )
 
     # Now link the record
     try:
@@ -172,24 +172,24 @@ async def link_record(
         updated_bundle = link.add_person_resource(
             new_person_id, record_to_link.get("id", ""), input_bundle
         )
-        return {"found_match": found_match, "updated_bundle": updated_bundle}
+        return LinkRecordResponse(found_match=found_match, updated_bundle=updated_bundle)
 
     except ValueError as err:
         response.status_code = status.HTTP_400_BAD_REQUEST
-        return {
-            "found_match": False,
-            "updated_bundle": input_bundle,
-            "message": f"Could not connect to database: {err}",
-        }
+        return LinkRecordResponse(
+            found_match=False,
+            updated_bundle=input_bundle,
+            message=f"Could not connect to database: {err}"
+        )
 
 
 @app.get("/algorithms")
 async def get_algorithm_labels(
     db_session: orm.Session = Depends(get_session),
-) -> GetAlgorithmsResponse:
+) -> GetAlgorithmLabelsResponse:
     """
     Get a list of all available algorithms from the database
     """
     algorithms_list = algorithm_service.get_all_algorithm_labels(db_session)
 
-    return {"algorithms": algorithms_list}
+    return GetAlgorithmLabelsResponse(algorithms=algorithms_list)
