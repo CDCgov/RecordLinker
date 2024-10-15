@@ -1,5 +1,5 @@
 import copy
-import json
+import typing
 from pathlib import Path
 from typing import Annotated
 from typing import Optional
@@ -18,7 +18,6 @@ from sqlalchemy.sql import expression
 from recordlinker import utils
 from recordlinker.base_service import BaseService
 from recordlinker.database import get_session
-from recordlinker.linkage import algorithms as DIBBS_ALGOS
 from recordlinker.linking import algorithm_service
 from recordlinker.linking import link
 
@@ -26,7 +25,7 @@ from recordlinker.linking import link
 app = BaseService(
     service_name="DIBBs Record Linkage Service",
     service_path="/record-linkage",
-    description_path=Path(__file__).parent.parent.parent / "README.md",
+    description_path=str(Path(__file__).parent.parent.parent / "README.md"),
     include_health_check_endpoint=False,
     # openapi_url="/record-linkage/openapi.json",
 ).start()
@@ -84,12 +83,12 @@ class HealthCheckResponse(BaseModel):
     status: str = Field(description="Returns status of this service")
 
 
-class GetAlgorithmsResponse(BaseModel):
+class GetAlgorithmLabelsResponse(BaseModel):
     """
     The schema for response from he record linkage get algorithms endpoint
     """
 
-    algorithms: list[str] = Field(
+    algorithms: typing.Sequence[str] = Field(
         description="Returns a list of algorithms available from the database"
     )
 
@@ -104,7 +103,7 @@ async def health_check(db_session: orm.Session = Depends(get_session)) -> Health
     """
     try:
         db_session.execute(expression.text("SELECT 1")).all()
-        return {"status": "OK"}
+        return HealthCheckResponse(status="OK")
     except Exception:
         raise HTTPException(status_code=503, detail={"status": "Service Unavailable"})
 
@@ -126,30 +125,22 @@ async def link_record(
     check for matches with existing patient records If matches are found,
     returns the bundle with updated references to existing patients.
     """
-
-    input = dict(input)
-    input_bundle = input.get("bundle", {})
-    external_id = input.get("external_person_id", None)
+    input_bundle = input.bundle
+    external_id = input.external_person_id
 
     # get label from params
-    algorithm_label = input.get("algorithm")
-    algo_config = DIBBS_ALGOS.DIBBS_BASIC
+    algorithm_label = input.algorithm
 
-    # if we do have an algorithm label specified
-    if algorithm_label:
-        algorithm = algorithm_service.get_algorithm_by_label(db_session, algorithm_label)
+    #get algorithm from DB
+    algorithm = algorithm_service.get_algorithm_by_label(db_session, algorithm_label)
 
-        if not algorithm:
-            response.status_code = status.HTTP_422_UNPROCESSABLE_ENTITY
-            return {
-                "found_match": False,
-                "updated_bundle": input_bundle,
-                "message": "Error: Invalid algorithm specified",
-            }
-
-        # temp to map the algorithm to our predefined config file for now
-        if algorithm.label == "DIBBS_ENHANCED":
-            algo_config = DIBBS_ALGOS.DIBBS_ENHANCED
+    if not algorithm:
+        response.status_code = status.HTTP_422_UNPROCESSABLE_ENTITY
+        return LinkRecordResponse(
+                found_match=False,
+                updated_bundle=input_bundle,
+                message="Error: Invalid algorithm specified"
+            )
 
     # Now extract the patient record we want to link
     try:
@@ -160,47 +151,43 @@ async def link_record(
         ][0]
     except IndexError:
         response.status_code = status.HTTP_400_BAD_REQUEST
-        return {
-            "found_match": False,
-            "updated_bundle": input_bundle,
-            "message": "Supplied bundle contains no Patient resource to link on.",
-        }
-
+        return LinkRecordResponse(
+            found_match=False,
+            updated_bundle=input_bundle,
+            message="Supplied bundle contains no Patient resource to link on."
+        )
 
     # Now link the record
     try:
         # Make a copy of record_to_link so we don't modify the original
         record = copy.deepcopy(record_to_link)
-        update_algo = json.dumps(algo_config)
-        update_algo = update_algo.replace(".linkage.", ".linking.")
-        algo_config = json.loads(update_algo)
         (found_match, new_person_id) = link.link_record_against_mpi(
             record=record,
             session=db_session,
-            algo_config=algo_config,
+            algorithm=algorithm,
             external_person_id=external_id,
         )
         updated_bundle = link.add_person_resource(
             new_person_id, record_to_link.get("id", ""), input_bundle
         )
-        return {"found_match": found_match, "updated_bundle": updated_bundle}
+        return LinkRecordResponse(found_match=found_match, updated_bundle=updated_bundle)
 
     except ValueError as err:
         response.status_code = status.HTTP_400_BAD_REQUEST
-        return {
-            "found_match": False,
-            "updated_bundle": input_bundle,
-            "message": f"Could not connect to database: {err}",
-        }
+        return LinkRecordResponse(
+            found_match=False,
+            updated_bundle=input_bundle,
+            message=f"Could not connect to database: {err}"
+        )
 
 
 @app.get("/algorithms")
 async def get_algorithm_labels(
     db_session: orm.Session = Depends(get_session),
-) -> GetAlgorithmsResponse:
+) -> GetAlgorithmLabelsResponse:
     """
     Get a list of all available algorithms from the database
     """
     algorithms_list = algorithm_service.get_all_algorithm_labels(db_session)
 
-    return {"algorithms": algorithms_list}
+    return GetAlgorithmLabelsResponse(algorithms=algorithms_list)
