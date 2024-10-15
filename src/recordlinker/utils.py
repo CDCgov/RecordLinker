@@ -55,12 +55,15 @@ def str_to_callable(val: str) -> typing.Callable:
     # Remove the "func:" prefix
     if val.startswith("func:"):
         val = val[5:]
-    # Split the string into module path and function name
-    module_path, func_name = val.rsplit(".", 1)
-    # Import the module
-    module = importlib.import_module(module_path)
-    # Get the function from the module
-    return getattr(module, func_name)
+    try:
+        # Split the string into module path and function name
+        module_path, func_name = val.rsplit(".", 1)
+        # Import the module
+        module = importlib.import_module(module_path)
+        # Get the function from the module
+        return getattr(module, func_name)
+    except Exception as e:
+        raise ValueError(f"Failed to convert string to callable: {val}") from e
 
 
 def func_to_str(func: typing.Callable) -> str:
