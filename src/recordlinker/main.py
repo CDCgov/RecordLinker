@@ -25,7 +25,7 @@ from recordlinker.linking import link
 app = BaseService(
     service_name="DIBBs Record Linkage Service",
     service_path="/record-linkage",
-    description_path=Path(__file__).parent.parent.parent / "README.md",
+    description_path=str(Path(__file__).parent.parent.parent / "README.md"),
     include_health_check_endpoint=False,
     # openapi_url="/record-linkage/openapi.json",
 ).start()
