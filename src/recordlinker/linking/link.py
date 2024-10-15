@@ -86,7 +86,7 @@ def compare(record: models.PIIRecord, patient: models.Patient, algorithm_pass: m
     Compare the incoming record to the linked patient
     """
     # all the functions used for comparison
-    funcs: dict[models.Feature, matchers.FEATURE_COMPARE_FUNC] = algorithm_pass.bound_evaluators()
+    funcs: dict[str, matchers.FEATURE_COMPARE_FUNC] = algorithm_pass.bound_evaluators()
     # a function to determine a match based on the comparison results
     matching_rule: matchers.MATCH_RULE_FUNC = algorithm_pass.bound_rule()
     # # keyword arguments to pass to comparison functions and matching rule
@@ -94,6 +94,7 @@ def compare(record: models.PIIRecord, patient: models.Patient, algorithm_pass: m
 
     results: list[float] = []
     for field, func in funcs.items():
+        # TODO: can we do this check earlier?
         if field not in {i.value for i in models.Feature}:
             raise ValueError(f"Invalid comparison field: {field}")
         # Evaluate the comparison function and append the result to the list
