@@ -1,7 +1,11 @@
+import typing
+
 from sqlalchemy import event
 from sqlalchemy import orm
 from sqlalchemy import schema
 from sqlalchemy import types as sqltypes
+
+from recordlinker import utils
 
 from .base import Base
 
@@ -54,7 +58,55 @@ class AlgorithmPass(Base):
     algorithm_id: orm.Mapped[int] = orm.mapped_column(schema.ForeignKey("algorithm.id"))
     algorithm: orm.Mapped["Algorithm"] = orm.relationship(back_populates="passes")
     blocking_keys: orm.Mapped[list[str]] = orm.mapped_column(sqltypes.JSON)
-    evaluators: orm.Mapped[dict[str,str]] = orm.mapped_column(sqltypes.JSON)
-    rule: orm.Mapped[str] = orm.mapped_column(sqltypes.String(255))
+    _evaluators: orm.Mapped[dict[str,str]] = orm.mapped_column("evaluators", sqltypes.JSON)
+    _rule: orm.Mapped[str] = orm.mapped_column("rule", sqltypes.String(255))
     cluster_ratio: orm.Mapped[float] = orm.mapped_column(sqltypes.Float)
     kwargs: orm.Mapped[dict] = orm.mapped_column(sqltypes.JSON)
+
+    @property
+    def evaluators(self) -> dict[str, str]:
+        """
+        Get the evaluators for this algorithm pass.
+        """
+        return self._evaluators
+
+    @evaluators.setter  # type: ignore
+    def evaluators(self, value: dict[str, str]):
+        """
+        Set the evaluators for this algorithm pass.
+        """
+        self._evaluators = value
+        if hasattr(self, "_bound_evaluators"):
+            del self._bound_evaluators
+
+    def bound_evaluators(self) -> dict[str, typing.Callable]:
+        """
+        Get the evaluators for this algorithm pass, bound to the algorithm.
+        """
+        if not hasattr(self, "_bound_evaluators"):
+            self._bound_evaluators = utils.bind_functions(self.evaluators)
+        return self._bound_evaluators
+
+    @property
+    def rule(self) -> str:
+        """
+        Get the rule for this algorithm pass.
+        """
+        return self._rule
+
+    @rule.setter  # type: ignore
+    def rule(self, value: str):
+        """
+        Set the rule for this algorithm pass.
+        """
+        self._rule = value
+        if hasattr(self, "_bound_rule"):
+            del self._bound_rule
+
+    def bound_rule(self) -> typing.Callable:
+        """
+        Get the rule for this algorithm pass, bound to the algorithm.
+        """
+        if not hasattr(self, "_bound_rule"):
+            self._bound_rule = utils.str_to_callable(self.rule)
+        return self._bound_rule
