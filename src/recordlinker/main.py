@@ -103,7 +103,7 @@ async def health_check(db_session: orm.Session = Depends(get_session)) -> Health
     """
     try:
         db_session.execute(expression.text("SELECT 1")).all()
-        return {"status": "OK"}
+        return HealthCheckResponse(status="OK")
     except Exception:
         raise HTTPException(status_code=503, detail={"status": "Service Unavailable"})
 
@@ -125,13 +125,11 @@ async def link_record(
     check for matches with existing patient records If matches are found,
     returns the bundle with updated references to existing patients.
     """
-
-    input = dict(input)
-    input_bundle = input.get("bundle", {})
-    external_id = input.get("external_person_id", None)
+    input_bundle = input.bundle
+    external_id = input.external_person_id
 
     # get label from params
-    algorithm_label = input.get("algorithm")
+    algorithm_label = input.algorithm
 
     #get algorithm from DB
     algorithm = algorithm_service.get_algorithm_by_label(db_session, algorithm_label)
