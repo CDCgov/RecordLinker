@@ -22,13 +22,13 @@ jobs:
         with:
           payload: |
             {
-              "text": ":code-review: Pull request ready for review by ${{ github.event.pull_request.user.login }}\n\n<${{ github.event.pull_request.html_url }}|${{ github.event.pull_request.title }}>",
+              "text": ":pr-open: Pull request ready for review by ${{ github.event.pull_request.user.login }}\n\n<${{ github.event.pull_request.html_url }}|${{ github.event.pull_request.title }}>",
               "blocks": [
                 {
                   "type": "section",
                   "text": {
                     "type": "mrkdwn",
-                    "text": ":code-review: Pull request ready for review by ${{ github.event.pull_request.user.login }}\n\n<${{ github.event.pull_request.html_url }}|${{ github.event.pull_request.title }}>"
+                    "text": ":pr-open: Pull request ready for review by ${{ github.event.pull_request.user.login }}\n\n<${{ github.event.pull_request.html_url }}|${{ github.event.pull_request.title }}>"
                   }
                 }
               ]
