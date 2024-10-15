@@ -83,31 +83,36 @@ def add_person_resource(
     return bundle
 
 
-def compare(record: schemas.PIIRecord, patient: models.Patient, linkage_pass: dict) -> bool:
+def compare(
+    record: schemas.PIIRecord, patient: models.Patient, algorithm_pass: models.AlgorithmPass
+) -> bool:
     """
     Compare the incoming record to the linked patient
     """
     # all the functions used for comparison
-    funcs: dict[schemas.Feature, matchers.FEATURE_COMPARE_FUNC] = linkage_pass["funcs"]
+    # TODO: optimization: bind functions earlier in the stack to avoid multiple unnecessary calls
+    funcs: dict[schemas.Feature, matchers.FEATURE_COMPARE_FUNC] = utils.bind_functions(
+        algorithm_pass.evaluators
+    )
     # a function to determine a match based on the comparison results
-    matching_rule: matchers.MATCH_RULE_FUNC = linkage_pass["matching_rule"]
+    matching_rule: matchers.MATCH_RULE_FUNC = utils.str_to_callable(algorithm_pass.rule)
     # keyword arguments to pass to comparison functions and matching rule
-    kwargs: dict[typing.Any, typing.Any] = linkage_pass.get("kwargs", {})
+    kwargs: dict[typing.Any, typing.Any] = algorithm_pass.kwargs
 
     results: list[float] = []
     for field, func in funcs.items():
         if field not in {i.value for i in schemas.Feature}:
             raise ValueError(f"Invalid comparison field: {field}")
         # Evaluate the comparison function and append the result to the list
-        result: float = func(record, patient, schemas.Feature(field), **kwargs) # type: ignore
+        result: float = func(record, patient, schemas.Feature(field), **kwargs)  # type: ignore
         results.append(result)
-    return matching_rule(results, **kwargs) # type: ignore
+    return matching_rule(results, **kwargs)  # type: ignore
 
 
 def link_record_against_mpi(
     record: dict,
     session: orm.Session,
-    algo_config: list[dict],
+    algorithm: models.Algorithm,
     external_person_id: typing.Optional[str] = None,
 ) -> tuple[bool, str]:
     """
@@ -123,33 +128,28 @@ def link_record_against_mpi(
     :param record: The FHIR-formatted patient resource to try to match to
       other records in the MPI.
     :param session: The SQLAlchemy session to use for database operations.
-    :param algo_config: An algorithm configuration consisting of a list
-      of dictionaries describing the algorithm to run. See
-      `read_linkage_config` and `write_linkage_config` for more details.
+    :param algorithm: An algorithm configuration object
     :returns: A tuple consisting of a boolean indicating whether a match
       was found for the new record in the MPI, followed by the ID of the
       Person entity now associated with the incoming patient (either a
       new Person ID or the ID of an existing matched Person).
     """
-    # bind all of the callable references to their actual functions
-    algo_config = [utils.bind_functions(linkage_pass) for linkage_pass in algo_config]
-
     # Extract the PII values from the incoming record
     pii_record: schemas.PIIRecord = fhir_record_to_pii_record(record)
 
     # Membership scores need to persist across linkage passes so that we can
     # find the highest scoring match across all passes
     scores: dict[models.Person, float] = collections.defaultdict(float)
-    for linkage_pass in algo_config:
+    for algorithm_pass in algorithm.passes:
         with TRACER.start_as_current_span("link.pass"):
             # the minimum ratio of matches needed to be considered a cluster member
-            cluster_ratio = linkage_pass.get("cluster_ratio", 0)
+            cluster_ratio = algorithm_pass.cluster_ratio
             # initialize a dictionary to hold the clusters of patients for each person
             clusters: dict[models.Person, list[models.Patient]] = collections.defaultdict(list)
             # block on the pii_record and the algorithm's blocking criteria, then
             # iterate over the patients, grouping them by person
             with TRACER.start_as_current_span("link.block"):
-                patients = mpi_service.get_block_data(session, pii_record, linkage_pass)
+                patients = mpi_service.get_block_data(session, pii_record, algorithm_pass)
                 for patient in patients:
                     clusters[patient.person].append(patient)
 
@@ -161,7 +161,7 @@ def link_record_against_mpi(
                     for patient in patients:
                         # increment our match count if the pii_record matches the patient
                         with TRACER.start_as_current_span("link.compare"):
-                            if compare(pii_record, patient, linkage_pass):
+                            if compare(pii_record, patient, algorithm_pass):
                                 matched_count += 1
                     # calculate the match ratio for this person cluster
                     match_ratio = matched_count / len(patients)

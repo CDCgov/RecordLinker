@@ -15,11 +15,11 @@ from recordlinker import schemas
 
 
 def get_block_data(
-    session: orm.Session, record: schemas.PIIRecord, algo_config: dict
+    session: orm.Session, record: schemas.PIIRecord, algorithm_pass: models.AlgorithmPass
 ) -> typing.Sequence[models.Patient]:
     """
     Get all of the matching Patients for the given data using the provided
-    blocking keys defined in the algo_config.
+    blocking keys defined in the algorithm_pass.
     """
     # Create the base query
     base = expression.select(models.Patient.id).distinct()
@@ -28,12 +28,12 @@ def get_block_data(
     # multiple times, once for each Blocking Key.  If a Patient record
     # has a matching Blocking Value for all the Blocking Keys, then it
     # is considered a match.
-    for idx, block in enumerate(algo_config["blocks"]):
-        key_name = block["value"].upper()
-        if not hasattr(models.BlockingKey, key_name):
-            raise ValueError(f"Invalid Blocking Key: {block}")
-        # Get the matching Blocking Key based on the value in the algo_config
-        key = models.BlockingKey[key_name]
+    for idx, key_id in enumerate(algorithm_pass.blocking_keys):
+        #get the BlockingKey obj from the id
+        if not hasattr(models.BlockingKey, key_id):
+            raise ValueError(f"No BlockingKey with id {id} found.")
+        key = getattr(models.BlockingKey, key_id)
+
         # Get all the possible values from the data for this key
         vals = [v for v in record.blocking_keys(key)]
         # Create a dynamic alias for the Blocking Value table using the index
