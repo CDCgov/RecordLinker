@@ -5,7 +5,9 @@ on:
     # Run daily at 13:00 Eastern / 10:00 Pacific
     - cron: "0 17 * * *"
   pull_request:
-    branches: [feature/list-open-prs]
+    branches: [main]
+  push:
+    branches: [main]
 
 jobs:
   list-open-prs:
