@@ -4,10 +4,6 @@ on:
   schedule:
     # Run daily at 13:00 Eastern / 10:00 Pacific
     - cron: "0 17 * * *"
-  pull_request:
-    branches: [main]
-  push:
-    branches: [main]
 
 
 jobs:
@@ -33,6 +29,7 @@ jobs:
         done < <(echo "$PR_LIST" | jq -r '.[] | " - <\(.html_url)|\(.title)> opened by \(.user) \(.time_since) days ago"')
 
         echo "MSG=$MSG" >> $GITHUB_ENV
+        echo "PR_LIST=$PR_LIST" >> $GITHUB_ENV
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         GITHUB_REPO: ${{ github.repository }}
@@ -40,6 +37,7 @@ jobs:
     - name: Post to Slack
       id: slack
       uses: slackapi/slack-github-action@v1.27.0
+      if: ${{ env.PR_LIST != '[]' }}
       with:
         payload: |
           {
