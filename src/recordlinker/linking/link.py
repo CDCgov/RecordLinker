@@ -14,7 +14,6 @@ from sqlalchemy import orm
 
 from recordlinker import models
 from recordlinker import schemas
-from recordlinker import utils
 from recordlinker.linking import matchers
 
 from . import mpi_service
@@ -90,17 +89,15 @@ def compare(
     Compare the incoming record to the linked patient
     """
     # all the functions used for comparison
-    # TODO: optimization: bind functions earlier in the stack to avoid multiple unnecessary calls
-    funcs: dict[schemas.Feature, matchers.FEATURE_COMPARE_FUNC] = utils.bind_functions(
-        algorithm_pass.evaluators
-    )
+    funcs: dict[str, matchers.FEATURE_COMPARE_FUNC] = algorithm_pass.bound_evaluators()
     # a function to determine a match based on the comparison results
-    matching_rule: matchers.MATCH_RULE_FUNC = utils.str_to_callable(algorithm_pass.rule)
-    # keyword arguments to pass to comparison functions and matching rule
+    matching_rule: matchers.MATCH_RULE_FUNC = algorithm_pass.bound_rule()
+    # # keyword arguments to pass to comparison functions and matching rule
     kwargs: dict[typing.Any, typing.Any] = algorithm_pass.kwargs
 
     results: list[float] = []
     for field, func in funcs.items():
+        # TODO: can we do this check earlier?
         if field not in {i.value for i in schemas.Feature}:
             raise ValueError(f"Invalid comparison field: {field}")
         # Evaluate the comparison function and append the result to the list
