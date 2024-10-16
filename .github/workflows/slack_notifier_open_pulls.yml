@@ -17,12 +17,15 @@ jobs:
 
     - name: List open pull requests
       id: list_prs
-      run: |
+      run: >
         PR_LIST=$(GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }} scripts/open_pulls.sh)
+
         MSG=":code-review Open Pull Requests\n\n"
+
         while IFS= read -r line; do
           MSG+="$line\n"
         done < <(echo "$PR_LIST" | jq -r '.[] | "- <\(.html_url)|\(.title)> opened by \(.user) \(.time_since) days ago"')
+
         echo "MSG=$MSG" >> $GITHUB_ENV
 
     - name: Post to Slack
