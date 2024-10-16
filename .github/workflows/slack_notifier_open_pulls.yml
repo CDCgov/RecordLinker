@@ -24,7 +24,6 @@ jobs:
     - name: List open pull requests
       id: list_prs
       run: >
-        scripts/open_pulls.sh
         PR_LIST=$(scripts/open_pulls.sh)
 
         MSG=":code-review: Open Pull Requests\n\n"
@@ -32,6 +31,8 @@ jobs:
         while IFS= read -r line; do
           MSG+="$line\n"
         done < <(echo "$PR_LIST" | jq -r '.[] | "- <\(.html_url)|\(.title)> opened by \(.user) \(.time_since) days ago"')
+
+        echo $MSG
 
         echo "MSG=$MSG" >> $GITHUB_ENV
       env:
