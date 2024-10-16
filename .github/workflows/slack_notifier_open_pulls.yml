@@ -36,6 +36,7 @@ jobs:
         echo "MSG=$MSG" >> $GITHUB_ENV
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        GITHUB_REPO: ${{ github.repository }}
 
     - name: Post to Slack
       id: slack
