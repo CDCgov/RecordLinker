@@ -68,7 +68,7 @@ def str_to_callable(val: str) -> typing.Callable:
         # Get the function from the module
         return getattr(module, func_name)
     except Exception as e:
-        raise ValueError(f"Invalid function: {val}") from e
+        raise ValueError(f"Failed to convert string to callable: {val}") from e
 
 
 def func_to_str(func: typing.Callable) -> str:

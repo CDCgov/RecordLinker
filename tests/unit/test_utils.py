@@ -48,10 +48,10 @@ def test_str_to_callable():
     assert utils.str_to_callable(val) == matchers.feature_match_exact
     val = "recordlinker.linking.matchers.feature_match_exact"
     assert utils.str_to_callable(val) == matchers.feature_match_exact
-    val = "feature_match_exact"
+    val = "recordlinker.unknown_module.unknown_function"
     with pytest.raises(ValueError):
         utils.str_to_callable(val)
-    val = "recordlinker.unknown_module.unknown_function"
+    val = "recordlinker.linking.matchers.unknown_function"
     with pytest.raises(ValueError):
         utils.str_to_callable(val)
 

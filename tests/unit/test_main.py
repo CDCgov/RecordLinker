@@ -18,7 +18,22 @@ def test_openapi(client):
     assert actual_response.status_code == 200
 
 
-def test_linkage_bundle_with_no_patient(client):
+@mock.patch("recordlinker.linking.algorithm_service.list_algorithms")
+def test_get_algorithms(patched_subprocess, client):
+    patched_subprocess.return_value = [
+        models.Algorithm(label="DIBBS_BASIC", is_default=True, description="Basic algo", passes=[])
+    ]
+    actual_response = client.get("/algorithms")
+
+    assert actual_response.json() == {
+        "algorithms": [{"label": "DIBBS_BASIC", "is_default": True, "description": "Basic algo"}]
+    }
+    assert actual_response.status_code == status.HTTP_200_OK
+
+
+@mock.patch("recordlinker.linking.algorithm_service.default_algorithm")
+def test_linkage_bundle_with_no_patient(patched_subprocess, basic_algorithm, client):
+    patched_subprocess.return_value = basic_algorithm
     bad_bundle = {"entry": []}
     expected_response = {
         "message": "Supplied bundle contains no Patient resource to link on.",
@@ -33,7 +48,9 @@ def test_linkage_bundle_with_no_patient(client):
     assert actual_response.status_code == status.HTTP_400_BAD_REQUEST
 
 
-def test_linkage_success(client):
+@mock.patch("recordlinker.linking.algorithm_service.default_algorithm")
+def test_linkage_success(patched_subprocess, basic_algorithm, client):
+    patched_subprocess.return_value = basic_algorithm
     test_bundle = utils.read_json_from_assets("patient_bundle_to_link_with_mpi.json")
     entry_list = copy.deepcopy(test_bundle["entry"])
 
@@ -91,11 +108,8 @@ def test_linkage_success(client):
 
 
 @mock.patch("recordlinker.linking.algorithm_service.get_algorithm")
-def test_use_enhanced_algo(patched_subprocess, client):
-    patched_subprocess.return_value = models.Algorithm(
-        label="DIBBS_ENHANCED", is_default=False, description="Enhanced algo"
-    )
-
+def test_use_enhanced_algo(patched_subprocess, enhanced_algorithm, client):
+    patched_subprocess.return_value = enhanced_algorithm
     test_bundle = utils.read_json_from_assets("patient_bundle_to_link_with_mpi.json")
     entry_list = copy.deepcopy(test_bundle["entry"])
 
@@ -154,7 +168,6 @@ def test_use_enhanced_algo(patched_subprocess, client):
 @mock.patch("recordlinker.linking.algorithm_service.get_algorithm")
 def test_invalid_algorithm_param(patched_subprocess, client):
     patched_subprocess.return_value = None
-
     test_bundle = utils.read_json_from_assets("patient_bundle_to_link_with_mpi.json")
     expected_response = {
         "found_match": False,

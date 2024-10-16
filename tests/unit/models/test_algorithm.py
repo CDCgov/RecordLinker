@@ -8,6 +8,7 @@ This module contains the unit tests for the recordlinker.models.algorithm module
 import pytest
 
 from recordlinker import models
+from recordlinker.linking import matchers
 
 
 class TestAlgorithm:
@@ -64,3 +65,29 @@ class TestAlgorithm:
 
         # should not raise any value errors
         session.commit()
+
+
+class TestAlgorithmPass:
+    def test_bound_evaluators(self):
+        """
+        Tests that the bound_evaluators method returns the correct functions
+        """
+        ap = models.AlgorithmPass(evaluators={"BIRTHDATE": "func:recordlinker.linking.matchers.feature_match_any"})
+        assert ap.bound_evaluators() == {"BIRTHDATE": matchers.feature_match_any}
+        ap.evaluators = {"BIRTHDATE": "func:recordlinker.linking.matchers.feature_match_exact"}
+        assert ap.bound_evaluators() == {"BIRTHDATE": matchers.feature_match_exact}
+        ap.evaluators = {"BIRTHDATE": "func:invalid"}
+        with pytest.raises(ValueError, match="Failed to convert string to callable"):
+            ap.bound_evaluators()
+
+    def test_bound_rule(self):
+        """
+        Tests that the bound_rule method returns the correct function
+        """
+        ap = models.AlgorithmPass(rule="func:recordlinker.linking.matchers.eval_perfect_match")
+        assert ap.bound_rule() == matchers.eval_perfect_match
+        ap.rule = "func:recordlinker.linking.matchers.eval_log_odds_cutoff"
+        assert ap.bound_rule() == matchers.eval_log_odds_cutoff
+        ap.rule = "func:recordlinker.linking.matchers.invalid"
+        with pytest.raises(ValueError, match="Failed to convert string to callable"):
+            ap.bound_rule()
