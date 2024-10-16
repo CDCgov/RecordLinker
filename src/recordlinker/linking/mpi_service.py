@@ -11,10 +11,11 @@ from sqlalchemy import orm
 from sqlalchemy.sql import expression
 
 from recordlinker import models
+from recordlinker import schemas
 
 
 def get_block_data(
-    session: orm.Session, record: models.PIIRecord, algorithm_pass: models.AlgorithmPass
+    session: orm.Session, record: schemas.PIIRecord, algorithm_pass: models.AlgorithmPass
 ) -> typing.Sequence[models.Patient]:
     """
     Get all of the matching Patients for the given data using the provided
@@ -34,7 +35,7 @@ def get_block_data(
         key = getattr(models.BlockingKey, key_id)
 
         # Get all the possible values from the data for this key
-        vals = [v for v in key.to_value(record)]
+        vals = [v for v in record.blocking_keys(key)]
         # Create a dynamic alias for the Blocking Value table using the index
         # this is necessary since we are potentially joining the same table
         # multiple times with different conditions
@@ -58,7 +59,7 @@ def get_block_data(
 
 def insert_patient(
     session: orm.Session,
-    record: models.PIIRecord,
+    record: schemas.PIIRecord,
     person: typing.Optional[models.Person] = None,
     external_patient_id: typing.Optional[str] = None,
     external_person_id: typing.Optional[str] = None,
@@ -101,10 +102,8 @@ def insert_blocking_keys(
         # For each Key, get all the values from the data dictionary
         # Many Keys will only have 1 value, but its possible that
         # a PII data dict could have multiple given names
-        for val in key.to_value(patient.record):
-            values.append(
-                models.BlockingValue(patient=patient, blockingkey=key.id, value=val)
-            )
+        for val in patient.record.blocking_keys(key):
+            values.append(models.BlockingValue(patient=patient, blockingkey=key.id, value=val))
     session.add_all(values)
 
     if commit:

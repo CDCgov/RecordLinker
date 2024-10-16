@@ -16,9 +16,9 @@ class Algorithm(Base):
     id: orm.Mapped[int] = orm.mapped_column(primary_key=True)
     is_default: orm.Mapped[bool] = orm.mapped_column(default=False, index=True)
     label: orm.Mapped[str] = orm.mapped_column(sqltypes.String(255), unique=True)
-    description: orm.Mapped[str] = orm.mapped_column(sqltypes.Text())
+    description: orm.Mapped[str] = orm.mapped_column(sqltypes.Text(), nullable=True)
     passes: orm.Mapped[list["AlgorithmPass"]] = orm.relationship(
-        back_populates="algorithm"
+        back_populates="algorithm", cascade="all, delete-orphan"
     )
 
 
@@ -55,13 +55,15 @@ class AlgorithmPass(Base):
     __tablename__ = "algorithm_pass"
 
     id: orm.Mapped[int] = orm.mapped_column(primary_key=True)
-    algorithm_id: orm.Mapped[int] = orm.mapped_column(schema.ForeignKey("algorithm.id"))
+    algorithm_id: orm.Mapped[int] = orm.mapped_column(
+        schema.ForeignKey("algorithm.id", ondelete="CASCADE")
+    )
     algorithm: orm.Mapped["Algorithm"] = orm.relationship(back_populates="passes")
     blocking_keys: orm.Mapped[list[str]] = orm.mapped_column(sqltypes.JSON)
-    _evaluators: orm.Mapped[dict[str,str]] = orm.mapped_column("evaluators", sqltypes.JSON)
+    _evaluators: orm.Mapped[dict[str, str]] = orm.mapped_column("evaluators", sqltypes.JSON)
     _rule: orm.Mapped[str] = orm.mapped_column("rule", sqltypes.String(255))
     cluster_ratio: orm.Mapped[float] = orm.mapped_column(sqltypes.Float)
-    kwargs: orm.Mapped[dict] = orm.mapped_column(sqltypes.JSON)
+    kwargs: orm.Mapped[dict] = orm.mapped_column(sqltypes.JSON, default=dict)
 
     @property
     def evaluators(self) -> dict[str, str]:

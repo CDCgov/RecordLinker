@@ -13,6 +13,7 @@ from opentelemetry import trace
 from sqlalchemy import orm
 
 from recordlinker import models
+from recordlinker import schemas
 from recordlinker.linking import matchers
 
 from . import mpi_service
@@ -21,7 +22,7 @@ TRACER = trace.get_tracer(__name__)
 
 
 # TODO: This is a FHIR specific function, should be moved to a FHIR module
-def fhir_record_to_pii_record(fhir_record: dict) -> models.PIIRecord:
+def fhir_record_to_pii_record(fhir_record: dict) -> schemas.PIIRecord:
     """
     Parse the FHIR record into a PIIRecord object
     """
@@ -46,7 +47,7 @@ def fhir_record_to_pii_record(fhir_record: dict) -> models.PIIRecord:
                         address["latitude"] = coord.get("valueDecimal")
                     elif coord.get("url") == "longitude":
                         address["longitude"] = coord.get("valueDecimal")
-    return models.PIIRecord(**val)
+    return schemas.PIIRecord(**val)
 
 
 # TODO: This is a FHIR specific function, should be moved to a FHIR module
@@ -81,7 +82,9 @@ def add_person_resource(
     return bundle
 
 
-def compare(record: models.PIIRecord, patient: models.Patient, algorithm_pass: models.AlgorithmPass) -> bool:
+def compare(
+    record: schemas.PIIRecord, patient: models.Patient, algorithm_pass: models.AlgorithmPass
+) -> bool:
     """
     Compare the incoming record to the linked patient
     """
@@ -95,12 +98,12 @@ def compare(record: models.PIIRecord, patient: models.Patient, algorithm_pass: m
     results: list[float] = []
     for field, func in funcs.items():
         # TODO: can we do this check earlier?
-        if field not in {i.value for i in models.Feature}:
+        if field not in {i.value for i in schemas.Feature}:
             raise ValueError(f"Invalid comparison field: {field}")
         # Evaluate the comparison function and append the result to the list
-        result: float = func(record, patient, models.Feature(field), **kwargs)
+        result: float = func(record, patient, schemas.Feature(field), **kwargs)  # type: ignore
         results.append(result)
-    return matching_rule(results, **kwargs)
+    return matching_rule(results, **kwargs)  # type: ignore
 
 
 def link_record_against_mpi(
@@ -129,7 +132,7 @@ def link_record_against_mpi(
       new Person ID or the ID of an existing matched Person).
     """
     # Extract the PII values from the incoming record
-    pii_record: models.PIIRecord = fhir_record_to_pii_record(record)
+    pii_record: schemas.PIIRecord = fhir_record_to_pii_record(record)
 
     # Membership scores need to persist across linkage passes so that we can
     # find the highest scoring match across all passes
