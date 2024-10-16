@@ -45,7 +45,7 @@ jobs:
       with:
         payload: |
           {
-            "text": "${{ env.MSG }}"
+            "text": "${{ env.MSG }}",
             "blocks": [
               {
                 "type": "section",
