@@ -30,9 +30,7 @@ jobs:
 
         while IFS= read -r line; do
           MSG+="$line\n"
-        done < <(echo "$PR_LIST" | jq -r '.[] | "- <\(.html_url)|\(.title)> opened by \(.user) \(.time_since) days ago"')
-
-        echo $MSG
+        done < <(echo "$PR_LIST" | jq -r '.[] | " - <\(.html_url)|\(.title)> opened by \(.user) \(.time_since) days ago"')
 
         echo "MSG=$MSG" >> $GITHUB_ENV
       env:
