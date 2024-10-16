@@ -21,13 +21,13 @@ def test_openapi(client):
 @mock.patch("recordlinker.linking.algorithm_service.list_algorithms")
 def test_get_algorithms(patched_subprocess, client):
     patched_subprocess.return_value = [
-        models.Algorithm(label="DIBBS_BASIC", is_default=True, description="Basic algo", passes=[])
+        models.Algorithm(label="dibbs-basic", is_default=True, description="Basic algo", passes=[])
     ]
-    actual_response = client.get("/algorithms")
+    actual_response = client.get("/algorithm")
 
-    assert actual_response.json() == {
-        "algorithms": [{"label": "DIBBS_BASIC", "is_default": True, "description": "Basic algo"}]
-    }
+    assert actual_response.json() == [
+        {"label": "dibbs-basic", "is_default": True, "description": "Basic algo", "pass_count": 0}
+    ]
     assert actual_response.status_code == status.HTTP_200_OK
 
 
@@ -115,7 +115,7 @@ def test_use_enhanced_algo(patched_subprocess, enhanced_algorithm, client):
 
     bundle_1 = test_bundle
     bundle_1["entry"] = [entry_list[0]]
-    resp_1 = client.post("/link-record", json={"bundle": bundle_1, "algorithm": "DIBBS_ENHANCED"})
+    resp_1 = client.post("/link-record", json={"bundle": bundle_1, "algorithm": "dibbs-enhanced"})
     new_bundle = resp_1.json()["updated_bundle"]
     person_1 = [
         r.get("resource")
@@ -126,7 +126,7 @@ def test_use_enhanced_algo(patched_subprocess, enhanced_algorithm, client):
 
     bundle_2 = test_bundle
     bundle_2["entry"] = [entry_list[1]]
-    resp_2 = client.post("/link-record", json={"bundle": bundle_2, "algorithm": "DIBBS_ENHANCED"})
+    resp_2 = client.post("/link-record", json={"bundle": bundle_2, "algorithm": "dibbs-enhanced"})
     new_bundle = resp_2.json()["updated_bundle"]
     person_2 = [
         r.get("resource")
@@ -138,12 +138,12 @@ def test_use_enhanced_algo(patched_subprocess, enhanced_algorithm, client):
 
     bundle_3 = test_bundle
     bundle_3["entry"] = [entry_list[2]]
-    resp_3 = client.post("/link-record", json={"bundle": bundle_3, "algorithm": "DIBBS_ENHANCED"})
+    resp_3 = client.post("/link-record", json={"bundle": bundle_3, "algorithm": "dibbs-enhanced"})
     assert not resp_3.json()["found_match"]
 
     bundle_4 = test_bundle
     bundle_4["entry"] = [entry_list[3]]
-    resp_4 = client.post("/link-record", json={"bundle": bundle_4, "algorithm": "DIBBS_ENHANCED"})
+    resp_4 = client.post("/link-record", json={"bundle": bundle_4, "algorithm": "dibbs-enhanced"})
     new_bundle = resp_4.json()["updated_bundle"]
     person_4 = [
         r.get("resource")
@@ -155,12 +155,12 @@ def test_use_enhanced_algo(patched_subprocess, enhanced_algorithm, client):
 
     bundle_5 = test_bundle
     bundle_5["entry"] = [entry_list[4]]
-    resp_5 = client.post("/link-record", json={"bundle": bundle_5, "algorithm": "DIBBS_ENHANCED"})
+    resp_5 = client.post("/link-record", json={"bundle": bundle_5, "algorithm": "dibbs-enhanced"})
     assert not resp_5.json()["found_match"]
 
     bundle_6 = test_bundle
     bundle_6["entry"] = [entry_list[5]]
-    resp_6 = client.post("/link-record", json={"bundle": bundle_6, "algorithm": "DIBBS_ENHANCED"})
+    resp_6 = client.post("/link-record", json={"bundle": bundle_6, "algorithm": "dibbs-enhanced"})
     new_bundle = resp_6.json()["updated_bundle"]
     assert not resp_6.json()["found_match"]
 

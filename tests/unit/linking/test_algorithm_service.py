@@ -15,23 +15,23 @@ from recordlinker.linking import algorithm_service
 
 
 def test_list_algorithms(session):
-    algo1 = models.Algorithm(label="BASIC", is_default=True, description="First algorithm")
-    algo2 = models.Algorithm(label="ENHANCED", description="Second algorithm")
+    algo1 = models.Algorithm(label="basic", is_default=True, description="First algorithm")
+    algo2 = models.Algorithm(label="enhanced", description="Second algorithm")
     session.add(algo1)
     session.add(algo2)
     session.commit()
 
     algorithms = algorithm_service.list_algorithms(session)
     assert len(algorithms) == 2
-    assert [a.label for a in algorithms] == ["BASIC", "ENHANCED"]
+    assert [a.label for a in algorithms] == ["basic", "enhanced"]
 
 
 def test_default_algorithm(session):
     with pytest.raises(ValueError):
         algorithm_service.default_algorithm(session)
 
-    algo1 = models.Algorithm(label="BASIC", is_default=False, description="First algorithm")
-    algo2 = models.Algorithm(label="ENHANCED", is_default=True, description="Second algorithm")
+    algo1 = models.Algorithm(label="basic", is_default=False, description="First algorithm")
+    algo2 = models.Algorithm(label="enhanced", is_default=True, description="Second algorithm")
     session.add(algo1)
     session.add(algo2)
     session.commit()
@@ -42,7 +42,7 @@ def test_default_algorithm(session):
 
 class TestGetAlgorithm:
     def test_get_algorithm_match(self, session):
-        testLabel = "DIBBS_BASIC"
+        testLabel = "dibss_basic"
         algo1 = models.Algorithm(label=testLabel, is_default=True, description="First algorithm")
         session.add(algo1)
         session.commit()
@@ -53,7 +53,7 @@ class TestGetAlgorithm:
     def test_get_algorithm_no_match(self, session):
         # inserting the default algorithm
         algo1 = models.Algorithm(
-            label="DIBBS_BASIC", is_default=True, description="First algorithm"
+            label="dibss_basic", is_default=True, description="First algorithm"
         )
         session.add(algo1)
         session.commit()
@@ -65,7 +65,7 @@ class TestGetAlgorithm:
 class TestLoadAlgorithm:
     def test_load_algorithm_created(self, session):
         data = schemas.Algorithm(
-            label="DIBBS_BASIC",
+            label="dibss-basic",
             description="First algorithm",
             passes=[
                 schemas.AlgorithmPass(
@@ -80,7 +80,7 @@ class TestLoadAlgorithm:
         session.flush()
         assert created is True
         assert obj.id == 1
-        assert obj.label == "DIBBS_BASIC"
+        assert obj.label == "dibss-basic"
         assert obj.description == "First algorithm"
         assert len(obj.passes) == 1
         assert obj.passes[0].algorithm_id == 1
@@ -93,7 +93,7 @@ class TestLoadAlgorithm:
 
     def test_load_algorithm_updated(self, session):
         data = schemas.Algorithm(
-            label="DIBBS_BASIC",
+            label="dibss-basic",
             description="First algorithm",
             passes=[
                 schemas.AlgorithmPass(
@@ -112,7 +112,7 @@ class TestLoadAlgorithm:
         session.flush()
         assert created is False
         assert obj.id == 1
-        assert obj.label == "DIBBS_BASIC"
+        assert obj.label == "dibss-basic"
         assert obj.description == "Updated description"
         assert len(obj.passes) == 1
         assert obj.passes[0].algorithm_id == 1
@@ -127,7 +127,7 @@ class TestLoadAlgorithm:
 def test_delete_algorithm(session):
     with pytest.raises(sqlalchemy.exc.SQLAlchemyError):
         algorithm_service.delete_algorithm(session, models.Algorithm())
-    algo1 = models.Algorithm(label="BASIC", is_default=True, description="First algorithm")
+    algo1 = models.Algorithm(label="basic", is_default=True, description="First algorithm")
     session.add(algo1)
     pass1 = models.AlgorithmPass(
         algorithm=algo1,
@@ -145,8 +145,8 @@ def test_delete_algorithm(session):
 
 
 def test_clear_algorithms(session):
-    algo1 = models.Algorithm(label="BASIC", is_default=True, description="First algorithm")
-    algo2 = models.Algorithm(label="ENHANCED", description="Second algorithm")
+    algo1 = models.Algorithm(label="basic", is_default=True, description="First algorithm")
+    algo2 = models.Algorithm(label="enhanced", description="Second algorithm")
     session.add(algo1)
     session.add(algo2)
     pass1 = models.AlgorithmPass(

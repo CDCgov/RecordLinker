@@ -71,7 +71,7 @@ def basic_algorithm():
                 }
         }
     )
-    return models.Algorithm(id=1, label="DIBBS_BASIC", is_default=True, description="First algorithm", passes=[basic_algo_pass1, basic_algo_pass2])
+    return models.Algorithm(id=1, label="dibbs-basic", is_default=True, description="First algorithm", passes=[basic_algo_pass1, basic_algo_pass2])
 
 @pytest.fixture
 def enhanced_algorithm():
@@ -143,4 +143,4 @@ def enhanced_algorithm():
             },
         },
     )
-    return models.Algorithm(id=1, label="DIBBS_ENHANCED", is_default=False, description="First algorithm", passes=[enhanced_algo_pass1, enhanced_algo_pass2])
+    return models.Algorithm(id=1, label="dibbs-enhanced", is_default=False, description="First algorithm", passes=[enhanced_algo_pass1, enhanced_algo_pass2])

@@ -81,7 +81,23 @@ class Algorithm(pydantic.BaseModel):
 
     model_config = pydantic.ConfigDict(from_attributes=True)
 
-    label: str
+    label: str = pydantic.Field(pattern=r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
     description: typing.Optional[str] = None
     is_default: bool = False
-    passes: typing.List[AlgorithmPass]
+    passes: typing.Sequence[AlgorithmPass]
+
+
+class AlgorithmSummary(Algorithm):
+    """
+    The schema for a summary of an algorithm record.
+    """
+
+    passes: typing.Sequence[AlgorithmPass] = pydantic.Field(exclude=True)
+
+    @pydantic.computed_field
+    @property
+    def pass_count(self) -> int:
+        """
+        Get the number of passes in the algorithm.
+        """
+        return len(self.passes)

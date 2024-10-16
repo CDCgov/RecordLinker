@@ -1,5 +1,4 @@
 import copy
-import typing
 from pathlib import Path
 from typing import Annotated
 from typing import Optional
@@ -11,7 +10,6 @@ from fastapi import Request
 from fastapi import Response
 from fastapi import status
 from pydantic import BaseModel
-from pydantic import ConfigDict
 from pydantic import Field
 from sqlalchemy import orm
 from sqlalchemy.sql import expression
@@ -21,6 +19,7 @@ from recordlinker.base_service import BaseService
 from recordlinker.database import get_session
 from recordlinker.linking import algorithm_service
 from recordlinker.linking import link
+from recordlinker.routes.algorithm_router import router as algorithm_router
 
 # Instantiate FastAPI via DIBBs' BaseService class
 app = BaseService(
@@ -30,6 +29,9 @@ app = BaseService(
     include_health_check_endpoint=False,
     # openapi_url="/record-linkage/openapi.json",
 ).start()
+
+
+app.include_router(algorithm_router, prefix="/algorithm", tags=["algorithm"])
 
 
 # Request and response models
@@ -82,28 +84,6 @@ class HealthCheckResponse(BaseModel):
     """
 
     status: str = Field(description="Returns status of this service")
-
-
-class Algorithm(BaseModel):
-    """
-    The schema for an algorithm record.
-    """
-
-    model_config = ConfigDict(from_attributes=True)
-
-    label: str = Field(description="The label of the algorithm")
-    description: str = Field(description="The description of the algorithm")
-    is_default: bool = Field(description="Whether the algorithm is the default")
-
-
-class GetAlgorithmsResponse(BaseModel):
-    """
-    The schema for response from he record linkage get algorithms endpoint
-    """
-
-    algorithms: typing.Sequence[Algorithm] = Field(
-        description="Returns a list of algorithms available from the database"
-    )
 
 
 @app.get("/")
@@ -195,16 +175,3 @@ async def link_record(
             updated_bundle=input_bundle,
             message=f"Could not connect to database: {err}",
         )
-
-
-@app.get("/algorithms")
-async def get_algorithms(
-    db_session: orm.Session = Depends(get_session),
-) -> GetAlgorithmsResponse:
-    """
-    Get a list of all available algorithms from the database
-    """
-    algorithms = [
-        Algorithm.model_validate(a) for a in algorithm_service.list_algorithms(db_session)
-    ]
-    return GetAlgorithmsResponse(algorithms=algorithms)
