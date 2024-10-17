@@ -21,6 +21,20 @@ class Algorithm(Base):
         back_populates="algorithm", cascade="all, delete-orphan"
     )
 
+    @classmethod
+    def from_dict(cls, **data: dict) -> "Algorithm":
+        """
+        Create an instance of Algorithm from a dictionary.
+
+        Parameters:
+        data: The dictionary containing the data for the Algorithm instance.
+
+        Returns:
+        The Algorithm instance.
+        """
+        data["passes"] = [AlgorithmPass(**p) for p in data["passes"]]
+        return cls(**data)
+
 
 def check_only_one_default(mapping, connection, target):
     """
