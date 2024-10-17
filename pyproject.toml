@@ -28,7 +28,6 @@ dependencies = [
     "rapidfuzz",
     "opentelemetry-api",
     "opentelemetry-sdk",
-    "PyYAML",  # TODO: this can be removed when scripts/algorithm_config.py is removed
     # Database drivers
     "psycopg2-binary",  # PostgreSQL
     "PyMySQL",  # MySQL & MariaDB
