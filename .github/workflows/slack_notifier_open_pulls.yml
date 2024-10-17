@@ -4,6 +4,10 @@ on:
   schedule:
     # Run daily at 13:00 Eastern / 10:00 Pacific
     - cron: "0 17 * * *"
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
 
 
 jobs:
