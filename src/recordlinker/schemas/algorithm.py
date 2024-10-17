@@ -94,7 +94,8 @@ class AlgorithmSummary(Algorithm):
 
     passes: typing.Sequence[AlgorithmPass] = pydantic.Field(exclude=True)
 
-    @pydantic.computed_field
+    # mypy doesn't support decorators on properties; https://github.com/python/mypy/issues/1362
+    @pydantic.computed_field # type: ignore[misc]
     @property
     def pass_count(self) -> int:
         """
