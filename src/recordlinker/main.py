@@ -150,7 +150,7 @@ async def link_record(
         return LinkRecordResponse(
             found_match=False,
             updated_bundle=input_bundle,
-            message="Supplied bundle contains no Patient resource to link on."
+            message="Supplied bundle contains no Patient resource to link on.",
         )
 
     # Now link the record
@@ -173,5 +173,5 @@ async def link_record(
         return LinkRecordResponse(
             found_match=False,
             updated_bundle=input_bundle,
-            message=f"Could not connect to database: {err}"
+            message=f"Could not connect to database: {err}",
         )
