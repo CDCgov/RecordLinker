@@ -41,7 +41,6 @@ dev = [
     "pytest-cov",
     "ruff",
     "mypy",
-    "alembic",
     "types-python-dateutil"
 ]
 prod = [
