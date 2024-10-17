@@ -199,7 +199,7 @@ async def link_record(
 
     # Now link the record
     try:
-        (found_match, new_person_id, _patient_reference_id) = link.link_record_against_mpi(
+        (found_match, new_person_id, _) = link.link_record_against_mpi(
             record=pii_record,
             session=db_session,
             algorithm=algorithm,
