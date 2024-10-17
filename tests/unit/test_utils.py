@@ -84,3 +84,4 @@ class TestCheckSignature:
         assert not utils.check_signature(self.func2, typing.Callable[[int, list], float])
         assert not utils.check_signature(self.func2, typing.Callable[[int, list[int]], None])
         assert utils.check_signature(self.func2, typing.Callable[[int, list[int]], float])
+        assert not utils.check_signature("a", typing.Callable[[str], None])
