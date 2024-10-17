@@ -40,7 +40,6 @@ jobs:
       - name: Run unit tests
         env:
           TEST_DB_URI: "postgresql+psycopg2://postgres:pw@localhost:5432/postgres"
-          INITIAL_ALGORITHMS: ""
         run: |
           pytest --cov=recordlinker --cov-report=xml tests/unit
       - name: Upload test results to Codecov
