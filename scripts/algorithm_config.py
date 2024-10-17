@@ -3,8 +3,7 @@
 scripts/algorithm_config.py
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-This script allows users to manage the algorithm configurations for the
-RecordLinker project.
+Script to manage algorithm configurations for the RecordLinker project.
 
 The script provides the following functionalities:
     - List all algorithm configurations
@@ -12,7 +11,7 @@ The script provides the following functionalities:
     - Get an algorithm configuration by its ID
         - `./scripts/algorithm_config.py get [ALGORITHM_LABEL]`
     - Add or update an algorithm
-        - `./scripts/algorithm_config.py load [FILE.YML]`
+        - `./scripts/algorithm_config.py load [FILE.json]`
     - Delete an existing algorithm
         - `./scripts/algorithm_config.py delete [ALGORITHM_LABEL]`
     - Delete all algorithm configurations
@@ -20,9 +19,9 @@ The script provides the following functionalities:
 """
 
 import argparse
+import json
 import sys
 
-import yaml
 from sqlalchemy import orm
 
 from recordlinker import database
@@ -34,11 +33,38 @@ RED = "\033[91m"
 RESET = "\033[0m"
 
 
-def error(msg: str) -> None:
+class ConfigError(Exception):
     """
-    Print an error message in red text.
+    Custom exception for configuration errors.
     """
-    print(f"{RED}{msg}{RESET}", file=sys.stderr)
+
+    def __init__(self, msg: str = "Configuration error"):
+        self.msg = msg
+        super().__init__(self.msg)
+
+
+def confirm(msg: str) -> bool:
+    """
+    Ask the user for confirmation.
+    """
+    print(f"{msg} [y/N]: ", end="")
+    choice = input().strip().lower()
+    return choice in ["y", "yes"]
+
+
+def load_json(file_path: str) -> list[dict]:
+    """
+    Load JSON data from a file.
+    """
+    with open(file_path, "rb") as fobj:
+        try:
+            content = json.load(fobj)
+            if isinstance(content, dict):
+                # if the file contains a single object, convert to list
+                content = [content]
+            return content
+        except json.JSONDecodeError as exc:
+            raise ConfigError(f"Error loading JSON file: {exc}")
 
 
 def list_configs(session: orm.Session) -> None:
@@ -46,82 +72,47 @@ def list_configs(session: orm.Session) -> None:
     List all algorithm configurations.
     """
     objs = service.list_algorithms(session)
-    data = [schemas.Algorithm.model_validate(obj) for obj in objs]
-    content = [d.model_dump(include=["label", "description"]) for d in data]
-    print(yaml.dump(content, default_flow_style=False), file=sys.stdout)
+    data = [schemas.AlgorithmSummary.model_validate(a).dict() for a in objs]
+    print(json.dumps(data, indent=2), file=sys.stdout)
 
 
-def get_config(session: orm.Session, label: str) -> None:
+def get_config(label: str, session: orm.Session) -> None:
     """
     Get an algorithm configuration by its label.
     """
-    try:
-        obj = service.get_algorithm(session, label)
-    except Exception as exc:
-        error(f"Error retrieving algorithm: {exc}")
-        sys.exit(1)
-    if obj:
-        data = schemas.Algorithm.model_validate(obj)
-        content = {"algorithm": [data.model_dump()]}
-        print(yaml.dump(content, default_flow_style=False), file=sys.stdout)
-    else:
-        error(f"Algorithm with label '{label}' does not exist.")
-        sys.exit(1)
+    obj = service.get_algorithm(session, label)
+    if not obj:
+        raise ConfigError(f"Algorithm '{label}' not found.")
+    data = schemas.Algorithm.model_validate(obj).dict()
+    print(json.dumps(data, indent=2), file=sys.stdout)
 
 
-def load_config(session: orm.Session, file_path: str) -> None:
+def load_config(file_path: str, session: orm.Session) -> None:
     """
     Load an algorithm configuration from a file.
     """
-    with open(file_path, "rb") as fobj:
-        # load data from yaml file
+    msgs: list[str] = []
+    for algo in load_json(file_path):
+        obj = service.get_algorithm(session, algo["label"])
+        if obj and not confirm(f"'{obj.label}' already exists. Do you want to replace?"):
+            continue
         try:
-            content = yaml.safe_load(fobj)
-        except yaml.YAMLError as exc:
-            error(f"Error loading YAML file: {exc}")
-            sys.exit(1)
-
-        loaded: dict[str, list] = {"added": [], "updated": []}
-        for algo in content.get("algorithm", []):
-            try:
-                data = schemas.Algorithm(**algo)
-                obj = service.get_algorithm(session, data.label)
-                if obj:
-                    # ask the user if they want to replace or exit
-                    print(f"Algorithm with label '{obj.label}' already exists.")
-                    print("Do you want to replace it? [y/N]: ", end="")
-                    choice = input().strip().lower()
-                    if choice not in ["y", "yes"]:
-                        sys.exit(0)
-                obj, created = service.load_algorithm(session, data, obj, commit=False)
-                key = "added" if created else "updated"
-                loaded[key].append(obj.label)
-            except (ValueError, TypeError, AssertionError) as exc:
-                error(f"Error parsing algorithm: {exc}")
-                sys.exit(1)
-        try:
-            SESSION.commit()
+            obj, created = service.load_algorithm(session, schemas.Algorithm(**algo), obj)
+            msg = f"Created: {obj.label}" if created else f"Updated: {obj.label}"
+            msgs.append(msg)
         except Exception as exc:
-            error(f"Error committing to the database: {exc}")
-            sys.exit(1)
-        print(f"Added: {loaded['added']}", file=sys.stdout)
-        print(f"Updated: {loaded['updated']}", file=sys.stdout)
+            raise ConfigError(f"Error loading algorithm: {exc}")
+    print("\n".join(msgs), file=sys.stdout)
 
 
-def delete_config(session: orm.Session, label: str) -> None:
+def delete_config(label: str, session: orm.Session) -> None:
     """
     Delete an algorithm configuration by its label.
     """
-    obj = service.get_algorithm(session, label)
-    if obj:
-        print(f"Do you want to delete Algorithm {label}? [y/N]: ", end="")
-        choice = input().strip().lower()
-        if choice not in ["y", "yes"]:
-            sys.exit(0)
-        service.delete_algorithm(session, obj, commit=True)
-    else:
-        error(f"Algorithm with label '{label}' does not exist.")
-        sys.exit(1)
+    if not service.get_algorithm(label, session):
+        raise ConfigError(f"Algorithm '{label}' not found.")
+    if confirm(f"Do you want to delete the algorithm '{label}'?"):
+        service.delete_algorithm(label, session)
 
 
 def clear_configs(session: orm.Session) -> None:
@@ -129,11 +120,8 @@ def clear_configs(session: orm.Session) -> None:
     Clear all algorithm configurations.
     """
     # ask the user if they want to replace or exit
-    print("Do you want to delete ALL Algorithms? [y/N]: ", end="")
-    choice = input().strip().lower()
-    if choice not in ["y", "yes"]:
-        sys.exit(0)
-    service.delete_all_algorithms(session, commit=True)
+    if confirm("Do you want to delete ALL Algorithms?"):
+        service.clear_algorithms(session)
 
 
 def main() -> None:
@@ -154,7 +142,7 @@ def main() -> None:
     load_parser = subparsers.add_parser(
         "load", help="Load or update an algorithm configuration from a file"
     )
-    load_parser.add_argument("file_path", type=str, help="Path to the .yml configuration file")
+    load_parser.add_argument("file_path", type=str, help="Path to the .json configuration file")
 
     # Subcommand: delete
     delete_parser = subparsers.add_parser(
@@ -169,20 +157,27 @@ def main() -> None:
 
     args = parser.parse_args()
 
-    session_maker = database.get_sessionmaker()
-    with session_maker.context_session() as session:
+    session = next(database.get_session())  # Start the generator to obtain a session
+    try:
         if args.command == "list":
             list_configs(session)
         elif args.command == "get":
-            get_config(session, args.algorithm_label)
+            get_config(args.algorithm_label, session)
         elif args.command == "load":
-            load_config(session, args.file_path)
+            load_config(args.file_path, session)
         elif args.command == "delete":
-            delete_config(session, args.algorithm_label)
+            delete_config(args.algorithm_label, session)
         elif args.command == "clear":
             clear_configs(session)
         else:
             parser.print_help()
+        session.commit()  # Commit the transaction if all operations succeed
+    except ConfigError as exc:
+        session.rollback() # Rollback the transaction if an error occurs
+        print(f"{RED}{exc.msg}{RESET}", file=sys.stderr)
+        raise SystemExit(1)
+    finally:
+        session.close()
 
 
 if __name__ == "__main__":
