@@ -103,8 +103,8 @@ async def health_check(db_session: orm.Session = Depends(get_session)) -> Health
 
 # Sample requests and responses for docs
 # TODO: These assets need to be installed with the python code
-sample_link_record_requests = utils.read_json_from_assets("sample_link_record_requests.json")
-sample_link_record_responses = utils.read_json_from_assets("sample_link_record_responses.json")
+sample_link_record_requests = utils.read_json("assets", "sample_link_record_requests.json")
+sample_link_record_responses = utils.read_json("assets", "sample_link_record_responses.json")
 
 
 @app.post("/link-record", status_code=200, responses={200: sample_link_record_responses})

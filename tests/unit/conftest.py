@@ -45,7 +45,7 @@ def client():
 @functools.lru_cache
 @pytest.fixture
 def basic_algorithm():
-    for algo in load_json_asset("default_algorithms.json"):
+    for algo in load_json_asset("initial_algorithms.json"):
         if algo["label"] == "dibbs-basic":
             return models.Algorithm.from_dict(**algo)
 
@@ -53,6 +53,6 @@ def basic_algorithm():
 @functools.lru_cache
 @pytest.fixture
 def enhanced_algorithm():
-    for algo in load_json_asset("default_algorithms.json"):
+    for algo in load_json_asset("initial_algorithms.json"):
         if algo["label"] == "dibbs-enhanced":
             return models.Algorithm.from_dict(**algo)

@@ -14,4 +14,4 @@ cd "$(dirname "$0")/.."
 TESTS=${1:-tests/unit/}
 
 # Run the tests
-pytest ${TESTS}
+INITIAL_ALGORITHMS="" pytest ${TESTS}
