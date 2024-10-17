@@ -4,11 +4,13 @@ unit.models.test_algorithm.py
 
 This module contains the unit tests for the recordlinker.models.algorithm module.
 """
+import unittest.mock
 
 import pytest
 
-from recordlinker import models
+from recordlinker import config
 from recordlinker.linking import matchers
+from recordlinker.models import algorithm as models
 
 
 class TestAlgorithm:
@@ -72,7 +74,9 @@ class TestAlgorithmPass:
         """
         Tests that the bound_evaluators method returns the correct functions
         """
-        ap = models.AlgorithmPass(evaluators={"BIRTHDATE": "func:recordlinker.linking.matchers.feature_match_any"})
+        ap = models.AlgorithmPass(
+            evaluators={"BIRTHDATE": "func:recordlinker.linking.matchers.feature_match_any"}
+        )
         assert ap.bound_evaluators() == {"BIRTHDATE": matchers.feature_match_any}
         ap.evaluators = {"BIRTHDATE": "func:recordlinker.linking.matchers.feature_match_exact"}
         assert ap.bound_evaluators() == {"BIRTHDATE": matchers.feature_match_exact}
@@ -91,3 +95,35 @@ class TestAlgorithmPass:
         ap.rule = "func:recordlinker.linking.matchers.invalid"
         with pytest.raises(ValueError, match="Failed to convert string to callable"):
             ap.bound_rule()
+
+
+class TestCreateInitialAlgorithms:
+    def test_invalid_file(self, monkeypatch, session):
+        """
+        Tests that an invalid file raises a FileNotFoundError
+        """
+        monkeypatch.setattr(config.settings, "initial_algorithms", "invalid_file.json")
+        with pytest.raises(config.ConfigurationError, match="Error loading initial algorithms"):
+            models.create_initial_algorithms(None, session.connection())
+
+    def test_no_default(self, monkeypatch, session):
+        """
+        Tests that the initial algorithms are created without a default algorithm
+        """
+        monkeypatch.setattr(config.settings, "initial_algorithms", "file.json")
+        with unittest.mock.patch("recordlinker.utils.read_json") as read_json:
+            read_json.return_value = [{"is_default": False}]
+            with pytest.raises(config.ConfigurationError, match="No default algorithm found"):
+                models.create_initial_algorithms(None, session.connection())
+
+    def test_create_initial_algorithms(self, monkeypatch, session):
+        """
+        Tests that the initial algorithms are created
+        """
+        monkeypatch.setattr(config.settings, "initial_algorithms", "file.json")
+        with unittest.mock.patch("recordlinker.utils.read_json") as read_json:
+            read_json.return_value = [{"label": "Algorithm 1", "is_default": True}]
+            models.create_initial_algorithms(None, session.connection())
+            assert session.query(models.Algorithm).count() == 1
+            assert session.query(models.Algorithm).first().is_default is True
+            assert session.query(models.Algorithm).first().label == "Algorithm 1"
