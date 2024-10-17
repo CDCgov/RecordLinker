@@ -48,7 +48,7 @@ def get_algorithm(session: orm.Session, label: str) -> models.Algorithm | None:
     :param label: The algorithm label
     :returns: algorithm
     """
-    query = select(models.Algorithm).where(models.Algorithm.label.is_(label))
+    query = select(models.Algorithm).where(models.Algorithm.label == label)
     res = session.scalars(query).all()
     if res:
         assert len(res) == 1, "Multiple algorithms found with the same label."
