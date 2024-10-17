@@ -19,9 +19,9 @@ from recordlinker.schemas.pii import PIIRecord
 SIMILARITY_MEASURES = typing.Literal["JaroWinkler", "Levenshtein", "DamerauLevenshtein"]
 
 # A Callable type for comparing a feature on two records
-FEATURE_COMPARE_FUNC = typing.Callable[[PIIRecord, Patient, Feature, dict[str, typing.Any]], float]
+FEATURE_COMPARE_FUNC = typing.Callable[[PIIRecord, Patient, Feature, typing.Any], float]
 # A Callable type for evaluating whether a set of feature comparisons constitutes a match
-MATCH_RULE_FUNC = typing.Callable[[list[float], dict[str, typing.Any]], bool]
+MATCH_RULE_FUNC = typing.Callable[[list[float], typing.Any], bool]
 
 
 def _get_fuzzy_params(col: str, **kwargs) -> tuple[SIMILARITY_MEASURES, float]:
@@ -54,7 +54,7 @@ def _get_fuzzy_params(col: str, **kwargs) -> tuple[SIMILARITY_MEASURES, float]:
     return (similarity_measure, threshold)
 
 
-def eval_perfect_match(feature_comparisons: list, **kwargs) -> bool:
+def eval_perfect_match(feature_comparisons: list[float], **kwargs: typing.Any) -> bool:
     """
     Determines whether a given set of feature comparisons represent a
     'perfect' match (i.e. whether all features that were compared match
@@ -67,7 +67,7 @@ def eval_perfect_match(feature_comparisons: list, **kwargs) -> bool:
     return sum(feature_comparisons) == len(feature_comparisons)
 
 
-def eval_log_odds_cutoff(feature_comparisons: list, **kwargs) -> bool:
+def eval_log_odds_cutoff(feature_comparisons: list[float], **kwargs: typing.Any) -> bool:
     """
     Determines whether a given set of feature comparisons matches enough
     to be the result of a true patient link instead of just random chance.
@@ -78,13 +78,14 @@ def eval_log_odds_cutoff(feature_comparisons: list, **kwargs) -> bool:
     :return: Whether the feature comparisons score well enough to be
       considered a match.
     """
-    if "true_match_threshold" not in kwargs:
+    threshold: typing.Any = kwargs.get("true_match_threshold")
+    if threshold is None:
         raise KeyError("Cutoff threshold for true matches must be passed.")
-    return sum(feature_comparisons) >= kwargs["true_match_threshold"]
+    return sum(feature_comparisons) >= float(threshold)
 
 
 def feature_match_any(
-    record: PIIRecord, patient: Patient, key: Feature, **kwargs: dict
+    record: PIIRecord, patient: Patient, key: Feature, **kwargs: typing.Any
 ) -> float:
     """
     ...
@@ -103,7 +104,7 @@ def feature_match_any(
 
 # TODO: rename to feature_match_all
 def feature_match_exact(
-    record: PIIRecord, patient: Patient, key: Feature, **kwargs: dict
+    record: PIIRecord, patient: Patient, key: Feature, **kwargs: typing.Any
 ) -> float:
     """
     ...
@@ -122,7 +123,7 @@ def feature_match_exact(
 
 # TODO: rename to feature_match_fuzzy_any
 def feature_match_fuzzy_string(
-    record: PIIRecord, patient: Patient, key: Feature, **kwargs: dict
+    record: PIIRecord, patient: Patient, key: Feature, **kwargs: typing.Any
 ) -> float:
     """
     ...
@@ -147,7 +148,7 @@ def feature_match_fuzzy_string(
 
 # TODO: rename to feature_match_log_odds_fuzzy_any
 def feature_match_log_odds_fuzzy_compare(
-    record: PIIRecord, patient: Patient, key: Feature, **kwargs: dict
+    record: PIIRecord, patient: Patient, key: Feature, **kwargs: typing.Any
 ) -> float:
     """
     ...

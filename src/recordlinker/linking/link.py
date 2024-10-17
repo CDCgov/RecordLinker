@@ -93,7 +93,7 @@ def compare(
     funcs: dict[str, matchers.FEATURE_COMPARE_FUNC] = algorithm_pass.bound_evaluators()
     # a function to determine a match based on the comparison results
     matching_rule: matchers.MATCH_RULE_FUNC = algorithm_pass.bound_rule()
-    # # keyword arguments to pass to comparison functions and matching rule
+    # keyword arguments to pass to comparison functions and matching rule
     kwargs: dict[typing.Any, typing.Any] = algorithm_pass.kwargs
 
     results: list[float] = []

@@ -16,7 +16,7 @@ authors = [
     {name = "Derek Dombek", email = "ddombek@rise8.us"}
 ]
 license = { file = "LICENSE" }
-readme = "README.md"
+readme = {file = "README.md", content-type = "text/markdown"}
 requires-python = ">=3.11"
 dependencies = [
     "uvicorn",
@@ -36,12 +36,12 @@ dependencies = [
 
 [project.optional-dependencies]
 dev = [
+    "fastapi[standard]",
     "pytest>=8.3",
     "pytest-cov",
     "ruff",
     "mypy",
     "alembic",
-    "httpx",
     "types-python-dateutil"
 ]
 prod = [

@@ -17,7 +17,6 @@ Please review and complete the following checklist before submitting your pull r
 - [ ] I have updated the documentation, if applicable.
 - [ ] I have added or updated test cases to cover my changes, if applicable.
 - [ ] I have minimized the number of reviewers to include only those essential for the review.
-- [ ] I have notified teammates in the review thread to build awareness.
 
 ## Checklist for Reviewers
 Please review and complete the following checklist during the review process:
