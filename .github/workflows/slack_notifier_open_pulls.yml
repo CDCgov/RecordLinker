@@ -5,7 +5,6 @@ on:
     # Run daily at 13:00 Eastern / 10:00 Pacific
     - cron: "0 17 * * *"
 
-
 jobs:
   list-open-prs:
     runs-on: ubuntu-latest
@@ -19,6 +18,9 @@ jobs:
 
     - name: List open pull requests
       id: list_prs
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        GITHUB_REPO: ${{ github.repository }}
       run: >
         PR_LIST=$(scripts/open_pulls.sh)
 
@@ -29,15 +31,17 @@ jobs:
         done < <(echo "$PR_LIST" | jq -r '.[] | " - <\(.html_url)|\(.title)> opened by \(.user) \(.time_since) days ago"')
 
         echo "MSG=$MSG" >> $GITHUB_ENV
-        echo "PR_LIST=$PR_LIST" >> $GITHUB_ENV
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        GITHUB_REPO: ${{ github.repository }}
+          # Check if PR_LIST is empty and set a flag
+        if [ "$PR_LIST" == "[]" ]; then
+          echo "SHOULD_POST_TO_SLACK=false" >> $GITHUB_ENV
+        else
+          echo "SHOULD_POST_TO_SLACK=true" >> $GITHUB_ENV
+        fi
 
     - name: Post to Slack
       id: slack
       uses: slackapi/slack-github-action@v1.27.0
-      if: ${{ env.PR_LIST != '[]' }}
+      if: ${{ env.SHOULD_POST_TO_SLACK == 'true' }}
       with:
         payload: |
           {
