@@ -1,9 +1,22 @@
+import json
+import pathlib
+
 import pytest
 from fastapi.testclient import TestClient
 
 from recordlinker import database
 from recordlinker import main
 from recordlinker import models
+
+
+def load_json_asset(*paths: str) -> dict | list:
+    """
+    Loads a JSON file from the testing 'assets' directory.
+    """
+    cwd = pathlib.Path(__file__).resolve().parent
+    filename = pathlib.Path(cwd, "assets", *paths)
+    with open(filename, "r") as fobj:
+        return json.load(fobj)
 
 
 @pytest.fixture(scope="function")

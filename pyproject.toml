@@ -81,7 +81,7 @@ order-by-type = false
 
 [tool.pytest.ini_options]
 testpaths = ["tests/unit"]
-pythonpath = ["src"]
+pythonpath = ["src", "tests/unit"]
 filterwarnings = [
     "ignore:typing.io is deprecated, import directly from typing instead:DeprecationWarning"
 ]
