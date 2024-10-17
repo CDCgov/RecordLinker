@@ -18,8 +18,7 @@ from recordlinker.linking import algorithm_service as service
 router = fastapi.APIRouter()
 
 
-# TODO: test cases
-@router.get("/", status_code=fastapi.status.HTTP_200_OK)
+@router.get("", status_code=fastapi.status.HTTP_200_OK)
 def list_algorithms(
     session: orm.Session = fastapi.Depends(get_session),
 ) -> typing.Sequence[schemas.AlgorithmSummary]:
@@ -28,13 +27,9 @@ def list_algorithms(
 
     :returns: list of all algorithms
     """
-    return [
-        schemas.AlgorithmSummary.model_validate(a)
-        for a in service.list_algorithms(session)
-    ]
+    return [schemas.AlgorithmSummary.model_validate(a) for a in service.list_algorithms(session)]
 
 
-# TODO: test cases
 @router.get("/{label}", status_code=fastapi.status.HTTP_200_OK)
 def get_algorithm(
     label: str,
@@ -52,8 +47,7 @@ def get_algorithm(
     return schemas.Algorithm.model_validate(obj)
 
 
-# TODO: test cases
-@router.post("/", status_code=fastapi.status.HTTP_201_CREATED)
+@router.post("", status_code=fastapi.status.HTTP_201_CREATED)
 def create_algorithm(
     data: schemas.Algorithm, session: orm.Session = fastapi.Depends(get_session)
 ) -> schemas.Algorithm:
@@ -63,11 +57,15 @@ def create_algorithm(
     :param data: The algorithm data
     :returns: The created algorithm
     """
-    service.load_algorithm(session, data)
+    try:
+        service.load_algorithm(session, data)
+    except ValueError as exc:
+        raise fastapi.HTTPException(
+            status_code=fastapi.status.HTTP_422_UNPROCESSABLE_ENTITY, detail=str(exc)
+        )
     return data
 
 
-# TODO: test cases
 @router.put("/{label}", status_code=fastapi.status.HTTP_200_OK)
 def update_algorithm(
     label: str, data: schemas.Algorithm, session: orm.Session = fastapi.Depends(get_session)
@@ -82,11 +80,15 @@ def update_algorithm(
     obj = service.get_algorithm(session, label)
     if obj is None:
         raise fastapi.HTTPException(status_code=fastapi.status.HTTP_404_NOT_FOUND)
-    service.load_algorithm(session, data, obj)
+    try:
+        service.load_algorithm(session, data, obj)
+    except ValueError as exc:
+        raise fastapi.HTTPException(
+            status_code=fastapi.status.HTTP_422_UNPROCESSABLE_ENTITY, detail=str(exc)
+        )
     return data
 
 
-# TODO: test cases
 @router.delete("/{label}", status_code=fastapi.status.HTTP_204_NO_CONTENT)
 def delete_algorithm(label: str, session: orm.Session = fastapi.Depends(get_session)) -> None:
     """

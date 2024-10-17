@@ -3,7 +3,6 @@ from unittest import mock
 
 from fastapi import status
 
-from recordlinker import models
 from recordlinker import utils
 
 
@@ -16,19 +15,6 @@ def test_health_check(client):
 def test_openapi(client):
     actual_response = client.get("/openapi.json")
     assert actual_response.status_code == 200
-
-
-@mock.patch("recordlinker.linking.algorithm_service.list_algorithms")
-def test_get_algorithms(patched_subprocess, client):
-    patched_subprocess.return_value = [
-        models.Algorithm(label="dibbs-basic", is_default=True, description="Basic algo", passes=[])
-    ]
-    actual_response = client.get("/algorithm")
-
-    assert actual_response.json() == [
-        {"label": "dibbs-basic", "is_default": True, "description": "Basic algo", "pass_count": 0}
-    ]
-    assert actual_response.status_code == status.HTTP_200_OK
 
 
 @mock.patch("recordlinker.linking.algorithm_service.default_algorithm")
