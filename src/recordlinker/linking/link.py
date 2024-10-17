@@ -98,10 +98,11 @@ def compare(
     results: list[float] = []
     for field, func in funcs.items():
         # TODO: can we do this check earlier?
-        if field not in {i.value for i in schemas.Feature}:
+        feature = getattr(schemas.Feature, field, None)
+        if feature is None:
             raise ValueError(f"Invalid comparison field: {field}")
         # Evaluate the comparison function and append the result to the list
-        result: float = func(record, patient, schemas.Feature(field), **kwargs)  # type: ignore
+        result: float = func(record, patient, feature, **kwargs)  # type: ignore
         results.append(result)
     return matching_rule(results, **kwargs)  # type: ignore
 

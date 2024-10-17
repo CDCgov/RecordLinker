@@ -68,8 +68,8 @@ class TestCompare:
             algorithm_id=1,
             blocking_keys=[1],
             evaluators={
-                "first_name": "func:recordlinker.linking.matchers.feature_match_exact",
-                "last_name": "func:recordlinker.linking.matchers.feature_match_fuzzy_string",
+                "FIRST_NAME": "func:recordlinker.linking.matchers.feature_match_exact",
+                "LAST_NAME": "func:recordlinker.linking.matchers.feature_match_fuzzy_string",
             },
             rule="func:recordlinker.linking.matchers.eval_perfect_match",
             cluster_ratio=1.0,
@@ -108,8 +108,8 @@ class TestCompare:
             algorithm_id=1,
             blocking_keys=[1],
             evaluators={
-                "first_name": "func:recordlinker.linking.matchers.feature_match_exact",
-                "last_name": "func:recordlinker.linking.matchers.feature_match_exact",
+                "FIRST_NAME": "func:recordlinker.linking.matchers.feature_match_exact",
+                "LAST_NAME": "func:recordlinker.linking.matchers.feature_match_exact",
             },
             rule="func:recordlinker.linking.matchers.eval_perfect_match",
             cluster_ratio=1.0,
