@@ -1,7 +1,7 @@
 [
     {
         "label": "dibbs-basic",
-        "description": "Compares the fields of two records using string similarity scoring. If similarity score is above fuzzy threshold then the fields agree. If all fields being considered agree, then the records are a match.",
+        "description": "The DIBBs default algorithm based on field experimentation and statistical analysis, this is a two-pass algorithm combining geographical and personal information to maximize linkage quality while minimizing false positives",
         "is_default": true,
         "passes": [
             {
@@ -55,7 +55,7 @@
     },
     {
         "label": "dibbs-enhanced",
-        "description": "Similair to the basic algorithm with the addition of log odds scoring. String comparison scores are multiplied by unique scoring weights for each field. If the sum of all considered weights is greater than a threshold then the records are a match.",
+        "description": "The DIBBs Log-Odds Algorithm. This optional algorithm uses statistical correction to adjust the links between incoming records and previously processed patients (it does so by taking advantage of the fact that some fields are more informative than others—e.g., two records matching on MRN is stronger evidence that they should be linked than if the records matched on zip code). It can be used if additional granularity in matching links is desired. However, while the DIBBs Log-Odds Algorithm can create higher-quality links, it is dependent on statistical updating and pre-calculated population analysis, which requires some work on the part of the user. For those cases where additional precision or stronger matching criteria are required, the Log-Odds algorithm is detailed below.",
         "is_default": false,
         "passes": [
             {
