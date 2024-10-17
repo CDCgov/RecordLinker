@@ -27,6 +27,8 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         GITHUB_REPO: ${{ github.repository }}
       run: >
+        scripts/open_pulls.sh
+
         PR_LIST=$(scripts/open_pulls.sh)
 
         MSG=":code-review: Open Pull Requests\n\n"
