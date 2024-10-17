@@ -29,8 +29,6 @@ jobs:
       run: >
         PR_LIST=$(scripts/open_pulls.sh)
 
-        echo $PR_LIST
-
         MSG=":code-review: Open Pull Requests\n\n"
 
         while IFS= read -r line; do
@@ -40,6 +38,8 @@ jobs:
         echo "MSG=$MSG" >> $GITHUB_ENV
 
         echo "PR_LIST=$PR_LIST" >> $GITHUB_ENV
+
+        echo $GITHUB_ENV
 
     - name: Post to Slack
       id: slack
