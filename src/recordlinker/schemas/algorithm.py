@@ -50,13 +50,9 @@ class AlgorithmPass(pydantic.BaseModel):
                 getattr(Feature, k)
             except AttributeError:
                 raise ValueError(f"Invalid feature: {k}")
-            try:
-                func = utils.str_to_callable(v)
-                # Ensure the function is a valid feature comparison function
-                if not utils.check_signature(func, matchers.FEATURE_COMPARE_FUNC):
-                    raise ValueError(f"Invalid evaluator: {v}")
-            # Catch an import error if the function cannot be imported
-            except ImportError:
+            func = utils.str_to_callable(v)
+            # Ensure the function is a valid feature comparison function
+            if not utils.check_signature(func, matchers.FEATURE_COMPARE_FUNC):
                 raise ValueError(f"Invalid evaluator: {v}")
         return value
 
@@ -65,13 +61,10 @@ class AlgorithmPass(pydantic.BaseModel):
         """
         Validate the rule into a match rule function.
         """
-        try:
-            func = utils.str_to_callable(value)
-            if not utils.check_signature(func, matchers.MATCH_RULE_FUNC):
-                raise ValueError(f"Invalid matching rule: {value}")
-            return value
-        except ImportError:
+        func = utils.str_to_callable(value)
+        if not utils.check_signature(func, matchers.MATCH_RULE_FUNC):
             raise ValueError(f"Invalid matching rule: {value}")
+        return value
 
 
 class Algorithm(pydantic.BaseModel):

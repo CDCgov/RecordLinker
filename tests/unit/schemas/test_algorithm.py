@@ -47,6 +47,14 @@ class TestAlgorithmPass:
                 rule="func:recordlinker.linking.matchers.eval_perfect_match",
                 cluster_ratio=0.5,
             )
+        evaluators = {"LAST_NAME": "func:recordlinker.linking.matchers.eval_perfect_match"}
+        with pytest.raises(pydantic.ValidationError):
+            AlgorithmPass(
+                blocking_keys=[],
+                evaluators=evaluators,
+                rule="func:recordlinker.linking.matchers.eval_perfect_match",
+                cluster_ratio=0.5,
+            )
         evaluators = {"LAST_NAME": "func:recordlinker.linking.matchers.feature_match_any"}
         # write an assertion that no exception is raised
         AlgorithmPass(
@@ -65,7 +73,15 @@ class TestAlgorithmPass:
                 rule=rule,
                 cluster_ratio=0.5,
             )
-        rule = "func:recordlinker.linking.matchers.eval_perfect_match"
+        rule = "func:recordlinker.linking.matchers.feature_match_any"
+        with pytest.raises(pydantic.ValidationError):
+            AlgorithmPass(
+                blocking_keys=[],
+                evaluators={},
+                rule=rule,
+                cluster_ratio=0.5,
+            )
+        rule = "fn:recordlinker.linking.matchers.eval_perfect_match"
         AlgorithmPass(
             blocking_keys=[],
             evaluators={},

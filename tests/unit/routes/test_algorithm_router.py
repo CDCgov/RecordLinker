@@ -152,6 +152,23 @@ class TestUpdateAlgorithm:
         response = client.put("/algorithm/basic", json={})
         assert response.status_code == 422
 
+    def test_exsiting_default(self, client):
+        algo1 = models.Algorithm(label="default", is_default=True, description="algorithm")
+        algo2 = models.Algorithm(label="basic", is_default=False, description="First algorithm")
+        client.session.add(algo1)
+        client.session.add(algo2)
+        client.session.commit()
+
+        payload = {
+            "label": "basic",
+            "is_default": True,
+            "description": "new default algorithm",
+            "passes": [],
+        }
+        response = client.post("/algorithm", json=payload)
+        assert response.status_code == 422
+
+
     def test_update(self, client):
         algo = models.Algorithm(
             label="basic",
