@@ -1,0 +1,60 @@
+name: "publish release"
+
+on:
+  push:
+    tags:
+      - "v*.*.*"  # This ensures the workflow triggers only on tags matching vX.X.X
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout the repository
+        uses: actions/checkout@v3
+
+      - name: Get the tag name
+        run: echo "TAG_NAME=${GITHUB_REF##*/}" >> $GITHUB_ENV
+
+      - name: Find pre-release draft
+        id: find_draft
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const response = await github.repos.listReleases({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+            });
+
+            // Find the latest pre-release draft
+            const draftRelease = response.data.find(release => release.draft === true);
+
+            if (!draftRelease) {
+              throw new Error('No pre-release draft found');
+            }
+
+            return draftRelease;
+
+      - name: Rename and publish the release
+        id: publish_release
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const release_id = steps.find_draft.outputs.id;
+            const tag_name = process.env.TAG_NAME;
+
+            const updatedRelease = await github.repos.updateRelease({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              release_id,
+              tag_name,
+              name: tag_name, // Rename the release with the tag name
+              draft: false,   // Mark the release as final
+              prerelease: false // Ensure it's marked as a full release
+            });
+
+            return updatedRelease;
+          
+      - name: Confirm release
+        run: echo "Release published as ${{ env.TAG_NAME }}"
+
