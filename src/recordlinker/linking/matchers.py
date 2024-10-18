@@ -95,10 +95,10 @@ def feature_match_any(
     :param key: The name of the column being evaluated (e.g. "city").
     :return: A float indicating whether the features are an exact match.
     """
-    rec_values = set(record.field_iter(key))
+    rec_values = set(record.feature_iter(key))
     if not rec_values:
         return 0
-    pat_values = set(patient.record.field_iter(key))
+    pat_values = set(patient.record.feature_iter(key))
     return float(bool(rec_values & pat_values))
 
 
@@ -114,10 +114,10 @@ def feature_match_exact(
     :param key: The name of the column being evaluated (e.g. "city").
     :return: A float indicating whether the features are an exact match.
     """
-    rec_values = set(record.field_iter(key))
+    rec_values = set(record.feature_iter(key))
     if not rec_values:
         return 0
-    pat_values = set(patient.record.field_iter(key))
+    pat_values = set(patient.record.feature_iter(key))
     return float(rec_values == pat_values)
 
 
@@ -138,8 +138,8 @@ def feature_match_fuzzy_string(
     """
     similarity_measure, threshold = _get_fuzzy_params(str(key), **kwargs)
     comp_func = getattr(rapidfuzz.distance, similarity_measure).normalized_similarity
-    for x in record.field_iter(key):
-        for y in patient.record.field_iter(key):
+    for x in record.feature_iter(key):
+        for y in patient.record.feature_iter(key):
             score = comp_func(x, y)
             if score >= threshold:
                 return 1
@@ -168,8 +168,8 @@ def feature_match_log_odds_fuzzy_compare(
     similarity_measure, threshold = _get_fuzzy_params(str(key), **kwargs)
     comp_func = getattr(rapidfuzz.distance, similarity_measure).normalized_similarity
     max_score = 0.0
-    for x in patient.record.field_iter(key):
-        for y in record.field_iter(key):
+    for x in patient.record.feature_iter(key):
+        for y in record.feature_iter(key):
             # for each permutation of values, find the score and record it if its
             # larger than any previous score
             max_score = max(comp_func(x, y), max_score)
