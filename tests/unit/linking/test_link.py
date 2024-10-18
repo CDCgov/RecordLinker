@@ -136,7 +136,7 @@ class TestLinkRecordAgainstMpi:
         matches: list[bool] = []
         mapped_patients: dict[str, int] = collections.defaultdict(int)
         for patient in patients[:2]:
-            matched, pid, _patient_reference_id = link.link_record_against_mpi(patient, session, basic_algorithm)
+            matched, pid, _ = link.link_record_against_mpi(patient, session, basic_algorithm)
             matches.append(matched)
             mapped_patients[pid] += 1
 
@@ -149,7 +149,7 @@ class TestLinkRecordAgainstMpi:
         matches: list[bool] = []
         mapped_patients: dict[str, int] = collections.defaultdict(int)
         for patient in patients:
-            matched, pid, _patient_reference_id = link.link_record_against_mpi(patient, session, basic_algorithm)
+            matched, pid, _ = link.link_record_against_mpi(patient, session, basic_algorithm)
             matches.append(matched)
             mapped_patients[pid] += 1
 
@@ -174,7 +174,7 @@ class TestLinkRecordAgainstMpi:
         matches: list[bool] = []
         mapped_patients: dict[str, int] = collections.defaultdict(int)
         for patient in patients:
-            matched, pid, _patient_reference_id = link.link_record_against_mpi(patient, session, enhanced_algorithm)
+            matched, pid, _ = link.link_record_against_mpi(patient, session, enhanced_algorithm)
             matches.append(matched)
             mapped_patients[pid] += 1
 
