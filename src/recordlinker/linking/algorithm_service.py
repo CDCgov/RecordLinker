@@ -74,7 +74,7 @@ def load_algorithm(
     algo = data.model_dump()
     passes = algo.pop("passes")
     # use the existing Algorithm or create a new one
-    created = False if obj else True
+    created = obj is None
     obj = obj or models.Algorithm()
     # Create and add the Algorithm
     for key, value in algo.items():

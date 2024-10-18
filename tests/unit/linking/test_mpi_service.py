@@ -51,7 +51,7 @@ class TestInsertPatient:
         assert patient.data["name"] == [{"given": ["Johnathon", "Bill",], "family": "Smith"}]
         assert patient.external_person_id is None
         assert patient.external_person_source is None
-        assert patient.person.internal_id is not None
+        assert patient.person.reference_id is not None
         assert patient.person.id == patient.person_id
         assert len(patient.blocking_values) == 4
 
@@ -64,7 +64,7 @@ class TestInsertPatient:
         assert patient.data["name"] == [{"given": ["Johnathon",], "family": "Smith"}]
         assert patient.external_person_id == "123456"
         assert patient.external_person_source == "IRIS"
-        assert patient.person.internal_id is not None
+        assert patient.person.reference_id is not None
         assert patient.person.id is not None
         assert patient.person.id == patient.person_id
         assert len(patient.blocking_values) == 3

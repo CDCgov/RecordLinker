@@ -1,4 +1,5 @@
 import copy
+import uuid
 from pathlib import Path
 from typing import Annotated
 from typing import Optional
@@ -14,6 +15,7 @@ from pydantic import Field
 from sqlalchemy import orm
 from sqlalchemy.sql import expression
 
+from recordlinker import schemas
 from recordlinker import utils
 from recordlinker.base_service import BaseService
 from recordlinker.database import get_session
@@ -78,6 +80,41 @@ class LinkRecordResponse(BaseModel):
     )
 
 
+class LinkInput(BaseModel):
+    """
+    Schema for requests to the /linking endpoint.
+    """
+
+    record: schemas.PIIRecord = Field(description="A PIIRecord to be checked")
+    algorithm: Optional[str] = Field(
+        description="Optionally, a string that maps to an algorithm label stored in "
+        "algorithm table",
+        default=None,
+    )
+    external_person_id: Optional[str] = Field(
+        description="The External Identifier, provided by the client,"
+        " for a unique patient/person that is linked to patient(s)",
+        default=None,
+    )
+
+
+class LinkResponse(BaseModel):
+    """
+    Schema for requests to the /link endpoint.
+    """
+
+    is_match: bool = Field(
+        description="A true value indicates that one or more existing records "
+        "matched with the provided record, and these results have been linked."
+    )
+    patient_reference_id: uuid.UUID = Field(
+        description="The unique identifier for the patient that has been linked"
+    )
+    person_reference_id: uuid.UUID = Field(
+        description="The identifier for the person that the patient record has " "been linked to.",
+    )
+
+
 class HealthCheckResponse(BaseModel):
     """
     The schema for response from the record linkage health check endpoint.
@@ -122,12 +159,8 @@ async def link_record(
     input_bundle = input.bundle
     external_id = input.external_person_id
 
-    # get label from params
-    algorithm_label = input.algorithm
-
-    # if we do have an algorithm label specified
-    if algorithm_label:
-        algorithm = algorithm_service.get_algorithm(db_session, algorithm_label)
+    if input.algorithm:
+        algorithm = algorithm_service.get_algorithm(db_session, input.algorithm)
     else:
         algorithm = algorithm_service.default_algorithm(db_session)
 
@@ -154,18 +187,19 @@ async def link_record(
             message="Supplied bundle contains no Patient resource to link on.",
         )
 
+    # convert record to PII
+    pii_record: schemas.PIIRecord = link.fhir_record_to_pii_record(record_to_link)
+
     # Now link the record
     try:
-        # Make a copy of record_to_link so we don't modify the original
-        record = copy.deepcopy(record_to_link)
-        (found_match, new_person_id) = link.link_record_against_mpi(
-            record=record,
+        (found_match, new_person_id, _) = link.link_record_against_mpi(
+            record=pii_record,
             session=db_session,
             algorithm=algorithm,
             external_person_id=external_id,
         )
         updated_bundle = link.add_person_resource(
-            new_person_id, record_to_link.get("id", ""), input_bundle
+            str(new_person_id), pii_record.external_id, input_bundle
         )
         return LinkRecordResponse(found_match=found_match, updated_bundle=updated_bundle)
 
@@ -176,3 +210,49 @@ async def link_record(
             updated_bundle=input_bundle,
             message=f"Could not connect to database: {err}",
         )
+
+
+@app.post("/link")
+async def link_piirecord(
+    request: Request,
+    input: Annotated[LinkInput, Body()],
+    response: Response,
+    db_session: orm.Session = Depends(get_session),
+) -> LinkResponse:
+    """
+    Compare a PII Reocrd with records in the Master Patient Index (MPI) to
+    check for matches with existing patient records If matches are found,
+    returns the patient and person reference id's
+    """
+    pii_record = input.record
+
+    external_id = input.external_person_id
+
+    if input.algorithm:
+        algorithm = algorithm_service.get_algorithm(db_session, input.algorithm)
+    else:
+        algorithm = algorithm_service.default_algorithm(db_session)
+
+    if not algorithm:
+        response.status_code = status.HTTP_422_UNPROCESSABLE_ENTITY
+        raise HTTPException(status_code=422, detail="Error: Invalid algorithm specified")
+
+    # link the record
+    try:
+        # Make a copy of record_to_link so we don't modify the original
+        record = copy.deepcopy(pii_record)
+        (found_match, new_person_id, patient_reference_id) = link.link_record_against_mpi(
+            record=record,
+            session=db_session,
+            algorithm=algorithm,
+            external_person_id=external_id,
+        )
+        return LinkResponse(
+            is_match=found_match,
+            patient_reference_id=patient_reference_id,
+            person_reference_id=new_person_id,
+        )
+
+    except ValueError:
+        response.status_code = status.HTTP_400_BAD_REQUEST
+        raise HTTPException(status_code=400, detail="Error: Bad request")

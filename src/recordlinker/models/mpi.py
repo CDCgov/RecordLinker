@@ -19,7 +19,7 @@ class Person(Base):
     __tablename__ = "mpi_person"
 
     id: orm.Mapped[int] = orm.mapped_column(get_bigint_pk(), autoincrement=True, primary_key=True)
-    internal_id: orm.Mapped[uuid.UUID] = orm.mapped_column(default=uuid.uuid4)
+    reference_id: orm.Mapped[uuid.UUID] = orm.mapped_column(default=uuid.uuid4)
     patients: orm.Mapped[list["Patient"]] = orm.relationship(back_populates="person")
 
     def __hash__(self):
@@ -50,6 +50,7 @@ class Patient(Base):
     external_person_id: orm.Mapped[str] = orm.mapped_column(sqltypes.String(255), nullable=True)
     external_person_source: orm.Mapped[str] = orm.mapped_column(sqltypes.String(100), nullable=True)
     blocking_values: orm.Mapped[list["BlockingValue"]] = orm.relationship(back_populates="patient")
+    reference_id: orm.Mapped[uuid.UUID] = orm.mapped_column(default=uuid.uuid4)
 
     @classmethod
     def _scrub_empty(cls, data: dict) -> dict:

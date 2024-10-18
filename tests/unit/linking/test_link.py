@@ -124,17 +124,18 @@ class TestLinkRecordAgainstMpi:
     def patients(self):
         bundle = load_json_asset("simple_patient_bundle_to_link_with_mpi.json")
         patients = []
+        patients: list[schemas.PIIRecord] = []
         for entry in bundle["entry"]:
             if entry.get("resource", {}).get("resourceType", {}) == "Patient":
-                patients.append(entry["resource"])
+                patients.append(link.fhir_record_to_pii_record(entry["resource"]))
         return patients
 
     def test_basic_match_one(self, session, basic_algorithm, patients):
         # Test various null data values in incoming record
         matches: list[bool] = []
         mapped_patients: dict[str, int] = collections.defaultdict(int)
-        for idx, patient in enumerate(patients[:2]):
-            matched, pid = link.link_record_against_mpi(patient, session, basic_algorithm)
+        for patient in patients[:2]:
+            matched, pid, _patient_reference_id = link.link_record_against_mpi(patient, session, basic_algorithm)
             matches.append(matched)
             mapped_patients[pid] += 1
 
@@ -147,7 +148,7 @@ class TestLinkRecordAgainstMpi:
         matches: list[bool] = []
         mapped_patients: dict[str, int] = collections.defaultdict(int)
         for patient in patients:
-            matched, pid = link.link_record_against_mpi(patient, session, basic_algorithm)
+            matched, pid, _patient_reference_id = link.link_record_against_mpi(patient, session, basic_algorithm)
             matches.append(matched)
             mapped_patients[pid] += 1
 
@@ -163,16 +164,16 @@ class TestLinkRecordAgainstMpi:
         assert matches == [False, True, False, True, False, False]
         assert sorted(list(mapped_patients.values())) == [1, 1, 1, 3]
 
-    def test_enhanced_match_three(self, session, enhanced_algorithm, patients):
+    def test_enhanced_match_three(self, session, enhanced_algorithm, patients: list[schemas.PIIRecord]):
         # add an additional patient that will fuzzy match to patient 0
         patient0_copy = copy.deepcopy(patients[0])
-        patient0_copy["id"] = str(uuid.uuid4())
-        patient0_copy["name"][0]["given"][0] = "Jhon"
+        patient0_copy.external_id = str(uuid.uuid4())
+        patient0_copy.name[0].given[0] = "Jhon"
         patients.append(patient0_copy)
         matches: list[bool] = []
         mapped_patients: dict[str, int] = collections.defaultdict(int)
         for patient in patients:
-            matched, pid = link.link_record_against_mpi(patient, session, enhanced_algorithm)
+            matched, pid, _patient_reference_id = link.link_record_against_mpi(patient, session, enhanced_algorithm)
             matches.append(matched)
             mapped_patients[pid] += 1
 
