@@ -37,8 +37,8 @@ class Algorithm(Base):
         Returns:
         The Algorithm instance.
         """
-        data["passes"] = [AlgorithmPass(**p) for p in data.get("passes", [])]
-        return cls(**data)
+        passes = [AlgorithmPass(**p) for p in data.pop("passes", [])]
+        return cls(passes=passes, **data)
 
 
 def check_only_one_default(mapping, connection, target):
@@ -134,7 +134,7 @@ class AlgorithmPass(Base):
 
 
 @event.listens_for(schema.MetaData, "after_create")
-def create_initial_algorithms(target, connection, **kw) -> typing.List[Algorithm]:
+def create_initial_algorithms(target, connection, **kw) -> typing.List[Algorithm] | None:
     """
     Create the initial algorithms if they have been defined in the configuration.
     This function is called after the database schema has been created in the
@@ -163,3 +163,4 @@ def create_initial_algorithms(target, connection, **kw) -> typing.List[Algorithm
             raise exc
         finally:
             session.close()
+    return None

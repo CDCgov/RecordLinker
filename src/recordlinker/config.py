@@ -37,7 +37,7 @@ class Settings(pydantic_settings.BaseSettings):
         description=(
             "The path to the initial algorithms file that is loaded on startup if the "
             "algorithms table is empty.  This file should be in JSON format.  If the "
-            "value is an empty string, no algorithms will be loaded.",
+            "value is an empty string, no algorithms will be loaded."
         ),
         default="assets/initial_algorithms.json",
     )
