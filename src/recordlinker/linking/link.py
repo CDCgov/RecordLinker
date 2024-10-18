@@ -7,6 +7,7 @@ This module is used to run the linkage algorithm using the MPI service
 
 import collections
 import typing
+import uuid
 
 import pydantic
 from opentelemetry import trace
@@ -53,7 +54,7 @@ def fhir_record_to_pii_record(fhir_record: dict) -> schemas.PIIRecord:
 # TODO: This is a FHIR specific function, should be moved to a FHIR module
 def add_person_resource(
     person_id: str,
-    patient_id: str,
+    patient_id: typing.Optional[str] = "",
     bundle: dict = pydantic.Field(description="A FHIR bundle"),
 ) -> dict:
     """
@@ -92,7 +93,7 @@ def compare(
     funcs: dict[str, matchers.FEATURE_COMPARE_FUNC] = algorithm_pass.bound_evaluators()
     # a function to determine a match based on the comparison results
     matching_rule: matchers.MATCH_RULE_FUNC = algorithm_pass.bound_rule()
-    # # keyword arguments to pass to comparison functions and matching rule
+    # keyword arguments to pass to comparison functions and matching rule
     kwargs: dict[typing.Any, typing.Any] = algorithm_pass.kwargs
 
     results: list[float] = []
@@ -105,13 +106,12 @@ def compare(
         results.append(result)
     return matching_rule(results, **kwargs)  # type: ignore
 
-
 def link_record_against_mpi(
-    record: dict,
+    record: schemas.PIIRecord,
     session: orm.Session,
     algorithm: models.Algorithm,
     external_person_id: typing.Optional[str] = None,
-) -> tuple[bool, str]:
+) -> tuple[bool, uuid.UUID, uuid.UUID]:
     """
     Runs record linkage on a single incoming record (extracted from a FHIR
     bundle) using an existing database as an MPI. Uses a flexible algorithm
@@ -122,7 +122,7 @@ def link_record_against_mpi(
     the new record is linked to the person with the strongest membership
     percentage.
 
-    :param record: The FHIR-formatted patient resource to try to match to
+    :param record: The PIIRecord to try to match to
       other records in the MPI.
     :param session: The SQLAlchemy session to use for database operations.
     :param algorithm: An algorithm configuration object
@@ -131,9 +131,6 @@ def link_record_against_mpi(
       Person entity now associated with the incoming patient (either a
       new Person ID or the ID of an existing matched Person).
     """
-    # Extract the PII values from the incoming record
-    pii_record: schemas.PIIRecord = fhir_record_to_pii_record(record)
-
     # Membership scores need to persist across linkage passes so that we can
     # find the highest scoring match across all passes
     scores: dict[models.Person, float] = collections.defaultdict(float)
@@ -146,7 +143,7 @@ def link_record_against_mpi(
             # block on the pii_record and the algorithm's blocking criteria, then
             # iterate over the patients, grouping them by person
             with TRACER.start_as_current_span("link.block"):
-                patients = mpi_service.get_block_data(session, pii_record, algorithm_pass)
+                patients = mpi_service.get_block_data(session, record, algorithm_pass)
                 for patient in patients:
                     clusters[patient.person].append(patient)
 
@@ -158,7 +155,7 @@ def link_record_against_mpi(
                     for patient in patients:
                         # increment our match count if the pii_record matches the patient
                         with TRACER.start_as_current_span("link.compare"):
-                            if compare(pii_record, patient, algorithm_pass):
+                            if compare(record, patient, algorithm_pass):
                                 matched_count += 1
                     # calculate the match ratio for this person cluster
                     match_ratio = matched_count / len(patients)
@@ -175,10 +172,11 @@ def link_record_against_mpi(
     with TRACER.start_as_current_span("insert"):
         patient = mpi_service.insert_patient(
             session,
-            pii_record,
+            record,
             matched_person,
-            pii_record.external_id,
+            record.external_id,
             external_person_id,
         )
+
     # return a tuple indicating whether a match was found and the person ID
-    return (bool(matched_person), str(patient.person.internal_id))
+    return (bool(matched_person), patient.person.reference_id, patient.reference_id)
