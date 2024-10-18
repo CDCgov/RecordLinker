@@ -22,12 +22,13 @@ def project_root() -> pathlib.Path:
     return root
 
 
-def read_json_from_assets(*filepaths: str) -> dict:
+def read_json(*filepaths: str) -> dict:
     """
-    Loads a JSON file from the 'assets' directory.
+    Loads a JSON file.
     """
-    filename = pathlib.Path(project_root(), "assets", *filepaths)
-    return json.load(open(filename))
+    filename = pathlib.Path(project_root(), *filepaths)
+    with open(filename, "r") as fobj:
+        return json.load(fobj)
 
 
 def bind_functions(data: dict) -> dict:

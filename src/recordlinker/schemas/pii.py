@@ -13,15 +13,15 @@ class Feature(enum.Enum):
     Enum for the different Patient attributes that can be used for comparison.
     """
 
-    BIRTHDATE = "birthdate"
-    MRN = "mrn"
-    SEX = "sex"
-    FIRST_NAME = "first_name"
-    LAST_NAME = "last_name"
-    ADDRESS = "address"
-    CITY = "city"
-    STATE = "state"
-    ZIP = "zip"
+    BIRTHDATE = "BIRTHDATE"
+    MRN = "MRN"
+    SEX = "SEX"
+    FIRST_NAME = "FIRST_NAME"
+    LAST_NAME = "LAST_NAME"
+    ADDRESS = "ADDRESS"
+    CITY = "CITY"
+    STATE = "STATE"
+    ZIP = "ZIP"
 
     def __str__(self):
         """
