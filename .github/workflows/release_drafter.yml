@@ -73,7 +73,8 @@ jobs:
           # Extract the release notes
           release_notes=$(echo "$response" | jq -r '.body')
           echo "Generated release notes: $release_notes"
-          echo "RELEASE_NOTES=$release_notes" >> $GITHUB_ENV
+          # Add the release notes to the GITHUB_ENV variable using printf to preserve newlines
+          printf "RELEASE_NOTES<<EOF\n%s\nEOF" "$release_notes" >> $GITHUB_ENV
 
       # Step 4: Update or create the draft release
       - name: Create or update draft release
