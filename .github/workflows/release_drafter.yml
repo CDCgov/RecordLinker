@@ -2,25 +2,99 @@ name: "release drafter"
 
 on:
   push:
-    # branches to consider in the event; optional, defaults to all
-    branches:
-      - master
-      - feature/64-auto-releases
-
-permissions:
-  contents: read
+    branches: [main]
+  pull_request:
+    branches: [main]
 
 jobs:
-  update_release_draft:
-    permissions:
-      # write permission is required to create a github release
-      contents: write
-      # write permission is required for autolabeler
-      # otherwise, read permission is required at least
-      pull-requests: write
+  update_release:
     runs-on: ubuntu-latest
+
     steps:
-      # Drafts your next Release notes as Pull Requests are merged into "master"
-      - uses: release-drafter/release-drafter@v6
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      # Step 1: Checkout the repository
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      # Step 2: Calculate the next tag name
+      - name: Next tag
+        id: next_tag
+        run: |
+          # Get the current two digit year
+          year=$(date +"%y")
+          # Get the latest tag
+          latest_tag=$(git describe --tags --match "v*" --abbrev=0 $(git rev-list --tags --max-count=1) 2>/dev/null || echo "")
+          # Count the number of commits on main since the last tag
+          commits=$(git rev-list --count $latest_tag..main)
+          # Get latest tag for the current year
+          latest_tag_for_year=$(git describe --tags --match "v${year}.*" --abbrev=0 $(git rev-list --tags --max-count=1) 2>/dev/null || echo "")
+          # If no tags found for the current year, start from v${year}.0
+          if [ -z "$latest_tag_for_year" ]; then
+              next_feature_ver="1"
+          else
+              # Get the latest tag number
+              next_feature_ver=$(($(echo $latest_tag_for_year | cut -d '.' -f 2) + 1))
+          fi
+          echo "::set-output name=latest_tag::$latest_tag"
+          echo "::set-output name=next_tag::v${year}.${next_feature_ver}.0-rc.${commits}"
+
+      # Step 2: Get the latest release tag and check for an existing draft release
+      - name: Get existing draft release
+        id: get_release
+        run: |
+          # Get existing draft release (if any)
+          response=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+            "https://api.github.com/repos/${{ github.repository }}/releases")
+
+          # Check if there is a draft release
+          draft_release=$(echo "$response" | jq '.[] | select(.draft == true)')
+          if [[ -n "$draft_release" ]]; then
+            echo "::set-output name=draft_exists::true"
+            echo "::set-output name=draft_release_id::$(echo $draft_release | jq -r '.id')"
+          else
+            echo "::set-output name=draft_exists::false"
+          fi
+
+      # Step 3: Generate release notes comparing the latest tag and main branch
+      - name: Generate release notes
+        id: generate_notes
+        run: |
+          latest_tag=${{ steps.next_tag.outputs.latest_tag }}
+          echo "Latest tag: $latest_tag"
+          next_tag=${{ steps.next_tag.outputs.next_tag }}
+          echo "Next tag: $next_tag"
+
+          # Generate release notes using the GitHub API
+          response=$(curl -s -X POST \
+            -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+            -H "Accept: application/vnd.github+json" \
+            -d "{\"tag_name\":\"$next_tag\",\"target_commitish\":\"main\",\"previous_tag_name\":\"$latest_tag\"}" \
+            "https://api.github.com/repos/${{ github.repository }}/releases/generate-notes")
+
+          # Extract the release notes
+          release_notes=$(echo "$response" | jq -r '.body')
+          echo "Generated release notes: $release_notes"
+          echo "::set-output name=release_notes::$release_notes"
+
+      # Step 4: Update or create the draft release
+      - name: Create or update draft release
+        run: |
+          next_tag=${{ steps.next_tag.outputs.next_tag }}
+          echo "Next tag: $next_tag"
+          release_notes=${{ steps.generate_notes.outputs.release_notes }}
+          echo "Release notes: $release_notes"
+
+          if [ "${{ steps.get_release.outputs.draft_exists }}" == "true" ]; then
+            # Update the existing draft release
+            curl -s -X PATCH \
+              -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+              -H "Accept: application/vnd.github+json" \
+              -d "{\"tag_name\": \"$next_tag\", \"name\": \"$next_tag\", \"body\": \"$release_notes\", \"draft\": true}" \
+              "https://api.github.com/repos/${{ github.repository }}/releases/${{ steps.get_release.outputs.draft_release_id }}"
+          else
+            # Create a new draft release
+            curl -s -X POST \
+              -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+              -H "Accept: application/vnd.github+json" \
+              -d "{\"tag_name\": \"$next_tag\", \"target_commitish\": \"main\", \"name\": \"$next_tag\", \"body\": \"$release_notes\", \"draft\": true}" \
+              "https://api.github.com/repos/${{ github.repository }}/releases"
+          fi
