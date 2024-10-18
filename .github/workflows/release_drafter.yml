@@ -81,14 +81,14 @@ jobs:
         run: |
           if [ "${{ steps.get_release.outputs.draft_exists }}" == "true" ]; then
             # Update the existing draft release
-            curl -s -X PATCH \
+            echo curl -s -X PATCH \
               -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
               -H "Accept: application/vnd.github+json" \
               -d "{\"tag_name\": \"${{ env.NEXT_TAG }}\", \"name\": \"${{ env.NEXT_TAG }}\", \"body\": \"${{ env.RELEASE_NOTES }}\", \"draft\": true}" \
               "https://api.github.com/repos/${{ github.repository }}/releases/${{ env.DRAFT_RELEASE_ID }}"
           else
             # Create a new draft release
-            curl -s -X POST \
+            echo curl -s -X POST \
               -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
               -H "Accept: application/vnd.github+json" \
               -d "{\"tag_name\": \"${{ env.NEXT_TAG }}\", \"target_commitish\": \"main\", \"name\": \"${{ env.NEXT_TAG }}\", \"body\": \"${{ env.RELEASE_NOTES }}\", \"draft\": true}" \
