@@ -17,6 +17,12 @@ jobs:
         with:
           fetch-depth: 0 # Fetch all history for tags
 
+      - name: List tags
+        run: git tag --list
+
+      - name: List branches
+        run: git branch -a
+
       # Step 2: Calculate the next tag name
       - name: Next tag
         id: next_tag
