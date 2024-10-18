@@ -17,12 +17,6 @@ jobs:
         with:
           fetch-depth: 0 # Fetch all history for tags
 
-      - name: List tags
-        run: git tag --list
-
-      - name: List branches
-        run: git branch -a
-
       # Step 2: Calculate the next tag name
       - name: Next tag
         id: next_tag
@@ -32,7 +26,7 @@ jobs:
           # Get the latest tag
           latest_tag=$(git describe --tags --match "v*" --abbrev=0 $(git rev-list --tags --max-count=1) 2>/dev/null || echo "")
           # Count the number of commits on main since the last tag
-          commits=$(git rev-list --count $latest_tag..main --)
+          commits=$(git rev-list --count $latest_tag..HEAD --)
           # Get latest tag for the current year
           latest_tag_for_year=$(git describe --tags --match "v${year}.*" --abbrev=0 $(git rev-list --tags --max-count=1) 2>/dev/null || echo "")
           # If no tags found for the current year, start from v${year}.0
