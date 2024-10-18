@@ -140,13 +140,12 @@ def create_initial_algorithms(target, connection, **kw) -> typing.List[Algorithm
     This function is called after the database schema has been created in the
     recordlinker.database.create_sessionmaker function.
     """
-    LOGGER.warning(f"VALUE: {settings.initial_algorithms}")
     if settings.initial_algorithms:
         try:
             data = utils.read_json(settings.initial_algorithms)
         except Exception as exc:
-            raise ConfigurationError(f"Error loading initial algorithms: {exc}")
-        if not any(algo["is_default"] for algo in data):
+            raise ConfigurationError("Error loading initial algorithms") from exc
+        if not any(algo.get("is_default") for algo in data):
             raise ConfigurationError(f"No default algorithm found in {settings.initial_algorithms}")
 
         session = orm.Session(bind=connection)
@@ -160,7 +159,7 @@ def create_initial_algorithms(target, connection, **kw) -> typing.List[Algorithm
                 return objs
         except Exception as exc:
             session.rollback()
-            raise exc
+            raise ConfigurationError("Error creating initial algorithms") from exc
         finally:
             session.close()
     return None

@@ -68,6 +68,44 @@ class TestAlgorithm:
         # should not raise any value errors
         session.commit()
 
+    def test_from_dict_no_passes(self):
+        data = {
+            "label": "Algorithm 1",
+            "description": "First algorithm",
+        }
+        algo = models.Algorithm.from_dict(**data)
+        assert algo.label == "Algorithm 1"
+        assert algo.description == "First algorithm"
+        assert algo.passes == []
+
+    def test_from_dict_with_passes(self):
+        data = {
+            "label": "Algorithm 1",
+            "description": "First algorithm",
+            "passes": [
+                {
+                    "blocking_keys": ["ZIP"],
+                    "evaluators": {
+                        "FIRST_NAME": "func:recordlinker.linking.matchers.feature_match_exact",
+                        "LAST_NAME": "func:recordlinker.linking.matchers.feature_match_exact",
+                    },
+                    "rule": "func:recordlinker.linking.matchers.eval_perfect_match",
+                    "cluster_ratio": 1.0,
+                }
+            ],
+        }
+        algo = models.Algorithm.from_dict(**data)
+        assert algo.label == "Algorithm 1"
+        assert algo.description == "First algorithm"
+        assert len(algo.passes) == 1
+        assert algo.passes[0].blocking_keys == ["ZIP"]
+        assert algo.passes[0].evaluators == {
+            "FIRST_NAME": "func:recordlinker.linking.matchers.feature_match_exact",
+            "LAST_NAME": "func:recordlinker.linking.matchers.feature_match_exact",
+        }
+        assert algo.passes[0].rule == "func:recordlinker.linking.matchers.eval_perfect_match"
+        assert algo.passes[0].cluster_ratio == 1.0
+
 
 class TestAlgorithmPass:
     def test_bound_evaluators(self):
@@ -114,6 +152,16 @@ class TestCreateInitialAlgorithms:
         with unittest.mock.patch("recordlinker.utils.read_json") as read_json:
             read_json.return_value = [{"is_default": False}]
             with pytest.raises(config.ConfigurationError, match="No default algorithm found"):
+                models.create_initial_algorithms(None, session.connection())
+
+    def test_invalid_algorithm(self, monkeypatch, session):
+        """
+        Tests that an invalid algorithm raises a ValueError
+        """
+        monkeypatch.setattr(config.settings, "initial_algorithms", "file.json")
+        with unittest.mock.patch("recordlinker.utils.read_json") as read_json:
+            read_json.return_value = [{"labell": "Algorithm 1", "is_default": True}]
+            with pytest.raises(config.ConfigurationError, match="Error creating initial algorithms"):
                 models.create_initial_algorithms(None, session.connection())
 
     def test_create_initial_algorithms(self, monkeypatch, session):
