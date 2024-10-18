@@ -14,6 +14,8 @@ jobs:
       # Step 1: Checkout the repository
       - name: Checkout code
         uses: actions/checkout@v3
+        with:
+          fetch-depth: 0 # Fetch all history for tags
 
       # Step 2: Calculate the next tag name
       - name: Next tag
