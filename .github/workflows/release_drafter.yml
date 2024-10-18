@@ -36,8 +36,10 @@ jobs:
               # Get the latest tag number
               next_feature_ver=$(($(echo $latest_tag_for_year | cut -d '.' -f 2) + 1))
           fi
-          echo "::set-output name=latest_tag::$latest_tag"
-          echo "::set-output name=next_tag::v${year}.${next_feature_ver}.0-rc.${commits}"
+          echo "Latest tag: $latest_tag"
+          echo "LATEST_TAG=$latest_tag" >> $GITHUB_ENV
+          echo "Next tag: v${year}.${next_feature_ver}.0-rc.${commits}"
+          echo "NEXT_TAG=v${year}.${next_feature_ver}.0-rc.${commits}" >> $GITHUB_ENV
 
       # Step 2: Get the latest release tag and check for an existing draft release
       - name: Get existing draft release
@@ -50,53 +52,44 @@ jobs:
           # Check if there is a draft release
           draft_release=$(echo "$response" | jq '.[] | select(.draft == true)')
           if [[ -n "$draft_release" ]]; then
-            echo "::set-output name=draft_exists::true"
-            echo "::set-output name=draft_release_id::$(echo $draft_release | jq -r '.id')"
+            echo "DRAFT_EXISTS=true" >> $GITHUB_ENV
+            echo "Draft release found: $(echo $draft_release | jq -r '.tag_name')"
+            echo "DRAFT_RELEASE_ID=$(echo $draft_release | jq -r '.id')" >> $GITHUB_ENV
           else
-            echo "::set-output name=draft_exists::false"
+            echo "DRAFT_EXISTS=false" >> $GITHUB_ENV
           fi
 
       # Step 3: Generate release notes comparing the latest tag and main branch
       - name: Generate release notes
         id: generate_notes
         run: |
-          latest_tag=${{ steps.next_tag.outputs.latest_tag }}
-          echo "Latest tag: $latest_tag"
-          next_tag=${{ steps.next_tag.outputs.next_tag }}
-          echo "Next tag: $next_tag"
-
           # Generate release notes using the GitHub API
           response=$(curl -s -X POST \
             -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
             -H "Accept: application/vnd.github+json" \
-            -d "{\"tag_name\":\"$next_tag\",\"target_commitish\":\"main\",\"previous_tag_name\":\"$latest_tag\"}" \
+            -d "{\"tag_name\":\"${{ env.NEXT_TAG }}\",\"target_commitish\":\"main\",\"previous_tag_name\":\"${{ env.LATEST_TAG }}\"}" \
             "https://api.github.com/repos/${{ github.repository }}/releases/generate-notes")
 
           # Extract the release notes
           release_notes=$(echo "$response" | jq -r '.body')
           echo "Generated release notes: $release_notes"
-          echo "::set-output name=release_notes::$release_notes"
+          echo "RELEASE_NOTES=$release_notes" >> $GITHUB_ENV
 
       # Step 4: Update or create the draft release
       - name: Create or update draft release
         run: |
-          next_tag=${{ steps.next_tag.outputs.next_tag }}
-          echo "Next tag: $next_tag"
-          release_notes=${{ steps.generate_notes.outputs.release_notes }}
-          echo "Release notes: $release_notes"
-
           if [ "${{ steps.get_release.outputs.draft_exists }}" == "true" ]; then
             # Update the existing draft release
             curl -s -X PATCH \
               -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
               -H "Accept: application/vnd.github+json" \
-              -d "{\"tag_name\": \"$next_tag\", \"name\": \"$next_tag\", \"body\": \"$release_notes\", \"draft\": true}" \
-              "https://api.github.com/repos/${{ github.repository }}/releases/${{ steps.get_release.outputs.draft_release_id }}"
+              -d "{\"tag_name\": \"${{ env.NEXT_TAG }}\", \"name\": \"${{ env.NEXT_TAG }}\", \"body\": \"${{ env.RELEASE_NOTES }}\", \"draft\": true}" \
+              "https://api.github.com/repos/${{ github.repository }}/releases/${{ env.DRAFT_RELEASE_ID }}"
           else
             # Create a new draft release
             curl -s -X POST \
               -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
               -H "Accept: application/vnd.github+json" \
-              -d "{\"tag_name\": \"$next_tag\", \"target_commitish\": \"main\", \"name\": \"$next_tag\", \"body\": \"$release_notes\", \"draft\": true}" \
+              -d "{\"tag_name\": \"${{ env.NEXT_TAG }}\", \"target_commitish\": \"main\", \"name\": \"${{ env.NEXT_TAG }}\", \"body\": \"${{ env.RELEASE_NOTES }}\", \"draft\": true}" \
               "https://api.github.com/repos/${{ github.repository }}/releases"
           fi
