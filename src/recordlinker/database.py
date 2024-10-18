@@ -37,9 +37,9 @@ def get_session() -> typing.Iterator[orm.Session]:
         try:
             yield session
             session.commit()
-        except Exception:
+        except Exception as exc:
             session.rollback()
-            raise
+            raise exc
         finally:
             session.close()
 

@@ -146,7 +146,7 @@ class TestPIIRecord:
         assert list(record.field_iter(pii.Feature.ADDRESS)) == ["123 Main St", "456 Elm St"]
         assert list(record.field_iter(pii.Feature.CITY)) == ["Anytown", "Somecity"]
         assert list(record.field_iter(pii.Feature.STATE)) == ["NY", "CA"]
-        assert list(record.field_iter(pii.Feature.ZIPCODE)) == ["12345", "98765"]
+        assert list(record.field_iter(pii.Feature.ZIP)) == ["12345", "98765"]
         assert list(record.field_iter(pii.Feature.FIRST_NAME)) == ["John", "L", "Jane"]
         assert list(record.field_iter(pii.Feature.LAST_NAME)) == ["Doe", "Smith"]
         assert list(record.field_iter(pii.Feature.ADDRESS)) == ["123 Main St", "456 Elm St"]

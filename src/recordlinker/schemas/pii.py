@@ -21,7 +21,7 @@ class Feature(enum.Enum):
     ADDRESS = "address"
     CITY = "city"
     STATE = "state"
-    ZIPCODE = "zip"
+    ZIP = "zip"
 
     def __str__(self):
         """
@@ -186,7 +186,7 @@ class PIIRecord(pydantic.BaseModel):
             for address in self.address:
                 if address.state:
                     yield address.state
-        elif feature == Feature.ZIPCODE:
+        elif feature == Feature.ZIP:
             for address in self.address:
                 if address.postal_code:
                     # only use the first 5 digits for comparison
@@ -220,7 +220,7 @@ class PIIRecord(pydantic.BaseModel):
         elif key == models.BlockingKey.SEX:
             vals.update(self.field_iter(Feature.SEX))
         elif key == models.BlockingKey.ZIP:
-            vals.update(self.field_iter(Feature.ZIPCODE))
+            vals.update(self.field_iter(Feature.ZIP))
         elif key == models.BlockingKey.FIRST_NAME:
             vals.update({x[:4] for x in self.field_iter(Feature.FIRST_NAME)})
         elif key == models.BlockingKey.LAST_NAME:

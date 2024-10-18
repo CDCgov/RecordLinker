@@ -1,9 +1,9 @@
+import typing
+
 import pytest
 
 from recordlinker import utils
 from recordlinker.linking import matchers
-
-MOCK_SETTINGS = {"db_uri": "postgresql://postgres:pw@localhost:5432/testdb"}
 
 
 def test_bind_functions():
@@ -65,3 +65,23 @@ def test_func_to_str():
         utils.func_to_str(matchers.feature_match_fuzzy_string)
         == "func:recordlinker.linking.matchers.feature_match_fuzzy_string"
     )
+
+
+class TestCheckSignature:
+    @staticmethod
+    def func1(a: int, b: str) -> None:
+        pass
+
+    @staticmethod
+    def func2(a: int, b: list[int]) -> float:
+        pass
+
+    def test_check_signature(self):
+        assert not utils.check_signature(self.func1, typing.Callable[[str], str])
+        assert not utils.check_signature(self.func1, typing.Callable[[int, str], str])
+        assert utils.check_signature(self.func1, typing.Callable[[int, str], None])
+        assert not utils.check_signature(self.func2, typing.Callable[[int, int], float])
+        assert not utils.check_signature(self.func2, typing.Callable[[int, list], float])
+        assert not utils.check_signature(self.func2, typing.Callable[[int, list[int]], None])
+        assert utils.check_signature(self.func2, typing.Callable[[int, list[int]], float])
+        assert not utils.check_signature("a", typing.Callable[[str], None])
