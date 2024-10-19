@@ -14,7 +14,7 @@
 year=$(date +"%y")
 # Get the latest tag
 latest_tag=$(git describe --tags --match "v*" --abbrev=0 $(git rev-list --tags --max-count=1) 2>/dev/null || echo "")
-# Count the number of commits on main since the last tag
+# Count the number of commits between the latest tag and HEAD
 commits=$(git rev-list --count $latest_tag..HEAD --)
 # Get latest tag for the current year, or default to v0.0.0
 latest_tag_for_year=$(git describe --tags --match "v${year}.*" --abbrev=0 $(git rev-list --tags --max-count=1) 2>/dev/null || echo "v0.0.0")
