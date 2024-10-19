@@ -1,0 +1,76 @@
+name: "release"
+# This workflow handles two different scenarios:
+# 1. A new version tag is pushed to the repository, resulting in the publishing of a new release.
+# 2. A pull is merged into main, resulting in a new draft release.
+
+on:
+  push:
+    branches: [main]
+    tags:
+      - "v*.*.*"
+  pull_request:
+    branches: [main]
+
+jobs:
+  update_release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0 # Fetch all history for tags
+
+      - name: Next tag
+        run: |
+          # Get the tag that triggered the workflow
+          tag=${GITHUB_REF#refs/tags/}
+          # Test if the tag is a version tag
+          if [[ "$tag" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            next_tag=$tag
+          else
+            next_tag=$(scripts/next_tag.sh)
+          fi
+          
+          echo "Next tag: $next_tag"
+          echo "NEXT_TAG=$next_tag" >> $GITHUB_ENV
+
+      - name: Optionally delete the existing draft release
+        run: |
+          # Get existing draft release (if any)
+          response=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+            "https://api.github.com/repos/${{ github.repository }}/releases")
+
+          # Check if there is a draft release
+          draft_release=$(echo "$response" | jq '.[] | select(.draft == true)')
+          if [[ -n "$draft_release" ]]; then
+            # Delete the existing draft release
+            draft_release_id=$(echo "$draft_release" | jq -r '.id')
+            curl -s -X DELETE \
+              -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+              -H "Accept: application/vnd.github+json" \
+              "https://api.github.com/repos/${{ github.repository }}/releases/${draft_release_id}"
+          fi
+
+      - name: Create the release
+        run: |
+          # If the tag ends in -rc.*, then its a draft release
+          if [[ "${{ env.NEXT_TAG }}" =~ -rc\.[0-9]+$ ]]; then
+            draft=true
+          else
+            draft=false
+          fi
+          # Create a new release
+          curl -s -X POST \
+            -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+            -H "Accept: application/vnd.github+json" \
+            -d @- "https://api.github.com/repos/${{ github.repository }}/releases" <<EOF
+          {
+            "tag_name": "${{ env.NEXT_TAG }}",
+            "target_commitish": "main",
+            "name": "${{ env.NEXT_TAG }}",
+            "generate_release_notes": true,
+            "draft": ${draft}
+          }
+          EOF
+
