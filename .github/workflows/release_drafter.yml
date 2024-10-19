@@ -41,8 +41,7 @@ jobs:
           echo "Next tag: v${year}.${next_feature_ver}.0-rc.${commits}"
           echo "NEXT_TAG=v${year}.${next_feature_ver}.0-rc.${commits}" >> $GITHUB_ENV
 
-      # Step 3: Check for an existing draft release
-      - name: Get existing draft release
+      - name: Optionally delete the existing draft release
         id: get_release
         run: |
           # Get existing draft release (if any)
@@ -52,28 +51,19 @@ jobs:
           # Check if there is a draft release
           draft_release=$(echo "$response" | jq '.[] | select(.draft == true)')
           if [[ -n "$draft_release" ]]; then
-            echo "DRAFT_EXISTS=true" >> $GITHUB_ENV
-            echo "Draft release found: $(echo $draft_release | jq -r '.tag_name')"
-            echo "DRAFT_RELEASE_ID=$(echo $draft_release | jq -r '.id')" >> $GITHUB_ENV
-          else
-            echo "DRAFT_EXISTS=false" >> $GITHUB_ENV
+            # Delete the draft release, as we will replace it
+            draft_release_id=$(echo $draft_release | jq -r '.id')
+            curl -s -X DELETE \
+              -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+              -H "Accept: application/vnd.github+json" \
+              https://api.github.com/repos/OWNER/REPO/releases/RELEASE_ID
           fi
 
-      # Step 4: Update or create the draft release
-      - name: Create or update draft release
+      - name: Create the draft release
         run: |
-          if [ "${{ env.DRAFT_EXISTS }}" == "true" ]; then
-            # Update the existing draft release
-            curl -s -X PATCH \
-              -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
-              -H "Accept: application/vnd.github+json" \
-              -d "{\"tag_name\": \"${{ env.NEXT_TAG }}\", \"target_commitish\": \"main\", \"name\": \"${{ env.NEXT_TAG }}\", \"generate_release_notes\": true, \"draft\": true}" \
-              "https://api.github.com/repos/${{ github.repository }}/releases/${{ env.DRAFT_RELEASE_ID }}"
-          else
-            # Create a new draft release
-            curl -s -X POST \
-              -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
-              -H "Accept: application/vnd.github+json" \
-              -d "{\"tag_name\": \"${{ env.NEXT_TAG }}\", \"target_commitish\": \"main\", \"name\": \"${{ env.NEXT_TAG }}\", \"generate_release_notes\": true, \"draft\": true}" \
-              "https://api.github.com/repos/${{ github.repository }}/releases"
-          fi
+          # Create a new draft release
+          curl -s -X POST \
+            -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+            -H "Accept: application/vnd.github+json" \
+            -d "{\"tag_name\": \"${{ env.NEXT_TAG }}\", \"target_commitish\": \"main\", \"name\": \"${{ env.NEXT_TAG }}\", \"generate_release_notes\": true, \"draft\": true}" \
+            "https://api.github.com/repos/${{ github.repository }}/releases"
