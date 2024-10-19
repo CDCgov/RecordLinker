@@ -62,7 +62,7 @@ jobs:
       # Step 4: Update or create the draft release
       - name: Create or update draft release
         run: |
-          if [ "${{ steps.get_release.outputs.draft_exists }}" == "true" ]; then
+          if [ "${{ env.DRAFT_EXISTS }}" == "true" ]; then
             # Update the existing draft release
             curl -s -X PATCH \
               -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
