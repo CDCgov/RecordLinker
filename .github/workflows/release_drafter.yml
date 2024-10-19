@@ -51,12 +51,13 @@ jobs:
           # Check if there is a draft release
           draft_release=$(echo "$response" | jq '.[] | select(.draft == true)')
           if [[ -n "$draft_release" ]]; then
-            # Delete the draft release, as we will replace it
-            draft_release_id=$(echo $draft_release | jq -r '.id')
-            curl -s -X DELETE \
+            # Delete the existing draft release
+            draft_release_id=$(echo "$draft_release" | jq -r '.id')
+            curl -s -X PATCH \
               -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
               -H "Accept: application/vnd.github+json" \
-              https://api.github.com/repos/OWNER/REPO/releases/RELEASE_ID
+              -d "{\"tag_name\": \"${{ env.NEXT_TAG }}\", \"target_commitish\": \"main\", \"name\": \"${{ env.NEXT_TAG }}\", \"generate_release_notes\": true, \"draft\": true}" \
+              "https://api.github.com/repos/${{ github.repository }}/releases/${draft_release_id}"
           fi
 
       - name: Create the draft release
