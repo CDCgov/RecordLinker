@@ -53,7 +53,7 @@ jobs:
           if [[ -n "$draft_release" ]]; then
             # Delete the existing draft release
             draft_release_id=$(echo "$draft_release" | jq -r '.id')
-            curl -s -X PATCH \
+            curl -s -X DELETE \
               -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
               -H "Accept: application/vnd.github+json" \
               -d "{\"tag_name\": \"${{ env.NEXT_TAG }}\", \"target_commitish\": \"main\", \"name\": \"${{ env.NEXT_TAG }}\", \"generate_release_notes\": true, \"draft\": true}" \
