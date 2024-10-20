@@ -16,21 +16,21 @@ jobs:
 
     services:
       postgres:
-        image: postgres:latest
+        image: postgres:17
         ports:
           - 5432:5432
         env:
           POSTGRES_PASSWORD: pw
 
       mysql:
-        image: mysql:latest
+        image: mysql:8
         ports:
           - 3306:3306
         env:
           MYSQL_ROOT_PASSWORD: pw
 
       sqlserver:
-        image: mcr.microsoft.com/mssql/server:2019-latest
+        image: mcr.microsoft.com/mssql/server:2022-latest
         ports:
           - 1433:1433
         env:
@@ -53,20 +53,19 @@ jobs:
           pip install '.[dev]'
 
       - name: Install ODBC Driver for SQL Server
+        if: ${{ matrix.database == 'sqlserver' }}
         run: |
-          if [[ "${{ matrix.database }}" == "sqlserver" ]]; then
-            # Add Microsoft repository keys
-            curl https://packages.microsoft.com/keys/microsoft.asc | sudo apt-key add -
-            
-            # Add the Microsoft SQL Server repository for Ubuntu
-            curl https://packages.microsoft.com/config/ubuntu/$(lsb_release -rs)/prod.list | sudo tee /etc/apt/sources.list.d/mssql-release.list
-            
-            # Update package lists
-            sudo apt-get update
-            
-            # Accept the EULA and install msodbcsql17
-            sudo ACCEPT_EULA=Y apt-get install -y msodbcsql17 unixodbc-dev
-          fi
+          # Add Microsoft repository keys
+          curl https://packages.microsoft.com/keys/microsoft.asc | sudo apt-key add -
+          
+          # Add the Microsoft SQL Server repository for Ubuntu
+          curl https://packages.microsoft.com/config/ubuntu/$(lsb_release -rs)/prod.list | sudo tee /etc/apt/sources.list.d/mssql-release.list
+          
+          # Update package lists
+          sudo apt-get update
+          
+          # Accept the EULA and install msodbcsql17
+          sudo ACCEPT_EULA=Y apt-get install -y msodbcsql17 unixodbc-dev
 
       - name: Run Pytest with the matrix database
         run: |
