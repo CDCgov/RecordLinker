@@ -8,6 +8,9 @@ ENV USE_OTEL=${USE_OTEL}
 RUN apt-get update && apt-get upgrade -y && apt-get install curl -y
 RUN pip install --upgrade pip
 
+# Install ODBC driver for SQL Server
+RUN apt-get install -y msodbcsql17
+
 WORKDIR /code
 # Initialize the recordlinker directory
 RUN mkdir -p /code/src/recordlinker

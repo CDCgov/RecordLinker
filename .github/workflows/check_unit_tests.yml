@@ -52,6 +52,9 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install '.[dev]'
+          apt-get update
+          # Install the ODBC driver for SQL Server
+          apt-get install -y msodbcsql17
 
       #- name: Wait for database services to be ready
         #run: |
@@ -72,7 +75,7 @@ jobs:
           elif [[ "${{ matrix.database }}" == "mysql" ]]; then
             export TEST_DB_URI=mysql+pymysql://root:mysql@localhost:3306/test_db
           elif [[ "${{ matrix.database }}" == "sqlserver" ]]; then
-            export TEST_DB_URI=mssql+pyodbc://sa:YourStrong!Passw0rd@localhost:1433/test_db
+            export TEST_DB_URI=mssql+pyodbc://sa:YourStrong!Passw0rd@localhost:1433/test_db?driver=ODBC+Driver+17+for+SQL+Server
           fi
 
           pytest --cov=recordlinker --cov-report=xml tests/unit
