@@ -20,7 +20,7 @@ jobs:
         ports:
           - 5432:5432
         env:
-          POSTGRES_DB: pw
+          POSTGRES_PASSWORD: pw
 
       mysql:
         image: mysql:latest
@@ -77,12 +77,13 @@ jobs:
           pytest --cov=recordlinker --cov-report=xml tests/unit
 
       - name: Upload test results to Codecov
-        if: ${{ !cancelled() }}
+        if: ${{ matrix.database == 'postgres' && !cancelled() }}
         uses: codecov/test-results-action@v1
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
 
       - name: Upload coverage to Codecov
+        if: ${{ matrix.database == 'postgres' }}
         uses: codecov/codecov-action@v4
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
