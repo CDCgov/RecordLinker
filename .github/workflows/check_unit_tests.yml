@@ -70,9 +70,9 @@ jobs:
           elif [[ "${{ matrix.database }}" == "sqlite" ]]; then
             export TEST_DB_URI=sqlite:///testdb.sqlite3
           elif [[ "${{ matrix.database }}" == "mysql" ]]; then
-            export TEST_DB_URI=mysql://root:mysql@localhost:3306/test_db
+            export TEST_DB_URI=mysql+pymysql://root:mysql@localhost:3306/test_db
           elif [[ "${{ matrix.database }}" == "sqlserver" ]]; then
-            export TEST_DB_URI=mssql://sa:YourStrong!Passw0rd@localhost:1433/test_db
+            export TEST_DB_URI=mssql+pyodbc://sa:YourStrong!Passw0rd@localhost:1433/test_db
           fi
 
           pytest --cov=recordlinker --cov-report=xml tests/unit
