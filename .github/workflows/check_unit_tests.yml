@@ -54,17 +54,19 @@ jobs:
 
       - name: Install ODBC Driver for SQL Server
         run: |
-          # Add Microsoft repository keys
-          curl https://packages.microsoft.com/keys/microsoft.asc | sudo apt-key add -
-          
-          # Add the Microsoft SQL Server repository for Ubuntu
-          curl https://packages.microsoft.com/config/ubuntu/$(lsb_release -rs)/prod.list | sudo tee /etc/apt/sources.list.d/mssql-release.list
-          
-          # Update package lists
-          sudo apt-get update
-          
-          # Accept the EULA and install msodbcsql17
-          sudo ACCEPT_EULA=Y apt-get install -y msodbcsql17 unixodbc-dev
+          if [[ "${{ matrix.database }}" == "sqlserver" ]]; then
+            # Add Microsoft repository keys
+            curl https://packages.microsoft.com/keys/microsoft.asc | sudo apt-key add -
+            
+            # Add the Microsoft SQL Server repository for Ubuntu
+            curl https://packages.microsoft.com/config/ubuntu/$(lsb_release -rs)/prod.list | sudo tee /etc/apt/sources.list.d/mssql-release.list
+            
+            # Update package lists
+            sudo apt-get update
+            
+            # Accept the EULA and install msodbcsql17
+            sudo ACCEPT_EULA=Y apt-get install -y msodbcsql17 unixodbc-dev
+          fi
 
       #- name: Wait for database services to be ready
         #run: |
