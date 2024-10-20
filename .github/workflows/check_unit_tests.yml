@@ -10,13 +10,32 @@ jobs:
   test:
     runs-on: ubuntu-latest
 
+    strategy:
+      matrix:
+        database: [postgres, sqlite, mysql, sqlserver]  # Matrix for database types
+
     services:
       postgres:
-        image: postgres:13
+        image: postgres:latest
         ports:
           - 5432:5432
         env:
-          POSTGRES_PASSWORD: pw
+          POSTGRES_DB: pw
+
+      mysql:
+        image: mysql:latest
+        ports:
+          - 3306:3306
+        env:
+          MYSQL_ROOT_PASSWORD: pw
+
+      sqlserver:
+        image: mcr.microsoft.com/mssql/server:2019-latest
+        ports:
+          - 1433:1433
+        env:
+          ACCEPT_EULA: Y
+          SA_PASSWORD: "YourStrong!Passw0rd"
 
     steps:
       - name: Checkout code
@@ -33,15 +52,30 @@ jobs:
           python -m pip install --upgrade pip
           pip install '.[dev]'
 
-      - name: Wait for PostgreSQL to be ready
-        run: |
-          until pg_isready -h localhost -U postgres; do sleep 1; done
+      - name: Wait for database services to be ready
+      run: |
+        if [[ "${{ matrix.database }}" == "postgres" ]]; then
+          until pg_isready -h localhost -U postgres; do echo "Waiting for postgres..."; sleep 1; done
+        elif [[ "${{ matrix.database }}" == "mysql" ]]; then
+          until mysqladmin ping -h localhost --silent; do echo "Waiting for mysql..."; sleep 1; done
+        elif [[ "${{ matrix.database }}" == "sqlserver" ]]; then
+          until curl -s http://localhost:1433 > /dev/null; do echo "Waiting for sqlserver..."; sleep 1; done
+        fi
 
-      - name: Run unit tests
-        env:
-          TEST_DB_URI: "postgresql+psycopg2://postgres:pw@localhost:5432/postgres"
+      - name: Run Pytest with the matrix database
         run: |
+          if [[ "${{ matrix.database }}" == "postgres" ]]; then
+            export TEST_DB_URI=postgresql+psycopg2://postgres:pw@localhost:5432/postgres
+          elif [[ "${{ matrix.database }}" == "sqlite" ]]; then
+            export TEST_DB_URI=sqlite:///testdb.sqlite3
+          elif [[ "${{ matrix.database }}" == "mysql" ]]; then
+            export TEST_DB_URI=mysql://root:mysql@localhost:3306/mysql
+          elif [[ "${{ matrix.database }}" == "sqlserver" ]]; then
+            export TEST_DB_URI=mssql://sa:YourStrong!Passw0rd@localhost:1433/test_db
+          fi
+
           pytest --cov=recordlinker --cov-report=xml tests/unit
+
       - name: Upload test results to Codecov
         if: ${{ !cancelled() }}
         uses: codecov/test-results-action@v1
