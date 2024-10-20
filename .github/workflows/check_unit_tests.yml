@@ -53,15 +53,15 @@ jobs:
           python -m pip install --upgrade pip
           pip install '.[dev]'
 
-      - name: Wait for database services to be ready
-        run: |
-          if [[ "${{ matrix.database }}" == "postgres" ]]; then
-            until pg_isready -h localhost -U postgres; do echo "Waiting for postgres..."; sleep 1; done
-          elif [[ "${{ matrix.database }}" == "mysql" ]]; then
-            until mysqladmin ping -h localhost -u root -ppw --silent; do echo "Waiting for mysql..."; sleep 1; done
-          elif [[ "${{ matrix.database }}" == "sqlserver" ]]; then
-            until curl -s http://localhost:1433 > /dev/null; do echo "Waiting for sqlserver..."; sleep 1; done
-          fi
+      #- name: Wait for database services to be ready
+        #run: |
+          #if [[ "${{ matrix.database }}" == "postgres" ]]; then
+            #until pg_isready -h localhost -U postgres; do echo "Waiting for postgres..."; sleep 1; done
+          #elif [[ "${{ matrix.database }}" == "mysql" ]]; then
+            #until mysqladmin ping -h localhost -u root -ppw --silent; do echo "Waiting for mysql..."; sleep 1; done
+          #elif [[ "${{ matrix.database }}" == "sqlserver" ]]; then
+            #until curl -s http://localhost:1433 > /dev/null; do echo "Waiting for sqlserver..."; sleep 1; done
+          #fi
 
       - name: Run Pytest with the matrix database
         run: |
