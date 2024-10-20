@@ -2,7 +2,7 @@
 #
 # Run the API server locally.
 #
-# Usage: scripts/local_service.sh <port>
+# Usage: scripts/local_server.sh <port>
 #
 # <port> is the port on which to run the API server. If not specified, the server
 # will run on port 8000.
@@ -14,4 +14,4 @@ cd "$(dirname "$0")/.."
 PORT=${1:-8000}
 
 # Start the API server
-uvicorn recordlinker.main:app --app-dir src --reload --host 0 --port ${PORT} --log-config src/recordlinker/log_config.yml
+uvicorn recordlinker.main:app --reload --port ${PORT}
