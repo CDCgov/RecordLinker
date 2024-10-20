@@ -63,7 +63,7 @@ local_scheme = "node-and-timestamp"
 fallback_version = "0.0.0"
 
 [tool.ruff]
-exclude = [".git", ".pytest_cache", "__pycache__", "docs"]
+exclude = [".git", ".pytest_cache", "__pycache__", "docs", "alembic"]
 line-length = 100
 indent-width = 4
 target-version = "py310"
@@ -89,6 +89,7 @@ filterwarnings = [
 ]
 
 [tool.mypy]
+files = ["src"]
 mypy_path = ["src"]
 # TODO: Resolve static typing issues in main.py
 exclude = ["src/recordlinker/main.py", "src/recordlinker/linkage"]
