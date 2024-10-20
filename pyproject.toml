@@ -28,10 +28,10 @@ dependencies = [
     "rapidfuzz",
     "opentelemetry-api",
     "opentelemetry-sdk",
-    "cryptography",
     # Database drivers
     "psycopg2-binary",  # PostgreSQL
     "PyMySQL",  # MySQL & MariaDB
+    "cryptography",  # MySQL & MariaDB dependency
     "pyodbc", # Microsoft SQL Server
 ]
 
