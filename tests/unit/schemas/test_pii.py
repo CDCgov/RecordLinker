@@ -88,6 +88,7 @@ class TestPIIRecord:
     def test_parse_sex(self):
         record = pii.PIIRecord(sex="M")
         assert record.sex == pii.Sex.MALE
+        print(record.sex)
         record = pii.PIIRecord(sex="m")
         assert record.sex == pii.Sex.MALE
         record = pii.PIIRecord(sex="Male")
@@ -105,12 +106,81 @@ class TestPIIRecord:
         record = pii.PIIRecord()
         assert record.sex is None
 
-    def test_field_iter(self):
+    def test_parse_ssn(self):
+        record = pii.PIIRecord(ssn="123-45-6789")
+        assert record.ssn == "123-45-6789"
+        record = pii.PIIRecord(ssn=" 123-45-6789 ")
+        assert record.ssn == "123-45-6789"
+        record = pii.PIIRecord(ssn="1-2-3")
+        assert record.ssn is None
+        record = pii.PIIRecord()
+        assert record.ssn is None
+    
+    def test_parse_race(self):
+        record = pii.PIIRecord(race="american indian or alaska native")
+        assert record.race == pii.Race.AMERICAN_INDIAN
+        record = pii.PIIRecord(race="asian")
+        assert record.race == pii.Race.ASIAN
+        record = pii.PIIRecord(race="black or african american")
+        assert record.race == pii.Race.BLACK
+        record = pii.PIIRecord(race="native hawaiian or other pacific islander")
+        assert record.race == pii.Race.HAWAIIAN
+        record = pii.PIIRecord(race="white")
+        assert record.race == pii.Race.WHITE
+        record = pii.PIIRecord(race="other")
+        assert record.race == pii.Race.OTHER
+        record = pii.PIIRecord(race="asked but unknown")
+        assert record.race == pii.Race.ASKED_UNKNOWN
+        record = pii.PIIRecord(race="unknown")
+        assert record.race == pii.Race.UNKNOWN
+
+        # testing capitalization and leading/trailing spaces
+        record = pii.PIIRecord(race=" American Indian or Alaska Native ")
+        assert record.race == pii.Race.AMERICAN_INDIAN
+
+        # testing none result
+        record = pii.PIIRecord(race="American")
+        assert record.race == None
+
+        record = pii.PIIRecord()
+        assert record.race == None
+    
+    def test_parse_gender(self):
+        record = pii.PIIRecord(gender="identifies as female gender (finding)")
+        assert record.gender == pii.Gender.FEMALE
+        record = pii.PIIRecord(gender="identifies as male gender (finding)")
+        assert record.gender == pii.Gender.MALE
+        record = pii.PIIRecord(gender="identifies as gender nonbinary")
+        assert record.gender == pii.Gender.NON_BINARY
+        record = pii.PIIRecord(gender="asked but declined")
+        assert record.gender == pii.Gender.ASKED_DECLINED
+        record = pii.PIIRecord(gender="unknown")
+        assert record.gender == pii.Gender.UNKNOWN
+
+        # testing capitalization and leading/trailing spaces
+        record = pii.PIIRecord(gender=" Unknown ")
+        assert record.gender == pii.Gender.UNKNOWN
+
+        # testing none result
+        record = pii.PIIRecord(gender="invalid gender")
+        assert record.gender == None
+
+        record = pii.PIIRecord()
+        assert record.gender == None
+        
+
+    def test_feature_iter(self):
         record = pii.PIIRecord(
             external_id="99",
             birth_date="1980-2-1",
             sex="male",
             mrn="123456",
+            ssn="123-45-6789",
+            race="unknown",
+            gender="unknown",
+            telephone="1112223333",
+            suffix="suffix",
+            county="county",
             address=[
                 pii.Address(
                     line=["123 Main St"],
@@ -138,18 +208,23 @@ class TestPIIRecord:
         )
 
         with pytest.raises(ValueError):
-            list(record.field_iter("external_id"))
+            list(record.feature_iter("external_id"))
 
-        assert list(record.field_iter(pii.Feature.BIRTHDATE)) == ["1980-02-01"]
-        assert list(record.field_iter(pii.Feature.MRN)) == ["123456"]
-        assert list(record.field_iter(pii.Feature.SEX)) == ["M"]
-        assert list(record.field_iter(pii.Feature.ADDRESS)) == ["123 Main St", "456 Elm St"]
-        assert list(record.field_iter(pii.Feature.CITY)) == ["Anytown", "Somecity"]
-        assert list(record.field_iter(pii.Feature.STATE)) == ["NY", "CA"]
-        assert list(record.field_iter(pii.Feature.ZIP)) == ["12345", "98765"]
-        assert list(record.field_iter(pii.Feature.FIRST_NAME)) == ["John", "L", "Jane"]
-        assert list(record.field_iter(pii.Feature.LAST_NAME)) == ["Doe", "Smith"]
-        assert list(record.field_iter(pii.Feature.ADDRESS)) == ["123 Main St", "456 Elm St"]
+        assert list(record.feature_iter(pii.Feature.BIRTHDATE)) == ["1980-02-01"]
+        assert list(record.feature_iter(pii.Feature.MRN)) == ["123456"]
+        assert list(record.feature_iter(pii.Feature.SEX)) == ["M"]
+        assert list(record.feature_iter(pii.Feature.ADDRESS)) == ["123 Main St", "456 Elm St"]
+        assert list(record.feature_iter(pii.Feature.CITY)) == ["Anytown", "Somecity"]
+        assert list(record.feature_iter(pii.Feature.STATE)) == ["NY", "CA"]
+        assert list(record.feature_iter(pii.Feature.ZIP)) == ["12345", "98765"]
+        assert list(record.feature_iter(pii.Feature.FIRST_NAME)) == ["John", "L", "Jane"]
+        assert list(record.feature_iter(pii.Feature.LAST_NAME)) == ["Doe", "Smith"]
+        assert list(record.feature_iter(pii.Feature.SSN)) == ["123-45-6789"]
+        assert list(record.feature_iter(pii.Feature.RACE)) == ["unknown"]
+        assert list(record.feature_iter(pii.Feature.GENDER)) == ["unknown"]
+        assert list(record.feature_iter(pii.Feature.TELEPHONE)) == ["1112223333"]
+        assert list(record.feature_iter(pii.Feature.SUFFIX)) == ["suffix"]
+        assert list(record.feature_iter(pii.Feature.COUNTY)) == ["county"]
 
     def test_blocking_keys_invalid(self):
         rec = pii.PIIRecord()

@@ -33,14 +33,22 @@ def fhir_record_to_pii_record(fhir_record: dict) -> schemas.PIIRecord:
         "birthDate": fhir_record.get("birthDate"),
         "sex": fhir_record.get("gender"),
         "address": fhir_record.get("address", []),
-        "phone": fhir_record.get("telecom", []),
         "mrn": None,
+        "ssn": None,
+        "race": None,
+        "gender": None,
+        "telephone": None,
+        "suffix": None,
+        "county": None,
     }
     for identifier in fhir_record.get("identifier", []):
         for coding in identifier.get("type", {}).get("coding", []):
             if coding.get("code") == "MR":
                 val["mrn"] = identifier.get("value")
+            elif coding.get("code") == "SS":
+                val["ssn"] = identifier.get("value")
     for address in val["address"]:
+        val["county"] = address.get("district", "")
         for extension in address.get("extension", []):
             if extension.get("url") == "http://hl7.org/fhir/StructureDefinition/geolocation":
                 for coord in extension.get("extension", []):
@@ -48,6 +56,19 @@ def fhir_record_to_pii_record(fhir_record: dict) -> schemas.PIIRecord:
                         address["latitude"] = coord.get("valueDecimal")
                     elif coord.get("url") == "longitude":
                         address["longitude"] = coord.get("valueDecimal")
+    for extension in fhir_record.get("extension", []):
+        if extension.get("url") == "http://hl7.org/fhir/StructureDefinition/us-core-race":
+            for coding in extension.get("valueCodeableConcept", {}).get("coding", []):
+                val["race"] = coding.get("display")
+        if extension.get("url") == "http://hl7.org/fhir/StructureDefinition/individual-genderIdentity":
+            for coding in extension.get("valueCodeableConcept", {}).get("coding", []):
+                val["gender"] = coding.get("display")
+    for telecom in fhir_record.get("telecom", []):
+        if telecom.get("system") == "phone":
+            val["telephone"] = telecom.get("value")
+    for name in fhir_record.get("name", []):
+            val["suffix"] = name.get("suffix", "")
+
     return schemas.PIIRecord(**val)
 
 
