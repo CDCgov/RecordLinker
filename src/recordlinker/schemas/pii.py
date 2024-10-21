@@ -1,7 +1,7 @@
 import datetime
 import enum
-import typing
 import re
+import typing
 
 import dateutil.parser
 import pydantic
@@ -26,6 +26,9 @@ class Feature(enum.Enum):
     SSN = "ssn"
     RACE = "race"
     GENDER = "gender"
+    TELEPHONE = "telephone"
+    SUFFIX = "suffix"
+    COUNTY = "county"
 
     def __str__(self):
         """
@@ -73,8 +76,8 @@ class Gender(enum.Enum):
     Enum for the Gender field.
     """
 
-    FEMALE = "identifies as female gender"
-    MALE = "identifies as male gender"
+    FEMALE = "identifies as female gender (finding)"
+    MALE = "identifies as male gender (finding)"
     NON_BINARY = "identifies as gender nonbinary"
     ASKED_DECLINED = "asked but declined"
     UNKNOWN = "unknown"
@@ -153,6 +156,9 @@ class PIIRecord(pydantic.BaseModel):
     ssn: typing.Optional[str] = None
     race: typing.Optional[Race] = None
     gender: typing.Optional[Gender] = None
+    telephone: typing.Optional[str] = None
+    suffix: typing.Optional[str] = None
+    county: typing.Optional[str] = None
 
     @classmethod
     def model_construct(cls, _fields_set: set[str] | None = None, **values: typing.Any) -> typing.Self:
@@ -212,6 +218,9 @@ class PIIRecord(pydantic.BaseModel):
     
     @pydantic.field_validator("race", mode="before")
     def parse_race(cls, value):
+        """
+        Prase the race string into a race enum
+        """
         if value:
             val = str(value).lower().strip()
             try:
@@ -221,6 +230,9 @@ class PIIRecord(pydantic.BaseModel):
             
     @pydantic.field_validator("gender", mode="before")
     def parse_gender(cls, value):
+        """
+        Prase the gender string into a gender enum
+        """
         if value:
             val = str(value).lower().strip()
             try:
@@ -282,6 +294,15 @@ class PIIRecord(pydantic.BaseModel):
         elif feature == Feature.GENDER:
             if self.gender:
                 yield str(self.gender)
+        elif feature == Feature.TELEPHONE:
+            if self.telephone:
+                yield self.telephone
+        elif feature == Feature.SUFFIX:
+            if self.suffix:
+                yield self.suffix
+        elif feature == Feature.COUNTY:
+            if self.county:
+                yield self.county
 
     def blocking_keys(self, key: models.BlockingKey) -> set[str]:
         """

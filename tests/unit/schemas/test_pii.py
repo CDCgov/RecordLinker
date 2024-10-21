@@ -146,9 +146,9 @@ class TestPIIRecord:
         assert record.race == None
     
     def test_parse_gender(self):
-        record = pii.PIIRecord(gender="identifies as female gender")
+        record = pii.PIIRecord(gender="identifies as female gender (finding)")
         assert record.gender == pii.Gender.FEMALE
-        record = pii.PIIRecord(gender="identifies as male gender")
+        record = pii.PIIRecord(gender="identifies as male gender (finding)")
         assert record.gender == pii.Gender.MALE
         record = pii.PIIRecord(gender="identifies as gender nonbinary")
         assert record.gender == pii.Gender.NON_BINARY
@@ -178,6 +178,9 @@ class TestPIIRecord:
             ssn="123-45-6789",
             race="unknown",
             gender="unknown",
+            telephone="1112223333",
+            suffix="suffix",
+            county="county",
             address=[
                 pii.Address(
                     line=["123 Main St"],
@@ -219,6 +222,9 @@ class TestPIIRecord:
         assert list(record.feature_iter(pii.Feature.SSN)) == ["123-45-6789"]
         assert list(record.feature_iter(pii.Feature.RACE)) == ["unknown"]
         assert list(record.feature_iter(pii.Feature.GENDER)) == ["unknown"]
+        assert list(record.feature_iter(pii.Feature.TELEPHONE)) == ["1112223333"]
+        assert list(record.feature_iter(pii.Feature.SUFFIX)) == ["suffix"]
+        assert list(record.feature_iter(pii.Feature.COUNTY)) == ["county"]
 
     def test_blocking_keys_invalid(self):
         rec = pii.PIIRecord()
