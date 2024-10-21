@@ -1,7 +1,7 @@
 [
     {
         "label": "dibbs-basic",
-        "description": "The DIBBs default algorithm based on field experimentation and statistical analysis, this is a two-pass algorithm combining geographical and personal information to maximize linkage quality while minimizing false positives",
+        "description": "The DIBBs Default Algorithm. Based on field experimentation and statistical analysis, this deterministic two-pass algorithm combines geographical and personal information to maximize linkage quality while minimizing false positives",
         "is_default": true,
         "passes": [
             {
