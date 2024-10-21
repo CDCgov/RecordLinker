@@ -1,9 +1,23 @@
+import functools
+import json
+import pathlib
+
 import pytest
 from fastapi.testclient import TestClient
 
 from recordlinker import database
 from recordlinker import main
 from recordlinker import models
+
+
+def load_json_asset(*paths: str) -> dict | list:
+    """
+    Loads a JSON file from the testing 'assets' directory.
+    """
+    cwd = pathlib.Path(__file__).resolve().parent
+    filename = pathlib.Path(cwd, "assets", *paths)
+    with open(filename, "r") as fobj:
+        return json.load(fobj)
 
 
 @pytest.fixture(scope="function")
@@ -28,133 +42,17 @@ def client():
             yield c
 
 
+@functools.lru_cache
 @pytest.fixture
 def basic_algorithm():
-    basic_algo_pass1 = models.AlgorithmPass(
-        id=1,
-        algorithm_id=1,
-        blocking_keys=["BIRTHDATE", "MRN", "SEX"],
-        evaluators={
-            "first_name": "func:recordlinker.linking.matchers.feature_match_fuzzy_string",
-            "last_name": "func:recordlinker.linking.matchers.feature_match_exact",
-        },
-        rule="func:recordlinker.linking.matchers.eval_perfect_match",
-        cluster_ratio=0.9,
-        kwargs={
-            "thresholds": {
-                "first_name": 0.9,
-                "last_name": 0.9,
-                "birthdate": 0.95,
-                "address": 0.9,
-                "city": 0.92,
-                "zip": 0.95,
-            }
-        },
-    )
-    basic_algo_pass2 = models.AlgorithmPass(
-        id=2,
-        algorithm_id=1,
-        blocking_keys=["ZIP", "FIRST_NAME", "LAST_NAME", "SEX"],
-        evaluators={
-            "address": "func:recordlinker.linking.matchers.feature_match_fuzzy_string",
-            "birthdate": "func:recordlinker.linking.matchers.feature_match_exact",
-        },
-        rule="func:recordlinker.linking.matchers.eval_perfect_match",
-        cluster_ratio=0.9,
-        kwargs={
-            "thresholds": {
-                "first_name": 0.9,
-                "last_name": 0.9,
-                "birthdate": 0.95,
-                "address": 0.9,
-                "city": 0.92,
-                "zip": 0.95,
-            }
-        },
-    )
-    return models.Algorithm(
-        id=1,
-        label="dibbs-basic",
-        is_default=True,
-        description="First algorithm",
-        passes=[basic_algo_pass1, basic_algo_pass2],
-    )
+    for algo in load_json_asset("initial_algorithms.json"):
+        if algo["label"] == "dibbs-basic":
+            return models.Algorithm.from_dict(**algo)
 
 
+@functools.lru_cache
 @pytest.fixture
 def enhanced_algorithm():
-    enhanced_algo_pass1 = models.AlgorithmPass(
-        id=1,
-        algorithm_id=1,
-        blocking_keys=["BIRTHDATE", "MRN", "SEX"],
-        evaluators={
-            "first_name": "func:recordlinker.linking.matchers.feature_match_log_odds_fuzzy_compare",
-            "last_name": "func:recordlinker.linking.matchers.feature_match_log_odds_fuzzy_compare",
-        },
-        rule="func:recordlinker.linking.matchers.eval_log_odds_cutoff",
-        cluster_ratio=0.9,
-        kwargs={
-            "similarity_measure": "JaroWinkler",
-            "thresholds": {
-                "first_name": 0.9,
-                "last_name": 0.9,
-                "birthdate": 0.95,
-                "address": 0.9,
-                "city": 0.92,
-                "zip": 0.95,
-            },
-            "true_match_threshold": 12.2,
-            "log_odds": {
-                "address": 8.438284928858774,
-                "birthdate": 10.126641103800338,
-                "city": 2.438553006137189,
-                "first_name": 6.849475906891162,
-                "last_name": 6.350720397426025,
-                "mrn": 0.3051262572525359,
-                "sex": 0.7510419059643679,
-                "state": 0.022376768992488694,
-                "zip": 4.975031471124867,
-            },
-        },
-    )
-    enhanced_algo_pass2 = models.AlgorithmPass(
-        id=2,
-        algorithm_id=1,
-        blocking_keys=["ZIP", "FIRST_NAME", "LAST_NAME", "SEX"],
-        evaluators={
-            "address": "func:recordlinker.linking.matchers.feature_match_log_odds_fuzzy_compare",
-            "birthdate": "func:recordlinker.linking.matchers.feature_match_log_odds_fuzzy_compare",
-        },
-        rule="func:recordlinker.linking.matchers.eval_log_odds_cutoff",
-        cluster_ratio=0.9,
-        kwargs={
-            "similarity_measure": "JaroWinkler",
-            "thresholds": {
-                "first_name": 0.9,
-                "last_name": 0.9,
-                "birthdate": 0.95,
-                "address": 0.9,
-                "city": 0.92,
-                "zip": 0.95,
-            },
-            "true_match_threshold": 17.0,
-            "log_odds": {
-                "address": 8.438284928858774,
-                "birthdate": 10.126641103800338,
-                "city": 2.438553006137189,
-                "first_name": 6.849475906891162,
-                "last_name": 6.350720397426025,
-                "mrn": 0.3051262572525359,
-                "sex": 0.7510419059643679,
-                "state": 0.022376768992488694,
-                "zip": 4.975031471124867,
-            },
-        },
-    )
-    return models.Algorithm(
-        id=1,
-        label="dibbs-enhanced",
-        is_default=False,
-        description="First algorithm",
-        passes=[enhanced_algo_pass1, enhanced_algo_pass2],
-    )
+    for algo in load_json_asset("initial_algorithms.json"):
+        if algo["label"] == "dibbs-enhanced":
+            return models.Algorithm.from_dict(**algo)

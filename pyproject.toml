@@ -40,9 +40,9 @@ dev = [
     "fastapi[standard]",
     "pytest>=8.3",
     "pytest-cov",
+    "pytest-env",
     "ruff",
     "mypy",
-    "alembic",
     "types-python-dateutil"
 ]
 prod = [
@@ -83,9 +83,12 @@ order-by-type = false
 
 [tool.pytest.ini_options]
 testpaths = ["tests/unit"]
-pythonpath = ["src"]
+pythonpath = ["src", "tests/unit"]
 filterwarnings = [
     "ignore:typing.io is deprecated, import directly from typing instead:DeprecationWarning"
+]
+env = [
+    "INITIAL_ALGORITHMS=",
 ]
 
 [tool.mypy]

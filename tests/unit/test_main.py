@@ -6,8 +6,9 @@ import pytest
 from fastapi import status
 
 from recordlinker import schemas
-from recordlinker import utils
 from recordlinker.linking import link
+
+from .conftest import load_json_asset
 
 
 def test_health_check(client):
@@ -41,7 +42,7 @@ class TestLinkRecord:
     @mock.patch("recordlinker.linking.algorithm_service.default_algorithm")
     def test_linkrecord_success(self, patched_subprocess, basic_algorithm, client):
         patched_subprocess.return_value = basic_algorithm
-        test_bundle = utils.read_json_from_assets("patient_bundle_to_link_with_mpi.json")
+        test_bundle = load_json_asset("patient_bundle_to_link_with_mpi.json")
         entry_list = copy.deepcopy(test_bundle["entry"])
 
         bundle_1 = test_bundle
@@ -99,7 +100,7 @@ class TestLinkRecord:
     @mock.patch("recordlinker.linking.algorithm_service.get_algorithm")
     def test_linkrecord_enhanced_algo(self, patched_subprocess, enhanced_algorithm, client):
         patched_subprocess.return_value = enhanced_algorithm
-        test_bundle = utils.read_json_from_assets("patient_bundle_to_link_with_mpi.json")
+        test_bundle = load_json_asset("patient_bundle_to_link_with_mpi.json")
         entry_list = copy.deepcopy(test_bundle["entry"])
 
         bundle_1 = test_bundle
@@ -168,7 +169,7 @@ class TestLinkRecord:
     @mock.patch("recordlinker.linking.algorithm_service.get_algorithm")
     def test_linkrecord_invalid_algorithm_param(self, patched_subprocess, client):
         patched_subprocess.return_value = None
-        test_bundle = utils.read_json_from_assets("patient_bundle_to_link_with_mpi.json")
+        test_bundle = load_json_asset("patient_bundle_to_link_with_mpi.json")
         expected_response = {
             "found_match": False,
             "updated_bundle": test_bundle,
@@ -186,7 +187,7 @@ class TestLinkRecord:
 class TestLink:
     @pytest.fixture
     def patients(self):
-        bundle = utils.read_json_from_assets("linking", "patient_bundle_to_link_with_mpi.json")
+        bundle = load_json_asset("simple_patient_bundle_to_link_with_mpi.json")
         patients: list[schemas.PIIRecord] = []
         for entry in bundle["entry"]:
             if entry.get("resource", {}).get("resourceType", {}) == "Patient":
