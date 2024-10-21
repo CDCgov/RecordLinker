@@ -63,7 +63,7 @@ local_scheme = "node-and-timestamp"
 fallback_version = "0.0.0"
 
 [tool.ruff]
-exclude = [".git", ".pytest_cache", "__pycache__", "docs", "alembic"]
+exclude = [".git", ".pytest_cache", "__pycache__", "docs"]
 line-length = 100
 indent-width = 4
 target-version = "py310"
