@@ -28,4 +28,4 @@ jobs:
 
       - name: Run lint checks
         run: |
-          ruff check src/
+          ruff check

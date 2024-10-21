@@ -32,7 +32,7 @@ def default_algorithm(session: orm.Session) -> models.Algorithm:
     :param session: The database session
     :returns: default algorithm
     """
-    query = select(models.Algorithm).where(models.Algorithm.is_default.is_(True))
+    query = select(models.Algorithm).where(models.Algorithm.is_default == True)  # noqa: E712
     res = session.scalars(query).all()
     if not res:
         raise ValueError("No default algorithm found in the database.")

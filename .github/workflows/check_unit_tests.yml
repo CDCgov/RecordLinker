@@ -10,13 +10,32 @@ jobs:
   test:
     runs-on: ubuntu-latest
 
+    strategy:
+      matrix:
+        database: [postgres, sqlite, mysql, sqlserver]  # Matrix for database types
+
     services:
       postgres:
-        image: postgres:13
+        image: postgres:17
         ports:
           - 5432:5432
         env:
           POSTGRES_PASSWORD: pw
+
+      mysql:
+        image: mysql:8
+        ports:
+          - 3306:3306
+        env:
+          MYSQL_ROOT_PASSWORD: pw
+
+      sqlserver:
+        image: mcr.microsoft.com/mssql/server:2022-latest
+        ports:
+          - 1433:1433
+        env:
+          ACCEPT_EULA: Y
+          SA_PASSWORD: "YourStrong!Passw0rd"
 
     steps:
       - name: Checkout code
@@ -33,22 +52,43 @@ jobs:
           python -m pip install --upgrade pip
           pip install '.[dev]'
 
-      - name: Wait for PostgreSQL to be ready
+      - name: Install ODBC Driver for SQL Server
+        if: ${{ matrix.database == 'sqlserver' }}
         run: |
-          until pg_isready -h localhost -U postgres; do sleep 1; done
+          # Add Microsoft repository keys
+          curl https://packages.microsoft.com/keys/microsoft.asc | sudo apt-key add -
+          
+          # Add the Microsoft SQL Server repository for Ubuntu
+          curl https://packages.microsoft.com/config/ubuntu/$(lsb_release -rs)/prod.list | sudo tee /etc/apt/sources.list.d/mssql-release.list
+          
+          # Update package lists
+          sudo apt-get update
+          
+          # Accept the EULA and install msodbcsql17
+          sudo ACCEPT_EULA=Y apt-get install -y msodbcsql17 unixodbc-dev
 
-      - name: Run unit tests
-        env:
-          TEST_DB_URI: "postgresql+psycopg2://postgres:pw@localhost:5432/postgres"
+      - name: Run Pytest with the matrix database
         run: |
+          if [[ "${{ matrix.database }}" == "postgres" ]]; then
+            export TEST_DB_URI=postgresql+psycopg2://postgres:pw@localhost:5432/postgres
+          elif [[ "${{ matrix.database }}" == "sqlite" ]]; then
+            export TEST_DB_URI=sqlite:///testdb.sqlite3
+          elif [[ "${{ matrix.database }}" == "mysql" ]]; then
+            export TEST_DB_URI=mysql+pymysql://root:pw@localhost:3306/mysql
+          elif [[ "${{ matrix.database }}" == "sqlserver" ]]; then
+            export TEST_DB_URI=mssql+pyodbc://sa:YourStrong!Passw0rd@localhost:1433/master?driver=ODBC+Driver+17+for+SQL+Server
+          fi
+
           pytest --cov=recordlinker --cov-report=xml tests/unit
+
       - name: Upload test results to Codecov
-        if: ${{ !cancelled() }}
+        if: ${{ matrix.database == 'postgres' && !cancelled() }}
         uses: codecov/test-results-action@v1
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
 
       - name: Upload coverage to Codecov
+        if: ${{ matrix.database == 'postgres' }}
         uses: codecov/codecov-action@v4
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
