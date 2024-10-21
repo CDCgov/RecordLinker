@@ -4,6 +4,14 @@ import pydantic
 import pydantic_settings
 
 
+class ConfigurationError(Exception):
+    """
+    Error raised when there is a configuration issue.
+    """
+
+    pass
+
+
 class Settings(pydantic_settings.BaseSettings):
     model_config = pydantic_settings.SettingsConfigDict(
         env_file=".env",
@@ -24,6 +32,14 @@ class Settings(pydantic_settings.BaseSettings):
         description="The maximum number of MPI database connections that can be opened "
         "above the connection pool size",
         default=10,
+    )
+    initial_algorithms: str = pydantic.Field(
+        description=(
+            "The path to the initial algorithms file that is loaded on startup if the "
+            "algorithms table is empty.  This file should be in JSON format.  If the "
+            "value is an empty string, no algorithms will be loaded."
+        ),
+        default="assets/initial_algorithms.json",
     )
 
 
