@@ -10,16 +10,16 @@ import copy
 import uuid
 
 import pytest
+from conftest import load_json_asset
 
 from recordlinker import models
 from recordlinker import schemas
-from recordlinker import utils
 from recordlinker.linking import link
 
 
 class TestAddPersonResource:
     def test_add_person_resource(self):
-        bundle = utils.read_json_from_assets("general", "patient_bundle.json")
+        bundle = load_json_asset("patient_bundle.json")
         raw_bundle = copy.deepcopy(bundle)
         patient_id = "TEST_PATIENT_ID"
         person_id = "TEST_PERSON_ID"
@@ -32,13 +32,8 @@ class TestAddPersonResource:
         assert len(returned_bundle.get("entry")) == len(bundle.get("entry")) + 1
 
         # Assert the added element is the person_resource bundle
-        assert (
-            returned_bundle.get("entry")[-1].get("resource").get("resourceType") == "Person"
-        )
-        assert (
-            returned_bundle.get("entry")[-1].get("request").get("url")
-            == "Person/TEST_PERSON_ID"
-        )
+        assert returned_bundle.get("entry")[-1].get("resource").get("resourceType") == "Person"
+        assert returned_bundle.get("entry")[-1].get("request").get("url") == "Person/TEST_PERSON_ID"
 
 
 class TestCompare:
@@ -68,7 +63,18 @@ class TestCompare:
             }
         )
 
-        algorithm_pass = models.AlgorithmPass(id=1, algorithm_id=1, blocking_keys=[1], evaluators={"first_name": "func:recordlinker.linking.matchers.feature_match_exact", "last_name": "func:recordlinker.linking.matchers.feature_match_fuzzy_string"}, rule="func:recordlinker.linking.matchers.eval_perfect_match", cluster_ratio=1.0, kwargs={})
+        algorithm_pass = models.AlgorithmPass(
+            id=1,
+            algorithm_id=1,
+            blocking_keys=[1],
+            evaluators={
+                "FIRST_NAME": "func:recordlinker.linking.matchers.feature_match_exact",
+                "LAST_NAME": "func:recordlinker.linking.matchers.feature_match_fuzzy_string",
+            },
+            rule="func:recordlinker.linking.matchers.eval_perfect_match",
+            cluster_ratio=1.0,
+            kwargs={},
+        )
 
         assert link.compare(rec, pat, algorithm_pass) is True
 
@@ -97,7 +103,18 @@ class TestCompare:
                 ]
             }
         )
-        algorithm_pass = models.AlgorithmPass(id=1, algorithm_id=1, blocking_keys=[1], evaluators={"first_name": "func:recordlinker.linking.matchers.feature_match_exact", "last_name": "func:recordlinker.linking.matchers.feature_match_exact"}, rule="func:recordlinker.linking.matchers.eval_perfect_match", cluster_ratio=1.0, kwargs={})
+        algorithm_pass = models.AlgorithmPass(
+            id=1,
+            algorithm_id=1,
+            blocking_keys=[1],
+            evaluators={
+                "FIRST_NAME": "func:recordlinker.linking.matchers.feature_match_exact",
+                "LAST_NAME": "func:recordlinker.linking.matchers.feature_match_exact",
+            },
+            rule="func:recordlinker.linking.matchers.eval_perfect_match",
+            cluster_ratio=1.0,
+            kwargs={},
+        )
 
         assert link.compare(rec, pat, algorithm_pass) is False
 
@@ -105,7 +122,8 @@ class TestCompare:
 class TestLinkRecordAgainstMpi:
     @pytest.fixture
     def patients(self):
-        bundle = utils.read_json_from_assets("linking", "patient_bundle_to_link_with_mpi.json")
+        bundle = load_json_asset("simple_patient_bundle_to_link_with_mpi.json")
+        patients = []
         patients: list[schemas.PIIRecord] = []
         for entry in bundle["entry"]:
             if entry.get("resource", {}).get("resourceType", {}) == "Patient":

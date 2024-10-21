@@ -14,4 +14,4 @@ cd "$(dirname "$0")/.."
 PORT=${1:-8000}
 
 # Start the API server
-uvicorn recordlinker.main:app --app-dir src --reload --host 0 --port ${PORT} --log-config src/recordlinker/log_config.yml
+uvicorn recordlinker.main:app --app-dir src --reload --reload-dir src/ --host 0 --port ${PORT} --log-config src/recordlinker/log_config.yml

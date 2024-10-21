@@ -1,3 +1,4 @@
+import logging
 import typing
 
 from sqlalchemy import event
@@ -6,8 +7,12 @@ from sqlalchemy import schema
 from sqlalchemy import types as sqltypes
 
 from recordlinker import utils
+from recordlinker.config import ConfigurationError
+from recordlinker.config import settings
 
 from .base import Base
+
+LOGGER = logging.getLogger(__name__)
 
 
 class Algorithm(Base):
@@ -20,6 +25,20 @@ class Algorithm(Base):
     passes: orm.Mapped[list["AlgorithmPass"]] = orm.relationship(
         back_populates="algorithm", cascade="all, delete-orphan"
     )
+
+    @classmethod
+    def from_dict(cls, **data: dict) -> "Algorithm":
+        """
+        Create an instance of Algorithm from a dictionary.
+
+        Parameters:
+        data: The dictionary containing the data for the Algorithm instance.
+
+        Returns:
+        The Algorithm instance.
+        """
+        passes = [AlgorithmPass(**p) for p in data.pop("passes", [])]
+        return cls(passes=passes, **data)
 
 
 def check_only_one_default(mapping, connection, target):
@@ -112,3 +131,35 @@ class AlgorithmPass(Base):
         if not hasattr(self, "_bound_rule"):
             self._bound_rule = utils.str_to_callable(self.rule)
         return self._bound_rule
+
+
+@event.listens_for(schema.MetaData, "after_create")
+def create_initial_algorithms(target, connection, **kw) -> typing.List[Algorithm] | None:
+    """
+    Create the initial algorithms if they have been defined in the configuration.
+    This function is called after the database schema has been created in the
+    recordlinker.database.create_sessionmaker function.
+    """
+    if settings.initial_algorithms:
+        try:
+            data = utils.read_json(settings.initial_algorithms)
+        except Exception as exc:
+            raise ConfigurationError("Error loading initial algorithms") from exc
+        if not any(algo.get("is_default") for algo in data):
+            raise ConfigurationError(f"No default algorithm found in {settings.initial_algorithms}")
+
+        session = orm.Session(bind=connection)
+        try:
+            # Only load the algorithms if there are none in the database
+            if session.query(Algorithm).count() == 0:
+                objs = [Algorithm.from_dict(**algo) for algo in data]
+                session.add_all(objs)
+                session.commit()
+                LOGGER.info(f"Created {len(objs)} initial algorithms.")
+                return objs
+        except Exception as exc:
+            session.rollback()
+            raise ConfigurationError("Error creating initial algorithms") from exc
+        finally:
+            session.close()
+    return None
