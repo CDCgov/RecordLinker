@@ -28,6 +28,8 @@ dependencies = [
     "rapidfuzz",
     "opentelemetry-api",
     "opentelemetry-sdk",
+    "python-json-logger",
+    "asgi-correlation-id",
     # Database drivers
     "psycopg2-binary",  # PostgreSQL
     "PyMySQL",  # MySQL & MariaDB
@@ -48,8 +50,6 @@ dev = [
 ]
 prod = [
     # production-only dependencies here
-    "python-json-logger",
-    "asgi-correlation-id",
 ]
 
 [tool.setuptools]
@@ -98,4 +98,4 @@ env = [
 files = ["src"]
 mypy_path = ["src"]
 # TODO: Resolve static typing issues in main.py
-exclude = ["src/recordlinker/main.py", "src/recordlinker/linkage"]
+exclude = ["src/recordlinker/main.py"]
