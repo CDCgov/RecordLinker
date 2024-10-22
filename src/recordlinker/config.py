@@ -5,8 +5,6 @@ import typing
 import pydantic
 import pydantic_settings
 
-from recordlinker.log import DEFAULT_LOGGING_CONFIG
-
 
 class ConfigurationError(Exception):
     """
@@ -50,6 +48,36 @@ class Settings(pydantic_settings.BaseSettings):
         default="assets/initial_algorithms.json",
     )
 
+    def default_log_config(self) -> dict:
+        """
+        Return the default logging configuration.
+        """
+        return {
+            "version": 1,
+            "disable_existing_loggers": False,
+            "filters": {"key_value": {"()": "recordlinker.log.KeyValueFilter"}},
+            "formatters": {
+                "default": {
+                    "()": "uvicorn.logging.DefaultFormatter",
+                    "fmt": "%(levelprefix)s [%(asctime)s] ... %(message)s",
+                    "datefmt": "%H:%M:%S",
+                }
+            },
+            "handlers": {
+                "console": {
+                    "class": "logging.StreamHandler",
+                    "formatter": "default",
+                    "filters": ["key_value"],
+                    "stream": "ext://sys.stderr",
+                }
+            },
+            "loggers": {
+                "": {"handlers": ["console"], "level": "WARNING"},
+                "recordlinker": {"handlers": ["console"], "level": "INFO", "propagate": False},
+                "recordlinker.access": {"handlers": ["console"], "level": "CRITICAL", "propagate": False},
+            },
+        }
+
     def configure_logging(self) -> None:
         """
         Configure logging based on the provided configuration file. If no configuration
@@ -65,7 +93,7 @@ class Settings(pydantic_settings.BaseSettings):
                 raise ConfigurationError(
                     f"Error loading log configuration: {self.log_config}"
                 ) from exc
-        logging.config.dictConfig(config or DEFAULT_LOGGING_CONFIG)
+        logging.config.dictConfig(config or self.default_log_config())
 
 
 settings = Settings()  # type: ignore
