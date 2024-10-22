@@ -6,10 +6,9 @@ import pytest
 from fastapi import status
 
 from recordlinker import schemas
-from recordlinker import utils
 from recordlinker.linking import link
 
-from conftest import load_json_asset
+from .conftest import load_json_asset
 
 
 def test_health_check(client):

@@ -41,12 +41,12 @@ The API will be available at `http://localhost:8000`. Visit `http://localhost:80
 
 To run all the unit tests, use the following command:
 ```bash
-./scripts/test_unit.sh
+pytest
 ```
 
 To run a single unit test, use the following command:
 ```bash
-./scripts/test_unit.sh tests/unit/test_main.py::test_linkage_success
+pytest tests/unit/test_utils.py::test_bind_functions
 ```
 
 ## Standard Notices

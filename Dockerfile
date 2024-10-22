@@ -1,12 +1,24 @@
 FROM python:3.12-slim
 
-# Set the USE_OTEL environment variable to true to enable OpenTelemetry
+# Set the USE_OTEL env variable to true to enable OpenTelemetry
 ARG USE_OTEL=false
 ENV USE_OTEL=${USE_OTEL}
+# Set the USE_MSSQL env variable to true to enable SQL Server support
+ARG USE_MSSQL=true
+ENV USE_MSSQL=${USE_MSSQL}
 
 # Updgrade system packages and install curl
 RUN apt-get update && apt-get upgrade -y && apt-get install curl -y
 RUN pip install --upgrade pip
+
+# Conditionally install ODBC driver for SQL Server
+RUN if [ "$USE_MSSQL" = "true" ]; then \
+        apt-get install -y gnupg2 apt-transport-https && \
+        curl https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor -o /etc/apt/trusted.gpg.d/microsoft.gpg && \
+        curl https://packages.microsoft.com/config/debian/11/prod.list | tee /etc/apt/sources.list.d/mssql-release.list && \
+        apt-get update && \
+        ACCEPT_EULA=Y apt-get install -y msodbcsql17 unixodbc-dev; \
+    fi
 
 WORKDIR /code
 # Initialize the recordlinker directory
@@ -26,7 +38,6 @@ RUN if [ "$USE_OTEL" = "true" ]; then \
 # Copy over the rest of the code
 COPY ./src /code/src
 COPY ./docs /code/docs
-COPY ./migrations /code/migrations
 COPY ./assets /code/assets
 COPY README.md /code/README.md
 
