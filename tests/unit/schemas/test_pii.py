@@ -145,10 +145,10 @@ class TestPIIRecord:
 
         # testing none result
         record = pii.PIIRecord(race="American")
-        assert record.race == None
+        assert record.race is None
 
         record = pii.PIIRecord()
-        assert record.race == None
+        assert record.race is None
     
     def test_parse_gender(self):
         record = pii.PIIRecord(gender="identifies as female gender (finding)")
@@ -168,10 +168,10 @@ class TestPIIRecord:
 
         # testing none result
         record = pii.PIIRecord(gender="invalid gender")
-        assert record.gender == None
+        assert record.gender is None
 
         record = pii.PIIRecord()
-        assert record.gender == None
+        assert record.gender is None
         
 
     def test_feature_iter(self):
