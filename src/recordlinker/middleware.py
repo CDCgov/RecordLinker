@@ -45,7 +45,7 @@ class AccessLogMiddleware(BaseHTTPMiddleware):
             # Record the correlation ID, if present
             "correlation_id": request.headers.get(CorrelationIdMiddleware.header_name, "-"),
             # Log details of the request
-            "client_ip": request.client.host,
+            "client_ip": getattr(request.client, "host", "-"),
             "method": request.method,
             "path": request.url.path,
             "http_version": request.scope.get("http_version", "unknown"),

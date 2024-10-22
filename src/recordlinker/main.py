@@ -31,10 +31,9 @@ app = BaseService(
     description_path=str(Path(__file__).parent.parent.parent / "README.md"),
     include_health_check_endpoint=False,
     # openapi_url="/record-linkage/openapi.json",
-)
-app.app.add_middleware(middleware.CorrelationIdMiddleware)
-app.app.add_middleware(middleware.AccessLogMiddleware)
-app = app.start()
+).start()
+app.add_middleware(middleware.CorrelationIdMiddleware)
+app.add_middleware(middleware.AccessLogMiddleware)
 app.include_router(algorithm_router, prefix="/algorithm", tags=["algorithm"])
 
 
