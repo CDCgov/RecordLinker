@@ -17,11 +17,13 @@ from sqlalchemy.sql import expression
 
 from recordlinker import schemas
 from recordlinker import utils
+from recordlinker import middleware
 from recordlinker.base_service import BaseService
 from recordlinker.database import get_session
 from recordlinker.linking import algorithm_service
 from recordlinker.linking import link
 from recordlinker.routes.algorithm_router import router as algorithm_router
+
 
 # Instantiate FastAPI via DIBBs' BaseService class
 app = BaseService(
@@ -30,9 +32,10 @@ app = BaseService(
     description_path=str(Path(__file__).parent.parent.parent / "README.md"),
     include_health_check_endpoint=False,
     # openapi_url="/record-linkage/openapi.json",
-).start()
-
-
+)
+app.app.add_middleware(middleware.CorrelationIdMiddleware)
+app.app.add_middleware(middleware.AccessLogMiddleware)
+app = app.start()
 app.include_router(algorithm_router, prefix="/algorithm", tags=["algorithm"])
 
 

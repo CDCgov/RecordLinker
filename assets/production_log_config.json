@@ -6,8 +6,8 @@
             "()": "asgi_correlation_id.CorrelationIdFilter",
             "default_value": "-"
         },
-        "uvicorn_access": {
-            "()": "recordlinker.logging.AccessLogFilter"
+        "dict_values": {
+            "()": "recordlinker.logging.DictArgFilter"
         }
     },
     "formatters": {
@@ -32,7 +32,7 @@
         "access": {
             "formatter": "access",
             "class": "logging.StreamHandler",
-            "filters": ["uvicorn_access"],
+            "filters": ["dict_values"],
             "stream": "ext://sys.stdout"
         }
     },
