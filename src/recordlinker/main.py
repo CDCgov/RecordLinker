@@ -15,15 +15,14 @@ from pydantic import Field
 from sqlalchemy import orm
 from sqlalchemy.sql import expression
 
+from recordlinker import middleware
 from recordlinker import schemas
 from recordlinker import utils
-from recordlinker import middleware
 from recordlinker.base_service import BaseService
 from recordlinker.database import get_session
 from recordlinker.linking import algorithm_service
 from recordlinker.linking import link
 from recordlinker.routes.algorithm_router import router as algorithm_router
-
 
 # Instantiate FastAPI via DIBBs' BaseService class
 app = BaseService(
