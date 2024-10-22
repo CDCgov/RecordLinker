@@ -1,6 +1,6 @@
 import unittest.mock
-import starlette.applications
 
+import starlette.applications
 
 from recordlinker import middleware
 
