@@ -7,7 +7,7 @@ ENV USE_OTEL=${USE_OTEL}
 ARG USE_MSSQL=true
 ENV USE_MSSQL=${USE_MSSQL}
 # Set default log config
-ARG LOG_CONFIG=assets/production_log_config.json
+ARG LOG_CONFIG=/code/assets/production_log_config.json
 ENV LOG_CONFIG=${LOGGING_CONFIG}
 
 # Updgrade system packages and install curl

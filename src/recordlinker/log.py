@@ -5,6 +5,32 @@ import pythonjsonlogger.jsonlogger
 
 RESERVED_ATTRS = pythonjsonlogger.jsonlogger.RESERVED_ATTRS + ("taskName",)
 
+DEFAULT_LOGGING_CONFIG = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "filters": {"key_value": {"()": "recordlinker.log.KeyValueFilter"}},
+    "formatters": {
+        "default": {
+            "()": "uvicorn.logging.DefaultFormatter",
+            "fmt": "%(levelprefix)s [%(asctime)s] ... %(message)s",
+            "datefmt": "%H:%M:%S",
+        }
+    },
+    "handlers": {
+        "console": {
+            "class": "logging.StreamHandler",
+            "formatter": "default",
+            "filters": ["key_value"],
+            "stream": "ext://sys.stderr",
+        }
+    },
+    "loggers": {
+        "": {"handlers": ["console"], "level": "WARNING"},
+        "recordlinker": {"handlers": ["console"], "level": "INFO", "propagate": False},
+        "recordlinker.access": {"handlers": ["console"], "level": "CRITICAL", "propagate": False},
+    },
+}
+
 
 # Custom filter to transform log arguments into JSON fields
 class DictArgFilter(logging.Filter):

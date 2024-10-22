@@ -7,17 +7,17 @@
             "default_value": "-"
         },
         "dict_values": {
-            "()": "recordlinker.logging.DictArgFilter"
+            "()": "recordlinker.log.DictArgFilter"
         }
     },
     "formatters": {
         "default": {
-            "()": "recordlinker.logging.JSONFormatter",
+            "()": "recordlinker.log.JSONFormatter",
             "format": "%(levelname)s %(name)s %(message)s %(correlation_id)s",
             "timestamp": true
         },
         "access": {
-            "()": "recordlinker.logging.JSONFormatter",
+            "()": "recordlinker.log.JSONFormatter",
             "fmt": "%(message)s",
             "static_fields": {"message": "ACCESS"}
         }

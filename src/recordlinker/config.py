@@ -1,10 +1,11 @@
-import logging
+import json
+import logging.config
 import typing
 
 import pydantic
 import pydantic_settings
 
-from recordlinker import utils
+from recordlinker.log import DEFAULT_LOGGING_CONFIG
 
 
 class ConfigurationError(Exception):
@@ -38,7 +39,7 @@ class Settings(pydantic_settings.BaseSettings):
     )
     log_config: typing.Optional[str] = pydantic.Field(
         description="The path to the logging configuration file",
-        default="assets/development_log_config.json"
+        default="",
     )
     initial_algorithms: str = pydantic.Field(
         description=(
@@ -49,17 +50,23 @@ class Settings(pydantic_settings.BaseSettings):
         default="assets/initial_algorithms.json",
     )
 
-    @pydantic.field_validator("log_config", mode="before")
-    def validate_log_config(cls, value):
+    def configure_logging(self) -> None:
         """
-        Validate the log_config value.
+        Configure logging based on the provided configuration file. If no configuration
+        file is provided, use the default configuration.
         """
-        try:
-            config = utils.read_json(value)
-            logging.config.dictConfig(config)
-        except Exception as exc:
-            raise ConfigurationError(f"Error loading log configuration: {value}") from exc
-        return value
+        config = None
+        if self.log_config:
+            # Load logging config from the provided file
+            try:
+                with open(self.log_config, "r") as fobj:
+                    config = json.loads(fobj.read())
+            except Exception as exc:
+                raise ConfigurationError(
+                    f"Error loading log configuration: {self.log_config}"
+                ) from exc
+        logging.config.dictConfig(config or DEFAULT_LOGGING_CONFIG)
 
 
 settings = Settings()  # type: ignore
+settings.configure_logging()
