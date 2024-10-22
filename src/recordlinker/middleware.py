@@ -6,8 +6,8 @@ import asgi_correlation_id
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.requests import Request
 
-ACCESS_LOGGER_NAME = "recordlinker.access"
 DEFAULT_CORRELATION_ID_LENGTH = 12
+ACCESS_LOGGER = logging.getLogger("recordlinker.access")
 
 
 class CorrelationIdMiddleware(asgi_correlation_id.CorrelationIdMiddleware):
@@ -26,10 +26,6 @@ class AccessLogMiddleware(BaseHTTPMiddleware):
     Uvicorn access log middleware.  As such, it provides more information about the
     request including processing time and correlation ID.
     """
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.logger = logging.getLogger(ACCESS_LOGGER_NAME)
 
     async def dispatch(self, request: Request, call_next):
         """
@@ -52,9 +48,9 @@ class AccessLogMiddleware(BaseHTTPMiddleware):
             "status_code": response.status_code,
         }
         msg = (
-            '%(client_ip)s - "%(method)s %(path)s ',
-            'HTTP/%(http_version)s" %(status_code)d %(process_time).2fms',
+            '[%(correlation_id)s] %(client_ip)s - "%(method)s %(path)s '
+            'HTTP/%(http_version)s" %(status_code)d %(process_time).2fms'
         )
         # Log the message
-        self.logger.info(msg, data)
+        ACCESS_LOGGER.info(msg, data)
         return response
