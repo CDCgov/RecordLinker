@@ -1,7 +1,10 @@
+import logging
 import typing
 
 import pydantic
 import pydantic_settings
+
+from recordlinker import utils
 
 
 class ConfigurationError(Exception):
@@ -33,6 +36,10 @@ class Settings(pydantic_settings.BaseSettings):
         "above the connection pool size",
         default=10,
     )
+    log_config: typing.Optional[str] = pydantic.Field(
+        description="The path to the logging configuration file",
+        default="assets/development_log_config.json"
+    )
     initial_algorithms: str = pydantic.Field(
         description=(
             "The path to the initial algorithms file that is loaded on startup if the "
@@ -41,6 +48,18 @@ class Settings(pydantic_settings.BaseSettings):
         ),
         default="assets/initial_algorithms.json",
     )
+
+    @pydantic.field_validator("log_config", mode="before")
+    def validate_log_config(cls, value):
+        """
+        Validate the log_config value.
+        """
+        try:
+            config = utils.read_json(value)
+            logging.config.dictConfig(config)
+        except Exception as exc:
+            raise ConfigurationError(f"Error loading log configuration: {value}") from exc
+        return value
 
 
 settings = Settings()  # type: ignore
