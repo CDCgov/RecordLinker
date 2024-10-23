@@ -28,6 +28,8 @@ dependencies = [
     "rapidfuzz",
     "opentelemetry-api",
     "opentelemetry-sdk",
+    "python-json-logger",
+    "asgi-correlation-id",
     # Database drivers
     "psycopg2-binary",  # PostgreSQL
     "PyMySQL",  # MySQL & MariaDB
@@ -37,6 +39,7 @@ dependencies = [
 
 [project.optional-dependencies]
 dev = [
+    # development-only dependencies here
     "fastapi[standard]",
     "pytest>=8.3",
     "pytest-cov",
@@ -46,7 +49,7 @@ dev = [
     "types-python-dateutil"
 ]
 prod = [
-    # List any additional production-only dependencies here
+    # production-only dependencies here
 ]
 
 [tool.setuptools]
@@ -94,5 +97,3 @@ env = [
 [tool.mypy]
 files = ["src"]
 mypy_path = ["src"]
-# TODO: Resolve static typing issues in main.py
-exclude = ["src/recordlinker/main.py", "src/recordlinker/linkage"]

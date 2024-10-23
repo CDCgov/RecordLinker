@@ -36,7 +36,9 @@ results=""
 while IFS= read -r pr; do
   number=$(echo "$pr" | jq -r '.number')
   # get the timestamp of the ready_for_review event
-  ready_for_review=$(gh_api issues/${number}/timeline | jq -r 'map(select(.event == "ready_for_review")) | .[0].created_at')
+  # TODO: this call assumes a PR will have less than 100 timeline events,
+  #      which is not always the case, we should handle pagination
+  ready_for_review=$(gh_api "issues/${number}/timeline?per_page=100" | jq -r 'map(select(.event == "ready_for_review")) | .[0].created_at')
   # calculate the number of days since the PR was ready for review
   # only calculate if ready_for_review does not equal "null"
   if [ "$ready_for_review" == "null" ]; then

@@ -1,3 +1,5 @@
+import json
+import logging.config
 import typing
 
 import pydantic
@@ -33,6 +35,10 @@ class Settings(pydantic_settings.BaseSettings):
         "above the connection pool size",
         default=10,
     )
+    log_config: typing.Optional[str] = pydantic.Field(
+        description="The path to the logging configuration file",
+        default="",
+    )
     initial_algorithms: str = pydantic.Field(
         description=(
             "The path to the initial algorithms file that is loaded on startup if the "
@@ -42,5 +48,53 @@ class Settings(pydantic_settings.BaseSettings):
         default="assets/initial_algorithms.json",
     )
 
+    def default_log_config(self) -> dict:
+        """
+        Return the default logging configuration.
+        """
+        return {
+            "version": 1,
+            "disable_existing_loggers": False,
+            "filters": {"key_value": {"()": "recordlinker.log.KeyValueFilter"}},
+            "formatters": {
+                "default": {
+                    "()": "uvicorn.logging.DefaultFormatter",
+                    "fmt": "%(levelprefix)s [%(asctime)s] ... %(message)s",
+                    "datefmt": "%H:%M:%S",
+                }
+            },
+            "handlers": {
+                "console": {
+                    "class": "logging.StreamHandler",
+                    "formatter": "default",
+                    "filters": ["key_value"],
+                    "stream": "ext://sys.stderr",
+                }
+            },
+            "loggers": {
+                "": {"handlers": ["console"], "level": "WARNING"},
+                "recordlinker": {"handlers": ["console"], "level": "INFO", "propagate": False},
+                "recordlinker.access": {"handlers": ["console"], "level": "CRITICAL", "propagate": False},
+            },
+        }
+
+    def configure_logging(self) -> None:
+        """
+        Configure logging based on the provided configuration file. If no configuration
+        file is provided, use the default configuration.
+        """
+        config = None
+        if self.log_config:
+            # Load logging config from the provided file
+            try:
+                with open(self.log_config, "r") as fobj:
+                    config = json.loads(fobj.read())
+            except Exception as exc:
+                raise ConfigurationError(
+                    f"Error loading log configuration: {self.log_config}"
+                ) from exc
+        logging.config.dictConfig(config or self.default_log_config())
+
 
 settings = Settings()  # type: ignore
+settings.configure_logging()

@@ -1,0 +1,70 @@
+{
+    "version": 1,
+    "disable_existing_loggers": false,
+    "filters": {
+        "correlation_id": {
+            "()": "asgi_correlation_id.CorrelationIdFilter",
+            "default_value": "-"
+        },
+        "dict_values": {
+            "()": "recordlinker.log.DictArgFilter"
+        }
+    },
+    "formatters": {
+        "default": {
+            "()": "recordlinker.log.JSONFormatter",
+            "format": "%(levelname)s %(name)s %(message)s %(correlation_id)s",
+            "timestamp": true
+        },
+        "access": {
+            "()": "recordlinker.log.JSONFormatter",
+            "fmt": "%(message)s",
+            "static_fields": {"message": "ACCESS"}
+        }
+    },
+    "handlers": {
+        "console": {
+            "formatter": "default",
+            "class": "logging.StreamHandler",
+            "filters": ["correlation_id"],
+            "stream": "ext://sys.stderr"
+        },
+        "access": {
+            "formatter": "access",
+            "class": "logging.StreamHandler",
+            "filters": ["dict_values"],
+            "stream": "ext://sys.stdout"
+        }
+    },
+    "loggers": {
+        "": {
+            "handlers": ["console"],
+            "level": "WARNING"
+        },
+        "uvicorn": {
+            "handlers": ["console"],
+            "level": "INFO",
+            "propagate": false
+        },
+        "uvicorn.error": {
+            "handlers": ["console"],
+            "level": "INFO",
+            "propagate": false
+        },
+        "uvicorn.access": {
+            "handlers": ["console"],
+            "level": "CRITICAL",
+            "propagate": false
+        },
+        "recordlinker": {
+            "handlers": ["console"],
+            "level": "INFO",
+            "propagate": false
+        },
+        "recordlinker.access": {
+            "handlers": ["access"],
+            "level": "INFO",
+            "propagate": false
+        }
+    }
+}
