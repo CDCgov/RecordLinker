@@ -1,7 +1,7 @@
 import datetime
 import enum
-import typing
 import re
+import typing
 
 import dateutil.parser
 import pydantic
@@ -70,7 +70,7 @@ class Race(enum.Enum):
         """
         Return the value of the enum as a string.
         """
-        return self.value
+        return self.name
 class Gender(enum.Enum):
     """
     Enum for the Gender field.
@@ -86,7 +86,7 @@ class Gender(enum.Enum):
         """
         Return the value of the enum as a string.
         """
-        return self.value
+        return self.name
 
 
 class Name(pydantic.BaseModel):
