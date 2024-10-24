@@ -1,6 +1,5 @@
 import datetime
 import enum
-import re
 import typing
 
 import dateutil.parser
@@ -208,10 +207,11 @@ class PIIRecord(pydantic.BaseModel):
         """
         if value:
             val = str(value).strip()
-            pattern = re.compile(r"^\d{3}-\d{2}-\d{4}$")
-            if not pattern.match(val):
+            val = val.replace('-', '')
+            if len(val) != 9 or not val.isdigit():
                 return None
-            return val
+            formatted_ssn = f"{val[:3]}-{val[3:5]}-{val[5:]}"
+            return formatted_ssn
     
     @pydantic.field_validator("race", mode="before")
     def parse_race(cls, value):

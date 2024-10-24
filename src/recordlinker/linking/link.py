@@ -55,12 +55,15 @@ def fhir_record_to_pii_record(fhir_record: dict) -> schemas.PIIRecord:
                     elif coord.get("url") == "longitude":
                         address["longitude"] = coord.get("valueDecimal")
     for extension in fhir_record.get("extension", []):
-        if extension.get("url") == "http://hl7.org/fhir/StructureDefinition/us-core-race":
-            for coding in extension.get("valueCodeableConcept", {}).get("coding", []):
-                val["race"] = coding.get("display")
+        if extension.get("url") == "http://hl7.org/fhir/us/core/StructureDefinition/us-core-race":
+            for ext in extension.get("extension", []):
+                if ext.get("url") == "ombCategory":
+                    val["race"] = ext.get("valueCoding", {}).get("display")
         if extension.get("url") == "http://hl7.org/fhir/StructureDefinition/individual-genderIdentity":
-            for coding in extension.get("valueCodeableConcept", {}).get("coding", []):
-                val["gender"] = coding.get("display")
+            for ext in extension.get("extension", []):
+                if ext.get("url") == "value":
+                    for coding in ext.get("valueCodeableConcept", {}).get("coding", []):
+                        val["gender"] = coding.get("display")
 
     return schemas.PIIRecord(**val)
 
