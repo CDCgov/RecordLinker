@@ -39,6 +39,10 @@ class Settings(pydantic_settings.BaseSettings):
         description="The path to the logging configuration file",
         default="",
     )
+    splunk_uri: typing.Optional[str] = pydantic.Field(
+        description="The URI for the Splunk HEC server",
+        default="",
+    )
     initial_algorithms: str = pydantic.Field(
         description=(
             "The path to the initial algorithms file that is loaded on startup if the "
@@ -88,6 +92,7 @@ class Settings(pydantic_settings.BaseSettings):
             # Load logging config from the provided file
             try:
                 with open(self.log_config, "r") as fobj:
+                    # NOTE: should we also support loading TOML files?
                     config = json.loads(fobj.read())
             except Exception as exc:
                 raise ConfigurationError(

@@ -26,6 +26,7 @@ dependencies = [
     "python-dateutil==2.9.0.post0",
     "sqlalchemy",
     "rapidfuzz",
+    # Observability
     "opentelemetry-api",
     "opentelemetry-sdk",
     "python-json-logger",

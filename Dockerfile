@@ -49,7 +49,7 @@ EXPOSE 8080
 # Conditionally run the application with or without OpenTelemetry
 CMD if [ "$USE_OTEL" = "true" ]; then \
         opentelemetry-instrument --service_name recordlinker \
-            uvicorn recordlinker.main:app --host 0 --port 8080; \
+            uvicorn recordlinker.main:app --app-dir src --host 0 --port 8080; \
     else \
-        uvicorn recordlinker.main:app --host 0 --port 8080; \
+        uvicorn recordlinker.main:app --app-dir src --host 0 --port 8080; \
     fi
