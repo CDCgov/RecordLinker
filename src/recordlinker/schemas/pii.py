@@ -1,6 +1,7 @@
 import datetime
 import enum
 import typing
+import re
 
 import dateutil.parser
 import pydantic
@@ -153,7 +154,7 @@ class PIIRecord(pydantic.BaseModel):
     name: typing.List[Name] = []
     telecom: typing.List[Telecom] = []
     ssn: typing.Optional[str] = None
-    race: typing.Optional[Race] = None
+    race: typing.Optional[Race] = None  #TODO: make this a list of races
     gender: typing.Optional[Gender] = None
 
     @classmethod
@@ -207,9 +208,14 @@ class PIIRecord(pydantic.BaseModel):
         """
         if value:
             val = str(value).strip()
-            val = val.replace('-', '')
+            
+            if re.match(r"^\d{3}-\d{2}-\d{4}$", val):
+                return val 
+
             if len(val) != 9 or not val.isdigit():
                 return None
+            
+            # Format back to the standard SSN format (XXX-XX-XXXX)
             formatted_ssn = f"{val[:3]}-{val[3:5]}-{val[5:]}"
             return formatted_ssn
     
