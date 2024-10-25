@@ -18,7 +18,7 @@ ARG USE_OTEL=false
 ENV USE_OTEL=${USE_OTEL}
 # Set default log config
 ARG LOG_CONFIG=/code/assets/production_log_config.json
-ENV LOG_CONFIG=${LOGGING_CONFIG}
+ENV LOG_CONFIG=${LOG_CONFIG}
 
 # Updgrade system packages and install curl
 RUN apt-get update && apt-get upgrade -y && apt-get install curl -y
