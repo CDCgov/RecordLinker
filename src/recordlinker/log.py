@@ -99,6 +99,7 @@ class SplunkHecHandler(logging.Handler):
         """
         self.executor.shutdown(wait=True)
 
+    # TODO: test cases
     def emit(self, record: logging.LogRecord) -> None:
         """
         Emit the log record to the Splunk HEC server, if a client is configured.

@@ -37,12 +37,12 @@
         },
         "splunk_console": {
             "formatter": "default",
-            "class": "recordlinker.splunk.SplunkHecHandler",
+            "class": "recordlinker.log.SplunkHecHandler",
             "filters": ["correlation_id"]
         },
         "splunk_access": {
             "formatter": "access",
-            "class": "recordlinker.splunk.SplunkHecHandler",
+            "class": "recordlinker.log.SplunkHecHandler",
             "filters": ["dict_values"]
         }
     },
