@@ -16,6 +16,9 @@ ENV USE_MSSQL=${USE_MSSQL}
 # Set the USE_OTEL env variable to true to enable OpenTelemetry
 ARG USE_OTEL=false
 ENV USE_OTEL=${USE_OTEL}
+# Set default log config
+ARG LOG_CONFIG=/code/assets/production_log_config.json
+ENV LOG_CONFIG=${LOGGING_CONFIG}
 
 # Updgrade system packages and install curl
 RUN apt-get update && apt-get upgrade -y && apt-get install curl -y
@@ -57,7 +60,7 @@ EXPOSE ${PORT}
 
 # Create an entrypoint script
 RUN echo '#!/bin/sh' > /entrypoint.sh && \
-    echo 'exec uvicorn recordlinker.main:app --app-dir src --host 0 --port "$PORT" --log-config src/recordlinker/log_config.yml' >> /entrypoint.sh && \
+    echo 'exec uvicorn recordlinker.main:app --app-dir src --host 0 --port "$PORT"' >> /entrypoint.sh && \
     chmod +x /entrypoint.sh
 
 ENTRYPOINT ["/entrypoint.sh"]

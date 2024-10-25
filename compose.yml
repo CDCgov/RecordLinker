@@ -31,6 +31,7 @@ services:
         PORT: 8080
         USE_OTEL: ${USE_OTEL:-true}
         USE_MSSQL: ${USE_MSSQL:-false}
+        LOG_CONFIG: ""
     ports:
         - "8080:8080"
     environment:
