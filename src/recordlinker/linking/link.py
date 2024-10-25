@@ -18,6 +18,16 @@ from recordlinker.linking import matchers
 
 from . import mpi_service
 
+try:
+    from opentelemetry import trace
+
+    TRACER = trace.get_tracer(__name__)
+except ImportError:
+    # OpenTelemetry is an optional dependency, if its not installed use a mock tracer
+    from recordlinker.utils import MockTracer
+
+    TRACER = MockTracer()
+
 
 # TODO: This is a FHIR specific function, should be moved to a FHIR module
 def fhir_record_to_pii_record(fhir_record: dict) -> schemas.PIIRecord:
@@ -104,6 +114,7 @@ def compare(
         results.append(result)
     return matching_rule(results, **kwargs)  # type: ignore
 
+
 def link_record_against_mpi(
     record: schemas.PIIRecord,
     session: orm.Session,
@@ -133,43 +144,48 @@ def link_record_against_mpi(
     # find the highest scoring match across all passes
     scores: dict[models.Person, float] = collections.defaultdict(float)
     for algorithm_pass in algorithm.passes:
-        # the minimum ratio of matches needed to be considered a cluster member
-        cluster_ratio = algorithm_pass.cluster_ratio
-        # initialize a dictionary to hold the clusters of patients for each person
-        clusters: dict[models.Person, list[models.Patient]] = collections.defaultdict(list)
-        # block on the pii_record and the algorithm's blocking criteria, then
-        # iterate over the patients, grouping them by person
-        patients = mpi_service.get_block_data(session, record, algorithm_pass)
-        for patient in patients:
-            clusters[patient.person].append(patient)
+        with TRACER.start_as_current_span("link.pass"):
+            # the minimum ratio of matches needed to be considered a cluster member
+            cluster_ratio = algorithm_pass.cluster_ratio
+            # initialize a dictionary to hold the clusters of patients for each person
+            clusters: dict[models.Person, list[models.Patient]] = collections.defaultdict(list)
+            # block on the pii_record and the algorithm's blocking criteria, then
+            # iterate over the patients, grouping them by person
+            with TRACER.start_as_current_span("link.block"):
+                patients = mpi_service.get_block_data(session, record, algorithm_pass)
+                for patient in patients:
+                    clusters[patient.person].append(patient)
 
-        # evaluate each Person cluster to see if the incoming record is a match
-        for person, patients in clusters.items():
-            assert patients, "Patient cluster should not be empty"
-            matched_count = 0
-            for patient in patients:
-                # increment our match count if the pii_record matches the patient
-                if compare(record, patient, algorithm_pass):
-                    matched_count += 1
-            # calculate the match ratio for this person cluster
-            match_ratio = matched_count / len(patients)
-            if match_ratio >= cluster_ratio:
-                # The match ratio is larger than the minimum cluster threshold,
-                # optionally update the max score for this person
-                scores[person] = max(scores[person], match_ratio)
+            # evaluate each Person cluster to see if the incoming record is a match
+            with TRACER.start_as_current_span("link.evaluate"):
+                for person, patients in clusters.items():
+                    assert patients, "Patient cluster should not be empty"
+                    matched_count = 0
+                    for patient in patients:
+                        # increment our match count if the pii_record matches the patient
+                        with TRACER.start_as_current_span("link.compare"):
+                            if compare(record, patient, algorithm_pass):
+                                matched_count += 1
+                    # calculate the match ratio for this person cluster
+                    match_ratio = matched_count / len(patients)
+                    if match_ratio >= cluster_ratio:
+                        # The match ratio is larger than the minimum cluster threshold,
+                        # optionally update the max score for this person
+                        scores[person] = max(scores[person], match_ratio)
 
     matched_person: typing.Optional[models.Person] = None
     if scores:
         # Find the person with the highest matching score
         matched_person, _ = max(scores.items(), key=lambda i: i[1])
 
-    patient = mpi_service.insert_patient(
-        session,
-        record,
-        matched_person,
-        record.external_id,
-        external_person_id,
-    )
+    with TRACER.start_as_current_span("insert"):
+        patient = mpi_service.insert_patient(
+            session,
+            record,
+            matched_person,
+            record.external_id,
+            external_person_id,
+        )
 
     # return a tuple indicating whether a match was found and the person ID
     return (bool(matched_person), patient.person.reference_id, patient.reference_id)
