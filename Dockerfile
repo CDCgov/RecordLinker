@@ -1,5 +1,9 @@
 FROM python:3.12-slim
 
+LABEL org.opencontainers.image.source=https://github.com/CDCgov/RecordLinker
+LABEL org.opencontainers.image.description="RecordLinker is a service that links records from two datasets based on a set of common attributes."
+LABEL org.opencontainers.image.licenses=Apache-2.0
+
 # Set the environment variable to prod by default
 ARG ENVIRONMENT=prod
 ENV ENVIRONMENT=${ENVIRONMENT}
