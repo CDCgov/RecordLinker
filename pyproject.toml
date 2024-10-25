@@ -50,8 +50,6 @@ dev = [
 ]
 prod = [
     # List any additional production-only dependencies here
-    # TODO: remove yaml dep after log_config.yml is removed
-    "PyYAML"
 ]
 
 [tool.setuptools]
