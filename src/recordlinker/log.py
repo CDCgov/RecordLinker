@@ -1,3 +1,4 @@
+import concurrent.futures
 import json
 import logging
 import typing
@@ -53,7 +54,15 @@ class SplunkHecHandler(logging.Handler):
     A custom logging handler that sends log records to a Splunk HTTP Event Collector (HEC)
     server. This handler is only enabled if the `splunk_uri` setting is configured,
     otherwise each log record is ignored.
+
+    WARNING: This handler does not guarantee delivery of log records to the Splunk HEC
+    server.  Events are sent asynchronously to reduce blocking IO calls, and the client
+    does not wait for a response from the server.  Thus its possible that some log records
+    will be dropped.  Other logging handlers should be used in conjunction with this handler
+    in production environments to ensure log records are not lost.
     """
+
+    MAX_WORKERS = 10
 
     class SplunkHecClientSingleton:
         """
@@ -72,12 +81,25 @@ class SplunkHecHandler(logging.Handler):
             return cls._instance
 
     def __init__(self, **kwargs: typing.Any) -> None:
+        """
+        Initialize the Splunk HEC logging handler.  If the `splunk_uri` setting is
+        configured, create a new Splunk HEC client instance or use the existing
+        singleton instance.  Its optimal to use a singleton instance to avoid
+        re-testing the connection to the Splunk HEC server.
+        """
         logging.Handler.__init__(self)
         self.client: splunk.SplunkHECClient | None = None
+        self.executor = concurrent.futures.ThreadPoolExecutor(max_workers=self.MAX_WORKERS)
         if config.settings.splunk_uri:
             self.client = self.SplunkHecClientSingleton.get_instance(config.settings.splunk_uri)
 
-    def emit(self, record: logging.log) -> None:
+    def __del__(self) -> None:
+        """
+        Clean up the executor when the handler is deleted.
+        """
+        self.executor.shutdown(wait=True)
+
+    def emit(self, record: logging.LogRecord) -> None:
         """
         Emit the log record to the Splunk HEC server, if a client is configured.
         """
@@ -85,10 +107,16 @@ class SplunkHecHandler(logging.Handler):
             # No Splunk HEC client configured, do nothing
             return
         msg = self.format(record)
+        data: dict[str, typing.Any] = {}
         try:
             # Attempt to parse the message as a JSON object
-            msg = json.loads(msg)
+            data = json.loads(msg)
         except json.JSONDecodeError:
             # If the message is not JSON, create a new dictionary with the message
-            msg = {"message": msg}
-        self.client.send(msg, epoch=record.created)
+            data = {"message": msg}
+        # Run this in a separate thread to avoid blocking the main thread.
+        # Logging to Splunk is a bonus feature and should not block the main thread,
+        # using a ThreadPoolExecutor to send the request asynchronously allows us
+        # to initiate the request and continue processing without waiting for the IO
+        # operation to complete.
+        self.executor.submit(self.client.send, data, epoch=record.created)

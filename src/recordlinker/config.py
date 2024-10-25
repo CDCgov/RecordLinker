@@ -78,7 +78,11 @@ class Settings(pydantic_settings.BaseSettings):
             "loggers": {
                 "": {"handlers": ["console"], "level": "WARNING"},
                 "recordlinker": {"handlers": ["console"], "level": "INFO", "propagate": False},
-                "recordlinker.access": {"handlers": ["console"], "level": "CRITICAL", "propagate": False},
+                "recordlinker.access": {
+                    "handlers": ["console"],
+                    "level": "CRITICAL",
+                    "propagate": False,
+                },
             },
         }
 
@@ -92,12 +96,10 @@ class Settings(pydantic_settings.BaseSettings):
             # Load logging config from the provided file
             try:
                 with open(self.log_config, "r") as fobj:
-                    # NOTE: should we also support loading TOML files?
                     config = json.loads(fobj.read())
             except Exception as exc:
-                raise ConfigurationError(
-                    f"Error loading log configuration: {self.log_config}"
-                ) from exc
+                msg = f"Error loading log configuration: {self.log_config}"
+                raise ConfigurationError(msg) from exc
         logging.config.dictConfig(config or self.default_log_config())
 
 

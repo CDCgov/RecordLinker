@@ -34,6 +34,16 @@
             "class": "logging.StreamHandler",
             "filters": ["dict_values"],
             "stream": "ext://sys.stdout"
+        },
+        "splunk_console": {
+            "formatter": "default",
+            "class": "recordlinker.splunk.SplunkHecHandler",
+            "filters": ["correlation_id"]
+        },
+        "splunk_access": {
+            "formatter": "access",
+            "class": "recordlinker.splunk.SplunkHecHandler",
+            "filters": ["dict_values"]
         }
     },
     "loggers": {
@@ -57,12 +67,12 @@
             "propagate": false
         },
         "recordlinker": {
-            "handlers": ["console"],
+            "handlers": ["console", "splunk_console"],
             "level": "INFO",
             "propagate": false
         },
         "recordlinker.access": {
-            "handlers": ["access"],
+            "handlers": ["access", "splunk_access"],
             "level": "INFO",
             "propagate": false
         }
