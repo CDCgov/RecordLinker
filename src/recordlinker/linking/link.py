@@ -18,6 +18,7 @@ from recordlinker.linking import matchers
 
 from . import mpi_service
 
+TRACER: typing.Any = None
 try:
     from opentelemetry import trace
 
