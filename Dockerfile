@@ -6,6 +6,9 @@ ENV USE_OTEL=${USE_OTEL}
 # Set the USE_MSSQL env variable to true to enable SQL Server support
 ARG USE_MSSQL=true
 ENV USE_MSSQL=${USE_MSSQL}
+# Set default log config
+ARG LOG_CONFIG=/code/assets/production_log_config.json
+ENV LOG_CONFIG=${LOGGING_CONFIG}
 
 # Updgrade system packages and install curl
 RUN apt-get update && apt-get upgrade -y && apt-get install curl -y
@@ -27,7 +30,7 @@ RUN mkdir -p /code/src/recordlinker
 # Copy over just the pyproject.toml file and install the dependencies doing this
 # before copying the rest of the code allows for caching of the dependencies
 COPY ./pyproject.toml /code/pyproject.toml
-RUN pip install '.'
+RUN pip install '.[prod]'
 
 # Conditionally install OpenTelemetry packages if USE_OTEL is true
 RUN if [ "$USE_OTEL" = "true" ]; then \
@@ -46,9 +49,7 @@ EXPOSE 8080
 # Conditionally run the application with or without OpenTelemetry
 CMD if [ "$USE_OTEL" = "true" ]; then \
         opentelemetry-instrument --service_name recordlinker \
-            uvicorn recordlinker.main:app --app-dir src --host 0 --port 8080 \
-            --log-config src/recordlinker/log_config.yml; \
+            uvicorn recordlinker.main:app --host 0 --port 8080; \
     else \
-        uvicorn recordlinker.main:app --app-dir src --host 0 --port 8080 \
-            --log-config src/recordlinker/log_config.yml; \
+        uvicorn recordlinker.main:app --host 0 --port 8080; \
     fi

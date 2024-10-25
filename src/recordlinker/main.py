@@ -15,6 +15,7 @@ from pydantic import Field
 from sqlalchemy import orm
 from sqlalchemy.sql import expression
 
+from recordlinker import middleware
 from recordlinker import schemas
 from recordlinker import utils
 from recordlinker.base_service import BaseService
@@ -31,8 +32,8 @@ app = BaseService(
     include_health_check_endpoint=False,
     # openapi_url="/record-linkage/openapi.json",
 ).start()
-
-
+app.add_middleware(middleware.CorrelationIdMiddleware)
+app.add_middleware(middleware.AccessLogMiddleware)
 app.include_router(algorithm_router, prefix="/algorithm", tags=["algorithm"])
 
 
