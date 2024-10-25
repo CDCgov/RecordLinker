@@ -26,8 +26,6 @@ dependencies = [
     "python-dateutil==2.9.0.post0",
     "sqlalchemy",
     "rapidfuzz",
-    "opentelemetry-api",
-    "opentelemetry-sdk",
     # Database drivers
     "psycopg2-binary",  # PostgreSQL
     "PyMySQL",  # MySQL & MariaDB
@@ -43,10 +41,14 @@ dev = [
     "pytest-env",
     "ruff",
     "mypy",
-    "types-python-dateutil"
+    "types-python-dateutil",
+    "opentelemetry-api",
+    "opentelemetry-sdk"
 ]
 prod = [
     # List any additional production-only dependencies here
+    # TODO: remove yaml dep after log_config.yml is removed
+    "PyYAML"
 ]
 
 [tool.setuptools]
