@@ -57,6 +57,21 @@ def get_block_data(
     return session.execute(expr).scalars().all()
 
 
+def fetch_person_records(
+    session: orm.Session,
+    patients: typing.Sequence[models.Patient]
+) -> typing.Sequence[models.Patient]:
+    """
+    Get all Patients within the Person clusters identified.
+    """
+    # Get distinct Person IDs
+    base = expression.select(models.Person.id).distinct()
+
+    # Get all Patients with those Person IDs
+    expr = expression.select(models.Patient).where(models.Person.id.in_(base))
+    return session.execute(expr).scalars().all()
+
+
 def insert_patient(
     session: orm.Session,
     record: schemas.PIIRecord,

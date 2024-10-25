@@ -144,7 +144,11 @@ def link_record_against_mpi(
             # block on the pii_record and the algorithm's blocking criteria, then
             # iterate over the patients, grouping them by person
             with TRACER.start_as_current_span("link.block"):
-                patients = mpi_service.get_block_data(session, record, algorithm_pass)
+                # get all candidate Patient records identified in blocking
+                candidate_patients = mpi_service.get_block_data(session, record, algorithm_pass)
+                # fetch all remaining Patient records within the Person clusters identified in
+                # blocking for Belongingess Ratio calculation
+                patients = mpi_service.fetch_person_records(session, candidate_patients)
                 for patient in patients:
                     clusters[patient.person].append(patient)
 
