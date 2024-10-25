@@ -100,9 +100,9 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           platforms: linux/amd64,linux/arm64
-          push: false
+          push: true
           cache-from: type=gha
           cache-to: type=gha,mode=max
           tags: |
             ghcr.io/${{ env.PACKAGE_NAME }}:latest
-            ghcr.io/${{ env.PACKAGE_NAME }}:${{ env.NEXT_TAG }}
+            ghcr.io/${{ env.PACKAGE_NAME }}:v24.0.0
