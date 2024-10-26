@@ -58,7 +58,7 @@ class HealthCheckResponse(pydantic.BaseModel):
         },
         503: {
             "description": "Service Unavailable",
-            "content": {"application/json": {"example": {"status": "Service Unavailable"}}},
+            "content": {"application/json": {"example": {"detail": "Service Unavailable"}}},
         },
     },
 )
@@ -70,11 +70,11 @@ async def health_check(
     """
     try:
         db_session.execute(sqlalchemy.text("SELECT 1")).all()
-        return {"status": "OK"}
+        return HealthCheckResponse(status="OK")
     except Exception:
-        msg = {"status": "Service Unavailable"}
-        raise fastapi.HttpException(
-            status_code=fastapi.status.HTTP_503_SERVICE_UNAVAILABLE, detail=msg
+        raise fastapi.HTTPException(
+            status_code=fastapi.status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Service Unavailable",
         )
 
 
