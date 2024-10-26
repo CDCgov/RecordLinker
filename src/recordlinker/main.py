@@ -1,11 +1,8 @@
 from pathlib import Path
 
-from fastapi import Depends
-from fastapi import HTTPException
-from pydantic import BaseModel
-from pydantic import Field
+import fastapi
+import sqlalchemy
 from sqlalchemy import orm
-from sqlalchemy.sql import expression
 
 from recordlinker import middleware
 from recordlinker.base_service import BaseService
@@ -27,27 +24,30 @@ app.include_router(algorithm_router, prefix="/algorithm", tags=["algorithm"])
 app.include_router(link_router, prefix="/link", tags=["link"])
 
 
-# Request and response models
-
-
-class HealthCheckResponse(BaseModel):
+@app.get(
+    "/",
+    responses={
+        200: {
+            "description": "Successful response with status OK",
+            "content": {"application/json": {"example": {"status": "OK"}}},
+        },
+        503: {
+            "description": "Service Unavailable",
+            "content": {"application/json": {"example": {"status": "Service Unavailable"}}},
+        },
+    },
+)
+async def health_check(
+    db_session: orm.Session = fastapi.Depends(get_session),
+) -> fastapi.responses.JSONResponse:
     """
-    The schema for response from the record linkage health check endpoint.
-    """
-
-    status: str = Field(description="Returns status of this service")
-
-
-@app.get("/")
-async def health_check(db_session: orm.Session = Depends(get_session)) -> HealthCheckResponse:
-    """
-    Check the status of this service and its connection to Master Patient Index(MPI). If
-    an HTTP 200 status code is returned along with '{"status": "OK"}' then the record
-    linkage service is available and running properly. The mpi_connection_status field
-    contains a description of the connection health to the MPI database.
+    Check the status of this service and its connection to the database.
     """
     try:
-        db_session.execute(expression.text("SELECT 1")).all()
-        return HealthCheckResponse(status="OK")
+        db_session.execute(sqlalchemy.text("SELECT 1")).all()
+        return {"status": "OK"}
     except Exception:
-        raise HTTPException(status_code=503, detail={"status": "Service Unavailable"})
+        msg = {"status": "Service Unavailable"}
+        raise fastapi.HttpException(
+            status_code=fastapi.status.HTTP_503_SERVICE_UNAVAILABLE, detail=msg
+        )
