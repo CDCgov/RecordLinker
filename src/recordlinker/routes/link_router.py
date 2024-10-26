@@ -12,7 +12,6 @@ import fastapi
 import sqlalchemy.orm as orm
 
 from recordlinker import schemas
-from recordlinker import utils
 from recordlinker.database import get_session
 from recordlinker.linking import algorithm_service
 from recordlinker.linking import link
@@ -20,13 +19,7 @@ from recordlinker.linking import link
 router = fastapi.APIRouter()
 
 
-# Sample requests and responses for docs
-# TODO: These assets need to be installed with the python code
-sample_link_record_requests = utils.read_json("assets", "sample_link_record_requests.json")
-sample_link_record_responses = utils.read_json("assets", "sample_link_record_responses.json")
-
-
-@router.post("")
+@router.post("", summary="Link Record")
 async def link_piirecord(
     request: fastapi.Request,
     input: typing.Annotated[schemas.LinkInput, fastapi.Body()],
@@ -45,7 +38,9 @@ async def link_piirecord(
 
     if not algorithm:
         msg = "Error: Invalid algorithm specified"
-        raise fastapi.HTTPException(status_code=fastapi.status.HTTP_422_UNPROCESSABLE_ENTITY, detail=msg)
+        raise fastapi.HTTPException(
+            status_code=fastapi.status.HTTP_422_UNPROCESSABLE_ENTITY, detail=msg
+        )
 
     # link the record
     try:
@@ -67,12 +62,10 @@ async def link_piirecord(
         raise fastapi.HTTPException(status_code=fastapi.status.HTTP_400_BAD_REQUEST, detail=msg)
 
 
-@router.post("/fhir", status_code=200, responses={200: sample_link_record_responses})
+@router.post("/fhir", summary="Link FHIR")
 async def link_fhir(
     request: fastapi.Request,
-    input: typing.Annotated[
-        schemas.LinkFhirInput, fastapi.Body(examples=sample_link_record_requests)
-    ],
+    input: typing.Annotated[schemas.LinkFhirInput, fastapi.Body()],
     response: fastapi.Response,
     db_session: orm.Session = fastapi.Depends(get_session),
 ) -> schemas.LinkFhirResponse:
