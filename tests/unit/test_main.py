@@ -33,7 +33,7 @@ class TestLinkRecord:
             "updated_bundle": bad_bundle,
         }
         actual_response = client.post(
-            "/link-record",
+            "/link/fhir",
             json={"bundle": bad_bundle},
         )
         assert actual_response.json() == expected_response
@@ -47,7 +47,7 @@ class TestLinkRecord:
 
         bundle_1 = test_bundle
         bundle_1["entry"] = [entry_list[0]]
-        resp_1 = client.post("/link-record", json={"bundle": bundle_1})
+        resp_1 = client.post("/link/fhir", json={"bundle": bundle_1})
         new_bundle = resp_1.json()["updated_bundle"]
         person_1 = [
             r.get("resource")
@@ -58,7 +58,7 @@ class TestLinkRecord:
 
         bundle_2 = test_bundle
         bundle_2["entry"] = [entry_list[1]]
-        resp_2 = client.post("/link-record", json={"bundle": bundle_2})
+        resp_2 = client.post("/link/fhir", json={"bundle": bundle_2})
         new_bundle = resp_2.json()["updated_bundle"]
         person_2 = [
             r.get("resource")
@@ -70,13 +70,13 @@ class TestLinkRecord:
 
         bundle_3 = test_bundle
         bundle_3["entry"] = [entry_list[2]]
-        resp_3 = client.post("/link-record", json={"bundle": bundle_3})
+        resp_3 = client.post("/link/fhir", json={"bundle": bundle_3})
         assert not resp_3.json()["found_match"]
 
         # Cluster membership success--justified match
         bundle_4 = test_bundle
         bundle_4["entry"] = [entry_list[3]]
-        resp_4 = client.post("/link-record", json={"bundle": bundle_4})
+        resp_4 = client.post("/link/fhir", json={"bundle": bundle_4})
         new_bundle = resp_4.json()["updated_bundle"]
         person_4 = [
             r.get("resource")
@@ -88,12 +88,12 @@ class TestLinkRecord:
 
         bundle_5 = test_bundle
         bundle_5["entry"] = [entry_list[4]]
-        resp_5 = client.post("/link-record", json={"bundle": bundle_5})
+        resp_5 = client.post("/link/fhir", json={"bundle": bundle_5})
         assert not resp_5.json()["found_match"]
 
         bundle_6 = test_bundle
         bundle_6["entry"] = [entry_list[5]]
-        resp_6 = client.post("/link-record", json={"bundle": bundle_6})
+        resp_6 = client.post("/link/fhir", json={"bundle": bundle_6})
         new_bundle = resp_6.json()["updated_bundle"]
         assert not resp_6.json()["found_match"]
 
@@ -106,7 +106,7 @@ class TestLinkRecord:
         bundle_1 = test_bundle
         bundle_1["entry"] = [entry_list[0]]
         resp_1 = client.post(
-            "/link-record", json={"bundle": bundle_1, "algorithm": "dibbs-enhanced"}
+            "/link/fhir", json={"bundle": bundle_1, "algorithm": "dibbs-enhanced"}
         )
         new_bundle = resp_1.json()["updated_bundle"]
         person_1 = [
@@ -119,7 +119,7 @@ class TestLinkRecord:
         bundle_2 = test_bundle
         bundle_2["entry"] = [entry_list[1]]
         resp_2 = client.post(
-            "/link-record", json={"bundle": bundle_2, "algorithm": "dibbs-enhanced"}
+            "/link/fhir", json={"bundle": bundle_2, "algorithm": "dibbs-enhanced"}
         )
         new_bundle = resp_2.json()["updated_bundle"]
         person_2 = [
@@ -133,14 +133,14 @@ class TestLinkRecord:
         bundle_3 = test_bundle
         bundle_3["entry"] = [entry_list[2]]
         resp_3 = client.post(
-            "/link-record", json={"bundle": bundle_3, "algorithm": "dibbs-enhanced"}
+            "/link/fhir", json={"bundle": bundle_3, "algorithm": "dibbs-enhanced"}
         )
         assert not resp_3.json()["found_match"]
 
         bundle_4 = test_bundle
         bundle_4["entry"] = [entry_list[3]]
         resp_4 = client.post(
-            "/link-record", json={"bundle": bundle_4, "algorithm": "dibbs-enhanced"}
+            "/link/fhir", json={"bundle": bundle_4, "algorithm": "dibbs-enhanced"}
         )
         new_bundle = resp_4.json()["updated_bundle"]
         person_4 = [
@@ -154,14 +154,14 @@ class TestLinkRecord:
         bundle_5 = test_bundle
         bundle_5["entry"] = [entry_list[4]]
         resp_5 = client.post(
-            "/link-record", json={"bundle": bundle_5, "algorithm": "dibbs-enhanced"}
+            "/link/fhir", json={"bundle": bundle_5, "algorithm": "dibbs-enhanced"}
         )
         assert not resp_5.json()["found_match"]
 
         bundle_6 = test_bundle
         bundle_6["entry"] = [entry_list[5]]
         resp_6 = client.post(
-            "/link-record", json={"bundle": bundle_6, "algorithm": "dibbs-enhanced"}
+            "/link/fhir", json={"bundle": bundle_6, "algorithm": "dibbs-enhanced"}
         )
         new_bundle = resp_6.json()["updated_bundle"]
         assert not resp_6.json()["found_match"]
@@ -177,7 +177,7 @@ class TestLinkRecord:
         }
 
         actual_response = client.post(
-            "/link-record", json={"bundle": test_bundle, "algorithm": "INVALID"}
+            "/link/fhir", json={"bundle": test_bundle, "algorithm": "INVALID"}
         )
 
         assert actual_response.json() == expected_response
