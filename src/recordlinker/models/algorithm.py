@@ -75,7 +75,7 @@ class AlgorithmPass(Base):
 
     id: orm.Mapped[int] = orm.mapped_column(primary_key=True)
     algorithm_id: orm.Mapped[int] = orm.mapped_column(
-        schema.ForeignKey("algorithm.id", ondelete="CASCADE")
+        schema.ForeignKey(f"{Algorithm.__tablename__}.id", ondelete="CASCADE")
     )
     algorithm: orm.Mapped["Algorithm"] = orm.relationship(back_populates="passes")
     blocking_keys: orm.Mapped[list[str]] = orm.mapped_column(sqltypes.JSON)
