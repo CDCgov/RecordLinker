@@ -4,14 +4,10 @@ import sqlalchemy
 from sqlalchemy import orm
 
 from recordlinker import middleware
+from recordlinker._version import __version__
 from recordlinker.database import get_session
 from recordlinker.routes.algorithm_router import router as algorithm_router
 from recordlinker.routes.link_router import router as link_router
-
-try:
-    from recordlinker._version import __version__
-except ImportError:
-    __version__ = "0.0.0"
 
 app = fastapi.FastAPI(
     title="Record Linker",
