@@ -22,6 +22,10 @@ class Settings(pydantic_settings.BaseSettings):
     )
 
     db_uri: str = pydantic.Field(description="The URI for the MPI database")
+    db_table_prefix: str = pydantic.Field(
+        description="The prefix for all database tables",
+        default="",
+    )
     test_db_uri: str = pydantic.Field(
         description="The URI for the MPI database to run tests against",
         default="sqlite:///testdb.sqlite3",
