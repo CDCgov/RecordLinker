@@ -1,19 +1,9 @@
 from sqlalchemy import orm
 from sqlalchemy import types as sqltypes
 
-from recordlinker.config import settings
 
-
-class PrefixerMeta(orm.DeclarativeMeta):
-
-    def __init__(cls, name, bases, dict_):
-        name = dict_.get("__tablename__")
-        if name:
-            cls.__tablename__ = f"{settings.db_table_prefix}{name}"
-            dict_["__tablename__"] = f"{settings.db_table_prefix}{name}"
-        return super().__init__(name, bases, dict_)
-
-Base = orm.declarative_base(metaclass=PrefixerMeta)
+class Base(orm.DeclarativeBase):
+    pass
 
 
 def get_bigint_pk():

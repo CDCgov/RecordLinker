@@ -39,7 +39,7 @@ class Patient(Base):
     __tablename__ = "mpi_patient"
 
     id: orm.Mapped[int] = orm.mapped_column(get_bigint_pk(), autoincrement=True, primary_key=True)
-    person_id: orm.Mapped[int] = orm.mapped_column(schema.ForeignKey(f"{Person.__tablename__}.id"))
+    person_id: orm.Mapped[int] = orm.mapped_column(schema.ForeignKey("mpi_person.id"))
     person: orm.Mapped["Person"] = orm.relationship(back_populates="patients")
     # NOTE: We're using a protected attribute here to store the data string, as we
     # want getter/setter access to the data dictionary to trigger updating the
@@ -157,7 +157,7 @@ class BlockingValue(Base):
     )
 
     id: orm.Mapped[int] = orm.mapped_column(get_bigint_pk(), autoincrement=True, primary_key=True)
-    patient_id: orm.Mapped[int] = orm.mapped_column(schema.ForeignKey(f"{Patient.__tablename__}.id"))
+    patient_id: orm.Mapped[int] = orm.mapped_column(schema.ForeignKey("mpi_patient.id"))
     patient: orm.Mapped["Patient"] = orm.relationship(back_populates="blocking_values")
     blockingkey: orm.Mapped[int] = orm.mapped_column(sqltypes.SmallInteger)
     value: orm.Mapped[str] = orm.mapped_column(sqltypes.String(BLOCKING_VALUE_MAX_LENGTH))
