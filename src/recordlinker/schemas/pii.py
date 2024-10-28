@@ -57,31 +57,31 @@ class Race(enum.Enum):
     Enum for the Race field.
     """
 
-    AMERICAN_INDIAN = "american indian or alaska native"
-    ASIAN = "asian"
-    BLACK = "black or african american"
-    HAWAIIAN = "native hawaiian or other pacific islander"
-    WHITE = "white"
-    OTHER = "other"
-    ASKED_UNKNOWN = "asked but unknown"
-    UNKNOWN = "unknown"
+    AMERICAN_INDIAN = "AMERICAN_INDIAN"
+    ASIAN = "ASIAN"
+    BLACK = "BLACK"
+    HAWAIIAN = "HAWAIIAN"
+    WHITE = "WHITE"
+    OTHER = "OTHER"
+    ASKED_UNKNOWN = "ASKED_UNKNOWN"
+    UNKNOWN = "UNKNOWN"
 
     def __str__(self):
         """
         Return the value of the enum as a string.
         """
-        return self.name
+        return self.value
     
 class Gender(enum.Enum):
     """
     Enum for the Gender field.
     """
 
-    FEMALE = "identifies as female gender (finding)"
-    MALE = "identifies as male gender (finding)"
-    NON_BINARY = "identifies as gender nonbinary"
-    ASKED_DECLINED = "asked but declined"
-    UNKNOWN = "unknown"
+    FEMALE = "FEMALE"
+    MALE = "MALE"
+    NON_BINARY = "NON_BINARY"
+    ASKED_DECLINED = "ASKED_DECLINED"
+    UNKNOWN = "UNKNOWN"
 
     def __str__(self):
         """
@@ -225,21 +225,23 @@ class PIIRecord(pydantic.BaseModel):
         """
         Prase the race string into a race enum
         """
+
+        race_mapping = [
+        (["american indian", "alaska native"], Race.AMERICAN_INDIAN),
+        (["asian"], Race.ASIAN),
+        (["black", "african american"], Race.BLACK),
+        (["white"], Race.WHITE),
+        (["hawaiian", "pacific islander"], Race.HAWAIIAN),
+        (["asked unknown", "asked but unknown"], Race.ASKED_UNKNOWN),
+        (["unknown"], Race.UNKNOWN),
+    ]
+
         if value:
             val = str(value).lower().strip()
-            print(val)
-            try:
-                return Race(val)
-            except ValueError:
-                if "american indian" in val or "alaska native" in val:
-                    return Race.AMERICAN_INDIAN
-                elif "asian" in val:
-                    return Race.ASIAN
-                elif "black" in val or "african american" in val:
-                    return Race.BLACK
-                elif "hawaiian" in val or "pacific islander" in val:
-                    return Race.HAWAIIAN
-                return Race.OTHER
+            for substrings, race in race_mapping:
+                if any(substring in val for substring in substrings):
+                    return race
+            return Race.OTHER
 
                 
             
@@ -259,8 +261,10 @@ class PIIRecord(pydantic.BaseModel):
                     return Gender.MALE
                 elif "nonbinary" in val:
                     return Gender.NON_BINARY
-                elif "declined" in  val:
+                elif "declined" in val or "asked" in val:
                     return Gender.ASKED_DECLINED
+                elif "unknown" in val:
+                    return Gender.UNKNOWN
                 return Gender.UNKNOWN
 
     def feature_iter(self, feature: Feature) -> typing.Iterator[str]:
