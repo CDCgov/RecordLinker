@@ -227,6 +227,7 @@ class PIIRecord(pydantic.BaseModel):
         """
         if value:
             val = str(value).lower().strip()
+            print(val)
             try:
                 return Race(val)
             except ValueError:
@@ -236,7 +237,7 @@ class PIIRecord(pydantic.BaseModel):
                     return Race.ASIAN
                 elif "black" in val or "african american" in val:
                     return Race.BLACK
-                elif val in "native hawaiian" in val or "pacific islander" in val:
+                elif "hawaiian" in val or "pacific islander" in val:
                     return Race.HAWAIIAN
                 return Race.OTHER
 
