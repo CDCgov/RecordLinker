@@ -52,7 +52,6 @@ class Sex(enum.Enum):
         """
         return self.value
 
-#TODO: need to write test cases for when race is somethign like what aperna sent us
 class Race(enum.Enum):
     """
     Enum for the Race field.
@@ -156,7 +155,7 @@ class PIIRecord(pydantic.BaseModel):
     name: typing.List[Name] = []
     telecom: typing.List[Telecom] = []
     ssn: typing.Optional[str] = None
-    race: typing.Optional[Race] = None  #TODO: make this a list of races
+    race: typing.Optional[Race] = None
     gender: typing.Optional[Gender] = None
 
     @classmethod
@@ -245,6 +244,12 @@ class PIIRecord(pydantic.BaseModel):
             try:
                 return Gender(val)
             except ValueError:
+                if val in ["female"]:
+                    return Gender.FEMALE
+                elif val in ["male"]:
+                    return Gender.MALE
+                elif val in ["nonbinary"]:
+                    return Gender.NON_BINARY
                 return Gender.UNKNOWN
 
     def feature_iter(self, feature: Feature) -> typing.Iterator[str]:
