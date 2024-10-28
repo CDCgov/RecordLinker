@@ -47,6 +47,8 @@ dev = [
     "ruff",
     "mypy",
     "types-python-dateutil"
+    "mkdocs",
+    "mkdocs-mermaid2-plugin",
 ]
 prod = [
     # production-only dependencies here
