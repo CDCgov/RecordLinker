@@ -10,7 +10,6 @@ import typing
 import uuid
 
 import pydantic
-from opentelemetry import trace
 from sqlalchemy import orm
 
 from recordlinker import models
@@ -19,7 +18,16 @@ from recordlinker.linking import matchers
 
 from . import mpi_service
 
-TRACER = trace.get_tracer(__name__)
+TRACER: typing.Any = None
+try:
+    from opentelemetry import trace
+
+    TRACER = trace.get_tracer(__name__)
+except ImportError:
+    # OpenTelemetry is an optional dependency, if its not installed use a mock tracer
+    from recordlinker.utils import MockTracer
+
+    TRACER = MockTracer()
 
 
 # TODO: This is a FHIR specific function, should be moved to a FHIR module
@@ -106,6 +114,7 @@ def compare(
         result: float = func(record, patient, feature, **kwargs)  # type: ignore
         results.append(result)
     return matching_rule(results, **kwargs)  # type: ignore
+
 
 def link_record_against_mpi(
     record: schemas.PIIRecord,
