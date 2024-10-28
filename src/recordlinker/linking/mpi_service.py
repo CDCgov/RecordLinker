@@ -143,6 +143,7 @@ def update_person_cluster(
     Update the cluster for a given patient.
     """
     patient.person = person or models.Person()
+    session.flush()
 
     if commit:
         session.commit()
