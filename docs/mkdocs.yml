@@ -1,0 +1,18 @@
+site_name: "Record Linker Documentation"
+theme:
+  name: "material"
+  icon:
+    repo: fontawesome/brands/github
+plugins:
+  - mermaid2
+  - offline
+repo_name: CDCgov/RecordLinker
+repo_url: https://github.com/CDCgov/RecordLinker
+edit_uri: edit/main/docs/
+docs_dir: "."
+nav:
+  - Home: index.md
+  - Installation: installation.md
+  - Configuration: configuration.md
+  - Design: design.md
+  - Reference: reference.md
