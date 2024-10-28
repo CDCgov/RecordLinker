@@ -5,14 +5,8 @@ unit.schemas.test_pii.py
 This module contains the unit tests for the recordlinker.schemas.pii module.
 """
 
-import datetime
-import unittest.mock
-import uuid
 
-import pydantic
-import pytest
 
-from recordlinker.models import BlockingKey
 from recordlinker.schemas import pii
 
 
