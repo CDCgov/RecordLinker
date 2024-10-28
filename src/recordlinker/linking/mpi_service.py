@@ -16,7 +16,7 @@ from recordlinker import schemas
 
 def get_block_data(
     session: orm.Session, record: schemas.PIIRecord, algorithm_pass: models.AlgorithmPass
-) -> typing.Sequence[models.Patient]:
+) -> expression:
     """
     Get all of the matching Patients for the given data using the provided
     blocking keys defined in the algorithm_pass.
@@ -53,19 +53,19 @@ def get_block_data(
         )
 
     # Using the subquery of unique Patient IDs, select all the Patients
-    expr = expression.select(models.Patient).where(models.Patient.id.in_(base))
-    return session.execute(expr).scalars().all()
+    candidate_patients = expression.select(models.Patient).where(models.Patient.id.in_(base))
+    return candidate_patients
 
 
 def fetch_person_records(
     session: orm.Session,
-    patients: typing.Sequence[models.Patient]
+    candidate_patients: expression,
 ) -> typing.Sequence[models.Patient]:
     """
     Get all Patients within the Person clusters identified.
     """
     # Get distinct Person IDs
-    base = expression.select(models.Person.id).where(models.Patient.id.in_(patients)).distinct()
+    base = candidate_patients.select(models.Person.id).distinct()
 
     # Get all Patients with those Person IDs
     expr = expression.select(models.Patient).where(models.Person.id.in_(base))
