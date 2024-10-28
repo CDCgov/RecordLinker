@@ -230,6 +230,14 @@ class PIIRecord(pydantic.BaseModel):
             try:
                 return Race(val)
             except ValueError:
+                if "american indian" in val or "alaska native" in val:
+                    return Race.AMERICAN_INDIAN
+                elif "asian" in val:
+                    return Race.ASIAN
+                elif "black" in val or "african american" in val:
+                    return Race.BLACK
+                elif val in "native hawaiian" in val or "pacific islander" in val:
+                    return Race.HAWAIIAN
                 return Race.OTHER
 
                 
@@ -244,12 +252,14 @@ class PIIRecord(pydantic.BaseModel):
             try:
                 return Gender(val)
             except ValueError:
-                if val in ["female"]:
+                if "female" in val:
                     return Gender.FEMALE
-                elif val in ["male"]:
+                elif "male" in val:
                     return Gender.MALE
-                elif val in ["nonbinary"]:
+                elif "nonbinary" in val:
                     return Gender.NON_BINARY
+                elif "declined" in  val:
+                    return Gender.ASKED_DECLINED
                 return Gender.UNKNOWN
 
     def feature_iter(self, feature: Feature) -> typing.Iterator[str]:
