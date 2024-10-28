@@ -65,7 +65,7 @@ def fetch_person_records(
     Get all Patients within the Person clusters identified.
     """
     # Get distinct Person IDs
-    base = expression.select(models.Person.id).distinct()
+    base = expression.select(models.Person.id).where(models.Patient.id.in_(patients)).distinct()
 
     # Get all Patients with those Person IDs
     expr = expression.select(models.Patient).where(models.Person.id.in_(base))
