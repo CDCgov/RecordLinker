@@ -5,6 +5,8 @@ from .link import LinkFhirInput
 from .link import LinkFhirResponse
 from .link import LinkInput
 from .link import LinkResponse
+from .mpi import PatientPersonRef
+from .mpi import PersonRef
 from .pii import Feature
 from .pii import PIIRecord
 
@@ -18,4 +20,6 @@ __all__ = [
     "LinkResponse",
     "LinkFhirInput",
     "LinkFhirResponse",
+    "PersonRef",
+    "PatientPersonRef",
 ]
