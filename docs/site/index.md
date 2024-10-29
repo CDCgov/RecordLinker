@@ -1,4 +1,3 @@
-# Project Documentation
+# RecordLinker
 
-Welcome to the project documentation! Here you'll find all the information you need to get started with and use the project.
-
+The RecordLinker is a service that links records from two datasets based on a set of common attributes. The service is designed to be used in a variety of public health contexts, such as linking patient records from different sources or linking records from different public health surveillance systems. The service uses a probabilistic record linkage algorithm to determine the likelihood that two records refer to the same entity. The service is implemented as a RESTful API that can be accessed over HTTP. The API provides endpoints for uploading datasets, configuring the record linkage process, and retrieving the results of the record linkage process.

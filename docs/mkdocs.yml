@@ -30,6 +30,9 @@ nav:
   - "Getting Started":
     - Installation: "installation.md"
     - Configuration: "configuration.md"
-  - "Usage":
+  - "User Guide":
     - Design: "design.md"
     - Reference: "reference.md"
+  - "Developer Guide":
+    - Features: "features.md"
+    - Blocking: "blocking.md"
