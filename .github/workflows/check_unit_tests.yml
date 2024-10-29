@@ -79,7 +79,7 @@ jobs:
             export TEST_DB_URI=mssql+pyodbc://sa:YourStrong!Passw0rd@localhost:1433/master?driver=ODBC+Driver+17+for+SQL+Server
           fi
 
-          pytest --cov=recordlinker --cov-report=xml tests/unit
+          pytest --capture=sys --cov=recordlinker --cov-report=xml tests/unit
 
       - name: Upload test results to Codecov
         if: ${{ matrix.database == 'postgres' && !cancelled() }}

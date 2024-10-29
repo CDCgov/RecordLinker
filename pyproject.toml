@@ -46,7 +46,7 @@ dev = [
     "pytest-env",
     "ruff",
     "mypy",
-    "types-python-dateutil"
+    "types-python-dateutil",
     "mkdocs",
     "mkdocs-mermaid2-plugin",
 ]
@@ -87,6 +87,7 @@ force-single-line = true
 order-by-type = false
 
 [tool.pytest.ini_options]
+addopts = ["--capture=no"]
 testpaths = ["tests/unit"]
 pythonpath = ["src", "tests/unit"]
 filterwarnings = [
