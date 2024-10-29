@@ -1,5 +1,6 @@
 import datetime
 import enum
+import re
 import typing
 
 import dateutil.parser
@@ -22,6 +23,12 @@ class Feature(enum.Enum):
     CITY = "CITY"
     STATE = "STATE"
     ZIP = "ZIP"
+    SSN = "SSN"
+    RACE = "RACE"
+    GENDER = "GENDER"
+    TELEPHONE = "TELEPHONE"
+    SUFFIX = "SUFFIX"
+    COUNTY = "COUNTY"
 
     def __str__(self):
         """
@@ -45,6 +52,43 @@ class Sex(enum.Enum):
         """
         return self.value
 
+class Race(enum.Enum):
+    """
+    Enum for the Race field.
+    """
+
+    AMERICAN_INDIAN = "AMERICAN_INDIAN"
+    ASIAN = "ASIAN"
+    BLACK = "BLACK"
+    HAWAIIAN = "HAWAIIAN"
+    WHITE = "WHITE"
+    OTHER = "OTHER"
+    ASKED_UNKNOWN = "ASKED_UNKNOWN"
+    UNKNOWN = "UNKNOWN"
+
+    def __str__(self):
+        """
+        Return the value of the enum as a string.
+        """
+        return self.value
+    
+class Gender(enum.Enum):
+    """
+    Enum for the Gender field.
+    """
+
+    FEMALE = "FEMALE"
+    MALE = "MALE"
+    NON_BINARY = "NON_BINARY"
+    ASKED_DECLINED = "ASKED_DECLINED"
+    UNKNOWN = "UNKNOWN"
+
+    def __str__(self):
+        """
+        Return the value of the enum as a string.
+        """
+        return self.value
+
 
 class Name(pydantic.BaseModel):
     """
@@ -57,7 +101,7 @@ class Name(pydantic.BaseModel):
     given: typing.List[str] = []
     use: typing.Optional[str] = None
     prefix: typing.List[str] = []  # future use
-    suffix: typing.List[str] = []  # future use
+    suffix: typing.List[str] = []
 
 
 class Address(pydantic.BaseModel):
@@ -76,7 +120,7 @@ class Address(pydantic.BaseModel):
             "postal_code", "postalcode", "postalCode", "zip_code", "zipcode", "zipCode", "zip"
         ),
     )
-    county: typing.Optional[str] = None  # future use
+    county: typing.Optional[str] = None
     country: typing.Optional[str] = None
     latitude: typing.Optional[float] = None
     longitude: typing.Optional[float] = None
@@ -110,6 +154,9 @@ class PIIRecord(pydantic.BaseModel):
     address: typing.List[Address] = []
     name: typing.List[Name] = []
     telecom: typing.List[Telecom] = []
+    ssn: typing.Optional[str] = None
+    race: typing.Optional[Race] = None
+    gender: typing.Optional[Gender] = None
 
     @classmethod
     def model_construct(cls, _fields_set: set[str] | None = None, **values: typing.Any) -> typing.Self:
@@ -154,8 +201,71 @@ class PIIRecord(pydantic.BaseModel):
             elif val in ["f", "female"]:
                 return Sex.FEMALE
             return Sex.UNKNOWN
+    
+    @pydantic.field_validator("ssn", mode="before")
+    def parse_ssn(cls, value):
+        """
+        Parse the ssn string 
+        """
+        if value:
+            val = str(value).strip()
+            
+            if re.match(r"^\d{3}-\d{2}-\d{4}$", val):
+                return val 
 
-    def field_iter(self, feature: Feature) -> typing.Iterator[str]:
+            if len(val) != 9 or not val.isdigit():
+                return None
+            
+            # Format back to the standard SSN format (XXX-XX-XXXX)
+            formatted_ssn = f"{val[:3]}-{val[3:5]}-{val[5:]}"
+            return formatted_ssn
+    
+    @pydantic.field_validator("race", mode="before")
+    def parse_race(cls, value):
+        """
+        Prase the race string into a race enum
+        """
+
+        race_mapping = [
+        (["american indian", "alaska native"], Race.AMERICAN_INDIAN),
+        (["asian"], Race.ASIAN),
+        (["black", "african american"], Race.BLACK),
+        (["white"], Race.WHITE),
+        (["hawaiian", "pacific islander"], Race.HAWAIIAN),
+        (["asked unknown", "asked but unknown"], Race.ASKED_UNKNOWN),
+        (["unknown"], Race.UNKNOWN),
+    ]
+
+        if value:
+            val = str(value).lower().strip()
+            for substrings, race in race_mapping:
+                if any(substring in val for substring in substrings):
+                    return race
+            return Race.OTHER
+
+                
+            
+    @pydantic.field_validator("gender", mode="before")
+    def parse_gender(cls, value):
+        """
+        Prase the gender string into a gender enum
+        """
+        if value:
+            val = str(value).lower().strip()
+            try:
+                return Gender(val)
+            except ValueError:
+                if "female" in val:
+                    return Gender.FEMALE
+                elif "male" in val:
+                    return Gender.MALE
+                elif "nonbinary" in val:
+                    return Gender.NON_BINARY
+                elif "declined" in val or "asked" in val:
+                    return Gender.ASKED_DECLINED
+                return Gender.UNKNOWN
+
+    def feature_iter(self, feature: Feature) -> typing.Iterator[str]:
         """
         Given a field name, return an iterator of all string values for that field.
         Empty strings are not included in the iterator.
@@ -200,6 +310,28 @@ class PIIRecord(pydantic.BaseModel):
             for name in self.name:
                 if name.family:
                     yield name.family
+        elif feature == Feature.SSN:
+            if self.ssn:
+                yield self.ssn
+        elif feature == Feature.RACE:
+            if self.race:
+                yield str(self.race)
+        elif feature == Feature.GENDER:
+            if self.gender:
+                yield str(self.gender)
+        elif feature == Feature.TELEPHONE:
+            for telecom in self.telecom:
+                if telecom.value:
+                    yield telecom.value
+        elif feature == Feature.SUFFIX:
+            for name in self.name:
+                for suffix in name.suffix:
+                    if suffix:
+                        yield suffix
+        elif feature == Feature.COUNTY:
+            for address in self.address:
+                if address.county:
+                    yield address.county
 
     def blocking_keys(self, key: models.BlockingKey) -> set[str]:
         """
@@ -214,19 +346,19 @@ class PIIRecord(pydantic.BaseModel):
 
         if key == models.BlockingKey.BIRTHDATE:
             # NOTE: we could optimize here and remove the dashes from the date
-            vals.update(self.field_iter(Feature.BIRTHDATE))
+            vals.update(self.feature_iter(Feature.BIRTHDATE))
         elif key == models.BlockingKey.MRN:
-            vals.update({x[-4:] for x in self.field_iter(Feature.MRN)})
+            vals.update({x[-4:] for x in self.feature_iter(Feature.MRN)})
         elif key == models.BlockingKey.SEX:
-            vals.update(self.field_iter(Feature.SEX))
+            vals.update(self.feature_iter(Feature.SEX))
         elif key == models.BlockingKey.ZIP:
-            vals.update(self.field_iter(Feature.ZIP))
+            vals.update(self.feature_iter(Feature.ZIP))
         elif key == models.BlockingKey.FIRST_NAME:
-            vals.update({x[:4] for x in self.field_iter(Feature.FIRST_NAME)})
+            vals.update({x[:4] for x in self.feature_iter(Feature.FIRST_NAME)})
         elif key == models.BlockingKey.LAST_NAME:
-            vals.update({x[:4] for x in self.field_iter(Feature.LAST_NAME)})
+            vals.update({x[:4] for x in self.feature_iter(Feature.LAST_NAME)})
         elif key == models.BlockingKey.ADDRESS:
-            vals.update({x[:4] for x in self.field_iter(Feature.ADDRESS)})
+            vals.update({x[:4] for x in self.feature_iter(Feature.ADDRESS)})
 
         # if any vals are longer than the BLOCKING_KEY_MAX_LENGTH, raise an error
         if any(len(x) > models.BLOCKING_VALUE_MAX_LENGTH for x in vals):

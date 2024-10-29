@@ -13,7 +13,7 @@ authors = [
     {name = "Eric Buckley", email = "ericbuckley@skylight.digital"},
     {name = "Alex Hayward", email = "alex.hayward@skylight.digital"},
     {name = "Cason Brinson", email = "cbrinson@rise8.us"},
-    {name = "Derek Dombek", email = "ddombek@rise8.us"}
+    {name = "Derek Dombek", email = "ddombek@rise8.us"},
 ]
 license = { file = "LICENSE" }
 readme = {file = "README.md", content-type = "text/markdown"}
@@ -27,8 +27,6 @@ dependencies = [
     "sqlalchemy",
     "rapidfuzz",
     # Observability
-    "opentelemetry-api",
-    "opentelemetry-sdk",
     "python-json-logger",
     "asgi-correlation-id",
     # Database drivers
@@ -47,10 +45,13 @@ dev = [
     "pytest-env",
     "ruff",
     "mypy",
-    "types-python-dateutil"
+    "types-python-dateutil",
+    # Observability
+    "opentelemetry-api",
+    "opentelemetry-sdk",
 ]
 prod = [
-    # production-only dependencies here
+    # List any additional production-only dependencies here
 ]
 
 [tool.setuptools]
