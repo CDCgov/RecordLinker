@@ -33,6 +33,4 @@ nav:
   - "User Guide":
     - Design: "design.md"
     - Reference: "reference.md"
-  - "Developer Guide":
-    - Features: "features.md"
-    - Blocking: "blocking.md"
+  - Developer Guide: "developer_guide.md"
