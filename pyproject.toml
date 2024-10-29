@@ -13,7 +13,7 @@ authors = [
     {name = "Eric Buckley", email = "ericbuckley@skylight.digital"},
     {name = "Alex Hayward", email = "alex.hayward@skylight.digital"},
     {name = "Cason Brinson", email = "cbrinson@rise8.us"},
-    {name = "Derek Dombek", email = "ddombek@rise8.us"}
+    {name = "Derek Dombek", email = "ddombek@rise8.us"},
 ]
 license = { file = "LICENSE" }
 readme = {file = "README.md", content-type = "text/markdown"}
@@ -26,8 +26,7 @@ dependencies = [
     "python-dateutil==2.9.0.post0",
     "sqlalchemy",
     "rapidfuzz",
-    "opentelemetry-api",
-    "opentelemetry-sdk",
+    # Observability
     "python-json-logger",
     "asgi-correlation-id",
     # Database drivers
@@ -41,18 +40,23 @@ dependencies = [
 dev = [
     # development-only dependencies here
     "fastapi[standard]",
-    "pytest>=8.3",
-    "pytest-cov",
-    "pytest-env",
     "ruff",
     "mypy",
     "types-python-dateutil",
+    # Testing
+    "pytest>=8.3",
+    "pytest-cov",
+    "pytest-env",
+    # Observability
+    "opentelemetry-api",
+    "opentelemetry-sdk",
+    # Documentation
     "mkdocs",
     "mkdocs-mermaid2-plugin",
     "mkdocs-material",
 ]
 prod = [
-    # production-only dependencies here
+    # List any additional production-only dependencies here
 ]
 
 [tool.setuptools]

@@ -27,6 +27,8 @@ services:
     build:
       context: .
       args:
+        ENVIRONMENT: dev
+        PORT: 8080
         USE_OTEL: ${USE_OTEL:-true}
         USE_MSSQL: ${USE_MSSQL:-false}
         LOG_CONFIG: ""
@@ -37,6 +39,11 @@ services:
       TEST_DB_URI: "sqlite:///:memory:"
       OTEL_TRACES_EXPORTER: "otlp"
       OTEL_EXPORTER_OTLP_ENDPOINT: "http://jaeger:4317"
+    command: >
+      opentelemetry-instrument --service_name recordlinker
+      uvicorn recordlinker.main:app --app-dir src
+      --host 0 --port 8080
+      --log-config src/recordlinker/log_config.yml
     depends_on:
       db:
         condition: service_healthy
