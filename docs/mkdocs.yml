@@ -26,8 +26,10 @@ edit_uri: edit/main/docs/
 docs_dir: "site"
 site_dir: "../_site"
 nav:
-  - Home: index.md
-  - Installation: installation.md
-  - Configuration: configuration.md
-  - Design: design.md
-  - Reference: reference.md
+  - Home: "index.md"
+  - "Getting Started":
+    - Installation: "installation.md"
+    - Configuration: "configuration.md"
+  - "Usage":
+    - Design: "design.md"
+    - Reference: "reference.md"

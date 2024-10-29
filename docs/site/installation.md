@@ -30,7 +30,7 @@ This guide provides two installation paths:
     docker run -d -e DB_URI=postgresql+psycopg2://postgres:pw@localhost:5432/postgres -p 8000:8000 ghcr.io/cdcgov/recordlinker:latest
     ```
 
-    > Note: For more information about available environment variables or configuration options, refer to the [Configuration](#configuration) section.
+    > Note: For more information about available environment variables or configuration options, refer to the [Configuration](configuration.md) section.
 
 1. **Access the Application**
     The application should now be running in the container. You can access it via your browser at http://localhost:8000.
@@ -76,7 +76,7 @@ This guide provides two installation paths:
     export CONNECTION_POOL_SIZE=20
     ```
 
-    > Note: For more information about available environment variables or configuration options, refer to the [Configuration](#configuration) section.
+    > Note: For more information about available environment variables or configuration options, refer to the [Configuration](configuration.md) section.
 
 1. **Run the Application**
 Start the application with the following command:
