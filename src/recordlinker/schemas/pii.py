@@ -87,7 +87,7 @@ class Gender(enum.Enum):
         """
         Return the value of the enum as a string.
         """
-        return self.name
+        return self.value
 
 
 class Name(pydantic.BaseModel):
