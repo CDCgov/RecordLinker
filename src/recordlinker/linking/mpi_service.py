@@ -15,7 +15,9 @@ from recordlinker import schemas
 
 
 def get_block_data(
-    session: orm.Session, record: schemas.PIIRecord, algorithm_pass: models.AlgorithmPass
+    session: orm.Session,
+    record: schemas.PIIRecord,
+    algorithm_pass: models.AlgorithmPass
 ) -> expression:
     """
     Get all of the matching Patients for the given data using the provided
@@ -53,8 +55,8 @@ def get_block_data(
         )
 
     # Using the subquery of unique Patient IDs, select all the Patients
-    candidate_patients = expression.select(models.Patient).where(models.Patient.id.in_(base))
-    return candidate_patients
+    expr = expression.select(models.Patient).where(models.Patient.id.in_(base))
+    return session.execute(expr).scalars()
 
 
 def fetch_person_records(
