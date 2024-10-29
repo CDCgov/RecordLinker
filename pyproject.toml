@@ -49,6 +49,7 @@ dev = [
     "types-python-dateutil",
     "mkdocs",
     "mkdocs-mermaid2-plugin",
+    "mkdocs-material",
 ]
 prod = [
     # production-only dependencies here
