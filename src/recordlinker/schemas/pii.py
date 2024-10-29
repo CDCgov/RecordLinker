@@ -263,8 +263,6 @@ class PIIRecord(pydantic.BaseModel):
                     return Gender.NON_BINARY
                 elif "declined" in val or "asked" in val:
                     return Gender.ASKED_DECLINED
-                elif "unknown" in val:
-                    return Gender.UNKNOWN
                 return Gender.UNKNOWN
 
     def feature_iter(self, feature: Feature) -> typing.Iterator[str]:
