@@ -9,7 +9,7 @@ plugins:
 repo_name: CDCgov/RecordLinker
 repo_url: https://github.com/CDCgov/RecordLinker
 edit_uri: edit/main/docs/
-docs_dir: "."
+docs_dir: "public"
 nav:
   - Home: index.md
   - Installation: installation.md
