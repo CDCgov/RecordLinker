@@ -23,6 +23,7 @@ from recordlinker.database import get_session
 from recordlinker.linking import algorithm_service
 from recordlinker.linking import link
 from recordlinker.routes.algorithm_router import router as algorithm_router
+from recordlinker.routes.patient_router import router as patient_router
 
 # Instantiate FastAPI via DIBBs' BaseService class
 app = BaseService(
@@ -35,6 +36,7 @@ app = BaseService(
 app.add_middleware(middleware.CorrelationIdMiddleware)
 app.add_middleware(middleware.AccessLogMiddleware)
 app.include_router(algorithm_router, prefix="/algorithm", tags=["algorithm"])
+app.include_router(patient_router, prefix="/patient", tags=["patient"])
 
 
 # Request and response models
