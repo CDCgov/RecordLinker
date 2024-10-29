@@ -6,8 +6,10 @@ This module provides the data access functions to the MPI tables
 """
 
 import typing
+import uuid
 
 from sqlalchemy import orm
+from sqlalchemy import select
 from sqlalchemy.sql import expression
 
 from recordlinker import models
@@ -29,7 +31,7 @@ def get_block_data(
     # has a matching Blocking Value for all the Blocking Keys, then it
     # is considered a match.
     for idx, key_id in enumerate(algorithm_pass.blocking_keys):
-        #get the BlockingKey obj from the id
+        # get the BlockingKey obj from the id
         if not hasattr(models.BlockingKey, key_id):
             raise ValueError(f"No BlockingKey with id {id} found.")
         key = getattr(models.BlockingKey, key_id)
@@ -109,3 +111,40 @@ def insert_blocking_keys(
     if commit:
         session.commit()
     return values
+
+
+def get_patient_by_reference_id(
+    session: orm.Session, reference_id: uuid.UUID
+) -> models.Patient | None:
+    """
+    Retrieve the Patient by their reference id
+    """
+    query = select(models.Patient).where(models.Patient.reference_id == reference_id)
+    return session.scalar(query)
+
+
+def get_person_by_reference_id(
+    session: orm.Session, reference_id: uuid.UUID
+) -> models.Person | None:
+    """
+    Retrieve the Person by their reference id
+    """
+    query = select(models.Person).where(models.Person.reference_id == reference_id)
+    return session.scalar(query)
+
+
+def update_person_cluster(
+    session: orm.Session,
+    patient: models.Patient,
+    person: models.Person | None = None,
+    commit: bool = True,
+) -> models.Person:
+    """
+    Update the cluster for a given patient.
+    """
+    patient.person = person or models.Person()
+    session.flush()
+
+    if commit:
+        session.commit()
+    return patient.person
