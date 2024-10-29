@@ -7,7 +7,7 @@ This module provides the data access functions to the MPI tables
 
 import typing
 
-from sqlalchemy import orm
+from sqlalchemy import orm, engine
 from sqlalchemy.sql import expression
 
 from recordlinker import models
@@ -18,7 +18,7 @@ def get_block_data(
     session: orm.Session,
     record: schemas.PIIRecord,
     algorithm_pass: models.AlgorithmPass
-) -> expression:
+) -> engine.ScalarResult:
     """
     Get all of the matching Patients for the given data using the provided
     blocking keys defined in the algorithm_pass.
@@ -61,7 +61,7 @@ def get_block_data(
 
 def fetch_person_records(
     session: orm.Session,
-    candidate_patients: expression,
+    candidate_patients: engine.ScalarResult,
 ) -> typing.Sequence[models.Patient]:
     """
     Get all Patients within the Person clusters identified.
