@@ -7,7 +7,7 @@ This module provides the data access functions to the MPI tables
 
 import typing
 
-from sqlalchemy import orm, engine
+from sqlalchemy import orm
 from sqlalchemy.sql import expression
 
 from recordlinker import models
@@ -18,13 +18,15 @@ def get_block_data(
     session: orm.Session,
     record: schemas.PIIRecord,
     algorithm_pass: models.AlgorithmPass
-) -> engine.ScalarResult:
+) -> typing.Sequence[models.Patient]:
     """
     Get all of the matching Patients for the given data using the provided
-    blocking keys defined in the algorithm_pass.
+    blocking keys defined in the algorithm_pass. Also, get all the
+    remaining Patient records in the Person clusters identified in
+    blocking to calculate Belongingness Ratio.
     """
     # Create the base query
-    base = expression.select(models.Patient.id).distinct()
+    base = expression.select(models.Patient.person_id).distinct()
 
     # Build the join criteria, we are joining the Blocking Value table
     # multiple times, once for each Blocking Key.  If a Patient record
@@ -55,24 +57,8 @@ def get_block_data(
         )
 
     # Using the subquery of unique Patient IDs, select all the Patients
-    expr = expression.select(models.Patient).where(models.Patient.id.in_(base))
-    return session.execute(expr).scalars()
-
-
-def fetch_person_records(
-    session: orm.Session,
-    candidate_patients: engine.ScalarResult,
-) -> typing.Sequence[models.Patient]:
-    """
-    Get all Patients within the Person clusters identified.
-    """
-    # Get distinct Person IDs
-    base = candidate_patients.select(models.Person.id).distinct()
-
-    # Get all Patients with those Person IDs
-    expr = expression.select(models.Patient).where(models.Person.id.in_(base))
+    expr = expression.select(models.Patient).where(models.Patient.person_id.in_(base))
     return session.execute(expr).scalars().all()
-
 
 def insert_patient(
     session: orm.Session,

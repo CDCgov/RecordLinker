@@ -101,17 +101,22 @@ class TestInsertPatient:
 class TestGetBlockData:
     @pytest.fixture
     def prime_index(self, session):
+
+        person_1 = models.Person()
+        session.add(person_1)
+        session.flush()
+
         data = [
-            {"name": [{"given": ["Johnathon", "Bill",], "family": "Smith"}], "birthdate": "01/01/1980"},
-            {"name": [{"given": ["George",], "family": "Harrison"}], "birthdate": "1943-2-25"},
-            {"name": [{"given": ["John",], "family": "Doe"}, {"given": ["John"], "family": "Lewis"}], "birthdate": "1980-01-01"},
-            {"name": [{"given": ["Bill",], "family": "Smith"}], "birthdate": "1980-01-01"},
-            {"name": [{"given": ["John",], "family": "Smith"}], "birthdate": "1980-01-01"},
-            {"name": [{"given": ["John",], "family": "Smith"}], "birthdate": "1985-11-12"},
-            {"name": [{"given": ["Ferris",], "family": "Bueller"}], "birthdate": ""},
+            ({"name": [{"given": ["Johnathon", "Bill",], "family": "Smith"}], "birthdate": "01/01/1980"}, person_1),
+            ({"name": [{"given": ["George",], "family": "Harrison"}], "birthdate": "1943-2-25"}, None),
+            ({"name": [{"given": ["John",], "family": "Doe"}, {"given": ["John"], "family": "Lewis"}], "birthdate": "1980-01-01"}, None),
+            ({"name": [{"given": ["Bill",], "family": "Smith"}], "birthdate": "1980-01-01"}, person_1),
+            ({"name": [{"given": ["John",], "family": "Smith"}], "birthdate": "1980-01-01"}, person_1),
+            ({"name": [{"given": ["John",], "family": "Smith"}], "birthdate": "1985-11-12"}, None),
+            ({"name": [{"given": ["Ferris",], "family": "Bueller"}], "birthdate": ""}, None)
         ]
-        for datum in data:
-            mpi_service.insert_patient(session, schemas.PIIRecord(**datum))
+        for (datum, person) in data:
+            mpi_service.insert_patient(session, schemas.PIIRecord(**datum), person=person)
 
     def test_block_invalid_key(self, session):
         data = {"name": [{"given": ["Johnathon", "Bill",], "family": "Smith"}]}
@@ -161,17 +166,16 @@ class TestGetBlockData:
         assert len(matches) == 3
         data = {"name": [{"given": ["Billy",], "family": "Smitty"}], "birthdate": "Jan 1 1980"}
         matches = mpi_service.get_block_data(session, schemas.PIIRecord(**data), algorithm_pass)
-        assert len(matches) == 2
+        assert len(matches) == 3
         data = {"name": [{"given": ["Johnathon", "Bill",], "family": "Doeherty"}], "birthdate": "Jan 1 1980"}
         matches = mpi_service.get_block_data(session, schemas.PIIRecord(**data), algorithm_pass)
         assert len(matches) == 0
 
     def test_block_on_multiple_names(self, session, prime_index):
         data = {"name": [{"use": "official", "given": ["John", "Doe"], "family": "Smith"}, {"use": "maiden", "given": ["John"], "family": "Doe"}]}
-        algorithm_pass = models.AlgorithmPass(blocking_keys=["FIRST_NAME", "LAST_NAME"])
         algorithm_pass = models.AlgorithmPass(id=1, algorithm_id=1, blocking_keys=["FIRST_NAME","LAST_NAME"], evaluators={}, rule="", cluster_ratio=1.0, kwargs={})
         matches = mpi_service.get_block_data(session, schemas.PIIRecord(**data), algorithm_pass)
-        assert len(matches) == 4
+        assert len(matches) == 5
 
     def test_block_missing_keys(self, session, prime_index):
         data = {"birthdate": "01/01/1980"}
