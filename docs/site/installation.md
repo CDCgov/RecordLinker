@@ -15,24 +15,25 @@ This guide provides two installation paths:
 
 ### Steps
 
-#### **Pull the Docker Image**
-Pull the pre-built image from the GitHub Container Registry
+1. **Pull the Docker Image**
 
-```bash
-docker pull ghcr.io/cdcgov/recordlinker:latest
-```
+    Pull the pre-built image from the GitHub Container Registry
 
-#### **Run the Docker Container**
-Launch the container with any necessary environment variables.  Only the `DB_URI` environment variable is required.
+    ```bash
+    docker pull ghcr.io/cdcgov/recordlinker:latest
+    ```
+    
+1. **Run the Docker Container**
+    Launch the container with any necessary environment variables.  Only the `DB_URI` environment variable is required.
 
-```bash
-docker run -d -e DB_URI=postgresql+psycopg2://postgres:pw@localhost:5432/postgres -p 8000:8000 ghcr.io/cdcgov/recordlinker:latest
-```
+    ```bash
+    docker run -d -e DB_URI=postgresql+psycopg2://postgres:pw@localhost:5432/postgres -p 8000:8000 ghcr.io/cdcgov/recordlinker:latest
+    ```
 
-#### **Access the Application**
-The application should now be running in the container. You can access it via your browser at http://localhost:8000.
+    > Note: For more information about available environment variables or configuration options, refer to the [Configuration](#configuration) section.
 
-> Note: For more information about available environment variables or configuration options, refer to the [Configuration](#configuration) section.
+1. **Access the Application**
+    The application should now be running in the container. You can access it via your browser at http://localhost:8000.
 
 
 ## Option 2: Install from Source (Recommended for Development)
@@ -44,44 +45,45 @@ The application should now be running in the container. You can access it via yo
 
 ### Steps
 
-#### **Clone the Repository**
-Clone the repository to your local machine:
+1. **Clone the Repository**
+    Clone the repository to your local machine:
 
-```bash
-git clone https://github.com/username/repository.git
-cd repository
-```
+    ```bash
+    git clone https://github.com/CDCgov/RecordLinker.git
+    cd RecordLinker
+    ```
 
-#### **Set up a Virtual Environment**
-Create and activate a virtual environment (recommended for isolating dependencies):
+1. **Set up a Virtual Environment**
+    Create and activate a virtual environment (recommended for isolating dependencies):
 
-```bash
-python -m venv venv
-source venv/bin/activate  # On Windows, use `venv\Scripts\activate`
-```
+    ```bash
+    python -m venv venv
+    source venv/bin/activate  # On Windows, use `venv\Scripts\activate`
+    ```
 
-#### **Install Dependencies**
-Install the necessary dependencies from requirements.txt:
+1. **Install Dependencies**
+    Install the necessary dependencies from requirements.txt:
 
-```bash
-pip install '.[dev]' # For production dependencies, use `pip install .[prod]`
-```
+    ```bash
+    pip install '.[dev]' # For production dependencies, use `pip install .[prod]`
+    ```
 
-#### **Optional: Set Environment Variables**
-Configure environment variables by editing the default .env file in the project root or exporting them directly in your terminal:
+1. **Optional: Set Environment Variables**
+    Configure environment variables by editing the default .env file in the project root or exporting them directly in your terminal:
 
-```bash
-export DB_URI=mssql+pyodbc://sa:YourStrong!Passw0rd@localhost:1433/master?driver=ODBC+Driver+17+for+SQL+Server
-export CONNECTION_POOL_SIZE=20
-```
-> Note: For more information about available environment variables or configuration options, refer to the [Configuration](#configuration) section.
+    ```bash
+    export DB_URI=sqlite:///db.sqlite3
+    export CONNECTION_POOL_SIZE=20
+    ```
 
-#### **Run the Application**
+    > Note: For more information about available environment variables or configuration options, refer to the [Configuration](#configuration) section.
+
+1. **Run the Application**
 Start the application with the following command:
 
-```bash
-uvicorn recordlinker.main:app
-```
+    ```bash
+    uvicorn recordlinker.main:app
+    ```
 
-#### **Access the Application**
+1. **Access the Application**
 The application should now be running in the container. You can access it via your browser at http://localhost:8000.

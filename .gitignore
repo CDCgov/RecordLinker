@@ -4,6 +4,7 @@ target/
 *_version.py
 *.egg-info
 build/
+_site/
 
 # Log file
 *.log

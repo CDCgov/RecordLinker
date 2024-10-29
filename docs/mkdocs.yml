@@ -6,10 +6,25 @@ theme:
 plugins:
   - mermaid2
   - offline
+markdown_extensions:
+  - def_list
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - footnotes
 repo_name: CDCgov/RecordLinker
 repo_url: https://github.com/CDCgov/RecordLinker
 edit_uri: edit/main/docs/
-docs_dir: "public"
+docs_dir: "site"
+site_dir: "../_site"
 nav:
   - Home: index.md
   - Installation: installation.md
