@@ -7,6 +7,10 @@ import urllib.request
 TIMEOUT = 5
 
 
+class SplunkError(Exception):
+    pass
+
+
 class SplunkHECClient:
     PATH = "/services/collector/event"
 
@@ -17,23 +21,30 @@ class SplunkHECClient:
         The URI format is:
             splunkhec://<token>@<host>:<port>?index=<index>&proto=<protocol>&ssl_verify=<verify>&source=<source>
         """
-        uri: urllib.parse.ParseResult = urllib.parse.urlparse(splunk_uri)
-        # flatten the query string values from lists to single values
-        qs: dict[str, str] = {k: v[0] for k, v in urllib.parse.parse_qs(uri.query).items()}
+        try:
+            uri: urllib.parse.ParseResult = urllib.parse.urlparse(splunk_uri)
+            # flatten the query string values from lists to single values
+            qs: dict[str, str] = {k: v[0] for k, v in urllib.parse.parse_qs(uri.query).items()}
 
-        scheme = qs.get("proto", "https").lower()
-        self.url = f"{scheme}://{uri.hostname}:{uri.port}{self.PATH}"
-        self.headers = {
-            "Authorization": f"Splunk {uri.username}",
-            "Content-Type": "application/json",
-        }
-        # initialize the default payload parameters
-        self.params: dict[str, str] = {"host": uri.hostname or "", "sourcetype": "_json"}
-        if qs.get("index"):
-            self.params["index"] = qs["index"]
-        if qs.get("source"):
-            self.params["source"] = qs["source"]
-        self._test_connection()
+            if uri.scheme != "splunkhec":
+                raise SplunkError(f"invalid scheme: {uri.scheme}")
+
+            scheme = qs.get("proto", "https").lower()
+            host = f"{uri.hostname}:{uri.port}" if uri.port else uri.hostname
+            self.url = f"{scheme}://{host}{self.PATH}"
+            self.headers = {
+                "Authorization": f"Splunk {uri.username}",
+                "Content-Type": "application/json",
+            }
+            # initialize the default payload parameters
+            self.params: dict[str, str] = {"host": uri.hostname or "", "sourcetype": "_json"}
+            if qs.get("index"):
+                self.params["index"] = qs["index"]
+            if qs.get("source"):
+                self.params["source"] = qs["source"]
+            self._test_connection()
+        except Exception as exc:
+            raise SplunkError(f"invalid connection: {splunk_uri}") from exc
 
     def _send_request(self, body: bytes | None = None):
         request = urllib.request.Request(self.url, data=body, method="POST", headers=self.headers)
@@ -51,7 +62,6 @@ class SplunkHECClient:
         if status != 400:
             raise urllib.error.HTTPError(self.url, status, "could not connect", None, None)  # type: ignore
 
-    # TODO: tests cases
     def send(self, data: dict, epoch: float = 0) -> int:
         """
         Send data to the Splunk HEC endpoint.
@@ -63,4 +73,7 @@ class SplunkHECClient:
         epoch = epoch or int(time.time())
         payload: dict[str, typing.Any] = {"time": epoch, "event": data} | self.params
         body: bytes = json.dumps(payload).encode("utf-8")
-        return self._send_request(body=body)
+        try:
+            return self._send_request(body=body)
+        except Exception as exc:
+            raise SplunkError(f"could not send data: {data}") from exc
