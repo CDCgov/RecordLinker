@@ -1,5 +1,5 @@
 """
-recordlinker.parsers.fhir
+recordlinker.hl7.fhir
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
 This module is used to handle fhir parsing
