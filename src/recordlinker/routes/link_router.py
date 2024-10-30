@@ -62,8 +62,8 @@ async def link_piirecord(
         raise fastapi.HTTPException(status_code=fastapi.status.HTTP_400_BAD_REQUEST, detail=msg)
 
 
-@router.post("/fhir", summary="Link FHIR")
-async def link_fhir(
+@router.post("/dibbs", summary="Link FHIR for DIBBs")
+async def link_dibbs(
     request: fastapi.Request,
     input: typing.Annotated[schemas.LinkFhirInput, fastapi.Body()],
     response: fastapi.Response,
@@ -72,7 +72,9 @@ async def link_fhir(
     """
     Compare a FHIR bundle with records in the Master Patient Index (MPI) to
     check for matches with existing patient records If matches are found,
-    returns the bundle with updated references to existing patients.
+    returns the FHIR bundle with updated references to existing patients.
+    This is a special endpoint that allows integration into a DIBBs pipeline,
+    as it accepts and returns FHIR bundles.
     """
     input_bundle = input.bundle
     external_id = input.external_person_id
