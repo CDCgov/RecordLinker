@@ -25,21 +25,22 @@ The following diagram illustrates the relationships between the `Person`, `Patie
 ```mermaid
 erDiagram
     Person {
-        bigint id PK "Primary Key"
-        uuid internal_id "Internal UUID"
+        bigint id PK "Primary Key (auto-generated)"
+        uuid reference_id "Reference UUID (auto-generated)"
     }
 
     Patient {
-        bigint id PK "Primary Key"
+        bigint id PK "Primary Key (auto-generated)"
         bigint person_id FK "Foreign Key to Person"
-        json data "Patient Data"
+        json data "Patient Data JSON Object"
+        uuid reference_id "Reference UUID (auto-generated)"
         string external_patient_id "External Patient ID"
         string external_person_id "External Person ID"
         string external_person_source "External Person Source"
     }
 
     BlockingValue {
-        bigint id PK "Primary Key"
+        bigint id PK "Primary Key (auto-generated)"
         bigint patient_id FK "Foreign Key to Patient"
         smallint blockingkey "Blocking Key Type"
         string value "Blocking Value"
