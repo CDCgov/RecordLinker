@@ -13,9 +13,9 @@ import sqlalchemy.orm as orm
 
 from recordlinker import schemas
 from recordlinker.database import get_session
+from recordlinker.hl7 import fhir
 from recordlinker.linking import algorithm_service
 from recordlinker.linking import link
-from recordlinker.hl7 import fhir
 
 router = fastapi.APIRouter()
 
