@@ -179,8 +179,13 @@ class TestInsertPatient:
 class TestGetBlockData:
     @pytest.fixture
     def prime_index(self, session):
+
+        person_1 = models.Person()
+        session.add(person_1)
+        session.flush()
+
         data = [
-            {
+            ({
                 "name": [
                     {
                         "given": [
@@ -191,8 +196,8 @@ class TestGetBlockData:
                     }
                 ],
                 "birthdate": "01/01/1980",
-            },
-            {
+            }, person_1),
+            ({
                 "name": [
                     {
                         "given": [
@@ -202,8 +207,8 @@ class TestGetBlockData:
                     }
                 ],
                 "birthdate": "1943-2-25",
-            },
-            {
+            }, None),
+            ({
                 "name": [
                     {
                         "given": [
@@ -214,8 +219,8 @@ class TestGetBlockData:
                     {"given": ["John"], "family": "Lewis"},
                 ],
                 "birthdate": "1980-01-01",
-            },
-            {
+            }, None),
+            ({
                 "name": [
                     {
                         "given": [
@@ -225,8 +230,8 @@ class TestGetBlockData:
                     }
                 ],
                 "birthdate": "1980-01-01",
-            },
-            {
+            }, person_1),
+            ({
                 "name": [
                     {
                         "given": [
@@ -236,8 +241,8 @@ class TestGetBlockData:
                     }
                 ],
                 "birthdate": "1980-01-01",
-            },
-            {
+            }, person_1),
+            ({
                 "name": [
                     {
                         "given": [
@@ -247,8 +252,8 @@ class TestGetBlockData:
                     }
                 ],
                 "birthdate": "1985-11-12",
-            },
-            {
+            }, None),
+            ({
                 "name": [
                     {
                         "given": [
@@ -258,10 +263,10 @@ class TestGetBlockData:
                     }
                 ],
                 "birthdate": "",
-            },
+            }, None)
         ]
-        for datum in data:
-            mpi_service.insert_patient(session, schemas.PIIRecord(**datum))
+        for (datum, person) in data:
+            mpi_service.insert_patient(session, schemas.PIIRecord(**datum), person=person)
 
     def test_block_invalid_key(self, session):
         data = {
@@ -408,7 +413,7 @@ class TestGetBlockData:
             "birthdate": "Jan 1 1980",
         }
         matches = mpi_service.get_block_data(session, schemas.PIIRecord(**data), algorithm_pass)
-        assert len(matches) == 2
+        assert len(matches) == 3
         data = {
             "name": [
                 {
@@ -431,7 +436,6 @@ class TestGetBlockData:
                 {"use": "maiden", "given": ["John"], "family": "Doe"},
             ]
         }
-        algorithm_pass = models.AlgorithmPass(blocking_keys=["FIRST_NAME", "LAST_NAME"])
         algorithm_pass = models.AlgorithmPass(
             id=1,
             algorithm_id=1,
@@ -442,7 +446,7 @@ class TestGetBlockData:
             kwargs={},
         )
         matches = mpi_service.get_block_data(session, schemas.PIIRecord(**data), algorithm_pass)
-        assert len(matches) == 4
+        assert len(matches) == 5
 
     def test_block_missing_keys(self, session, prime_index):
         data = {"birthdate": "01/01/1980"}
