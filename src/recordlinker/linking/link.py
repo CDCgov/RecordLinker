@@ -85,7 +85,7 @@ def link_record_against_mpi(
     for algorithm_pass in algorithm.passes:
         with TRACER.start_as_current_span("link.pass"):
             # the minimum ratio of matches needed to be considered a cluster member
-            cluster_ratio = algorithm_pass.cluster_ratio
+            belongingness_ratio_lower_bound, belongingness_ratio_upper_bound = algorithm_pass.belongingness_ratio
             # initialize a dictionary to hold the clusters of patients for each person
             clusters: dict[models.Person, list[models.Patient]] = collections.defaultdict(list)
             # block on the pii_record and the algorithm's blocking criteria, then
@@ -108,11 +108,15 @@ def link_record_against_mpi(
                             if compare(record, patient, algorithm_pass):
                                 matched_count += 1
                     # calculate the match ratio for this person cluster
-                    match_ratio = matched_count / len(patients)
-                    if match_ratio >= cluster_ratio:
+                    belongingness_ratio = matched_count / len(patients)
+                    if belongingness_ratio >= belongingness_ratio_upper_bound:
                         # The match ratio is larger than the minimum cluster threshold,
                         # optionally update the max score for this person
-                        scores[person] = max(scores[person], match_ratio)
+                        scores[person] = max(scores[person], belongingness_ratio)
+                    # elif belongingness_ratio <= belongingness_ratio_lower_bound:
+                    #     pass
+                    # else:
+                    #     pass
 
     matched_person: typing.Optional[models.Person] = None
     if scores:

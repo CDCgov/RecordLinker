@@ -3,6 +3,7 @@
         "label": "dibbs-basic",
         "description": "The DIBBs Default Algorithm. Based on field experimentation and statistical analysis, this deterministic two-pass algorithm combines geographical and personal information to maximize linkage quality while minimizing false positives",
         "is_default": true,
+        "include_multiple_matches": true,
         "passes": [
             {
                 "blocking_keys": [
@@ -15,7 +16,7 @@
                     "LAST_NAME": "func:recordlinker.linking.matchers.feature_match_exact"
                 },
                 "rule": "func:recordlinker.linking.matchers.eval_perfect_match",
-                "cluster_ratio": 0.9,
+                "belongingness_ratio": [0.75, 0.9],
                 "kwargs": {
                     "thresholds": {
                         "FIRST_NAME": 0.9,
@@ -39,7 +40,7 @@
                     "BIRTHDATE": "func:recordlinker.linking.matchers.feature_match_exact"
                 },
                 "rule": "func:recordlinker.linking.matchers.eval_perfect_match",
-                "cluster_ratio": 0.9,
+                "belongingness_ratio": [0.75, 0.9],
                 "kwargs": {
                     "thresholds": {
                         "FIRST_NAME": 0.9,
@@ -57,6 +58,7 @@
         "label": "dibbs-enhanced",
         "description": "The DIBBs Log-Odds Algorithm. This optional algorithm uses statistical correction to adjust the links between incoming records and previously processed patients (it does so by taking advantage of the fact that some fields are more informative than others—e.g., two records matching on MRN is stronger evidence that they should be linked than if the records matched on zip code). It can be used if additional granularity in matching links is desired. However, while the DIBBs Log-Odds Algorithm can create higher-quality links, it is dependent on statistical updating and pre-calculated population analysis, which requires some work on the part of the user. For those cases where additional precision or stronger matching criteria are required, the Log-Odds algorithm is detailed below.",
         "is_default": false,
+        "include_multiple_matches": true,
         "passes": [
             {
                 "blocking_keys": [
@@ -69,7 +71,7 @@
                     "LAST_NAME": "func:recordlinker.linking.matchers.feature_match_log_odds_fuzzy_compare"
                 },
                 "rule": "func:recordlinker.linking.matchers.eval_log_odds_cutoff",
-                "cluster_ratio": 0.9,
+                "belongingness_ratio": [0.75, 0.9],
                 "kwargs": {
                     "similarity_measure": "JaroWinkler",
                     "thresholds": {
@@ -106,7 +108,7 @@
                     "BIRTHDATE": "func:recordlinker.linking.matchers.feature_match_log_odds_fuzzy_compare"
                 },
                 "rule": "func:recordlinker.linking.matchers.eval_log_odds_cutoff",
-                "cluster_ratio": 0.9,
+                "belongingness_ratio": [0.75, 0.9],
                 "kwargs": {
                     "similarity_measure": "JaroWinkler",
                     "thresholds": {
