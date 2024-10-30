@@ -16,6 +16,7 @@ from fastapi import status
 from recordlinker import schemas
 from recordlinker.hl7 import fhir
 
+
 class TestLinkDIBBS:
     @mock.patch("recordlinker.linking.algorithm_service.default_algorithm")
     def test_bundle_with_no_patient(self, patched_subprocess, basic_algorithm, client):
