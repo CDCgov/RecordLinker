@@ -10,7 +10,6 @@ import typing
 import uuid
 
 import pydantic
-from opentelemetry import trace
 from sqlalchemy import orm
 
 from recordlinker import models
@@ -19,7 +18,16 @@ from recordlinker.linking import matchers
 
 from . import mpi_service
 
-TRACER = trace.get_tracer(__name__)
+TRACER: typing.Any = None
+try:
+    from opentelemetry import trace
+
+    TRACER = trace.get_tracer(__name__)
+except ImportError:
+    # OpenTelemetry is an optional dependency, if its not installed use a mock tracer
+    from recordlinker.utils import MockTracer
+
+    TRACER = MockTracer()
 
 
 # TODO: This is a FHIR specific function, should be moved to a FHIR module
@@ -33,14 +41,20 @@ def fhir_record_to_pii_record(fhir_record: dict) -> schemas.PIIRecord:
         "birthDate": fhir_record.get("birthDate"),
         "sex": fhir_record.get("gender"),
         "address": fhir_record.get("address", []),
-        "phone": fhir_record.get("telecom", []),
         "mrn": None,
+        "ssn": None,
+        "race": None,
+        "gender": None,
+        "telecom": fhir_record.get("telecom", []),
     }
     for identifier in fhir_record.get("identifier", []):
         for coding in identifier.get("type", {}).get("coding", []):
             if coding.get("code") == "MR":
                 val["mrn"] = identifier.get("value")
+            elif coding.get("code") == "SS":
+                val["ssn"] = identifier.get("value")
     for address in val["address"]:
+        address["county"] = address.get("district", "")
         for extension in address.get("extension", []):
             if extension.get("url") == "http://hl7.org/fhir/StructureDefinition/geolocation":
                 for coord in extension.get("extension", []):
@@ -48,6 +62,17 @@ def fhir_record_to_pii_record(fhir_record: dict) -> schemas.PIIRecord:
                         address["latitude"] = coord.get("valueDecimal")
                     elif coord.get("url") == "longitude":
                         address["longitude"] = coord.get("valueDecimal")
+    for extension in fhir_record.get("extension", []):
+        if extension.get("url") == "http://hl7.org/fhir/us/core/StructureDefinition/us-core-race":
+            for ext in extension.get("extension", []):
+                if ext.get("url") == "ombCategory":
+                    val["race"] = ext.get("valueCoding", {}).get("display")
+        if extension.get("url") == "http://hl7.org/fhir/StructureDefinition/individual-genderIdentity":
+            for ext in extension.get("extension", []):
+                if ext.get("url") == "value":
+                    for coding in ext.get("valueCodeableConcept", {}).get("coding", []):
+                        val["gender"] = coding.get("display")
+
     return schemas.PIIRecord(**val)
 
 
@@ -106,6 +131,7 @@ def compare(
         result: float = func(record, patient, feature, **kwargs)  # type: ignore
         results.append(result)
     return matching_rule(results, **kwargs)  # type: ignore
+
 
 def link_record_against_mpi(
     record: schemas.PIIRecord,

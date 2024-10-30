@@ -13,7 +13,7 @@ authors = [
     {name = "Eric Buckley", email = "ericbuckley@skylight.digital"},
     {name = "Alex Hayward", email = "alex.hayward@skylight.digital"},
     {name = "Cason Brinson", email = "cbrinson@rise8.us"},
-    {name = "Derek Dombek", email = "ddombek@rise8.us"}
+    {name = "Derek Dombek", email = "ddombek@rise8.us"},
 ]
 license = { file = "LICENSE" }
 readme = {file = "README.md", content-type = "text/markdown"}
@@ -26,8 +26,8 @@ dependencies = [
     "python-dateutil==2.9.0.post0",
     "sqlalchemy",
     "rapidfuzz",
-    "opentelemetry-api",
-    "opentelemetry-sdk",
+    "python-json-logger",
+    "asgi-correlation-id",
     # Database drivers
     "psycopg2-binary",  # PostgreSQL
     "PyMySQL",  # MySQL & MariaDB
@@ -37,13 +37,16 @@ dependencies = [
 
 [project.optional-dependencies]
 dev = [
+    # development-only dependencies here
     "fastapi[standard]",
     "pytest>=8.3",
     "pytest-cov",
     "pytest-env",
     "ruff",
     "mypy",
-    "types-python-dateutil"
+    "types-python-dateutil",
+    "opentelemetry-api",
+    "opentelemetry-sdk",
 ]
 prod = [
     # List any additional production-only dependencies here
@@ -94,5 +97,3 @@ env = [
 [tool.mypy]
 files = ["src"]
 mypy_path = ["src"]
-# TODO: Resolve static typing issues in main.py
-exclude = ["src/recordlinker/main.py", "src/recordlinker/linkage"]
