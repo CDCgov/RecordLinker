@@ -92,7 +92,6 @@ force-single-line = true
 order-by-type = false
 
 [tool.pytest.ini_options]
-addopts = ["--capture=no"]
 testpaths = ["tests/unit"]
 pythonpath = ["src", "tests/unit"]
 filterwarnings = [
