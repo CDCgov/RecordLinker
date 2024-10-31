@@ -71,7 +71,7 @@ class TestLoadAlgorithm:
                     blocking_keys=["FIRST_NAME"],
                     evaluators={"ZIP": "func:recordlinker.linking.matchers.feature_match_any"},
                     rule="func:recordlinker.linking.matchers.eval_perfect_match",
-                    cluster_ratio=0.8,
+                    belongingness_ratio=(0.75, 0.8),
                 )
             ],
         )
@@ -88,7 +88,7 @@ class TestLoadAlgorithm:
             "ZIP": "func:recordlinker.linking.matchers.feature_match_any"
         }
         assert obj.passes[0].rule == "func:recordlinker.linking.matchers.eval_perfect_match"
-        assert obj.passes[0].cluster_ratio == 0.8
+        assert obj.passes[0].belongingness_ratio == (0.75, 0.8)
 
     def test_load_algorithm_updated(self, session):
         data = schemas.Algorithm(
@@ -99,7 +99,7 @@ class TestLoadAlgorithm:
                     blocking_keys=["FIRST_NAME"],
                     evaluators={"ZIP": "func:recordlinker.linking.matchers.feature_match_any"},
                     rule="func:recordlinker.linking.matchers.eval_perfect_match",
-                    cluster_ratio=0.8,
+                    belongingness_ratio=(0.75, 0.8)
                 )
             ],
         )
@@ -120,7 +120,7 @@ class TestLoadAlgorithm:
             "ZIP": "func:recordlinker.linking.matchers.feature_match_any"
         }
         assert obj.passes[0].rule == "func:recordlinker.linking.matchers.eval_perfect_match"
-        assert obj.passes[0].cluster_ratio == 0.8
+        assert obj.passes[0].belongingness_ratio == (0.75, 0.8)
 
 
 def test_delete_algorithm(session):
@@ -133,7 +133,7 @@ def test_delete_algorithm(session):
         blocking_keys=["FIRST_NAME"],
         evaluators={"ZIP": "func:recordlinker.linking.matchers.feature_match_any"},
         rule="func:recordlinker.linking.matchers.eval_perfect_match",
-        cluster_ratio=0.8,
+        belongingness_ratio=(0.75, 0.8),
     )
     session.add(pass1)
     session.commit()
@@ -153,7 +153,7 @@ def test_clear_algorithms(session):
         blocking_keys=["FIRST_NAME"],
         evaluators={"ZIP": "func:recordlinker.linking.matchers.feature_match_any"},
         rule="func:recordlinker.linking.matchers.eval_perfect_match",
-        cluster_ratio=0.8,
+        belongingness_ratio=(0.75, 0.8),
     )
     session.add(pass1)
     session.commit()

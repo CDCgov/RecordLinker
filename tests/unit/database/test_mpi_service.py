@@ -602,7 +602,7 @@ class TestGetBlockData:
             blocking_keys=["FIRST_NAME", "LAST_NAME"],
             evaluators={},
             rule="",
-            cluster_ratio=1.0,
+            belongingness_ratio=[0.75, 1.0],
             kwargs={},
         )
         matches = mpi_service.get_block_data(session, schemas.PIIRecord(**data), algorithm_pass)

@@ -23,12 +23,14 @@ class TestListAlgorithms:
                 "label": "basic",
                 "is_default": True,
                 "description": "First algorithm",
+                "include_multiple_matches": True,
                 "pass_count": 0,
             },
             {
                 "label": "enhanced",
                 "is_default": False,
                 "description": "Second algorithm",
+                "include_multiple_matches": True,
                 "pass_count": 0,
             },
         ]
@@ -52,7 +54,7 @@ class TestGetAlgorithm:
                         "FIRST_NAME": "func:recordlinker.linking.matchers.feature_match_fuzzy_string",
                     },
                     rule="func:recordlinker.linking.matchers.eval_perfect_match",
-                    cluster_ratio=0.5,
+                    belongingness_ratio=(0.25, 0.5)
                 )
             ],
         )
@@ -65,6 +67,7 @@ class TestGetAlgorithm:
             "label": "basic",
             "is_default": False,
             "description": "First algorithm",
+            "include_multiple_matches": True,
             "passes": [
                 {
                     "blocking_keys": ["BIRTHDATE"],
@@ -72,7 +75,7 @@ class TestGetAlgorithm:
                         "FIRST_NAME": "func:recordlinker.linking.matchers.feature_match_fuzzy_string",
                     },
                     "rule": "func:recordlinker.linking.matchers.eval_perfect_match",
-                    "cluster_ratio": 0.5,
+                    "belongingness_ratio": [0.25, 0.5],
                     "kwargs": {},
                 }
             ],
@@ -111,7 +114,7 @@ class TestCreateAlgorithm:
                         "FIRST_NAME": "func:recordlinker.linking.matchers.feature_match_fuzzy_string",
                     },
                     "rule": "func:recordlinker.linking.matchers.eval_perfect_match",
-                    "cluster_ratio": 0.5,
+                    "belongingness_ratio": [0.25, 0.5],
                 }
             ],
         }
@@ -130,7 +133,7 @@ class TestCreateAlgorithm:
             "FIRST_NAME": "func:recordlinker.linking.matchers.feature_match_fuzzy_string"
         }
         assert algo.passes[0].rule == "func:recordlinker.linking.matchers.eval_perfect_match"
-        assert algo.passes[0].cluster_ratio == 0.5
+        assert algo.passes[0].belongingness_ratio == (0.25, 0.5)
         assert algo.passes[0].kwargs == {}
 
 
@@ -190,7 +193,7 @@ class TestUpdateAlgorithm:
                         "FIRST_NAME": "func:recordlinker.linking.matchers.feature_match_fuzzy_string",
                     },
                     "rule": "func:recordlinker.linking.matchers.eval_perfect_match",
-                    "cluster_ratio": 0.5,
+                    "belongingness_ratio": [0.25, 0.5]
                 }
             ],
         }
@@ -209,7 +212,7 @@ class TestUpdateAlgorithm:
             "FIRST_NAME": "func:recordlinker.linking.matchers.feature_match_fuzzy_string"
         }
         assert algo.passes[0].rule == "func:recordlinker.linking.matchers.eval_perfect_match"
-        assert algo.passes[0].cluster_ratio == 0.5
+        assert algo.passes[0].belongingness_ratio == (0.25, 0.5)
         assert algo.passes[0].kwargs == {}
 
 

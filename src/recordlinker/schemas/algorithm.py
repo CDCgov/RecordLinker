@@ -79,7 +79,7 @@ class AlgorithmPass(pydantic.BaseModel):
             raise ValueError(f"Invalid upper bound: {upper_bound}")
         if lower_bound > upper_bound:
             raise ValueError(f"Invalid range. Lower bound must be less than upper bound: {value}")
-        return value
+        return (lower_bound, upper_bound)
 
 
 class Algorithm(pydantic.BaseModel):
@@ -92,7 +92,7 @@ class Algorithm(pydantic.BaseModel):
     label: str = pydantic.Field(pattern=r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
     description: typing.Optional[str] = None
     is_default: bool = False
-    include_multiple_matches: bool
+    include_multiple_matches: bool = True
     passes: typing.Sequence[AlgorithmPass]
 
 

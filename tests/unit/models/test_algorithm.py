@@ -90,7 +90,7 @@ class TestAlgorithm:
                         "LAST_NAME": "func:recordlinker.linking.matchers.feature_match_exact",
                     },
                     "rule": "func:recordlinker.linking.matchers.eval_perfect_match",
-                    "cluster_ratio": 1.0,
+                    "belongingness_ratio":(0.75, 1.0)
                 }
             ],
         }
@@ -104,7 +104,7 @@ class TestAlgorithm:
             "LAST_NAME": "func:recordlinker.linking.matchers.feature_match_exact",
         }
         assert algo.passes[0].rule == "func:recordlinker.linking.matchers.eval_perfect_match"
-        assert algo.passes[0].cluster_ratio == 1.0
+        assert algo.passes[0].belongingness_ratio == (0.75, 1.0)
 
 
 class TestAlgorithmPass:

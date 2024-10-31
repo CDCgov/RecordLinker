@@ -54,7 +54,7 @@ class TestCompare:
                 "LAST_NAME": "func:recordlinker.linking.matchers.feature_match_fuzzy_string",
             },
             rule="func:recordlinker.linking.matchers.eval_perfect_match",
-            cluster_ratio=1.0,
+            belongingness_ratio=[0.75, 1.0],
             kwargs={},
         )
 
@@ -94,7 +94,7 @@ class TestCompare:
                 "LAST_NAME": "func:recordlinker.linking.matchers.feature_match_exact",
             },
             rule="func:recordlinker.linking.matchers.eval_perfect_match",
-            cluster_ratio=1.0,
+            belongingness_ratio=[0.75, 1.0],
             kwargs={},
         )
 
