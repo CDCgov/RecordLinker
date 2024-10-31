@@ -14,13 +14,13 @@ variable and a `.env` file are present, the environment variable takes precedenc
 
 Each setting can be configured as follows:
 
-`db_uri (Required)`
+`DB_URI (Required)`
 
 :   The URI for the application database.
 
     Example: `postgresql+psycopg2://user:password@localhost/dbname`
 
-`db_table_prefix (Optional)`
+`DB_TABLE_PREFIX (Optional)`
 
 :   Prefix applied to all database tables, useful for namespace separation.
 
@@ -28,7 +28,7 @@ Each setting can be configured as follows:
 
     **Development Default**: `""`
 
-`test_db_uri (Optional)`
+`TEST_DB_URI (Optional)`
 
 :   The URI for the application database used when running tests.
 
@@ -36,7 +36,7 @@ Each setting can be configured as follows:
 
     **Development Default**: `sqlite:///testdb.sqlite3`
 
-`connection_pool_size (Optional)`
+`CONNECTION_POOL_SIZE (Optional)`
 
 :   Number of connections in the MPI database connection pool.
 
@@ -44,7 +44,7 @@ Each setting can be configured as follows:
 
     **Development Default**: `5`
 
-`connection_pool_max_overflow (Optional)`
+`CONNECTION_POOL_MAX_OVERFLOW (Optional)`
 
 :   Maximum number of overflow connections allowed in the connection pool.
 
@@ -52,7 +52,7 @@ Each setting can be configured as follows:
 
     **Development Default**: `10`
 
-`log_config (Optional)`
+`LOG_CONFIG (Optional)`
 
 :   Path to a logging configuration file, used to configure logging settings on startup.
     A value of an empty string will cause logging to use default settings.
@@ -61,7 +61,7 @@ Each setting can be configured as follows:
 
     **Development Default**: `""`
 
-`initial_algorithms (Optional)`
+`INITIAL_ALGORITHMS (Optional)`
 
 :   Path to a JSON file with initial algorithms to load if the algorithms table is empty.
 
@@ -72,23 +72,23 @@ Each setting can be configured as follows:
 
 ### Database Options
 
-The `db_uri` and `test_db_uri` settings can be configured to connect to a compatible
+The `DB_URI` and `TEST_DB_URI` settings can be configured to connect to a compatible
 [SQLAlchemy](https://www.sqlalchemy.org/) database.  By default, the following database
 drivers are installed allowing for connections to:
 
-- **sqlite (sqlite)**
+- **[sqlite3](https://docs.python.org/3/library/sqlite3.html) (sqlite)**
 
     Example: `sqlite:///db.sqlite3`
 
-- **psycopg2 (postgresql)**
+- **[psycopg2](https://www.psycopg.org/) (postgresql)**
 
     Example: `postgresql+psycopg2://user:password@localhost/dbname`
 
-- **pymysql (mysql)**
+- **[pymysql](https://pymysql.readthedocs.io/en/latest/) (mysql)**
 
     Example: `mysql+pymysql://user:password@localhost/dbname`
 
-- **pyodbc (sqlite)**
+- **[pyodbc](https://github.com/mkleehammer/pyodbc/wiki) (sqlite)**
 
     Example: `mssql+pyodbc://user:password@localhost/dbname?driver=ODBC+Driver+17+for+SQL+Server`
 
