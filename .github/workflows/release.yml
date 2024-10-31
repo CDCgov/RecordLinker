@@ -11,15 +11,13 @@ on:
     branches: [main]
     tags:
       - "v*.*.*"
-  pull_request:
-    branches: [main]
 
 jobs:
   release:
     runs-on: ubuntu-latest
 
     permissions:
-      contents: "read"
+      contents: "true"
       id-token: "write"
       packages: "write"
 
@@ -111,4 +109,3 @@ jobs:
             "draft": ${draft}
           }
           EOF
-
