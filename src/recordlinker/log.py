@@ -80,7 +80,7 @@ class SplunkHecHandler(logging.Handler):
                 cls._instance = splunk.SplunkHECClient(uri)
             return cls._instance
 
-    def __init__(self, **kwargs: typing.Any) -> None:
+    def __init__(self, uri = str | None, **kwargs: typing.Any) -> None:
         """
         Initialize the Splunk HEC logging handler.  If the `splunk_uri` setting is
         configured, create a new Splunk HEC client instance or use the existing
@@ -90,8 +90,10 @@ class SplunkHecHandler(logging.Handler):
         logging.Handler.__init__(self)
         self.client: splunk.SplunkHECClient | None = None
         self.executor = concurrent.futures.ThreadPoolExecutor(max_workers=self.MAX_WORKERS)
-        if config.settings.splunk_uri:
-            self.client = self.SplunkHecClientSingleton.get_instance(config.settings.splunk_uri)
+        self.last_future: concurrent.futures.Future | None = None
+        uri = uri or config.settings.splunk_uri
+        if uri:
+            self.client = self.SplunkHecClientSingleton.get_instance(uri)
 
     def __del__(self) -> None:
         """
@@ -99,7 +101,14 @@ class SplunkHecHandler(logging.Handler):
         """
         self.executor.shutdown(wait=True)
 
-    # TODO: test cases
+    def flush(self) -> None:
+        """
+        Wait for the last future to complete before flushing the handler.
+        """
+        if self.last_future is not None:
+            self.last_future.result()
+        self.last_future = None
+
     def emit(self, record: logging.LogRecord) -> None:
         """
         Emit the log record to the Splunk HEC server, if a client is configured.
@@ -120,4 +129,4 @@ class SplunkHecHandler(logging.Handler):
         # using a ThreadPoolExecutor to send the request asynchronously allows us
         # to initiate the request and continue processing without waiting for the IO
         # operation to complete.
-        self.executor.submit(self.client.send, data, epoch=record.created)
+        self.last_future = self.executor.submit(self.client.send, data, epoch=record.created)
