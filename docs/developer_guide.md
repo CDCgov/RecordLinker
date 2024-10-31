@@ -59,7 +59,3 @@ following steps should be taken:
 
 ### Update the Tests
 - Add or modify unit tests to verify that the new feature is properly extracted, mapped, and compared. 
-
-## Adding Blocking Keys
-
-...
