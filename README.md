@@ -49,6 +49,8 @@ To run a single unit test, use the following command:
 pytest tests/unit/test_utils.py::test_bind_functions
 ```
 
+For more information on developer workflows, see the [Developer Guide](docs/developer_guide.md).
+
 ## Standard Notices
 
 ### Public Domain Standard Notice

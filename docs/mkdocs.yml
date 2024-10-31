@@ -26,11 +26,10 @@ edit_uri: edit/main/docs/
 docs_dir: "site"
 site_dir: "../_site"
 nav:
-  - Home: "index.md"
+  - "Home": "index.md"
   - "Getting Started":
     - Installation: "installation.md"
     - Configuration: "configuration.md"
   - "User Guide":
     - Design: "design.md"
     - Reference: "reference.md"
-  - Developer Guide: "developer_guide.md"
