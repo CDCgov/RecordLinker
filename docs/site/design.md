@@ -10,7 +10,7 @@ The `Person` model represents an individual in the MPI system. Each person may h
 
 ### 2. **Patient Model**
 
-The `Patient` model represents an external record for a person.  This is a point-in-time representation of an individual sourced in a health care document. Each `Patient` is linked to a single `Person` and contain multiple `BlockingValue` records that aid in matching similar patients.
+The `Patient` model represents an external record for a person.  This is a point-in-time representation of an individual sourced in a health care document. Each `Patient` is linked to a single `Person` and contains multiple `BlockingValue` records that aid in matching similar patients.
 
 ### 3. **BlockingValue Model**
 
@@ -62,12 +62,12 @@ The MPI system is designed to link records from different sources that potential
 1. **Blocking**:
    The **BlockingKey** enum defines the types of blocking values that are generated from the patient data. For example, the first 4 characters of the patient's first name or their birthdate can serve as a blocking key.
    
-   Blocking is used to reduce the search space for potential matches by grouping patients based on these simplified values. Only records that share the same blocking values are compared in detail, making the matching process more efficient.
+   Blocking is used to reduce the search space for potential matches by grouping patients based on these simplified values. Patient records that share the same blocking values _or_ patient records in the Person clusters of those that share the same blocking values are compared in detail. This makes the matching process more efficient.
 
-   We use the **BlockingValue** records from the incoming patient to quickly find potential matches against existing patients in the MPI (matching on their blocking values).
+   We use the **BlockingValue** records from the incoming patient to quickly find potential matches against existing patients in the MPI (matching on their blocking values, and including any patient records in the Person clusters of those blocked on).
 
-1. **Record Linkage**:
-   The system compares patient records that share the same blocking values. It uses other details stored in the **Patient** model, such as name, address, MRN, etc, to calculate a **belongingness ratio**, indicating the percentage of patients within a person cluster that the new patient record matches with.
+3. **Record Linkage**:  
+   The system compares the incoming patient record against patient records that share the same blocking values, as well as patient records in the Person clusters of those that share the same blocking values (even if these patients weren't blocked on individually). It uses other details stored in the **Patient** model, such as name, address, MRN, etc, to calculate a **belongingness ratio**, indicating the percentage of patients within a person cluster that the new patient record matches with.
 
 1. **Person Linking**:
    If the belongingness ratio exceeds a threshold, the patient is linked to an existing **Person** in the MPI. If it does not exceed the threshold, that means no suitable match was found, and a new **Person** record is created.

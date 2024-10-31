@@ -13,6 +13,7 @@ import sqlalchemy.orm as orm
 
 from recordlinker import schemas
 from recordlinker.database import get_session
+from recordlinker.hl7 import fhir
 from recordlinker.linking import algorithm_service
 from recordlinker.linking import link
 
@@ -108,7 +109,7 @@ async def link_dibbs(
         )
 
     # convert record to PII
-    pii_record: schemas.PIIRecord = link.fhir_record_to_pii_record(record_to_link)
+    pii_record: schemas.PIIRecord = fhir.fhir_record_to_pii_record(record_to_link)
 
     # Now link the record
     try:
@@ -118,7 +119,7 @@ async def link_dibbs(
             algorithm=algorithm,
             external_person_id=external_id,
         )
-        updated_bundle = link.add_person_resource(
+        updated_bundle = fhir.add_person_resource(
             str(new_person_id), pii_record.external_id, input_bundle
         )
         return schemas.LinkFhirResponse(found_match=found_match, updated_bundle=updated_bundle)
@@ -130,3 +131,60 @@ async def link_dibbs(
             updated_bundle=input_bundle,
             message=f"Could not connect to database: {err}",
         )
+
+@router.post("/fhir", summary="Link FHIR")
+async def link_fhir(
+    request: fastapi.Request,
+    input: typing.Annotated[schemas.LinkFhirInput, fastapi.Body()],
+    response: fastapi.Response,
+    db_session: orm.Session = fastapi.Depends(get_session),
+) -> schemas.LinkResponse:
+    """
+    Compare a FHIR bundle with records in the Master Patient Index (MPI) to
+    check for matches with existing patient records If matches are found,
+    returns the patient and person reference id's
+    """
+    input_bundle = input.bundle
+    external_id = input.external_person_id
+
+    if input.algorithm:
+        algorithm = algorithm_service.get_algorithm(db_session, input.algorithm)
+    else:
+        algorithm = algorithm_service.default_algorithm(db_session)
+
+    if not algorithm:
+        response.status_code = fastapi.status.HTTP_422_UNPROCESSABLE_ENTITY
+        raise fastapi.HTTPException(status_code=422, detail="Error: Invalid algorithm specified")
+
+    # Now extract the patient record we want to link
+    try:
+        record_to_link = [
+            entry.get("resource")
+            for entry in input_bundle.get("entry", [])
+            if entry.get("resource", {}).get("resourceType", "") == "Patient"
+        ][0]
+    except IndexError:
+        response.status_code = fastapi.status.HTTP_400_BAD_REQUEST
+        raise fastapi.HTTPException(status_code=400, detail="Error: Supplied bundle contains no Patient resource to link on.")
+
+    # convert record to PII
+    pii_record: schemas.PIIRecord = fhir.fhir_record_to_pii_record(record_to_link)
+
+    # link the record
+    try:
+        # Make a copy of pii_record so we don't modify the original
+        (found_match, new_person_id, patient_reference_id) = link.link_record_against_mpi(
+            record=pii_record,
+            session=db_session,
+            algorithm=algorithm,
+            external_person_id=external_id,
+        )
+        return schemas.LinkResponse(
+            is_match=found_match,
+            patient_reference_id=patient_reference_id,
+            person_reference_id=new_person_id,
+        )
+
+    except ValueError:
+        response.status_code = fastapi.status.HTTP_400_BAD_REQUEST
+        raise fastapi.HTTPException(status_code=400, detail="Error: Bad request")

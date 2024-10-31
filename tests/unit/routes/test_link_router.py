@@ -14,10 +14,10 @@ from conftest import load_json_asset
 from fastapi import status
 
 from recordlinker import schemas
-from recordlinker.linking import link
+from recordlinker.hl7 import fhir
 
 
-class TestLinkFHIR:
+class TestLinkDIBBS:
     @mock.patch("recordlinker.linking.algorithm_service.default_algorithm")
     def test_bundle_with_no_patient(self, patched_subprocess, basic_algorithm, client):
         patched_subprocess.return_value = basic_algorithm
@@ -174,7 +174,7 @@ class TestLink:
         patients: list[schemas.PIIRecord] = []
         for entry in bundle["entry"]:
             if entry.get("resource", {}).get("resourceType", {}) == "Patient":
-                patients.append(link.fhir_record_to_pii_record(entry["resource"]))
+                patients.append(fhir.fhir_record_to_pii_record(entry["resource"]))
         return patients
 
     @mock.patch("recordlinker.linking.algorithm_service.default_algorithm")
@@ -292,6 +292,129 @@ class TestLink:
                 "record": json.loads(patients[0].model_dump_json(exclude_none=True)),
                 "algorithm": "INVALID",
             },
+        )
+
+        assert actual_response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
+        assert actual_response.json()["detail"] == "Error: Invalid algorithm specified"
+
+class TestLinkFHIR:
+    @mock.patch("recordlinker.linking.algorithm_service.default_algorithm")
+    def test_linkrecord_bundle_with_no_patient(self, patched_subprocess, basic_algorithm, client):
+        patched_subprocess.return_value = basic_algorithm
+        bad_bundle = {"entry": []}
+        actual_response = client.post(
+            "/link/fhir",
+            json={"bundle": bad_bundle},
+        )
+
+        assert actual_response.status_code == status.HTTP_400_BAD_REQUEST
+        assert actual_response.json()["detail"] == "Error: Supplied bundle contains no Patient resource to link on."
+
+    @mock.patch("recordlinker.linking.algorithm_service.default_algorithm")
+    def test_link_success(self, patched_subprocess, basic_algorithm, client):
+        patched_subprocess.return_value = basic_algorithm
+        test_bundle = load_json_asset("patient_bundle_to_link_with_mpi.json")
+        entry_list = copy.deepcopy(test_bundle["entry"])
+
+        bundle_1 = test_bundle
+        bundle_1["entry"] = [entry_list[0]]
+        response_1 = client.post("/link/fhir", json={"bundle": bundle_1})
+        person_1 = response_1.json()["person_reference_id"]
+        assert not response_1.json()["is_match"]
+
+        bundle_2 = test_bundle
+        bundle_2["entry"] = [entry_list[1]]
+        response_2 = client.post("/link/fhir", json={"bundle": bundle_2})
+        person_2 = response_2.json()["person_reference_id"]
+        assert response_2.json()["is_match"]
+        assert person_2 == person_1
+
+        bundle_3 = test_bundle
+        bundle_3["entry"] = [entry_list[2]]
+        response_3 = client.post("/link/fhir", json={"bundle": bundle_3})
+        assert not response_3.json()["is_match"]
+
+        # Cluster membership success--justified match
+        bundle_4 = test_bundle
+        bundle_4["entry"] = [entry_list[3]]
+        response_4 = client.post("/link/fhir", json={"bundle": bundle_4})
+        person_4 = response_4.json()["person_reference_id"]
+        assert response_4.json()["is_match"]
+        assert person_4 == person_1
+
+        bundle_5 = test_bundle
+        bundle_5["entry"] = [entry_list[4]]
+        response_5 = client.post("/link/fhir", json={"bundle": bundle_5})
+        assert not response_5.json()["is_match"]
+
+        bundle_6 = test_bundle
+        bundle_6["entry"] = [entry_list[5]]
+        response_6 = client.post("/link/fhir", json={"bundle": bundle_6})
+        assert not response_6.json()["is_match"]
+    
+    @mock.patch("recordlinker.linking.algorithm_service.get_algorithm")
+    def test_link_enhanced_algorithm(
+        self, patched_subprocess, enhanced_algorithm, client
+    ):
+        patched_subprocess.return_value = enhanced_algorithm
+        test_bundle = load_json_asset("patient_bundle_to_link_with_mpi.json")
+        entry_list = copy.deepcopy(test_bundle["entry"])
+
+        bundle_1 = test_bundle
+        bundle_1["entry"] = [entry_list[0]]
+        response_1 = client.post(
+            "/link/fhir", json={"bundle": bundle_1, "algorithm": "dibbs-enhanced"}
+        )
+        person_1 = response_1.json()["person_reference_id"]
+        assert not response_1.json()["is_match"]
+
+        bundle_2 = test_bundle
+        bundle_2["entry"] = [entry_list[1]]
+        response_2 = client.post(
+            "/link/fhir", json={"bundle": bundle_2, "algorithm": "dibbs-enhanced"}
+        )
+        person_2 = response_2.json()["person_reference_id"]
+        assert response_2.json()["is_match"]
+        assert person_2 == person_1
+
+        bundle_3 = test_bundle
+        bundle_3["entry"] = [entry_list[2]]
+        response_3 = client.post(
+            "/link/fhir", json={"bundle": bundle_3, "algorithm": "dibbs-enhanced"}
+        )
+        assert not response_3.json()["is_match"]
+
+        # Cluster membership success--justified match
+        bundle_4 = test_bundle
+        bundle_4["entry"] = [entry_list[3]]
+        response_4 = client.post(
+            "/link/fhir", json={"bundle": bundle_4, "algorithm": "dibbs-enhanced"}
+        )
+        person_4 = response_4.json()["person_reference_id"]
+        assert response_4.json()["is_match"]
+        assert person_4 == person_1
+
+        bundle_5 = test_bundle
+        bundle_5["entry"] = [entry_list[4]]
+        response_5 = client.post(
+            "/link/fhir", json={"bundle": bundle_5, "algorithm": "dibbs-enhanced"}
+        )
+        assert not response_5.json()["is_match"]
+
+        bundle_6 = test_bundle
+        bundle_6["entry"] = [entry_list[5]]
+        response_6 = client.post(
+            "/link/fhir", json={"bundle": bundle_6, "algorithm": "dibbs-enhanced"}
+        )
+        assert not response_6.json()["is_match"]
+    
+    @mock.patch("recordlinker.linking.algorithm_service.get_algorithm")
+    def test_linkrecord_invalid_algorithm_param(self, patched_subprocess, client):
+        patched_subprocess.return_value = None
+        test_bundle = load_json_asset("patient_bundle_to_link_with_mpi.json")
+
+        actual_response = client.post(
+            "/link/fhir", json={"bundle": test_bundle, "algorithm": "INVALID"}
         )
 
         assert actual_response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
