@@ -29,6 +29,7 @@ class Feature(enum.Enum):
     TELEPHONE = "TELEPHONE"
     SUFFIX = "SUFFIX"
     COUNTY = "COUNTY"
+    DRIVERS_LICENSE = "DRIVERS_LICENSE"
 
     def __str__(self):
         """
@@ -133,10 +134,19 @@ class Telecom(pydantic.BaseModel):
 
     model_config = pydantic.ConfigDict(extra="allow")
 
-    value: str  # future use
+    value: str
     system: typing.Optional[str] = None
     use: typing.Optional[str] = None
 
+class DriversLicense(pydantic.BaseModel):
+    """
+    The schema for a Drivers License record
+    """
+
+    model_config = pydantic.ConfigDict(extra="allow")
+
+    value: str
+    authority: str
 
 class PIIRecord(pydantic.BaseModel):
     """
@@ -157,6 +167,7 @@ class PIIRecord(pydantic.BaseModel):
     ssn: typing.Optional[str] = None
     race: typing.Optional[Race] = None
     gender: typing.Optional[Gender] = None
+    drivers_license: typing.Optional[DriversLicense] = None
 
     @classmethod
     def model_construct(cls, _fields_set: set[str] | None = None, **values: typing.Any) -> typing.Self:
@@ -171,6 +182,7 @@ class PIIRecord(pydantic.BaseModel):
         obj.address = [Address.model_construct(**a) for a in values.get("address", [])]
         obj.name = [Name.model_construct(**n) for n in values.get("name", [])]
         obj.telecom = [Telecom.model_construct(**t) for t in values.get("telecom", [])]
+        obj.drivers_license = DriversLicense.model_construct(**values.get("drivers_license", {}))
         return obj
 
     @pydantic.field_validator("external_id", mode="before")
@@ -263,7 +275,8 @@ class PIIRecord(pydantic.BaseModel):
                     return Gender.NON_BINARY
                 elif "declined" in val or "asked" in val:
                     return Gender.ASKED_DECLINED
-                return Gender.UNKNOWN
+                return Gender.UNKNOWN        
+
 
     def feature_iter(self, feature: Feature) -> typing.Iterator[str]:
         """
@@ -332,6 +345,10 @@ class PIIRecord(pydantic.BaseModel):
             for address in self.address:
                 if address.county:
                     yield address.county
+        elif feature == Feature.DRIVERS_LICENSE:
+            if self.drivers_license:
+                if self.drivers_license.value and self.drivers_license.authority:
+                    yield f"{self.drivers_license.value}|{self.drivers_license.authority}"
 
     def blocking_keys(self, key: models.BlockingKey) -> set[str]:
         """
