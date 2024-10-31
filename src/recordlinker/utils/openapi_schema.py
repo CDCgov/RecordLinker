@@ -33,8 +33,4 @@ def export_json(file: typing.TextIO):
 
 
 if __name__ == "__main__":
-    # TODO: Use redoc-cli to generate API documentation for Github Pages
-    # > npm i -g redoc-cli
-    # > python -m recordlinker.openapi_schema > openapi.json
-    # > redoc-cli bundle -o docs/api.html openapi.json
     export_json(sys.stdout)
