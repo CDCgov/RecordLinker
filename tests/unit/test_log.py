@@ -97,7 +97,7 @@ class TestSplunkHecHandler:
             mock_instance = mock_client.return_value
             mock_instance.send.return_value = 200
             uri = "splunkhec://token@localhost:8088?index=index&source=source"
-            handler = log.SplunkHecHandler(splunk_uri=uri)
+            handler = log.SplunkHecHandler(uri=uri)
             record = logging.LogRecord(
                 name="test",
                 level=logging.INFO,
@@ -120,7 +120,7 @@ class TestSplunkHecHandler:
             mock_instance = mock_client.return_value
             mock_instance.send.return_value = 200
             uri = "splunkhec://token@localhost:8088?index=index&source=source"
-            handler = log.SplunkHecHandler(splunk_uri=uri)
+            handler = log.SplunkHecHandler(uri=uri)
             record = logging.LogRecord(
                 name="test",
                 level=logging.INFO,

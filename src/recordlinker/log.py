@@ -80,7 +80,7 @@ class SplunkHecHandler(logging.Handler):
                 cls._instance = splunk.SplunkHECClient(uri)
             return cls._instance
 
-    def __init__(self, uri = str | None, **kwargs: typing.Any) -> None:
+    def __init__(self, uri: str | None = None, **kwargs: typing.Any) -> None:
         """
         Initialize the Splunk HEC logging handler.  If the `splunk_uri` setting is
         configured, create a new Splunk HEC client instance or use the existing
