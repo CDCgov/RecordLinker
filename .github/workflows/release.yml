@@ -124,6 +124,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install '.[dev]'
           export INITIAL_ALGORITHMS=""
+          export VERSION=${{ env.NEXT_TAG }}
           ./scripts/build_docs.sh _site
 
       - name: Upload public documentation

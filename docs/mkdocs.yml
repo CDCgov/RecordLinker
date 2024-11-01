@@ -1,4 +1,4 @@
-site_name: "Record Linker Documentation"
+site_name: !ENV [SITE_NAME, 'RecordLinker Documentation']
 theme:
   name: "material"
   icon:
