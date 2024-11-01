@@ -26,6 +26,7 @@ dependencies = [
     "python-dateutil==2.9.0.post0",
     "sqlalchemy",
     "rapidfuzz",
+    # Observability
     "python-json-logger",
     "asgi-correlation-id",
     # Database drivers
@@ -45,6 +46,7 @@ dev = [
     "ruff",
     "mypy",
     "types-python-dateutil",
+    # Observability
     "opentelemetry-api",
     "opentelemetry-sdk",
 ]
