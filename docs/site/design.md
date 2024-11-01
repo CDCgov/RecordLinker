@@ -1,4 +1,4 @@
-# Overview of MPI Models
+# Design
 
 This document provides an overview of the key database models involved in the Master Patient Index (MPI) system and explains how they interact to facilitate person linking via an algorithm.
 
@@ -56,10 +56,10 @@ erDiagram
 
 The MPI system is designed to link records from different sources that potentially represent the same person. The record linkage algorithm uses **blocking keys** to reduce the number of potential matches to be evaluated. The workflow can be described as follows:
 
-1. **Data Ingestion**:  
+1. **Data Ingestion**:
    When patient data is loaded into the system, the **Patient** record is initialized, and the **BlockingValue** records are generated based on the patient's PII data (e.g., birthdate, name, address).
    
-2. **Blocking**:  
+1. **Blocking**:
    The **BlockingKey** enum defines the types of blocking values that are generated from the patient data. For example, the first 4 characters of the patient's first name or their birthdate can serve as a blocking key.
    
    Blocking is used to reduce the search space for potential matches by grouping patients based on these simplified values. Patient records that share the same blocking values _or_ patient records in the Person clusters of those that share the same blocking values are compared in detail. This makes the matching process more efficient.
@@ -69,7 +69,7 @@ The MPI system is designed to link records from different sources that potential
 3. **Record Linkage**:  
    The system compares the incoming patient record against patient records that share the same blocking values, as well as patient records in the Person clusters of those that share the same blocking values (even if these patients weren't blocked on individually). It uses other details stored in the **Patient** model, such as name, address, MRN, etc, to calculate a **belongingness ratio**, indicating the percentage of patients within a person cluster that the new patient record matches with.
 
-4. **Person Linking**:  
+1. **Person Linking**:
    If the belongingness ratio exceeds a threshold, the patient is linked to an existing **Person** in the MPI. If it does not exceed the threshold, that means no suitable match was found, and a new **Person** record is created.
 
 ---

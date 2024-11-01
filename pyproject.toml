@@ -40,15 +40,20 @@ dependencies = [
 dev = [
     # development-only dependencies here
     "fastapi[standard]",
-    "pytest>=8.3",
-    "pytest-cov",
-    "pytest-env",
     "ruff",
     "mypy",
     "types-python-dateutil",
+    # Testing
+    "pytest>=8.3",
+    "pytest-cov",
+    "pytest-env",
     # Observability
     "opentelemetry-api",
     "opentelemetry-sdk",
+    # Documentation
+    "mkdocs",
+    "mkdocs-mermaid2-plugin",
+    "mkdocs-material",
 ]
 prod = [
     # List any additional production-only dependencies here
