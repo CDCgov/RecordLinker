@@ -27,6 +27,7 @@ def fhir_record_to_pii_record(fhir_record: dict) -> schemas.PIIRecord:
         "race": None,
         "gender": None,
         "telecom": fhir_record.get("telecom", []),
+        "drivers_license": None,
     }
     for identifier in fhir_record.get("identifier", []):
         for coding in identifier.get("type", {}).get("coding", []):
@@ -34,6 +35,13 @@ def fhir_record_to_pii_record(fhir_record: dict) -> schemas.PIIRecord:
                 val["mrn"] = identifier.get("value")
             elif coding.get("code") == "SS":
                 val["ssn"] = identifier.get("value")
+            elif coding.get("code") == "DL":
+                license_number = identifier.get("value")
+                authority = identifier.get("assigner", {}).get("identifier", {}).get("value")  # Assuming `issuer` contains authority info
+                val["drivers_license"] = {
+                    "value": license_number,
+                    "authority": authority
+                }
     for address in val["address"]:
         address["county"] = address.get("district", "")
         for extension in address.get("extension", []):
@@ -53,7 +61,7 @@ def fhir_record_to_pii_record(fhir_record: dict) -> schemas.PIIRecord:
                 if ext.get("url") == "value":
                     for coding in ext.get("valueCodeableConcept", {}).get("coding", []):
                         val["gender"] = coding.get("display")
-
+    
     return schemas.PIIRecord(**val)
 
 def add_person_resource(

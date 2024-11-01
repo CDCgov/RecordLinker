@@ -44,6 +44,10 @@ class TestPIIRecord:
                 },
             ],
             "telecom": [{"value": "555-123-4567"}, {"value": "555-987-6543"}],
+            "drivers_license": {
+                "authority": "VA",
+                "value": "D1234567"
+            }
         }
         record = pii.PIIRecord.model_construct(**data)
         assert record.mrn == "99"
@@ -62,6 +66,8 @@ class TestPIIRecord:
         assert record.address[1].state == "CA"
         assert record.address[1].postal_code == "98765-4321"
         assert record.address[1].county == "county2"
+        assert record.drivers_license.value == "D1234567"
+        assert record.drivers_license.authority == "VA"
 
 
     def test_parse_external_id(self):
@@ -234,6 +240,7 @@ class TestPIIRecord:
                 pii.Telecom(value="555-123-4567"),
                 pii.Telecom(value="555-987-6543"),
             ],
+            drivers_license=pii.DriversLicense(value="D1234567", authority="VA")
         )
 
         with pytest.raises(ValueError):
@@ -254,6 +261,7 @@ class TestPIIRecord:
         assert list(record.feature_iter(pii.Feature.TELEPHONE)) == ["555-123-4567", "555-987-6543"]
         assert list(record.feature_iter(pii.Feature.SUFFIX)) == ["suffix", "suffix2"]
         assert list(record.feature_iter(pii.Feature.COUNTY)) == ["county"]
+        assert list(record.feature_iter(pii.Feature.DRIVERS_LICENSE)) == ["D1234567|VA"]
 
     def test_blocking_keys_invalid(self):
         rec = pii.PIIRecord()
