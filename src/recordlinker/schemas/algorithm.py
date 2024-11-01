@@ -26,7 +26,6 @@ class AlgorithmPass(pydantic.BaseModel):
     blocking_keys: list[str]
     evaluators: dict[str, str]
     rule: str
-    belongingness_ratio: tuple[float, float]
     kwargs: dict[str, typing.Any] = {}
 
     @pydantic.field_validator("blocking_keys", mode="before")
@@ -67,6 +66,21 @@ class AlgorithmPass(pydantic.BaseModel):
             raise ValueError(f"Invalid matching rule: {value}")
         return value
 
+
+class Algorithm(pydantic.BaseModel):
+    """
+    The schema for an algorithm record.
+    """
+
+    model_config = pydantic.ConfigDict(from_attributes=True)
+
+    label: str = pydantic.Field(pattern=r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
+    description: typing.Optional[str] = None
+    is_default: bool = False
+    include_multiple_matches: bool = True
+    belongingness_ratio: tuple[float, float]
+    passes: typing.Sequence[AlgorithmPass]
+
     @pydantic.field_validator("belongingness_ratio", mode="before")
     def validate_belongingness_ratio(cls, value):
         """
@@ -80,20 +94,6 @@ class AlgorithmPass(pydantic.BaseModel):
         if lower_bound > upper_bound:
             raise ValueError(f"Invalid range. Lower bound must be less than upper bound: {value}")
         return (lower_bound, upper_bound)
-
-
-class Algorithm(pydantic.BaseModel):
-    """
-    The schema for an algorithm record.
-    """
-
-    model_config = pydantic.ConfigDict(from_attributes=True)
-
-    label: str = pydantic.Field(pattern=r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
-    description: typing.Optional[str] = None
-    is_default: bool = False
-    include_multiple_matches: bool = True
-    passes: typing.Sequence[AlgorithmPass]
 
 
 class AlgorithmSummary(Algorithm):

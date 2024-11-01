@@ -24,9 +24,25 @@ class Algorithm(Base):
     label: orm.Mapped[str] = orm.mapped_column(sqltypes.String(255), unique=True)
     description: orm.Mapped[str] = orm.mapped_column(sqltypes.Text(), nullable=True)
     include_multiple_matches: orm.Mapped[bool] = orm.mapped_column(sqltypes.Boolean, default=True)
+    belongingness_ratio_lower_bound: orm.Mapped[float] = orm.mapped_column(sqltypes.Float)
+    belongingness_ratio_upper_bound: orm.Mapped[float] = orm.mapped_column(sqltypes.Float)
     passes: orm.Mapped[list["AlgorithmPass"]] = orm.relationship(
         back_populates="algorithm", cascade="all, delete-orphan"
     )
+
+    @property
+    def belongingness_ratio(self) -> tuple[float, float]:
+        """
+        Get the Belongingness Ratio Threshold Range for this algorithm pass.
+        """
+        return (self.belongingness_ratio_lower_bound, self.belongingness_ratio_upper_bound)
+
+    @belongingness_ratio.setter  # type: ignore
+    def belongingness_ratio(self, value: tuple[float, float]):
+        """
+        Set the Belongingess Ratio for this algorithm pass.
+        """
+        self.belongingness_ratio_lower_bound, self.belongingness_ratio_upper_bound = value
 
     @classmethod
     def from_dict(cls, **data: dict) -> "Algorithm":
@@ -83,8 +99,6 @@ class AlgorithmPass(Base):
     blocking_keys: orm.Mapped[list[str]] = orm.mapped_column(sqltypes.JSON)
     _evaluators: orm.Mapped[dict[str, str]] = orm.mapped_column("evaluators", sqltypes.JSON)
     _rule: orm.Mapped[str] = orm.mapped_column("rule", sqltypes.String(255))
-    belongingness_ratio_lower_bound: orm.Mapped[float] = orm.mapped_column(sqltypes.Float)
-    belongingness_ratio_upper_bound: orm.Mapped[float] = orm.mapped_column(sqltypes.Float)
     kwargs: orm.Mapped[dict] = orm.mapped_column(sqltypes.JSON, default=dict)
 
     @property
@@ -126,20 +140,6 @@ class AlgorithmPass(Base):
         self._rule = value
         if hasattr(self, "_bound_rule"):
             del self._bound_rule
-
-    @property
-    def belongingness_ratio(self) -> tuple[float, float]:
-        """
-        Get the Belongingness Ratio Threshold Range for this algorithm pass.
-        """
-        return (self.belongingness_ratio_lower_bound, self.belongingness_ratio_upper_bound)
-
-    @belongingness_ratio.setter  # type: ignore
-    def belongingness_ratio(self, value: tuple[float, float]):
-        """
-        Set the Belongingess Ratio for this algorithm pass.
-        """
-        self.belongingness_ratio_lower_bound, self.belongingness_ratio_upper_bound = value
 
     def bound_rule(self) -> typing.Callable:
         """
