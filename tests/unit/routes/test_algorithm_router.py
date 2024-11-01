@@ -24,6 +24,7 @@ class TestListAlgorithms:
                 "is_default": True,
                 "description": "First algorithm",
                 "include_multiple_matches": True,
+                "belongingness_ratio": [1.0, 1.0],
                 "pass_count": 0,
             },
             {
@@ -31,6 +32,7 @@ class TestListAlgorithms:
                 "is_default": False,
                 "description": "Second algorithm",
                 "include_multiple_matches": True,
+                "belongingness_ratio": [1.0, 1.0],
                 "pass_count": 0,
             },
         ]
@@ -45,6 +47,7 @@ class TestGetAlgorithm:
         algo = models.Algorithm(
             label="basic",
             description="First algorithm",
+            belongingness_ratio=(0.25, 0.5),
             passes=[
                 models.AlgorithmPass(
                     blocking_keys=[
@@ -54,7 +57,6 @@ class TestGetAlgorithm:
                         "FIRST_NAME": "func:recordlinker.linking.matchers.feature_match_fuzzy_string",
                     },
                     rule="func:recordlinker.linking.matchers.eval_perfect_match",
-                    belongingness_ratio=(0.25, 0.5)
                 )
             ],
         )
@@ -68,6 +70,7 @@ class TestGetAlgorithm:
             "is_default": False,
             "description": "First algorithm",
             "include_multiple_matches": True,
+            "belongingness_ratio": [0.25, 0.5],
             "passes": [
                 {
                     "blocking_keys": ["BIRTHDATE"],
@@ -75,7 +78,6 @@ class TestGetAlgorithm:
                         "FIRST_NAME": "func:recordlinker.linking.matchers.feature_match_fuzzy_string",
                     },
                     "rule": "func:recordlinker.linking.matchers.eval_perfect_match",
-                    "belongingness_ratio": [0.25, 0.5],
                     "kwargs": {},
                 }
             ],
@@ -105,6 +107,7 @@ class TestCreateAlgorithm:
         payload = {
             "label": "basic",
             "description": "First algorithm",
+            "belongingness_ratio": (0.25, 0.5),
             "passes": [
                 {
                     "blocking_keys": [
@@ -113,8 +116,7 @@ class TestCreateAlgorithm:
                     "evaluators": {
                         "FIRST_NAME": "func:recordlinker.linking.matchers.feature_match_fuzzy_string",
                     },
-                    "rule": "func:recordlinker.linking.matchers.eval_perfect_match",
-                    "belongingness_ratio": [0.25, 0.5],
+                    "rule": "func:recordlinker.linking.matchers.eval_perfect_match"
                 }
             ],
         }
@@ -127,13 +129,13 @@ class TestCreateAlgorithm:
         assert algo.label == "basic"
         assert algo.is_default is False
         assert algo.description == "First algorithm"
+        assert algo.belongingness_ratio == (0.25, 0.5)
         assert len(algo.passes) == 1
         assert algo.passes[0].blocking_keys == ["BIRTHDATE"]
         assert algo.passes[0].evaluators == {
             "FIRST_NAME": "func:recordlinker.linking.matchers.feature_match_fuzzy_string"
         }
         assert algo.passes[0].rule == "func:recordlinker.linking.matchers.eval_perfect_match"
-        assert algo.passes[0].belongingness_ratio == (0.25, 0.5)
         assert algo.passes[0].kwargs == {}
 
 
@@ -142,6 +144,7 @@ class TestUpdateAlgorithm:
         payload = {
             "label": "basic",
             "description": "First algorithm",
+            "belongingness_ratio": (1.0, 1.0),
             "passes": [],
         }
         response = client.put("/algorithm/unknown", json=payload)
@@ -184,6 +187,7 @@ class TestUpdateAlgorithm:
         payload = {
             "label": "basic",
             "description": "Updated algorithm",
+            "belongingness_ratio": (0.25, 0.5),
             "passes": [
                 {
                     "blocking_keys": [
@@ -193,7 +197,6 @@ class TestUpdateAlgorithm:
                         "FIRST_NAME": "func:recordlinker.linking.matchers.feature_match_fuzzy_string",
                     },
                     "rule": "func:recordlinker.linking.matchers.eval_perfect_match",
-                    "belongingness_ratio": [0.25, 0.5]
                 }
             ],
         }
@@ -206,13 +209,13 @@ class TestUpdateAlgorithm:
         assert algo.label == "basic"
         assert algo.is_default is False
         assert algo.description == "Updated algorithm"
+        assert algo.belongingness_ratio == (0.25, 0.5)
         assert len(algo.passes) == 1
         assert algo.passes[0].blocking_keys == ["BIRTHDATE"]
         assert algo.passes[0].evaluators == {
             "FIRST_NAME": "func:recordlinker.linking.matchers.feature_match_fuzzy_string"
         }
         assert algo.passes[0].rule == "func:recordlinker.linking.matchers.eval_perfect_match"
-        assert algo.passes[0].belongingness_ratio == (0.25, 0.5)
         assert algo.passes[0].kwargs == {}
 
 

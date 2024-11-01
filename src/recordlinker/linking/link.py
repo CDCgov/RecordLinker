@@ -82,10 +82,10 @@ def link_record_against_mpi(
     # Membership scores need to persist across linkage passes so that we can
     # find the highest scoring match across all passes
     scores: dict[models.Person, float] = collections.defaultdict(float)
+    # the minimum ratio of matches needed to be considered a cluster member
+    belongingness_ratio_lower_bound, belongingness_ratio_upper_bound = algorithm.belongingness_ratio
     for algorithm_pass in algorithm.passes:
         with TRACER.start_as_current_span("link.pass"):
-            # the minimum ratio of matches needed to be considered a cluster member
-            belongingness_ratio_lower_bound, belongingness_ratio_upper_bound = algorithm_pass.belongingness_ratio
             # initialize a dictionary to hold the clusters of patients for each person
             clusters: dict[models.Person, list[models.Patient]] = collections.defaultdict(list)
             # block on the pii_record and the algorithm's blocking criteria, then
@@ -109,29 +109,47 @@ def link_record_against_mpi(
                                 matched_count += 1
                     # calculate the match ratio for this person cluster
                     belongingness_ratio = matched_count / len(patients)
-                    if belongingness_ratio >= belongingness_ratio_upper_bound:
+                    if belongingness_ratio >= belongingness_ratio_upper_bound: # belongingness_ratio_lower_bound:
                         # The match ratio is larger than the minimum cluster threshold,
                         # optionally update the max score for this person
-                        scores[person] = max(scores[person], belongingness_ratio)
-                    # elif belongingness_ratio <= belongingness_ratio_lower_bound:
-                    #     pass
-                    # else:
-                    #     pass
+                        #rv = belongingness_ratio >= belongingness_ratio_upper_bound
+                        scores[person] = max(scores[person], belongingness_ratio) #, rv)
 
     matched_person: typing.Optional[models.Person] = None
     if scores:
         # Find the person with the highest matching score
         matched_person, _ = max(scores.items(), key=lambda i: i[1])
 
+    # sorted_scores = {k: v for k, v in sorted(scores.items(), key=lambda item: item[1])}
+    # if not scores:
+    #     # No match
+    #     matched_person = models.Person() # Create new Person Cluster
+    #     results = []
+    # elif any([v >= belongingness_ratio_upper_bound for v in scores.values()]):
+    #     # Match (1 or many)
+    #     matched_person, _ = max(scores.items(), key=lambda i: i[1])
+    #     results = [{"person": k, "belongingness_ratio": v} for k, v in sorted_scores.items() if v >= belongingness_ratio_upper_bound]
+    #     if not algorithm.include_multiple_matches:
+    #         results = results[0:0]
+    # else:
+    #     # Possible match
+    #     matched_person = None
+    #     results = [{"person": k, "belongingness_ratio": v} for k, v in sorted_scores.items()]
+
     with TRACER.start_as_current_span("insert"):
-        patient = mpi_service.insert_patient(
+        patient = mpi_service.insert_patient( # TODO: Update
             session,
             record,
-            matched_person,
+            matched_person, # TODO: Control for 3 possibilities: None, New Person, Multiple Persons
             record.external_id,
             external_person_id,
             commit=False
         )
 
     # return a tuple indicating whether a match was found and the person ID
+    # return {
+    #     "patient": patient,
+    #     "person": patient.person, # matched_person
+    #     "results": results
+    # }
     return (bool(matched_person), patient.person.reference_id, patient.reference_id)

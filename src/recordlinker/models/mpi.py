@@ -39,8 +39,8 @@ class Patient(Base):
     __tablename__ = "mpi_patient"
 
     id: orm.Mapped[int] = orm.mapped_column(get_bigint_pk(), autoincrement=True, primary_key=True)
-    person_id: orm.Mapped[int] = orm.mapped_column(schema.ForeignKey(f"{Person.__tablename__}.id"))
-    person: orm.Mapped["Person"] = orm.relationship(back_populates="patients")
+    person_id: orm.Mapped[int] = orm.mapped_column(schema.ForeignKey(f"{Person.__tablename__}.id")) # TODO: Accept null
+    person: orm.Mapped["Person"] = orm.relationship(back_populates="patients") # TODO: Accept null
     # NOTE: We're using a protected attribute here to store the data string, as we
     # want getter/setter access to the data dictionary to trigger updating the
     # calculated record property.  Mainly this is to ensure that the cached record

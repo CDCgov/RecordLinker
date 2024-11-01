@@ -24,8 +24,8 @@ class Algorithm(Base):
     label: orm.Mapped[str] = orm.mapped_column(sqltypes.String(255), unique=True)
     description: orm.Mapped[str] = orm.mapped_column(sqltypes.Text(), nullable=True)
     include_multiple_matches: orm.Mapped[bool] = orm.mapped_column(sqltypes.Boolean, default=True)
-    belongingness_ratio_lower_bound: orm.Mapped[float] = orm.mapped_column(sqltypes.Float)
-    belongingness_ratio_upper_bound: orm.Mapped[float] = orm.mapped_column(sqltypes.Float)
+    belongingness_ratio_lower_bound: orm.Mapped[float] = orm.mapped_column(sqltypes.Float, default=1.0)
+    belongingness_ratio_upper_bound: orm.Mapped[float] = orm.mapped_column(sqltypes.Float, default=1.0)
     passes: orm.Mapped[list["AlgorithmPass"]] = orm.relationship(
         back_populates="algorithm", cascade="all, delete-orphan"
     )

@@ -83,7 +83,7 @@ def insert_patient(
     :returns: The inserted Patient record
     """
     # create a new Person record if one isn't provided
-    person = person or models.Person()
+    person = person or models.Person() # Previously said we always need a Person; but null now valid
 
     patient = models.Patient(person=person, record=record, external_patient_id=external_patient_id)
 
