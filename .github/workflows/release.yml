@@ -11,6 +11,8 @@ on:
     branches: [main]
     tags:
       - "v*.*.*"
+  pull_request:
+    branches: [main]
 
 jobs:
   update_release:
@@ -111,7 +113,6 @@ jobs:
             ghcr.io/${{ env.PACKAGE_NAME }}:${{ env.NEXT_TAG }}
 
       - name: Build public documentation
-        if: startsWith(github.ref, 'refs/tags/v')
         run: |
           ./scripts/build_docs.sh _site
 
