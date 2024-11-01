@@ -112,8 +112,16 @@ jobs:
             ghcr.io/${{ env.PACKAGE_NAME }}:latest
             ghcr.io/${{ env.PACKAGE_NAME }}:${{ env.NEXT_TAG }}
 
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
       - name: Build public documentation
         run: |
+          python -m pip install --upgrade pip
+          pip install '.[dev]'
           ./scripts/build_docs.sh _site
 
       - name: Upload public documentation
