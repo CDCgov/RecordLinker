@@ -31,20 +31,34 @@ class LinkInput(pydantic.BaseModel):
     )
 
 
+class LinkResult(pydantic.BaseModel):
+    """
+    TODO
+    """
+
+    person_reference_id: uuid.UUID = pydantic.Field(
+        description="The identifier for a person that the patient may be linked to."
+    )
+
+    belongingness_ratio: float = pydantic.Field(
+        description="The percentage of patient records matched in this person cluster."
+    )
+
+
 class LinkResponse(pydantic.BaseModel):
     """
     Schema for responses from the link endpoint.
     """
 
-    is_match: bool = pydantic.Field(
-        description="A true value indicates that one or more existing records "
-        "matched with the provided record, and these results have been linked."
-    )
+    
     patient_reference_id: uuid.UUID = pydantic.Field(
-        description="The unique identifier for the patient that has been linked"
+        description="The unique identifier for the patient that has been linked."
     )
-    person_reference_id: uuid.UUID = pydantic.Field(
-        description="The identifier for the person that the patient record has " "been linked to.",
+    person_reference_id: uuid.UUID | None = pydantic.Field(
+        description="The identifier for the person that the patient record has been linked to.",
+    )
+    results: list[LinkResult] = pydantic.Field(
+        description="TODO"
     )
 
 

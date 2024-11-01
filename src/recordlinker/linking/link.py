@@ -59,7 +59,7 @@ def link_record_against_mpi(
     session: orm.Session,
     algorithm: models.Algorithm,
     external_person_id: typing.Optional[str] = None,
-) -> tuple[bool, uuid.UUID, uuid.UUID]:
+) -> tuple[models.Patient, models.Person | None, list[dict]]:
     """
     Runs record linkage on a single incoming record (extracted from a FHIR
     bundle) using an existing database as an MPI. Uses a flexible algorithm
@@ -109,47 +109,41 @@ def link_record_against_mpi(
                                 matched_count += 1
                     # calculate the match ratio for this person cluster
                     belongingness_ratio = matched_count / len(patients)
-                    if belongingness_ratio >= belongingness_ratio_upper_bound: # belongingness_ratio_lower_bound:
+                    if belongingness_ratio >= belongingness_ratio_lower_bound:
                         # The match ratio is larger than the minimum cluster threshold,
                         # optionally update the max score for this person
-                        #rv = belongingness_ratio >= belongingness_ratio_upper_bound
-                        scores[person] = max(scores[person], belongingness_ratio) #, rv)
+                        scores[person] = max(scores[person], belongingness_ratio)
 
     matched_person: typing.Optional[models.Person] = None
     if scores:
         # Find the person with the highest matching score
         matched_person, _ = max(scores.items(), key=lambda i: i[1])
 
-    # sorted_scores = {k: v for k, v in sorted(scores.items(), key=lambda item: item[1])}
-    # if not scores:
-    #     # No match
-    #     matched_person = models.Person() # Create new Person Cluster
-    #     results = []
-    # elif any([v >= belongingness_ratio_upper_bound for v in scores.values()]):
-    #     # Match (1 or many)
-    #     matched_person, _ = max(scores.items(), key=lambda i: i[1])
-    #     results = [{"person": k, "belongingness_ratio": v} for k, v in sorted_scores.items() if v >= belongingness_ratio_upper_bound]
-    #     if not algorithm.include_multiple_matches:
-    #         results = results[0:0]
-    # else:
-    #     # Possible match
-    #     matched_person = None
-    #     results = [{"person": k, "belongingness_ratio": v} for k, v in sorted_scores.items()]
+    sorted_scores = [{"person": k, "belongingness_ratio": v} for k, v in sorted(scores.items(), key=lambda item: item[1])]
+    if not scores:
+        # No match
+        matched_person = models.Person() # Create new Person Cluster
+        results = []
+    elif sorted_scores[0][1] >= belongingness_ratio_upper_bound:
+        # Match (1 or many)
+        matched_person = sorted_scores[0][0]
+        results = [x for x in sorted_scores if x["belongingness_ratio"] >= belongingness_ratio_upper_bound] # Multiple matches
+        if not algorithm.include_multiple_matches:
+            results = results[0:0] # 1 Match
+    else:
+        # Possible match
+        matched_person = None
+        results = sorted_scores
 
     with TRACER.start_as_current_span("insert"):
-        patient = mpi_service.insert_patient( # TODO: Update
+        patient = mpi_service.insert_patient(
             session,
             record,
-            matched_person, # TODO: Control for 3 possibilities: None, New Person, Multiple Persons
+            matched_person,
             record.external_id,
             external_person_id,
             commit=False
         )
 
     # return a tuple indicating whether a match was found and the person ID
-    # return {
-    #     "patient": patient,
-    #     "person": patient.person, # matched_person
-    #     "results": results
-    # }
-    return (bool(matched_person), patient.person.reference_id, patient.reference_id)
+    return (patient, patient.person, results)

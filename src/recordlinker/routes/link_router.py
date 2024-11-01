@@ -46,16 +46,16 @@ async def link_piirecord(
     # link the record
     try:
         # Make a copy of record_to_link so we don't modify the original
-        (found_match, new_person_id, patient_reference_id) = link.link_record_against_mpi(
+        (patient, person, results) = link.link_record_against_mpi(
             record=input.record,
             session=db_session,
             algorithm=algorithm,
             external_person_id=input.external_person_id,
         )
         return schemas.LinkResponse(
-            is_match=found_match,
-            patient_reference_id=patient_reference_id,
-            person_reference_id=new_person_id,
+            patient_reference_id=patient.reference_id,
+            person_reference_id=person.reference_id,
+            results=results
         )
 
     except ValueError:
@@ -177,16 +177,16 @@ async def link_fhir(
     # link the record
     try:
         # Make a copy of pii_record so we don't modify the original
-        (found_match, new_person_id, patient_reference_id) = link.link_record_against_mpi(
+        (patient, person, results) = link.link_record_against_mpi(
             record=pii_record,
             session=db_session,
             algorithm=algorithm,
             external_person_id=external_id,
         )
         return schemas.LinkResponse(
-            is_match=found_match,
-            patient_reference_id=patient_reference_id,
-            person_reference_id=new_person_id,
+            patient_reference_id=patient.reference_id,
+            person_reference_id=person.reference_id,
+            results=results
         )
 
     except ValueError:
