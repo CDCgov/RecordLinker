@@ -28,7 +28,7 @@ async def link_piirecord(
     db_session: orm.Session = fastapi.Depends(get_session),
 ) -> schemas.LinkResponse:
     """
-    Compare a PII Reocrd with records in the Master Patient Index (MPI) to
+    Compare a PII Record with records in the Master Patient Index (MPI) to
     check for matches with existing patient records If matches are found,
     returns the patient and person reference id's
     """
