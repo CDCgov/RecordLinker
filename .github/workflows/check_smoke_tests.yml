@@ -1,0 +1,101 @@
+name: check smoke tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  smoke_tests:
+    runs-on: ubuntu-latest
+
+    services:
+      db:
+        image: postgres:17
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: pw
+        ports:
+          - 5432:5432
+
+    steps:
+    - name: Check out repository
+      uses: actions/checkout@v4
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+
+    - name: Build RecordLinker Docker Image
+      run: |
+        docker build -t rl-service-image . 
+
+    - name: Start RecordLinker Service and Run Smoke Tests
+      run: |
+        # Start Record Linker Service
+        docker run -d --name rl-service \
+          --network="host" \
+          -e DB_URI="postgresql+psycopg2://postgres:pw@localhost:5432/postgres" \
+          -p 8080:8080 \
+          rl-service-image
+
+        # Wait for the RL Service to be healthy
+        TRIES=5
+        COUNT=0
+        until curl -s http://localhost:8080/ | grep "OK"; do
+          echo "Waiting for RL Service to become healthy... Attempt $((COUNT+1)) of $TRIES"
+          sleep 5
+          COUNT=$((COUNT+1))
+          if [ "$COUNT" -ge "$TRIES" ]; then
+            echo "RL Service did not become healthy in time."
+            exit 1
+          fi
+        done
+      
+        # Run smoke tests and print the response
+        JSON_BODY_1='{"record": {"birth_date": "2053-11-07", "sex": "M", "mrn": "1234567890", "name":[{"family":"Shepard", "given":["John"]}]}}'
+        JSON_BODY_2='{"algorithm": "dibbs-enhanced", "record": {"birth_date": "2000-12-06", "sex": "M", "mrn": "9876543210", "name":[{"family":"Smith", "given":["William"]}]}}'
+
+        #basic tests
+        RESPONSE_1=$(curl -s -X POST http://localhost:8080/link \
+        -d "$JSON_BODY_1" \
+        -H "Content-Type: application/json")
+
+        echo "Response: $RESPONSE_1"
+        echo "$RESPONSE_1" | jq -e '.is_match == false' 
+
+        PERSON_REFERENCE_ID=$(echo "$RESPONSE_1" | jq -r '.person_reference_id')
+
+        RESPONSE_2=$(curl -s -X POST http://localhost:8080/link \
+        -d "$JSON_BODY_1" \
+        -H "Content-Type: application/json")
+
+        echo "Response: $RESPONSE_2"
+        echo "$RESPONSE_2" | jq -e '.is_match == true'  
+        echo "$RESPONSE_2" | jq -e --arg id "$PERSON_REFERENCE_ID" '.person_reference_id == $id'
+
+        #enhanced tests
+        RESPONSE_3=$(curl -s -X POST http://localhost:8080/link \
+        -d "$JSON_BODY_2" \
+        -H "Content-Type: application/json")
+
+        echo "Response: $RESPONSE_3"
+        echo "$RESPONSE_3" | jq -e '.is_match == false'  
+
+        PERSON_REFERENCE_ID=$(echo "$RESPONSE_3" | jq -r '.person_reference_id')
+
+        RESPONSE_4=$(curl -s -X POST http://localhost:8080/link \
+        -d "$JSON_BODY_2" \
+        -H "Content-Type: application/json")
+
+        echo "Response: $RESPONSE_4"
+        echo "$RESPONSE_4" | jq -e '.is_match == true' 
+        echo "$RESPONSE_4" | jq -e --arg id "$PERSON_REFERENCE_ID" '.person_reference_id == $id'     
+      
+        #invalid tests
+        RESPONSE_5=$(curl -s -X POST http://localhost:8080/link \
+        -d '{"algorithm": "invalid", "record": {}}' \
+        -H "Content-Type: application/json")
+
+        echo "Response: $RESPONSE_5"
+        echo "$RESPONSE_5" | grep -q "Invalid algorithm specified" 

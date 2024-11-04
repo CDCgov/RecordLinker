@@ -37,7 +37,7 @@ def fhir_record_to_pii_record(fhir_record: dict) -> schemas.PIIRecord:
                 val["ssn"] = identifier.get("value")
             elif coding.get("code") == "DL":
                 license_number = identifier.get("value")
-                authority = identifier.get("assigner", {}).get("identifier", {}).get("value")  # Assuming `issuer` contains authority info
+                authority = identifier.get("assigner", {}).get("identifier", {}).get("value", "")  # Assuming `issuer` contains authority info
                 val["drivers_license"] = {
                     "value": license_number,
                     "authority": authority
