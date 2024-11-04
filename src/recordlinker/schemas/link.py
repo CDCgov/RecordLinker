@@ -61,6 +61,16 @@ class LinkResponse(pydantic.BaseModel):
         description="TODO"
     )
 
+    @pydantic.computed_field
+    @property
+    def prediction(self) -> typing.Literal["match", "possible_match", "no_match"]:
+        if self.person_reference_id and self.results:
+            return "match"
+        elif not self.results:
+            return "no_match"
+        else:
+            return "possible_match"
+
 
 class LinkFhirInput(pydantic.BaseModel):
     """

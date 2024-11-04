@@ -183,7 +183,7 @@ async def link_fhir(
             algorithm=algorithm,
             external_person_id=external_id,
         )
-        return schemas.LinkResponse(
+        return schemas.LinkResponse(    
             patient_reference_id=patient.reference_id,
             person_reference_id=person.reference_id,
             results=results
