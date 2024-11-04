@@ -115,10 +115,10 @@ class TestLinkRecordAgainstMpi:
         # Test various null data values in incoming record
         matches: list[bool] = []
         mapped_patients: dict[str, int] = collections.defaultdict(int)
-        for patient in patients[:2]:
-            matched, pid, _ = link.link_record_against_mpi(patient, session, basic_algorithm)
-            matches.append(matched)
-            mapped_patients[pid] += 1
+        for data in patients[:2]:
+            (patient, person, results) = link.link_record_against_mpi(data, session, basic_algorithm)
+            matches.append(bool(person and results))
+            mapped_patients[person.reference_id] += 1
 
         # First patient inserted into empty MPI, no match
         # Second patient blocks with first patient in first pass, then fuzzy matches name
@@ -128,10 +128,10 @@ class TestLinkRecordAgainstMpi:
     def test_basic_match_two(self, session, basic_algorithm, patients):
         matches: list[bool] = []
         mapped_patients: dict[str, int] = collections.defaultdict(int)
-        for patient in patients:
-            matched, pid, _ = link.link_record_against_mpi(patient, session, basic_algorithm)
-            matches.append(matched)
-            mapped_patients[pid] += 1
+        for data in patients:
+            (patient, person, results) = link.link_record_against_mpi(data, session, basic_algorithm)
+            matches.append(bool(person and results))
+            mapped_patients[person.reference_id] += 1
 
         # First patient inserted into empty MPI, no match
         # Second patient blocks with first patient in first pass, then fuzzy matches name
@@ -153,10 +153,10 @@ class TestLinkRecordAgainstMpi:
         patients.append(patient0_copy)
         matches: list[bool] = []
         mapped_patients: dict[str, int] = collections.defaultdict(int)
-        for patient in patients:
-            matched, pid, _ = link.link_record_against_mpi(patient, session, enhanced_algorithm)
-            matches.append(matched)
-            mapped_patients[pid] += 1
+        for data in patients:
+            (patient, person, results) = link.link_record_against_mpi(data, session, enhanced_algorithm)
+            matches.append(bool(person and results))
+            mapped_patients[person.reference_id] += 1
 
         # First patient inserted into empty MPI, no match
         # Second patient blocks with first patient in first pass, then fuzzy matches name

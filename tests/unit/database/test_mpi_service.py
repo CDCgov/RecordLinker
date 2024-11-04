@@ -138,7 +138,7 @@ class TestInsertPatient:
         }
         record = schemas.PIIRecord(**data)
         patient = mpi_service.insert_patient(session, record)
-        assert patient.person_id is not None
+        assert patient.person_id is None
         assert patient.data["birth_date"] == "1980-01-01"
         assert patient.data["name"] == [
             {
@@ -151,8 +151,6 @@ class TestInsertPatient:
         ]
         assert patient.external_person_id is None
         assert patient.external_person_source is None
-        assert patient.person.reference_id is not None
-        assert patient.person.id == patient.person_id
         assert len(patient.blocking_values) == 4
 
     def test_no_person_with_external_id(self, session):
@@ -169,7 +167,7 @@ class TestInsertPatient:
         }
         record = schemas.PIIRecord(**data)
         patient = mpi_service.insert_patient(session, record, external_person_id="123456")
-        assert patient.person_id is not None
+        assert patient.person_id is None
         assert patient.data["birth_date"] == "1980-01-01"
         assert patient.data["name"] == [
             {
@@ -181,9 +179,6 @@ class TestInsertPatient:
         ]
         assert patient.external_person_id == "123456"
         assert patient.external_person_source == "IRIS"
-        assert patient.person.reference_id is not None
-        assert patient.person.id is not None
-        assert patient.person.id == patient.person_id
         assert len(patient.blocking_values) == 3
 
     def test_with_person(self, session):
@@ -324,106 +319,85 @@ class TestGetBlockData:
         session.flush()
 
         data = [
-            (
-                {
-                    "name": [
-                        {
-                            "given": [
-                                "Johnathon",
-                                "Bill",
-                            ],
-                            "family": "Smith",
-                        }
-                    ],
-                    "birthdate": "01/01/1980",
-                },
-                person_1,
-            ),
-            (
-                {
-                    "name": [
-                        {
-                            "given": [
-                                "George",
-                            ],
-                            "family": "Harrison",
-                        }
-                    ],
-                    "birthdate": "1943-2-25",
-                },
-                None,
-            ),
-            (
-                {
-                    "name": [
-                        {
-                            "given": [
-                                "John",
-                            ],
-                            "family": "Doe",
-                        },
-                        {"given": ["John"], "family": "Lewis"},
-                    ],
-                    "birthdate": "1980-01-01",
-                },
-                None,
-            ),
-            (
-                {
-                    "name": [
-                        {
-                            "given": [
-                                "Bill",
-                            ],
-                            "family": "Smith",
-                        }
-                    ],
-                    "birthdate": "1980-01-01",
-                },
-                person_1,
-            ),
-            (
-                {
-                    "name": [
-                        {
-                            "given": [
-                                "John",
-                            ],
-                            "family": "Smith",
-                        }
-                    ],
-                    "birthdate": "1980-01-01",
-                },
-                person_1,
-            ),
-            (
-                {
-                    "name": [
-                        {
-                            "given": [
-                                "John",
-                            ],
-                            "family": "Smith",
-                        }
-                    ],
-                    "birthdate": "1985-11-12",
-                },
-                None,
-            ),
-            (
-                {
-                    "name": [
-                        {
-                            "given": [
-                                "Ferris",
-                            ],
-                            "family": "Bueller",
-                        }
-                    ],
-                    "birthdate": "",
-                },
-                None,
-            ),
+            ({
+                "name": [
+                    {
+                        "given": [
+                            "Johnathon",
+                            "Bill",
+                        ],
+                        "family": "Smith",
+                    }
+                ],
+                "birthdate": "01/01/1980",
+            }, person_1),
+            ({
+                "name": [
+                    {
+                        "given": [
+                            "George",
+                        ],
+                        "family": "Harrison",
+                    }
+                ],
+                "birthdate": "1943-2-25",
+            }, models.Person()),
+            ({
+                "name": [
+                    {
+                        "given": [
+                            "John",
+                        ],
+                        "family": "Doe",
+                    },
+                    {"given": ["John"], "family": "Lewis"},
+                ],
+                "birthdate": "1980-01-01",
+            }, models.Person()),
+            ({
+                "name": [
+                    {
+                        "given": [
+                            "Bill",
+                        ],
+                        "family": "Smith",
+                    }
+                ],
+                "birthdate": "1980-01-01",
+            }, person_1),
+            ({
+                "name": [
+                    {
+                        "given": [
+                            "John",
+                        ],
+                        "family": "Smith",
+                    }
+                ],
+                "birthdate": "1980-01-01",
+            }, person_1),
+            ({
+                "name": [
+                    {
+                        "given": [
+                            "John",
+                        ],
+                        "family": "Smith",
+                    }
+                ],
+                "birthdate": "1985-11-12",
+            }, models.Person()),
+            ({
+                "name": [
+                    {
+                        "given": [
+                            "Ferris",
+                        ],
+                        "family": "Bueller",
+                    }
+                ],
+                "birthdate": "",
+            }, models.Person())
         ]
         for datum, person in data:
             mpi_service.insert_patient(session, schemas.PIIRecord(**datum), person=person)
@@ -649,9 +623,9 @@ class TestGetBlockData:
             ],
             "phone": [{"system": "phone", "value": "555-401-5073", "use": "home"}],
         }
-        mpi_service.insert_patient(session, schemas.PIIRecord(**data))
-        mpi_service.insert_patient(session, schemas.PIIRecord(**data))
-        mpi_service.insert_patient(session, schemas.PIIRecord(**data))
+        mpi_service.insert_patient(session, schemas.PIIRecord(**data), models.Person())
+        mpi_service.insert_patient(session, schemas.PIIRecord(**data), models.Person())
+        mpi_service.insert_patient(session, schemas.PIIRecord(**data), models.Person())
         algorithm_pass = models.AlgorithmPass(
             blocking_keys=["FIRST_NAME", "LAST_NAME", "ZIP", "SEX"]
         )
