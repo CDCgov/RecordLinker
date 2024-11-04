@@ -36,6 +36,28 @@ def test_fhir_record_to_pii_record():
                         "code" : "SS"
                     }]
                 },
+            },
+              {
+                "use": "official",
+                "type": {
+                    "text": "Driver's License",
+                    "coding": [
+                        {
+                        "system": "http://terminology.hl7.org/CodeSystem/v2-0203",
+                        "code": "DL",
+                        "display": "Driver's License"
+                        }
+                    ],
+                },
+                    "system": "urn:oid:2.16.840.1.113883.3.19.3.1.8",
+                    "value": "D1234567",
+                    "assigner": {
+                    "display": "State DMV",
+                    "identifier": {
+                        "system": "urn:oid:2.16.840.1.113883.19.3.1.1", 
+                        "value": "CA"
+                    }
+                }
             }
         ],
         "name": [
@@ -117,7 +139,8 @@ def test_fhir_record_to_pii_record():
     assert pii_record.telecom[0].system == "phone"
     assert str(pii_record.race) == "WHITE"
     assert str(pii_record.gender) == "FEMALE"
-
+    assert pii_record.drivers_license.authority == "CA"
+    assert pii_record.drivers_license.value == "D1234567"
 
 def test_add_person_resource():
     bundle = load_json_asset("patient_bundle.json")
