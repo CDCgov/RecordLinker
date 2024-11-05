@@ -113,7 +113,7 @@ determining it the incoming payload is a match or not to an existing Patient rec
 
 `func:recordlinker.linking.matchers.exact_percent_match`
 
-:   Determines whether a give set of feature comparisons represent a 'perfect' match
+:   Determines whether a given set of feature comparisons represent a 'perfect' match
     (i.e. all features that were compared match in whatever criteria was specified).
 
 `func:recordlinker.linking.matchers.eval_log_odds_cutoff`
