@@ -4,7 +4,7 @@ import typing
 import pydantic
 import pydantic_settings
 
-from recordlinker import utils
+from recordlinker.utils import path as utils
 
 
 class ConfigurationError(Exception):

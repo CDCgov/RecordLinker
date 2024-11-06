@@ -8,7 +8,7 @@ from fastapi.testclient import TestClient
 from recordlinker import database
 from recordlinker import main
 from recordlinker import models
-from recordlinker import utils
+from recordlinker.utils import path as utils
 
 
 def load_test_json_asset(*paths: str) -> dict | list:
