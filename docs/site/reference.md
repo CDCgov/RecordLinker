@@ -111,7 +111,7 @@ patient data and used during query retrieval. The following blocking key types a
 These are the functions that can be used to evaluate the matching results as a collection, thus
 determining it the incoming payload is a match or not to an existing Patient record.
 
-`func:recordlinker.linking.matchers.exact_percent_match`
+`func:recordlinker.linking.matchers.eval_perfect_match`
 
 :   Determines whether a given set of feature comparisons represent a 'perfect' match
     (i.e. all features that were compared match in whatever criteria was specified).
