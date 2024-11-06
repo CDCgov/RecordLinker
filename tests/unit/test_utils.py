@@ -1,9 +1,30 @@
+import tempfile
 import typing
 
 import pytest
 
 from recordlinker import utils
 from recordlinker.linking import matchers
+
+
+def test_project_root():
+    root = utils.project_root()
+    assert root.name == "recordlinker"
+
+
+def test_read_json_relative():
+    tmp = utils.project_root() / "test.json"
+    with open(tmp, "w") as fobj:
+        fobj.write('{"key": "value"}')
+    assert utils.read_json(tmp) == {"key": "value"}
+    tmp.unlink()
+
+def test_read_json_absolute():
+    tmp = tempfile.NamedTemporaryFile(suffix=".json")
+    with open(tmp.name, "w") as fobj:
+        fobj.write('{"key": "value"}')
+    assert utils.read_json(tmp.name) == {"key": "value"}
+    tmp.close()
 
 
 def test_bind_functions():

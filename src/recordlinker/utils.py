@@ -10,18 +10,11 @@ def project_root() -> pathlib.Path:
     """
     Returns the path to the project root directory.
     """
-    cwd = pathlib.Path(__file__).resolve()
-    root = cwd
-
-    # FIXME: this only works when in the git project root and will fail if we install the
-    # package into the site-packages
-    # project root should be the "recordlinker" package
-    print(f"root.name: {root.name}")
+    root = pathlib.Path(__file__).resolve()
     while root.name != "recordlinker":
         if root.parent == root:
-            raise FileNotFoundError("Project root with 'pyproject.toml' not found.")
+            raise FileNotFoundError("recordlinker project root not found.")
         root = root.parent
-        print(f"root.name: {root.name}")
     return root
 
 
@@ -29,8 +22,8 @@ def read_json(path: str) -> dict:
     """
     Loads a JSON file.
     """
-    # if path is relative, append to the project root
     if not pathlib.Path(path).is_absolute():
+        # if path is relative, append to the project root
         path = pathlib.Path(project_root(), path)
     with open(path, "r") as fobj:
         return json.load(fobj)
