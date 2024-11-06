@@ -10,16 +10,17 @@ import typing
 
 import pydantic
 
-from recordlinker import utils
 from recordlinker.linking import matchers
 from recordlinker.models.mpi import BlockingKey
 from recordlinker.schemas.pii import Feature
+from recordlinker.utils import functools as utils
 
 
 class AlgorithmPass(pydantic.BaseModel):
     """
     The schema for an algorithm pass record.
     """
+
     model_config = pydantic.ConfigDict(from_attributes=True)
 
     blocking_keys: list[str]
@@ -88,7 +89,7 @@ class AlgorithmSummary(Algorithm):
     passes: typing.Sequence[AlgorithmPass] = pydantic.Field(exclude=True)
 
     # mypy doesn't support decorators on properties; https://github.com/python/mypy/issues/1362
-    @pydantic.computed_field # type: ignore[misc]
+    @pydantic.computed_field  # type: ignore[misc]
     @property
     def pass_count(self) -> int:
         """
