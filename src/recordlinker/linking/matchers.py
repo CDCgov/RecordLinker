@@ -24,6 +24,43 @@ FEATURE_COMPARE_FUNC = typing.Callable[[PIIRecord, Patient, Feature, typing.Any]
 MATCH_RULE_FUNC = typing.Callable[[list[float], typing.Any], bool]
 
 
+def get_feature_functions() -> list[FEATURE_COMPARE_FUNC]:
+    """
+    Return a list of all available feature comparison functions.
+
+    :return: A list of all available feature comparison functions.
+    """
+    return [
+        feature_match_any,
+        feature_match_exact,
+        feature_match_fuzzy_string,
+        feature_match_log_odds_fuzzy_compare,
+    ]
+
+
+def get_rule_functions() -> list[MATCH_RULE_FUNC]:
+    """
+    Return a list of all available match rule functions.
+
+    :return: A list of all available match rule functions.
+    """
+    return [eval_perfect_match, eval_log_odds_cutoff]
+
+
+def get_available_kwargs() -> dict[str, typing.Any]:
+    """
+    Return a dictionary of all available keyword arguments that can be
+    passed to the AlgorithmPass schema.
+    """
+    return {
+        "similarity_measure": SIMILARITY_MEASURES,
+        "threshold": float,
+        "thresholds": dict[str, float],
+        "log_odds": dict[str, float],
+        "true_match_threshold": float,
+    }
+
+
 def _get_fuzzy_params(col: str, **kwargs) -> tuple[SIMILARITY_MEASURES, float]:
     """
     Helper method to quickly determine the appropriate similarity measure
