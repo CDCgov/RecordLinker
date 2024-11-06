@@ -111,7 +111,7 @@ patient data and used during query retrieval. The following blocking key types a
 These are the functions that can be used to evaluate the matching results as a collection, thus
 determining it the incoming payload is a match or not to an existing Patient record.
 
-`func:recordlinker.linking.matchers.exact_percent_match`
+`func:recordlinker.linking.matchers.eval_perfect_match`
 
 :   Determines whether a give set of feature comparisons represent a 'perfect' match
     (i.e. all features that were compared match in whatever criteria was specified).
@@ -152,8 +152,9 @@ existing Patient with the FIRST_NAME of ["John", "D"].
 
 `func:recordlinker.linking.matchers.feature_match_log_odds_fuzzy_compare`
 
-:   Similar to the above function, but uses a log-odds ratio to determine if the features are a match.
-    This is useful when comparing features that have a high cardinality and are not easily compared
-    using a string comparison. Use the `kwargs` parameter to specify the desired log-odds threshold,
-    including the fuzzy matching thresholds as well.
-    Example: `{"kwargs": {"thresholds": {"FIRST_NAME": 0.8}, "log_odds": {"FIRST_NAME": 6.8}}}`
+:   Similar to the above function, but uses a log-odds ratio to determine if the features are a match 
+    probabilistically. This is useful when wanting to more robustly compare features by incorporating
+    their predictive power (i.e., the log-odds ratio for a feature represents how powerful of a predictor
+    that feature is in determining whether two patient records are a true match, as opposed to a match
+    by random chance). Use the kwargs parameter to specify the fuzzy match threshold and log-odds ratio
+    based on training. Example: `{"kwargs": {"thresholds": {"FIRST_NAME": 0.8}, "log_odds": {"FIRST_NAME": 6.8}}}`

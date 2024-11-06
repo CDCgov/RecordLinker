@@ -24,7 +24,7 @@ try:
     TRACER = trace.get_tracer(__name__)
 except ImportError:
     # OpenTelemetry is an optional dependency, if its not installed use a mock tracer
-    from recordlinker.utils import MockTracer
+    from recordlinker.utils.mock import MockTracer
 
     TRACER = MockTracer()
 

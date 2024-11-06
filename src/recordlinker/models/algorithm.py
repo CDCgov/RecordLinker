@@ -9,6 +9,7 @@ from sqlalchemy import types as sqltypes
 from recordlinker import utils
 from recordlinker.config import ConfigurationError
 from recordlinker.config import settings
+from recordlinker.utils import functools as func_utils
 
 from .base import Base
 
@@ -105,7 +106,7 @@ class AlgorithmPass(Base):
         Get the evaluators for this algorithm pass, bound to the algorithm.
         """
         if not hasattr(self, "_bound_evaluators"):
-            self._bound_evaluators = utils.bind_functions(self.evaluators)
+            self._bound_evaluators = func_utils.bind_functions(self.evaluators)
         return self._bound_evaluators
 
     @property
@@ -129,7 +130,7 @@ class AlgorithmPass(Base):
         Get the rule for this algorithm pass, bound to the algorithm.
         """
         if not hasattr(self, "_bound_rule"):
-            self._bound_rule = utils.str_to_callable(self.rule)
+            self._bound_rule = func_utils.str_to_callable(self.rule)
         return self._bound_rule
 
 
