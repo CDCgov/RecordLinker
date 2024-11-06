@@ -10,7 +10,7 @@ import json
 from unittest import mock
 
 import pytest
-from conftest import load_json_asset
+from conftest import load_test_json_asset
 from fastapi import status
 
 from recordlinker import schemas
@@ -37,7 +37,7 @@ class TestLinkDIBBS:
     @mock.patch("recordlinker.linking.algorithm_service.default_algorithm")
     def test_success(self, patched_subprocess, basic_algorithm, client):
         patched_subprocess.return_value = basic_algorithm
-        test_bundle = load_json_asset("patient_bundle_to_link_with_mpi.json")
+        test_bundle = load_test_json_asset("patient_bundle_to_link_with_mpi.json")
         entry_list = copy.deepcopy(test_bundle["entry"])
 
         bundle_1 = test_bundle
@@ -95,7 +95,7 @@ class TestLinkDIBBS:
     @mock.patch("recordlinker.linking.algorithm_service.get_algorithm")
     def test_enhanced_algo(self, patched_subprocess, enhanced_algorithm, client):
         patched_subprocess.return_value = enhanced_algorithm
-        test_bundle = load_json_asset("patient_bundle_to_link_with_mpi.json")
+        test_bundle = load_test_json_asset("patient_bundle_to_link_with_mpi.json")
         entry_list = copy.deepcopy(test_bundle["entry"])
 
         bundle_1 = test_bundle
@@ -152,7 +152,7 @@ class TestLinkDIBBS:
     @mock.patch("recordlinker.linking.algorithm_service.get_algorithm")
     def test_invalid_algorithm_param(self, patched_subprocess, client):
         patched_subprocess.return_value = None
-        test_bundle = load_json_asset("patient_bundle_to_link_with_mpi.json")
+        test_bundle = load_test_json_asset("patient_bundle_to_link_with_mpi.json")
         expected_response = {
             "found_match": False,
             "updated_bundle": test_bundle,
@@ -170,7 +170,7 @@ class TestLinkDIBBS:
 class TestLink:
     @pytest.fixture
     def patients(self):
-        bundle = load_json_asset("simple_patient_bundle_to_link_with_mpi.json")
+        bundle = load_test_json_asset("simple_patient_bundle_to_link_with_mpi.json")
         patients: list[schemas.PIIRecord] = []
         for entry in bundle["entry"]:
             if entry.get("resource", {}).get("resourceType", {}) == "Patient":
@@ -313,7 +313,7 @@ class TestLinkFHIR:
     @mock.patch("recordlinker.linking.algorithm_service.default_algorithm")
     def test_link_success(self, patched_subprocess, basic_algorithm, client):
         patched_subprocess.return_value = basic_algorithm
-        test_bundle = load_json_asset("patient_bundle_to_link_with_mpi.json")
+        test_bundle = load_test_json_asset("patient_bundle_to_link_with_mpi.json")
         entry_list = copy.deepcopy(test_bundle["entry"])
 
         bundle_1 = test_bundle
@@ -357,7 +357,7 @@ class TestLinkFHIR:
         self, patched_subprocess, enhanced_algorithm, client
     ):
         patched_subprocess.return_value = enhanced_algorithm
-        test_bundle = load_json_asset("patient_bundle_to_link_with_mpi.json")
+        test_bundle = load_test_json_asset("patient_bundle_to_link_with_mpi.json")
         entry_list = copy.deepcopy(test_bundle["entry"])
 
         bundle_1 = test_bundle
@@ -411,7 +411,7 @@ class TestLinkFHIR:
     @mock.patch("recordlinker.linking.algorithm_service.get_algorithm")
     def test_linkrecord_invalid_algorithm_param(self, patched_subprocess, client):
         patched_subprocess.return_value = None
-        test_bundle = load_json_asset("patient_bundle_to_link_with_mpi.json")
+        test_bundle = load_test_json_asset("patient_bundle_to_link_with_mpi.json")
 
         actual_response = client.post(
             "/link/fhir", json={"bundle": test_bundle, "algorithm": "INVALID"}

@@ -8,9 +8,10 @@ from fastapi.testclient import TestClient
 from recordlinker import database
 from recordlinker import main
 from recordlinker import models
+from recordlinker import utils
 
 
-def load_json_asset(*paths: str) -> dict | list:
+def load_test_json_asset(*paths: str) -> dict | list:
     """
     Loads a JSON file from the testing 'assets' directory.
     """
@@ -45,7 +46,7 @@ def client():
 @functools.lru_cache
 @pytest.fixture
 def basic_algorithm():
-    for algo in load_json_asset("initial_algorithms.json"):
+    for algo in utils.read_json("assets/initial_algorithms.json"):
         if algo["label"] == "dibbs-basic":
             return models.Algorithm.from_dict(**algo)
 
@@ -53,6 +54,6 @@ def basic_algorithm():
 @functools.lru_cache
 @pytest.fixture
 def enhanced_algorithm():
-    for algo in load_json_asset("initial_algorithms.json"):
+    for algo in utils.read_json("assets/initial_algorithms.json"):
         if algo["label"] == "dibbs-enhanced":
             return models.Algorithm.from_dict(**algo)
