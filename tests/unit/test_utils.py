@@ -16,7 +16,7 @@ def test_read_json_relative():
     tmp = utils.project_root() / "test.json"
     with open(tmp, "w") as fobj:
         fobj.write('{"key": "value"}')
-    assert utils.read_json(tmp) == {"key": "value"}
+    assert utils.read_json("test.json") == {"key": "value"}
     tmp.unlink()
 
 def test_read_json_absolute():

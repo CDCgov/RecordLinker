@@ -24,7 +24,7 @@ def read_json(path: str) -> dict:
     """
     if not pathlib.Path(path).is_absolute():
         # if path is relative, append to the project root
-        path = pathlib.Path(project_root(), path)
+        path = str(pathlib.Path(project_root(), path))
     with open(path, "r") as fobj:
         return json.load(fobj)
 
