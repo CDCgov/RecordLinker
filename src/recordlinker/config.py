@@ -1,9 +1,10 @@
-import json
 import logging.config
 import typing
 
 import pydantic
 import pydantic_settings
+
+from recordlinker import utils
 
 
 class ConfigurationError(Exception):
@@ -99,8 +100,7 @@ class Settings(pydantic_settings.BaseSettings):
         if self.log_config:
             # Load logging config from the provided file
             try:
-                with open(self.log_config, "r") as fobj:
-                    config = json.loads(fobj.read())
+                config = utils.read_json(self.log_config)
             except Exception as exc:
                 msg = f"Error loading log configuration: {self.log_config}"
                 raise ConfigurationError(msg) from exc
