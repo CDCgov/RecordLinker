@@ -1,5 +1,7 @@
+import pathlib
 import tempfile
 import typing
+import unittest.mock
 
 import pytest
 
@@ -11,6 +13,11 @@ def test_project_root():
     root = utils.project_root()
     assert root.name == "recordlinker"
 
+def test_project_root_not_found():
+    with unittest.mock.patch("pathlib.Path.resolve") as mock_resolve:
+        mock_resolve.return_value = pathlib.Path("/")
+        with pytest.raises(FileNotFoundError):
+            utils.project_root()
 
 def test_read_json_relative():
     tmp = utils.project_root() / "test.json"
