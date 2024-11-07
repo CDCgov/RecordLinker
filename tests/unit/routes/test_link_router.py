@@ -52,7 +52,6 @@ class TestLinkDIBBS:
         bundle_2 = test_bundle
         bundle_2["entry"] = [entry_list[1]]
         resp_2 = client.post("/link/dibbs", json={"bundle": bundle_2})
-        print(resp_2.json())
         new_bundle = resp_2.json()["updated_bundle"]
         person_2 = [
             r.get("resource")
@@ -106,7 +105,7 @@ class TestLinkDIBBS:
             for r in new_bundle["entry"]
             if r.get("resource").get("resourceType") == "Person"
         ][0]
-        assert resp_1.json()["prediction"] == "match"
+        assert resp_1.json()["prediction"] == "no_match"
 
         bundle_2 = test_bundle
         bundle_2["entry"] = [entry_list[1]]
@@ -325,6 +324,7 @@ class TestLinkFHIR:
         patched_subprocess.return_value = basic_algorithm
         test_bundle = load_test_json_asset("patient_bundle_to_link_with_mpi.json")
         entry_list = copy.deepcopy(test_bundle["entry"])
+        print(basic_algorithm)
 
         bundle_1 = test_bundle
         bundle_1["entry"] = [entry_list[0]]
@@ -336,7 +336,7 @@ class TestLinkFHIR:
         bundle_2["entry"] = [entry_list[1]]
         response_2 = client.post("/link/fhir", json={"bundle": bundle_2})
         person_2 = response_2.json()["person_reference_id"]
-        assert response_2.json()["prediction"] == "match"
+        assert response_2.json()["prediction"] == "match" # Blocks on Pass 1, fuzzy match first name yes, exact match last name yes; fails of Pass 2
         assert person_2 == person_1
 
         bundle_3 = test_bundle

@@ -52,7 +52,6 @@ class LinkResult(pydantic.BaseModel):
         Extract the person_reference_id from the person_reference_id field.
         """
         person = data.pop("person", None)
-        print(person)
         if person:
             data["person_reference_id"] = person.reference_id
         return data
@@ -83,6 +82,7 @@ class LinkResponse(pydantic.BaseModel):
         """
         Record Linkage algorithm prediction.
         """
+        print(f"self.results: {self.results}")
         if self.person_reference_id and self.results:
             return "match"
         elif not self.results:

@@ -122,7 +122,6 @@ async def link_dibbs(
             algorithm=algorithm,
             external_person_id=external_id,
         )
-        results = []
         updated_bundle: dict | None = None
         if person.reference_id:
             updated_bundle = fhir.add_person_resource(
