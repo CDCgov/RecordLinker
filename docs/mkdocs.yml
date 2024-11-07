@@ -1,4 +1,4 @@
-site_name: "Record Linker Documentation"
+site_name: !ENV [SITE_NAME, 'RecordLinker Documentation']
 theme:
   name: "material"
   icon:
@@ -24,7 +24,6 @@ repo_name: CDCgov/RecordLinker
 repo_url: https://github.com/CDCgov/RecordLinker
 edit_uri: edit/main/docs/
 docs_dir: "site"
-site_dir: "../_site"
 nav:
   - "Home": "index.md"
   - "Getting Started":
@@ -33,3 +32,4 @@ nav:
   - "User Guide":
     - Design: "design.md"
     - Reference: "reference.md"
+  - "API Docs": "api-docs.html"

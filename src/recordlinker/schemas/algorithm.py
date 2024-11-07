@@ -10,10 +10,10 @@ import typing
 
 import pydantic
 
-from recordlinker import utils
 from recordlinker.linking import matchers
 from recordlinker.models.mpi import BlockingKey
 from recordlinker.schemas.pii import Feature
+from recordlinker.utils import functools as utils
 
 BlockingKeys = typing.Literal[tuple(k.name for k in BlockingKey)]
 Features = typing.Literal[tuple(f.name for f in Feature)]

@@ -2,8 +2,8 @@ import typing
 
 import pytest
 
-from recordlinker import utils
 from recordlinker.linking import matchers
+from recordlinker.utils import functools as utils
 
 
 def test_bind_functions():
@@ -85,15 +85,3 @@ class TestCheckSignature:
         assert not utils.check_signature(self.func2, typing.Callable[[int, list[int]], None])
         assert utils.check_signature(self.func2, typing.Callable[[int, list[int]], float])
         assert not utils.check_signature("a", typing.Callable[[str], None])
-
-
-class TestMockTracer:
-    def test_start_span(self):
-        tracer = utils.MockTracer()
-        with tracer.start_span("test_span") as span:
-            assert span is None
-
-    def test_start_as_current_span(self):
-        tracer = utils.MockTracer()
-        with tracer.start_as_current_span("test.span") as span:
-            assert span is None
