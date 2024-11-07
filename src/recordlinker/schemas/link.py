@@ -44,9 +44,17 @@ class LinkResult(pydantic.BaseModel):
         description="The percentage of patient records matched in this person cluster."
     )
 
-    @property
-    def person(self, value):
-        self.person_reference_id = value.id
+
+    @pydantic.model_validator(mode="before")
+    @classmethod
+    def extract_person_reference_id(cls, data: typing.Any) -> typing.Any:
+        """
+        Extract the person_reference_id from the person_reference_id field.
+        """
+        person = data.pop("person", None)
+        if person:
+            data["person_reference_id"] = person.get("reference_id")
+        return data
 
 
 class LinkResponse(pydantic.BaseModel):
