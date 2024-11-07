@@ -10,7 +10,7 @@ import copy
 import uuid
 
 import pytest
-from conftest import load_json_asset
+from conftest import load_test_json_asset
 
 from recordlinker import models
 from recordlinker import schemas
@@ -105,7 +105,7 @@ class TestLinkRecordAgainstMpi:
     # TODO: Add test case for last name O'Neil
     @pytest.fixture
     def patients(self):
-        bundle = load_json_asset("simple_patient_bundle_to_link_with_mpi.json")
+        bundle = load_test_json_asset("simple_patient_bundle_to_link_with_mpi.json")
         patients = []
         patients: list[schemas.PIIRecord] = []
         for entry in bundle["entry"]:

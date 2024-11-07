@@ -7,7 +7,7 @@ This module contains the unit tests for the recordlinker.parsers.fhir module
 
 import copy
 
-from conftest import load_json_asset
+from conftest import load_test_json_asset
 
 from recordlinker.hl7 import fhir
 
@@ -20,105 +20,91 @@ def test_fhir_record_to_pii_record():
             {
                 "value": "1234567890",
                 "type": {
-                    "coding": [{
-                        "code": "MR",
-                        "system": "http://terminology.hl7.org/CodeSystem/v2-0203",
-                        "display": "Medical record number"
-                    }]
+                    "coding": [
+                        {
+                            "code": "MR",
+                            "system": "http://terminology.hl7.org/CodeSystem/v2-0203",
+                            "display": "Medical record number",
+                        }
+                    ]
                 },
             },
             {
-                "system" : "http://hl7.org/fhir/sid/us-ssn",
-                "value" : "111223333",
-                "type" : {
-                    "coding" : [{
-                        "system" : "http://terminology.hl7.org/CodeSystem/v2-0203",
-                        "code" : "SS"
-                    }]
+                "system": "http://hl7.org/fhir/sid/us-ssn",
+                "value": "111223333",
+                "type": {
+                    "coding": [
+                        {"system": "http://terminology.hl7.org/CodeSystem/v2-0203", "code": "SS"}
+                    ]
                 },
             },
-              {
+            {
                 "use": "official",
                 "type": {
                     "text": "Driver's License",
                     "coding": [
                         {
-                        "system": "http://terminology.hl7.org/CodeSystem/v2-0203",
-                        "code": "DL",
-                        "display": "Driver's License"
+                            "system": "http://terminology.hl7.org/CodeSystem/v2-0203",
+                            "code": "DL",
+                            "display": "Driver's License",
                         }
                     ],
                 },
-                    "system": "urn:oid:2.16.840.1.113883.3.19.3.1.8",
-                    "value": "D1234567",
-                    "assigner": {
+                "system": "urn:oid:2.16.840.1.113883.3.19.3.1.8",
+                "value": "D1234567",
+                "assigner": {
                     "display": "State DMV",
-                    "identifier": {
-                        "system": "urn:oid:2.16.840.1.113883.19.3.1.1", 
-                        "value": "CA"
-                    }
-                }
-            }
+                    "identifier": {"system": "urn:oid:2.16.840.1.113883.19.3.1.1", "value": "CA"},
+                },
+            },
         ],
-        "name": [
-            {
-                "family": "Shepard",
-                "given": [
-                "John"
-                ],
-                "use": "official"
-            }
-        ],
+        "name": [{"family": "Shepard", "given": ["John"], "use": "official"}],
         "birthDate": "2053-11-07",
         "gender": "male",
         "address": [
-        {
-            "line": [
-            "1234 Silversun Strip"
-            ],
-            "buildingNumber": "1234",
-            "city": "Boston",
-            "state": "Massachusetts",
-            "postalCode": "99999",
-            "district": "county",
-            "use": "home"
-        }
-        ],
-        "telecom": [
             {
+                "line": ["1234 Silversun Strip"],
+                "buildingNumber": "1234",
+                "city": "Boston",
+                "state": "Massachusetts",
+                "postalCode": "99999",
+                "district": "county",
                 "use": "home",
-                "system": "phone",
-                "value": "123-456-7890"
             }
         ],
-        "extension" : [
+        "telecom": [{"use": "home", "system": "phone", "value": "123-456-7890"}],
+        "extension": [
             {
-                "url" : "http://hl7.org/fhir/StructureDefinition/individual-genderIdentity",
-                "extension" : [{
-                    "url" : "value",
-                    "valueCodeableConcept" : {
-                        "coding" : [{
-                            "system" : "http://snomed.info/sct",
-                            "code" : "446141000124107",
-                            "display" : "Identifies as female gender (finding)"
-                        }]
-                    }
-                }]
-            },
-            {
-                "url" : "http://hl7.org/fhir/us/core/StructureDefinition/us-core-race",
+                "url": "http://hl7.org/fhir/StructureDefinition/individual-genderIdentity",
                 "extension": [
                     {
-                        "url" : "ombCategory",
-                        "valueCoding" : {
-                            "system" : "urn:oid:2.16.840.1.113883.6.238",
-                            "code" : "2106-3",
-                            "display" : "White"
-                        }
+                        "url": "value",
+                        "valueCodeableConcept": {
+                            "coding": [
+                                {
+                                    "system": "http://snomed.info/sct",
+                                    "code": "446141000124107",
+                                    "display": "Identifies as female gender (finding)",
+                                }
+                            ]
+                        },
                     }
-                ]
-            }
-        ]
+                ],
+            },
+            {
+                "url": "http://hl7.org/fhir/us/core/StructureDefinition/us-core-race",
+                "extension": [
+                    {
+                        "url": "ombCategory",
+                        "valueCoding": {
+                            "system": "urn:oid:2.16.840.1.113883.6.238",
+                            "code": "2106-3",
+                            "display": "White",
+                        },
+                    }
+                ],
+            },
+        ],
     }
 
     pii_record = fhir.fhir_record_to_pii_record(fhir_record)
@@ -142,8 +128,9 @@ def test_fhir_record_to_pii_record():
     assert pii_record.drivers_license.authority == "CA"
     assert pii_record.drivers_license.value == "D1234567"
 
+
 def test_add_person_resource():
-    bundle = load_json_asset("patient_bundle.json")
+    bundle = load_test_json_asset("patient_bundle.json")
     raw_bundle = copy.deepcopy(bundle)
     patient_id = "TEST_PATIENT_ID"
     person_id = "TEST_PERSON_ID"
@@ -158,4 +145,3 @@ def test_add_person_resource():
     # Assert the added element is the person_resource bundle
     assert returned_bundle.get("entry")[-1].get("resource").get("resourceType") == "Person"
     assert returned_bundle.get("entry")[-1].get("request").get("url") == "Person/TEST_PERSON_ID"
-
