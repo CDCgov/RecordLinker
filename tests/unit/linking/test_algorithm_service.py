@@ -70,7 +70,12 @@ class TestLoadAlgorithm:
             passes=[
                 schemas.AlgorithmPass(
                     blocking_keys=["FIRST_NAME"],
-                    evaluators={"ZIP": "func:recordlinker.linking.matchers.feature_match_any"},
+                    evaluators=[
+                        {
+                            "feature": "ZIP",
+                            "func": "func:recordlinker.linking.matchers.feature_match_any",
+                        }
+                    ],
                     rule="func:recordlinker.linking.matchers.eval_perfect_match",
                     cluster_ratio=0.8,
                 )
@@ -85,9 +90,9 @@ class TestLoadAlgorithm:
         assert len(obj.passes) == 1
         assert obj.passes[0].algorithm_id == 1
         assert obj.passes[0].blocking_keys == ["FIRST_NAME"]
-        assert obj.passes[0].evaluators == {
-            "ZIP": "func:recordlinker.linking.matchers.feature_match_any"
-        }
+        assert obj.passes[0].evaluators == [
+            {"feature": "ZIP", "func": "func:recordlinker.linking.matchers.feature_match_any"}
+        ]
         assert obj.passes[0].rule == "func:recordlinker.linking.matchers.eval_perfect_match"
         assert obj.passes[0].cluster_ratio == 0.8
 
@@ -98,7 +103,12 @@ class TestLoadAlgorithm:
             passes=[
                 schemas.AlgorithmPass(
                     blocking_keys=["FIRST_NAME"],
-                    evaluators={"ZIP": "func:recordlinker.linking.matchers.feature_match_any"},
+                    evaluators=[
+                        {
+                            "feature": "ZIP",
+                            "func": "func:recordlinker.linking.matchers.feature_match_any",
+                        }
+                    ],
                     rule="func:recordlinker.linking.matchers.eval_perfect_match",
                     cluster_ratio=0.8,
                 )
@@ -117,9 +127,9 @@ class TestLoadAlgorithm:
         assert len(obj.passes) == 1
         assert obj.passes[0].algorithm_id == 1
         assert obj.passes[0].blocking_keys == ["LAST_NAME"]
-        assert obj.passes[0].evaluators == {
-            "ZIP": "func:recordlinker.linking.matchers.feature_match_any"
-        }
+        assert obj.passes[0].evaluators == [
+            {"feature": "ZIP", "func": "func:recordlinker.linking.matchers.feature_match_any"}
+        ]
         assert obj.passes[0].rule == "func:recordlinker.linking.matchers.eval_perfect_match"
         assert obj.passes[0].cluster_ratio == 0.8
 
@@ -132,7 +142,9 @@ def test_delete_algorithm(session):
     pass1 = models.AlgorithmPass(
         algorithm=algo1,
         blocking_keys=["FIRST_NAME"],
-        evaluators={"ZIP": "func:recordlinker.linking.matchers.feature_match_any"},
+        evaluators=[
+            {"feature": "ZIP", "func": "func:recordlinker.linking.matchers.feature_match_any"}
+        ],
         rule="func:recordlinker.linking.matchers.eval_perfect_match",
         cluster_ratio=0.8,
     )
@@ -152,7 +164,9 @@ def test_clear_algorithms(session):
     pass1 = models.AlgorithmPass(
         algorithm=algo1,
         blocking_keys=["FIRST_NAME"],
-        evaluators={"ZIP": "func:recordlinker.linking.matchers.feature_match_any"},
+        evaluators=[
+            {"feature": "ZIP", "func": "func:recordlinker.linking.matchers.feature_match_any"}
+        ],
         rule="func:recordlinker.linking.matchers.eval_perfect_match",
         cluster_ratio=0.8,
     )

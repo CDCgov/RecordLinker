@@ -13,12 +13,11 @@ import pydantic
 from recordlinker.linking import matchers
 from recordlinker.models.mpi import BlockingKey
 from recordlinker.schemas.pii import Feature
-from recordlinker.utils import functools as utils
 
 BlockingKeys = typing.Literal[tuple(k.name for k in BlockingKey)]
 Features = typing.Literal[tuple(f.name for f in Feature)]
-FeatureFuncs = typing.Literal[tuple(f.__name__ for f in matchers.get_feature_functions())]
-RuleFuncs = typing.Literal[tuple(f.__name__ for f in matchers.get_rule_functions())]
+FeatureFuncs = typing.Literal[tuple(f for f in matchers.get_feature_func_names())]
+RuleFuncs = typing.Literal[tuple(f for f in matchers.get_rule_func_names())]
 
 class Evaluator(pydantic.BaseModel):
     """
@@ -29,16 +28,6 @@ class Evaluator(pydantic.BaseModel):
 
     feature: Features
     func: FeatureFuncs
-
-    @pydantic.validator("func", pre=True)
-    def validate_func(cls, value):
-        """
-        Validate the function into a feature comparison function.
-        """
-        func = utils.str_to_callable(value)
-        if not utils.check_signature(func, matchers.FEATURE_COMPARE_FUNC):
-            raise ValueError(f"Invalid evaluator: {value}")
-        return value
 
 
 class AlgorithmPass(pydantic.BaseModel):
@@ -53,16 +42,6 @@ class AlgorithmPass(pydantic.BaseModel):
     rule: RuleFuncs
     cluster_ratio: pydantic.confloat(ge=0, le=1)
     kwargs: dict[str, typing.Any] = {}
-
-    @pydantic.field_validator("rule", mode="before")
-    def validate_rule(cls, value):
-        """
-        Validate the rule into a match rule function.
-        """
-        func = utils.str_to_callable(value)
-        if not utils.check_signature(func, matchers.MATCH_RULE_FUNC):
-            raise ValueError(f"Invalid matching rule: {value}")
-        return value
 
 
 class Algorithm(pydantic.BaseModel):

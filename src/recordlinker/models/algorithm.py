@@ -1,3 +1,4 @@
+import dataclasses
 import logging
 import typing
 
@@ -14,6 +15,16 @@ from recordlinker.utils import functools as func_utils
 from .base import Base
 
 LOGGER = logging.getLogger(__name__)
+
+
+@dataclasses.dataclass
+class BoundEvaluator:
+    """
+    The schema for a bound evaluator record.
+    """
+
+    feature: str
+    func: typing.Callable
 
 
 class Algorithm(Base):
@@ -80,20 +91,20 @@ class AlgorithmPass(Base):
     )
     algorithm: orm.Mapped["Algorithm"] = orm.relationship(back_populates="passes")
     blocking_keys: orm.Mapped[list[str]] = orm.mapped_column(sqltypes.JSON)
-    _evaluators: orm.Mapped[dict[str, str]] = orm.mapped_column("evaluators", sqltypes.JSON)
+    _evaluators: orm.Mapped[list[dict]] = orm.mapped_column("evaluators", sqltypes.JSON)
     _rule: orm.Mapped[str] = orm.mapped_column("rule", sqltypes.String(255))
     cluster_ratio: orm.Mapped[float] = orm.mapped_column(sqltypes.Float)
     kwargs: orm.Mapped[dict] = orm.mapped_column(sqltypes.JSON, default=dict)
 
     @property
-    def evaluators(self) -> dict[str, str]:
+    def evaluators(self) -> list[dict]:
         """
         Get the evaluators for this algorithm pass.
         """
         return self._evaluators
 
     @evaluators.setter  # type: ignore
-    def evaluators(self, value: dict[str, str]):
+    def evaluators(self, value: list[dict]):
         """
         Set the evaluators for this algorithm pass.
         """
@@ -101,12 +112,15 @@ class AlgorithmPass(Base):
         if hasattr(self, "_bound_evaluators"):
             del self._bound_evaluators
 
-    def bound_evaluators(self) -> dict[str, typing.Callable]:
+    def bound_evaluators(self) -> list[BoundEvaluator]:
         """
         Get the evaluators for this algorithm pass, bound to the algorithm.
         """
         if not hasattr(self, "_bound_evaluators"):
-            self._bound_evaluators = func_utils.bind_functions(self.evaluators)
+            self._bound_evaluators = [
+                BoundEvaluator(**func_utils.bind_functions(e))
+                for e in self.evaluators
+            ]
         return self._bound_evaluators
 
     @property

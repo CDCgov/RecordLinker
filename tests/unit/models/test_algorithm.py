@@ -4,6 +4,7 @@ unit.models.test_algorithm.py
 
 This module contains the unit tests for the recordlinker.models.algorithm module.
 """
+
 import unittest.mock
 
 import pytest
@@ -85,10 +86,16 @@ class TestAlgorithm:
             "passes": [
                 {
                     "blocking_keys": ["ZIP"],
-                    "evaluators": {
-                        "FIRST_NAME": "func:recordlinker.linking.matchers.feature_match_exact",
-                        "LAST_NAME": "func:recordlinker.linking.matchers.feature_match_exact",
-                    },
+                    "evaluators": [
+                        {
+                            "feature": "FIRST_NAME",
+                            "func": "func:recordlinker.linking.matchers.feature_match_exact",
+                        },
+                        {
+                            "feature": "LAST_NAME",
+                            "func": "func:recordlinker.linking.matchers.feature_match_exact",
+                        },
+                    ],
                     "rule": "func:recordlinker.linking.matchers.eval_perfect_match",
                     "cluster_ratio": 1.0,
                 }
@@ -99,10 +106,16 @@ class TestAlgorithm:
         assert algo.description == "First algorithm"
         assert len(algo.passes) == 1
         assert algo.passes[0].blocking_keys == ["ZIP"]
-        assert algo.passes[0].evaluators == {
-            "FIRST_NAME": "func:recordlinker.linking.matchers.feature_match_exact",
-            "LAST_NAME": "func:recordlinker.linking.matchers.feature_match_exact",
-        }
+        assert algo.passes[0].evaluators == [
+            {
+                "feature": "FIRST_NAME",
+                "func": "func:recordlinker.linking.matchers.feature_match_exact",
+            },
+            {
+                "feature": "LAST_NAME",
+                "func": "func:recordlinker.linking.matchers.feature_match_exact",
+            },
+        ]
         assert algo.passes[0].rule == "func:recordlinker.linking.matchers.eval_perfect_match"
         assert algo.passes[0].cluster_ratio == 1.0
 
@@ -113,12 +126,28 @@ class TestAlgorithmPass:
         Tests that the bound_evaluators method returns the correct functions
         """
         ap = models.AlgorithmPass(
-            evaluators={"BIRTHDATE": "func:recordlinker.linking.matchers.feature_match_any"}
+            evaluators=[
+                {
+                    "feature": "BIRTHDATE",
+                    "func": "func:recordlinker.linking.matchers.feature_match_any",
+                }
+            ]
         )
-        assert ap.bound_evaluators() == {"BIRTHDATE": matchers.feature_match_any}
-        ap.evaluators = {"BIRTHDATE": "func:recordlinker.linking.matchers.feature_match_exact"}
-        assert ap.bound_evaluators() == {"BIRTHDATE": matchers.feature_match_exact}
-        ap.evaluators = {"BIRTHDATE": "func:invalid"}
+        assert ap.bound_evaluators() == [
+            models.BoundEvaluator("BIRTHDATE", matchers.feature_match_any)
+        ]
+        ap.evaluators = [
+            {
+                "feature": "BIRTHDATE",
+                "func": "func:recordlinker.linking.matchers.feature_match_exact",
+            }
+        ]
+        assert ap.bound_evaluators() == [
+            models.BoundEvaluator("BIRTHDATE", matchers.feature_match_exact)
+        ]
+        ap.evaluators = [
+            {"feature": "BIRTHDATE", "func": "func:recordlinker.linking.matchers.invalid"}
+        ]
         with pytest.raises(ValueError, match="Failed to convert string to callable"):
             ap.bound_evaluators()
 
@@ -161,7 +190,9 @@ class TestCreateInitialAlgorithms:
         monkeypatch.setattr(config.settings, "initial_algorithms", "file.json")
         with unittest.mock.patch("recordlinker.utils.read_json") as read_json:
             read_json.return_value = [{"labell": "Algorithm 1", "is_default": True}]
-            with pytest.raises(config.ConfigurationError, match="Error creating initial algorithms"):
+            with pytest.raises(
+                config.ConfigurationError, match="Error creating initial algorithms"
+            ):
                 models.create_initial_algorithms(None, session.connection())
 
     def test_create_initial_algorithms(self, monkeypatch, session):

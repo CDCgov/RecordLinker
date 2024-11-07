@@ -1,5 +1,6 @@
 from .algorithm import Algorithm
 from .algorithm import AlgorithmPass
+from .algorithm import BoundEvaluator
 from .base import Base
 from .mpi import BLOCKING_VALUE_MAX_LENGTH
 from .mpi import BlockingKey
@@ -11,6 +12,7 @@ __all__ = [
     "Base",
     "Person",
     "Patient",
+    "BoundEvaluator",
     "BlockingKey",
     "BlockingValue",
     "BLOCKING_VALUE_MAX_LENGTH",

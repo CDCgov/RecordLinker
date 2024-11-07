@@ -8,6 +8,8 @@ used by the record linkage algorithm to determine whether a candidate
 pair of records should be considered a match or not.
 """
 
+import inspect
+import sys
 import typing
 
 import rapidfuzz
@@ -15,6 +17,7 @@ import rapidfuzz
 from recordlinker.models.mpi import Patient
 from recordlinker.schemas.pii import Feature
 from recordlinker.schemas.pii import PIIRecord
+from recordlinker.utils import functools as utils
 
 SIMILARITY_MEASURES = typing.Literal["JaroWinkler", "Levenshtein", "DamerauLevenshtein"]
 
@@ -24,27 +27,26 @@ FEATURE_COMPARE_FUNC = typing.Callable[[PIIRecord, Patient, Feature, typing.Any]
 MATCH_RULE_FUNC = typing.Callable[[list[float], typing.Any], bool]
 
 
-def get_feature_functions() -> list[FEATURE_COMPARE_FUNC]:
+def get_feature_func_names() -> typing.Iterator[str]:
     """
     Return a list of all available feature comparison functions.
 
     :return: A list of all available feature comparison functions.
     """
-    return [
-        feature_match_any,
-        feature_match_exact,
-        feature_match_fuzzy_string,
-        feature_match_log_odds_fuzzy_compare,
-    ]
+    for _, fn in inspect.getmembers(sys.modules[__name__], inspect.isfunction):
+        if utils.check_signature(fn, FEATURE_COMPARE_FUNC):
+            yield utils.func_to_str(fn)
 
 
-def get_rule_functions() -> list[MATCH_RULE_FUNC]:
+def get_rule_func_names() -> typing.Iterator[str]:
     """
     Return a list of all available match rule functions.
 
     :return: A list of all available match rule functions.
     """
-    return [eval_perfect_match, eval_log_odds_cutoff]
+    for _, fn in inspect.getmembers(sys.modules[__name__], inspect.isfunction):
+        if utils.check_signature(fn, MATCH_RULE_FUNC):
+            yield utils.func_to_str(fn)
 
 
 def get_available_kwargs() -> dict[str, typing.Any]:
