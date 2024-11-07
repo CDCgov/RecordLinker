@@ -62,7 +62,10 @@ class LinkResponse(pydantic.BaseModel):
         description="The identifier for the person that the patient record has been linked to.",
     )
     results: list[LinkResult] = pydantic.Field(
-        description="TODO"
+        description="A list of (possibly) matched Persons. If prediction='match', either the single"
+                    "(include_multiple_matches=False) or multiple (include_multiple_matches=True) "
+                    "Persons with which the Patient record matches. If prediction='possible_match',"
+                    "all Persons with which the Patient record possibly matches."
     )
 
     @pydantic.computed_field
