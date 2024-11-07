@@ -181,37 +181,37 @@ class TestLink:
             "/link", json={"record": json.loads(patients[0].model_dump_json(exclude_none=True))}
         )
         person_1 = response_1.json()["person_reference_id"]
-        assert not response_1.json()["is_match"]
+        assert response_1.json()["prediction"] == "no_match"
 
         response_2 = client.post(
             "/link", json={"record": json.loads(patients[1].model_dump_json(exclude_none=True))}
         )
         person_2 = response_2.json()["person_reference_id"]
-        assert response_2.json()["is_match"]
+        assert response_2.json()["prediction"] == "match"
         assert person_2 == person_1
 
         response_3 = client.post(
             "/link", json={"record": json.loads(patients[2].model_dump_json(exclude_none=True))}
         )
-        assert not response_3.json()["is_match"]
+        assert response_3.json()["prediction"] == "no_match"
 
         # Cluster membership success--justified match
         response_4 = client.post(
             "/link", json={"record": json.loads(patients[3].model_dump_json(exclude_none=True))}
         )
         person_4 = response_4.json()["person_reference_id"]
-        assert response_4.json()["is_match"]
+        assert response_4.json()["prediction"] == "match"
         assert person_4 == person_1
 
         response_5 = client.post(
             "/link", json={"record": json.loads(patients[4].model_dump_json(exclude_none=True))}
         )
-        assert not response_5.json()["is_match"]
+        assert response_5.json()["prediction"] == "no_match"
 
         response_6 = client.post(
             "/link", json={"record": json.loads(patients[5].model_dump_json(exclude_none=True))}
         )
-        assert not response_6.json()["is_match"]
+        assert response_6.json()["prediction"] == "no_match"
 
     @mock.patch("recordlinker.database.algorithm_service.get_algorithm")
     def test_link_enhanced_algorithm(
@@ -227,7 +227,7 @@ class TestLink:
             },
         )
         person_1 = response_1.json()["person_reference_id"]
-        assert not response_1.json()["is_match"]
+        assert response_1.json()["prediction"] == "no_match"
 
         response_2 = client.post(
             "/link",
@@ -237,7 +237,7 @@ class TestLink:
             },
         )
         person_2 = response_2.json()["person_reference_id"]
-        assert response_2.json()["is_match"]
+        assert response_2.json()["prediction"] == "match"
         assert person_2 == person_1
 
         response_3 = client.post(
@@ -247,7 +247,7 @@ class TestLink:
                 "algorithm": "dibbs-enhanced",
             },
         )
-        assert not response_3.json()["is_match"]
+        assert response_3.json()["prediction"] == "no_match"
 
         # Cluster membership success--justified match
         response_4 = client.post(
@@ -258,7 +258,7 @@ class TestLink:
             },
         )
         person_4 = response_4.json()["person_reference_id"]
-        assert response_4.json()["is_match"]
+        assert response_4.json()["prediction"] == "match"
         assert person_4 == person_1
 
         response_5 = client.post(
@@ -268,7 +268,7 @@ class TestLink:
                 "algorithm": "dibbs-enhanced",
             },
         )
-        assert not response_5.json()["is_match"]
+        assert response_5.json()["prediction"] == "no_match"
 
         response_6 = client.post(
             "/link",
@@ -277,7 +277,7 @@ class TestLink:
                 "algorithm": "dibbs-enhanced",
             },
         )
-        assert not response_6.json()["is_match"]
+        assert response_6.json()["prediction"] == "no_match"
 
     @mock.patch("recordlinker.database.algorithm_service.get_algorithm")
     def test_link_invalid_algorithm_param(self, patched_subprocess, patients, client):
@@ -330,37 +330,37 @@ class TestLinkFHIR:
         bundle_1["entry"] = [entry_list[0]]
         response_1 = client.post("/link/fhir", json={"bundle": bundle_1})
         person_1 = response_1.json()["person_reference_id"]
-        assert not response_1.json()["is_match"]
+        assert response_1.json()["prediction"] == "no_match"
 
         bundle_2 = test_bundle
         bundle_2["entry"] = [entry_list[1]]
         response_2 = client.post("/link/fhir", json={"bundle": bundle_2})
         person_2 = response_2.json()["person_reference_id"]
-        assert response_2.json()["is_match"]
+        assert response_2.json()["prediction"] == "match"
         assert person_2 == person_1
 
         bundle_3 = test_bundle
         bundle_3["entry"] = [entry_list[2]]
         response_3 = client.post("/link/fhir", json={"bundle": bundle_3})
-        assert not response_3.json()["is_match"]
+        assert response_3.json()["prediction"] == "no_match"
 
         # Cluster membership success--justified match
         bundle_4 = test_bundle
         bundle_4["entry"] = [entry_list[3]]
         response_4 = client.post("/link/fhir", json={"bundle": bundle_4})
         person_4 = response_4.json()["person_reference_id"]
-        assert response_4.json()["is_match"]
+        assert response_4.json()["prediction"] == "match"
         assert person_4 == person_1
 
         bundle_5 = test_bundle
         bundle_5["entry"] = [entry_list[4]]
         response_5 = client.post("/link/fhir", json={"bundle": bundle_5})
-        assert not response_5.json()["is_match"]
+        assert response_5.json()["prediction"] == "no_match"
 
         bundle_6 = test_bundle
         bundle_6["entry"] = [entry_list[5]]
         response_6 = client.post("/link/fhir", json={"bundle": bundle_6})
-        assert not response_6.json()["is_match"]
+        assert response_6.json()["prediction"] == "no_match"
     
     @mock.patch("recordlinker.database.algorithm_service.get_algorithm")
     def test_link_enhanced_algorithm(
@@ -376,7 +376,7 @@ class TestLinkFHIR:
             "/link/fhir", json={"bundle": bundle_1, "algorithm": "dibbs-enhanced"}
         )
         person_1 = response_1.json()["person_reference_id"]
-        assert not response_1.json()["is_match"]
+        assert response_1.json()["prediction"] == "no_match"
 
         bundle_2 = test_bundle
         bundle_2["entry"] = [entry_list[1]]
@@ -384,7 +384,7 @@ class TestLinkFHIR:
             "/link/fhir", json={"bundle": bundle_2, "algorithm": "dibbs-enhanced"}
         )
         person_2 = response_2.json()["person_reference_id"]
-        assert response_2.json()["is_match"]
+        assert response_2.json()["prediction"] == "match"
         assert person_2 == person_1
 
         bundle_3 = test_bundle
@@ -392,7 +392,7 @@ class TestLinkFHIR:
         response_3 = client.post(
             "/link/fhir", json={"bundle": bundle_3, "algorithm": "dibbs-enhanced"}
         )
-        assert not response_3.json()["is_match"]
+        assert response_3.json()["prediction"] == "no_match"
 
         # Cluster membership success--justified match
         bundle_4 = test_bundle
@@ -401,7 +401,7 @@ class TestLinkFHIR:
             "/link/fhir", json={"bundle": bundle_4, "algorithm": "dibbs-enhanced"}
         )
         person_4 = response_4.json()["person_reference_id"]
-        assert response_4.json()["is_match"]
+        assert response_4.json()["prediction"] == "match"
         assert person_4 == person_1
 
         bundle_5 = test_bundle
@@ -409,14 +409,14 @@ class TestLinkFHIR:
         response_5 = client.post(
             "/link/fhir", json={"bundle": bundle_5, "algorithm": "dibbs-enhanced"}
         )
-        assert not response_5.json()["is_match"]
+        assert response_5.json()["prediction"] == "no_match"
 
         bundle_6 = test_bundle
         bundle_6["entry"] = [entry_list[5]]
         response_6 = client.post(
             "/link/fhir", json={"bundle": bundle_6, "algorithm": "dibbs-enhanced"}
         )
-        assert not response_6.json()["is_match"]
+        assert response_6.json()["prediction"] == "no_match"
     
     @mock.patch("recordlinker.database.algorithm_service.get_algorithm")
     def test_linkrecord_invalid_algorithm_param(self, patched_subprocess, client):

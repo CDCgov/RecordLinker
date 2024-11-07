@@ -52,8 +52,9 @@ class LinkResult(pydantic.BaseModel):
         Extract the person_reference_id from the person_reference_id field.
         """
         person = data.pop("person", None)
+        print(person)
         if person:
-            data["person_reference_id"] = person.get("reference_id")
+            data["person_reference_id"] = person.reference_id
         return data
 
 
