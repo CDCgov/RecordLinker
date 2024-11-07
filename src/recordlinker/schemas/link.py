@@ -44,6 +44,10 @@ class LinkResult(pydantic.BaseModel):
         description="The percentage of patient records matched in this person cluster."
     )
 
+    @property
+    def person(self, value):
+        self.person_reference_id = value.id
+
 
 class LinkResponse(pydantic.BaseModel):
     """
@@ -64,6 +68,9 @@ class LinkResponse(pydantic.BaseModel):
     @pydantic.computed_field
     @property
     def prediction(self) -> typing.Literal["match", "possible_match", "no_match"]:
+        """
+        Record Linkage algorithm prediction.
+        """
         if self.person_reference_id and self.results:
             return "match"
         elif not self.results:
@@ -93,23 +100,14 @@ class LinkFhirInput(pydantic.BaseModel):
     )
 
 
-class LinkFhirResponse(pydantic.BaseModel):
+class LinkFhirResponse(LinkResponse):
     """
     The schema for responses from the link FHIR endpoint.
     """
 
-    found_match: bool = pydantic.Field(
-        description="A true value indicates that one or more existing records "
-        "matched with the provided record, and these results have been linked."
-    )
-    updated_bundle: dict = pydantic.Field(
-        description="If link_found is true, returns the FHIR bundle with updated"
-        " references to existing Personresource. If link_found is false, "
+    updated_bundle: dict | None = pydantic.Field(
+        description="If 'prediction' is 'match', returns the FHIR bundle with updated"
+        " references to existing Person resource. If 'prediction' is 'no_match', "
         "returns the FHIR bundle with a reference to a newly created "
-        "Person resource."
-    )
-    message: typing.Optional[str] = pydantic.Field(
-        description="An optional message in the case that the linkage endpoint did "
-        "not run successfully containing a description of the error that happened.",
-        default="",
+        "Person resource. If 'prediction' is 'possible_match', returns None."
     )

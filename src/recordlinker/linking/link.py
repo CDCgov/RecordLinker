@@ -7,7 +7,6 @@ This module is used to run the linkage algorithm using the MPI service
 
 import collections
 import typing
-import uuid
 
 from sqlalchemy import orm
 
