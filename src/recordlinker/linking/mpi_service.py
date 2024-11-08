@@ -141,7 +141,7 @@ def bulk_insert_patients(
         for record in records
     ]
 
-    patients: list[models.Patient] = session.scalars(
+    patients: typing.Sequence[models.Patient] = session.scalars(
         insert(models.Patient).returning(models.Patient, sort_by_parameter_order=True), pat_data
     ).all()
 
