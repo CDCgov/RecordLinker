@@ -7,10 +7,10 @@ from sqlalchemy import orm
 from sqlalchemy import schema
 from sqlalchemy import types as sqltypes
 
-from recordlinker import utils
 from recordlinker.config import ConfigurationError
 from recordlinker.config import settings
 from recordlinker.utils import functools as func_utils
+from recordlinker.utils import path as path_utils
 
 from .base import Base
 
@@ -157,7 +157,7 @@ def create_initial_algorithms(target, connection, **kw) -> typing.List[Algorithm
     """
     if settings.initial_algorithms:
         try:
-            data = utils.read_json(settings.initial_algorithms)
+            data = path_utils.read_json(settings.initial_algorithms)
         except Exception as exc:
             raise ConfigurationError("Error loading initial algorithms") from exc
         if not any(algo.get("is_default") for algo in data):

@@ -62,6 +62,9 @@ prod = [
 [tool.setuptools]
 package-dir = {"" = "src"}
 
+[tool.setuptools.package-data]
+recordlinker = ["assets/*"]
+
 [tool.setuptools.packages.find]
 where = ["src"]
 namespaces = false
