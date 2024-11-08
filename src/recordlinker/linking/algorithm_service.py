@@ -25,7 +25,7 @@ def list_algorithms(session: orm.Session) -> typing.Sequence[models.Algorithm]:
     return session.scalars(select(models.Algorithm)).all()
 
 
-def default_algorithm(session: orm.Session) -> models.Algorithm:
+def default_algorithm(session: orm.Session) -> models.Algorithm | None:
     """
     Get the default algorithm from the MPI database.
 
@@ -35,7 +35,7 @@ def default_algorithm(session: orm.Session) -> models.Algorithm:
     query = select(models.Algorithm).where(models.Algorithm.is_default == True)  # noqa: E712
     res = session.scalars(query).all()
     if not res:
-        raise ValueError("No default algorithm found in the database.")
+        return None
     assert len(res) == 1, "Multiple default algorithms found in the database."
     return res[0]
 
