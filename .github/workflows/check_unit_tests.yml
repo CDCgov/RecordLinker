@@ -80,13 +80,13 @@ jobs:
           fi
 
           pytest --cov=recordlinker tests/unit
+          mv .coverage coverage-${{ matrix.database }}.dat
 
       - name: Upload coverage artifact
         uses: actions/upload-artifact@v4
         with:
           name: coverage-${{ matrix.database }}
-          path: .coverage # Save the coverage data file as an artifact for each database
-          include-hidden-files: true
+          path: coverage-${{ matrix.database }}.dat # Save the coverage data file as an artifact for each database
 
   coverage:
     runs-on: ubuntu-latest
@@ -105,7 +105,7 @@ jobs:
           ls -l coverage_artifacts
           pip install coverage
           cd coverage_artifacts
-          coverage combine coverage-*
+          coverage combine coverage-*.dat
           coverage xml -o combined_coverage.xml
 
       - name: Upload combined coverage to Codecov
