@@ -1,5 +1,6 @@
 import functools
 import json
+import gzip
 import pathlib
 
 import pytest
@@ -13,11 +14,13 @@ from recordlinker.utils import path as utils
 
 def load_test_json_asset(*paths: str) -> dict | list:
     """
-    Loads a JSON file from the testing 'assets' directory.
+    Loads a JSON file from the testing 'assets' directory. Works with both
+    regular and gzipped JSON files.
     """
     cwd = pathlib.Path(__file__).resolve().parent
     filename = pathlib.Path(cwd, "assets", *paths)
-    with open(filename, "r") as fobj:
+    func = gzip.open if filename.suffix == ".gz" else open
+    with func(filename, "rt") as fobj:
         return json.load(fobj)
 
 
