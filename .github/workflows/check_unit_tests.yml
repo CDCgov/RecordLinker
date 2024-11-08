@@ -82,7 +82,7 @@ jobs:
           pytest --cov=recordlinker --cov-report=xml tests/unit
 
       - name: Upload coverage artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: coverage-${{ matrix.database }}
           path: .coverage  # Save the coverage report as an artifact for each database
@@ -93,10 +93,11 @@ jobs:
 
     steps:
       - name: Download all coverage artifacts
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
-          name: coverage-*
           path: coverage_artifacts
+          pattern: coverage-*
+          merge-multiple: true
 
       - name: Combine coverage reports
         run: |
