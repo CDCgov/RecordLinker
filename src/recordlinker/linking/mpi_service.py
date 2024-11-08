@@ -178,7 +178,13 @@ def insert_blocking_values(
     if not data:
         return
 
-    session.execute(insert(models.BlockingValue), data)
+    if session.get_bind().dialect.name == "mysql":
+        # MySQL doesn't support bulk inserts, thus we need to insert
+        # each row individually
+        session.add_all([models.BlockingValue(**d) for d in data])
+    else:
+        # For all other dialects, we can use a bulk insert to improve performance
+        session.execute(insert(models.BlockingValue), data)
     if commit:
         session.commit()
 
