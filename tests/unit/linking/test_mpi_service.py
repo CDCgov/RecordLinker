@@ -10,6 +10,7 @@ import uuid
 
 import pytest
 import sqlalchemy.exc
+from conftest import db_dialect
 
 from recordlinker import models
 from recordlinker import schemas
@@ -243,6 +244,11 @@ class TestInsertPatient:
 
 
 class TestBulkInsertPatients:
+    @classmethod
+    def setup_class(cls):
+        if db_dialect() == "mysql":
+            pytest.skip("Test skipped because the database dialect is MySQL")
+
     def test_empty(self, session):
         assert mpi_service.bulk_insert_patients(session, []) == []
 
@@ -251,7 +257,9 @@ class TestBulkInsertPatients:
         patients = mpi_service.bulk_insert_patients(session, [rec], external_person_id="123456")
         assert len(patients) == 1
         assert patients[0].person_id is not None
-        assert json.loads(patients[0].data) == {"name": [{"given": ["Johnathon"], "family": "Smith"}]}
+        assert json.loads(patients[0].data) == {
+            "name": [{"given": ["Johnathon"], "family": "Smith"}]
+        }
         assert patients[0].external_person_id == "123456"
         values = patients[0].blocking_values
         assert len(values) == 2
@@ -261,20 +269,51 @@ class TestBulkInsertPatients:
         person = models.Person()
         session.add(person)
         session.flush()
-        rec1 = schemas.PIIRecord(**{"birthdate": "1950-01-01", "name": [{"given": ["George"], "family": "Harrison"}]})
-        rec2 = schemas.PIIRecord(**{"birthdate": "1950-01-01", "name": [{"given": ["George", "Harold"], "family": "Harrison"}]})
-        patients = mpi_service.bulk_insert_patients(session, [rec1, rec2], person=person, external_person_id="123456")
+        rec1 = schemas.PIIRecord(
+            **{"birthdate": "1950-01-01", "name": [{"given": ["George"], "family": "Harrison"}]}
+        )
+        rec2 = schemas.PIIRecord(
+            **{
+                "birthdate": "1950-01-01",
+                "name": [{"given": ["George", "Harold"], "family": "Harrison"}],
+            }
+        )
+        patients = mpi_service.bulk_insert_patients(
+            session, [rec1, rec2], person=person, external_person_id="123456"
+        )
         assert len(patients) == 2
         assert patients[0].person_id == person.id
         assert patients[1].person_id == person.id
-        assert json.loads(patients[0].data) == {"birth_date": "1950-01-01", "name": [{"given": ["George"], "family": "Harrison"}]}
-        assert json.loads(patients[1].data) == {"birth_date": "1950-01-01", "name": [{"given": ["George", "Harold"], "family": "Harrison"}]}
+        assert json.loads(patients[0].data) == {
+            "birth_date": "1950-01-01",
+            "name": [{"given": ["George"], "family": "Harrison"}],
+        }
+        assert json.loads(patients[1].data) == {
+            "birth_date": "1950-01-01",
+            "name": [{"given": ["George", "Harold"], "family": "Harrison"}],
+        }
         assert patients[0].external_person_id == "123456"
         assert patients[1].external_person_id == "123456"
         assert len(patients[0].blocking_values) == 3
         assert set(v.value for v in patients[0].blocking_values) == {"1950-01-01", "Geor", "Harr"}
         assert len(patients[1].blocking_values) == 4
-        assert set(v.value for v in patients[1].blocking_values) == {"1950-01-01", "Geor", "Haro", "Harr"}
+        assert set(v.value for v in patients[1].blocking_values) == {
+            "1950-01-01",
+            "Geor",
+            "Haro",
+            "Harr",
+        }
+
+
+class TestBulkInsertPatientsMySQL:
+    @classmethod
+    def setup_class(cls):
+        if db_dialect() != "mysql":
+            pytest.skip("Test skipped because the database dialect is not MySQL")
+
+    def test_error(self, session):
+        with pytest.raises(ValueError):
+            assert mpi_service.bulk_insert_patients(session, [])
 
 
 class TestGetBlockData:
@@ -674,7 +713,7 @@ class TestUpdatePersonCluster:
 
 class TestResetMPI:
     def test(self, session):
-        data={
+        data = {
             "name": [
                 {
                     "given": [

@@ -21,6 +21,12 @@ def load_test_json_asset(*paths: str) -> dict | list:
         return json.load(fobj)
 
 
+@functools.lru_cache
+def db_dialect():
+    with database.get_test_session() as session:
+        return session.get_bind().dialect.name
+
+
 @pytest.fixture(scope="function")
 def session():
     with database.get_test_session() as session:
