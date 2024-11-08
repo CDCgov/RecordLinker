@@ -5,9 +5,11 @@ recordlinker.linking.mpi_service
 This module provides the data access functions to the MPI tables
 """
 
+import json
 import typing
 import uuid
 
+from sqlalchemy import insert
 from sqlalchemy import orm
 from sqlalchemy import select
 from sqlalchemy.sql import expression
@@ -17,9 +19,7 @@ from recordlinker import schemas
 
 
 def get_block_data(
-    session: orm.Session,
-    record: schemas.PIIRecord,
-    algorithm_pass: models.AlgorithmPass
+    session: orm.Session, record: schemas.PIIRecord, algorithm_pass: models.AlgorithmPass
 ) -> typing.Sequence[models.Patient]:
     """
     Get all of the matching Patients for the given data using the provided
@@ -62,6 +62,7 @@ def get_block_data(
     expr = expression.select(models.Patient).where(models.Patient.person_id.in_(base))
     return session.execute(expr).scalars().all()
 
+
 def insert_patient(
     session: orm.Session,
     record: schemas.PIIRecord,
@@ -72,6 +73,15 @@ def insert_patient(
 ) -> models.Patient:
     """
     Insert a new patient record into the database.
+
+    :param session: The database session
+    :param record: The PIIRecord to insert
+    :param person: Optional Person to associate with the Patient
+    :param external_patient_id: Optional external patient ID
+    :param external_person_id: Optional external person ID
+    :param commit: Whether to commit the transaction
+
+    :returns: The inserted Patient record
     """
     # create a new Person record if one isn't provided
     person = person or models.Person()
@@ -84,36 +94,93 @@ def insert_patient(
 
     # create a new Patient record
     session.add(patient)
+    session.flush()
 
-    # insert blocking keys
-    insert_blocking_keys(session, patient, commit=False)
+    # insert blocking values
+    insert_blocking_values(session, [patient], commit=False)
 
     if commit:
         session.commit()
     return patient
 
 
-def insert_blocking_keys(
+def bulk_insert_patients(
     session: orm.Session,
-    patient: models.Patient,
+    records: typing.Sequence[schemas.PIIRecord],
+    person: typing.Optional[models.Person] = None,
+    external_person_id: typing.Optional[str] = None,
     commit: bool = True,
-) -> list[models.BlockingValue]:
+) -> typing.Sequence[models.Patient]:
     """
-    Inserts blocking keys for a patient record into the MPI database.
+    Insert multiple patient records, associated with 1 Person, into the database.
+
+    :param session: The database session
+    :param records: The PIIRecords to insert
+    :param person: Optional Person to associate with the Patients
+    :param external_person_id: Optional external person ID to associate with the Patients
+    :param commit: Whether to commit the transaction
+
+    :returns: The inserted Patient records
     """
-    values: list[models.BlockingValue] = []
-    # Iterate over all the Blocking Keys
-    for key in models.BlockingKey:
-        # For each Key, get all the values from the data dictionary
-        # Many Keys will only have 1 value, but its possible that
-        # a PII data dict could have multiple given names
-        for val in patient.record.blocking_keys(key):
-            values.append(models.BlockingValue(patient=patient, blockingkey=key.id, value=val))
-    session.add_all(values)
+    if not records:
+        return []
+
+    person = person or models.Person()
+    session.add(person)
+    session.flush()
+    pat_data = [
+        {
+            "person_id": person.id,
+            "_data": record.to_json(prune_empty=True),
+            "external_patient_id": record.external_id,
+            "external_person_id": external_person_id,
+            "external_person_source": "IRIS" if external_person_id else None,
+        }
+        for record in records
+    ]
+
+    patients: list[models.Patient] = session.scalars(
+        insert(models.Patient).returning(models.Patient, sort_by_parameter_order=True), pat_data
+    ).all()
+
+    insert_blocking_values(session, patients, records=records, commit=False)
 
     if commit:
         session.commit()
-    return values
+    return patients
+
+
+def insert_blocking_values(
+    session: orm.Session,
+    patients: typing.Sequence[models.Patient],
+    records: typing.Sequence[schemas.PIIRecord] | None = None,
+    commit: bool = True,
+) -> None:
+    """
+    Inserts BlockingValues for the Patients into the MPI database.
+
+    :param session: The database session
+    :param patients: The Patients to insert BlockingValues for
+    :param records: Optional list of corresponding PIIRecords, for the patients.  If not provided, they
+        will be retrieved from the Patient objects.
+    :param commit: Whether to commit the transaction
+
+    :returns: None
+    """
+    if records is not None and len(patients) != len(records):
+        raise ValueError("Patients and records must be the same length")
+
+    data: list[dict] = []
+    for idx, patient in enumerate(patients):
+        record = records[idx] if records else patient.record
+        for key, val in record.blocking_values():
+            data.append({"patient_id": patient.id, "blockingkey": key.id, "value": val})
+    if not data:
+        return
+
+    session.execute(insert(models.BlockingValue), data)
+    if commit:
+        session.commit()
 
 
 def get_patient_by_reference_id(
@@ -151,3 +218,14 @@ def update_person_cluster(
     if commit:
         session.commit()
     return patient.person
+
+
+def reset_mpi(session: orm.Session, commit: bool = True):
+    """
+    Reset the MPI database by deleting all Person and Patient records.
+    """
+    session.query(models.BlockingValue).delete()
+    session.query(models.Patient).delete()
+    session.query(models.Person).delete()
+    if commit:
+        session.commit()

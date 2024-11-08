@@ -5,6 +5,7 @@ unit.linking.test_mpi_service.py
 This module contains the unit tests for the recordlinker.linking.mpi_service module.
 """
 
+import json
 import uuid
 
 import pytest
@@ -15,44 +16,109 @@ from recordlinker import schemas
 from recordlinker.linking import mpi_service
 
 
-@pytest.fixture(scope="function")
-def new_patient(session):
-    patient = models.Patient(person=models.Person(), data={})
-    session.add(patient)
-    session.flush()
-    return patient
+class TestInsertBlockingValues:
+    def new_patient(self, session, data=None):
+        patient = models.Patient(person=models.Person(), data=(data or {}))
+        session.add(patient)
+        session.flush()
+        return patient
 
+    def test_no_values(self, session):
+        pat = self.new_patient(session, data={"name": []})
+        mpi_service.insert_blocking_values(session, [pat])
+        assert len(pat.blocking_values) == 0
 
-class TestInsertBlockingKeys:
-    def test_patient_no_blocking_keys(self, session, new_patient):
-        new_patient.data = {"name": []}
-        assert mpi_service.insert_blocking_keys(session, new_patient) == []
-
-    def test_patient_with_blocking_keys(self, session, new_patient):
-        new_patient.data = {
-            "name": [
-                {
-                    "given": [
-                        "Johnathon",
-                        "Bill",
-                    ],
-                    "family": "Smith",
-                }
-            ],
-            "birthdate": "1980-01-01",
-        }
-        keys = mpi_service.insert_blocking_keys(session, new_patient)
-        assert len(keys) == 4
-        for key in keys:
-            assert keys[0].patient_id == new_patient.id
-            if key.blockingkey == models.BlockingKey.BIRTHDATE.id:
-                assert key.value == "1980-01-01"
-            elif key.blockingkey == models.BlockingKey.FIRST_NAME.id:
-                assert key.value in ["John", "Bill"]
-            elif key.blockingkey == models.BlockingKey.LAST_NAME.id:
-                assert key.value == "Smit"
+    def test_patient(self, session):
+        pat = self.new_patient(
+            session,
+            data={
+                "name": [
+                    {
+                        "given": [
+                            "Johnathon",
+                            "Bill",
+                        ],
+                        "family": "Smith",
+                    }
+                ],
+                "birthdate": "1980-01-01",
+            },
+        )
+        mpi_service.insert_blocking_values(session, [pat])
+        values = pat.blocking_values
+        assert len(values) == 4
+        for val in values:
+            assert values[0].patient_id == pat.id
+            if val.blockingkey == models.BlockingKey.BIRTHDATE.id:
+                assert val.value == "1980-01-01"
+            elif val.blockingkey == models.BlockingKey.FIRST_NAME.id:
+                assert val.value in ["John", "Bill"]
+            elif val.blockingkey == models.BlockingKey.LAST_NAME.id:
+                assert val.value == "Smit"
             else:
-                assert False, f"Unexpected blocking key: {key.blockingkey}"
+                assert False, f"Unexpected blocking key: {val.blockingkey}"
+
+    def test_multiple_patients(self, session):
+        pat1 = self.new_patient(
+            session,
+            data={
+                "name": [
+                    {
+                        "given": [
+                            "Johnathon",
+                            "Bill",
+                        ],
+                        "family": "Smith",
+                    }
+                ],
+                "birthdate": "1980-01-01",
+            },
+        )
+        pat2 = self.new_patient(
+            session,
+            data={
+                "name": [
+                    {
+                        "given": [
+                            "George",
+                        ],
+                        "family": "Harrison",
+                    }
+                ],
+                "birthdate": "1943-2-25",
+            },
+        )
+        mpi_service.insert_blocking_values(session, [pat1, pat2])
+        assert len(pat1.blocking_values) == 4
+        assert len(pat2.blocking_values) == 3
+
+    def test_with_mismatched_records(self, session):
+        pat = self.new_patient(session, data={"name": []})
+        with pytest.raises(ValueError):
+            mpi_service.insert_blocking_values(session, [pat], [])
+
+    def test_with_records(self, session):
+        pat = self.new_patient(
+            session,
+            data={
+                "name": [
+                    {
+                        "given": [
+                            "Johnathon",
+                            "Bill",
+                        ],
+                        "family": "Smith",
+                    }
+                ],
+                "birthdate": "1980-01-01",
+            },
+        )
+        rec = schemas.PIIRecord(**pat.data)
+        mpi_service.insert_blocking_values(session, [pat], [rec])
+        values = pat.blocking_values
+        assert len(values) == 4
+        assert set(v.patient_id for v in values) == {pat.id}
+        assert set(v.value for v in values) == {"1980-01-01", "John", "Bill", "Smit"}
 
 
 class TestInsertPatient:
@@ -176,96 +242,151 @@ class TestInsertPatient:
         assert len(patient.blocking_values) == 2
 
 
+class TestBulkInsertPatients:
+    def test_empty(self, session):
+        assert mpi_service.bulk_insert_patients(session, []) == []
+
+    def test_no_person(self, session):
+        rec = schemas.PIIRecord(**{"name": [{"given": ["Johnathon"], "family": "Smith"}]})
+        patients = mpi_service.bulk_insert_patients(session, [rec], external_person_id="123456")
+        assert len(patients) == 1
+        assert patients[0].person_id is not None
+        assert json.loads(patients[0].data) == {"name": [{"given": ["Johnathon"], "family": "Smith"}]}
+        assert patients[0].external_person_id == "123456"
+        values = patients[0].blocking_values
+        assert len(values) == 2
+        assert set(v.value for v in values) == {"John", "Smit"}
+
+    def test_with_person(self, session):
+        person = models.Person()
+        session.add(person)
+        session.flush()
+        rec1 = schemas.PIIRecord(**{"birthdate": "1950-01-01", "name": [{"given": ["George"], "family": "Harrison"}]})
+        rec2 = schemas.PIIRecord(**{"birthdate": "1950-01-01", "name": [{"given": ["George", "Harold"], "family": "Harrison"}]})
+        patients = mpi_service.bulk_insert_patients(session, [rec1, rec2], person=person, external_person_id="123456")
+        assert len(patients) == 2
+        assert patients[0].person_id == person.id
+        assert patients[1].person_id == person.id
+        assert json.loads(patients[0].data) == {"birth_date": "1950-01-01", "name": [{"given": ["George"], "family": "Harrison"}]}
+        assert json.loads(patients[1].data) == {"birth_date": "1950-01-01", "name": [{"given": ["George", "Harold"], "family": "Harrison"}]}
+        assert patients[0].external_person_id == "123456"
+        assert patients[1].external_person_id == "123456"
+        assert len(patients[0].blocking_values) == 3
+        assert set(v.value for v in patients[0].blocking_values) == {"1950-01-01", "Geor", "Harr"}
+        assert len(patients[1].blocking_values) == 4
+        assert set(v.value for v in patients[1].blocking_values) == {"1950-01-01", "Geor", "Haro", "Harr"}
+
+
 class TestGetBlockData:
     @pytest.fixture
     def prime_index(self, session):
-
         person_1 = models.Person()
         session.add(person_1)
         session.flush()
 
         data = [
-            ({
-                "name": [
-                    {
-                        "given": [
-                            "Johnathon",
-                            "Bill",
-                        ],
-                        "family": "Smith",
-                    }
-                ],
-                "birthdate": "01/01/1980",
-            }, person_1),
-            ({
-                "name": [
-                    {
-                        "given": [
-                            "George",
-                        ],
-                        "family": "Harrison",
-                    }
-                ],
-                "birthdate": "1943-2-25",
-            }, None),
-            ({
-                "name": [
-                    {
-                        "given": [
-                            "John",
-                        ],
-                        "family": "Doe",
-                    },
-                    {"given": ["John"], "family": "Lewis"},
-                ],
-                "birthdate": "1980-01-01",
-            }, None),
-            ({
-                "name": [
-                    {
-                        "given": [
-                            "Bill",
-                        ],
-                        "family": "Smith",
-                    }
-                ],
-                "birthdate": "1980-01-01",
-            }, person_1),
-            ({
-                "name": [
-                    {
-                        "given": [
-                            "John",
-                        ],
-                        "family": "Smith",
-                    }
-                ],
-                "birthdate": "1980-01-01",
-            }, person_1),
-            ({
-                "name": [
-                    {
-                        "given": [
-                            "John",
-                        ],
-                        "family": "Smith",
-                    }
-                ],
-                "birthdate": "1985-11-12",
-            }, None),
-            ({
-                "name": [
-                    {
-                        "given": [
-                            "Ferris",
-                        ],
-                        "family": "Bueller",
-                    }
-                ],
-                "birthdate": "",
-            }, None)
+            (
+                {
+                    "name": [
+                        {
+                            "given": [
+                                "Johnathon",
+                                "Bill",
+                            ],
+                            "family": "Smith",
+                        }
+                    ],
+                    "birthdate": "01/01/1980",
+                },
+                person_1,
+            ),
+            (
+                {
+                    "name": [
+                        {
+                            "given": [
+                                "George",
+                            ],
+                            "family": "Harrison",
+                        }
+                    ],
+                    "birthdate": "1943-2-25",
+                },
+                None,
+            ),
+            (
+                {
+                    "name": [
+                        {
+                            "given": [
+                                "John",
+                            ],
+                            "family": "Doe",
+                        },
+                        {"given": ["John"], "family": "Lewis"},
+                    ],
+                    "birthdate": "1980-01-01",
+                },
+                None,
+            ),
+            (
+                {
+                    "name": [
+                        {
+                            "given": [
+                                "Bill",
+                            ],
+                            "family": "Smith",
+                        }
+                    ],
+                    "birthdate": "1980-01-01",
+                },
+                person_1,
+            ),
+            (
+                {
+                    "name": [
+                        {
+                            "given": [
+                                "John",
+                            ],
+                            "family": "Smith",
+                        }
+                    ],
+                    "birthdate": "1980-01-01",
+                },
+                person_1,
+            ),
+            (
+                {
+                    "name": [
+                        {
+                            "given": [
+                                "John",
+                            ],
+                            "family": "Smith",
+                        }
+                    ],
+                    "birthdate": "1985-11-12",
+                },
+                None,
+            ),
+            (
+                {
+                    "name": [
+                        {
+                            "given": [
+                                "Ferris",
+                            ],
+                            "family": "Bueller",
+                        }
+                    ],
+                    "birthdate": "",
+                },
+                None,
+            ),
         ]
-        for (datum, person) in data:
+        for datum, person in data:
             mpi_service.insert_patient(session, schemas.PIIRecord(**datum), person=person)
 
     def test_block_invalid_key(self, session):
@@ -549,3 +670,27 @@ class TestUpdatePersonCluster:
         session.flush()
         person = mpi_service.update_person_cluster(session, patient, person=new_person)
         assert person.id == new_person.id
+
+
+class TestResetMPI:
+    def test(self, session):
+        data={
+            "name": [
+                {
+                    "given": [
+                        "Johnathon",
+                        "Bill",
+                    ],
+                    "family": "Smith",
+                }
+            ],
+            "birthdate": "1980-01-01",
+        }
+        mpi_service.insert_patient(session, schemas.PIIRecord(**data), person=models.Person())
+        assert session.query(models.Patient).count() == 1
+        assert session.query(models.Person).count() == 1
+        assert session.query(models.BlockingValue).count() == 4
+        mpi_service.reset_mpi(session)
+        assert session.query(models.Patient).count() == 0
+        assert session.query(models.Person).count() == 0
+        assert session.query(models.BlockingValue).count() == 0

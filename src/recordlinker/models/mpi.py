@@ -52,24 +52,6 @@ class Patient(Base):
     blocking_values: orm.Mapped[list["BlockingValue"]] = orm.relationship(back_populates="patient")
     reference_id: orm.Mapped[uuid.UUID] = orm.mapped_column(default=uuid.uuid4, unique=True, index=True)
 
-    @classmethod
-    def _scrub_empty(cls, data: dict) -> dict:
-        """
-        Recursively remove all None, empty lists and empty dicts from the data.
-        """
-
-        def is_empty(value):
-            return value is None or value == [] or value == {}
-
-        if isinstance(data, dict):
-            # Recursively process nested dictionaries
-            return {k: cls._scrub_empty(v) for k, v in data.items() if not is_empty(v)}
-        elif isinstance(data, list):
-            # Recursively process lists, removing None elements
-            return [cls._scrub_empty(v) for v in data if not is_empty(v)]
-        # Base case: return the value if it's not a dict or list
-        return data
-
     @property
     def data(self) -> dict:
         """
@@ -110,11 +92,10 @@ class Patient(Base):
         assert isinstance(value, pii.PIIRecord), "Expected a PIIRecord object"
         # convert the data to a JSON string, then load it back as a dictionary
         # this is necessary to ensure all data elements are JSON serializable
-        data = json.loads(value.model_dump_json())
         # recursively remove all None, empty lists and empty dicts from the data
         # this is an optimization to reduce the amount of data stored in the
         # database, if a value is empty, no need to store it
-        self._data = self._scrub_empty(data)
+        self._data = json.loads(value.to_json(prune_empty=True))
         if hasattr(self, "_record"):
             # if the record property is cached, delete it
             del self._record
