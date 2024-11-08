@@ -1,6 +1,6 @@
 import functools
-import json
 import gzip
+import json
 import pathlib
 
 import pytest
