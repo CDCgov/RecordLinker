@@ -381,3 +381,14 @@ class PIIRecord(pydantic.BaseModel):
         if any(len(x) > models.BLOCKING_VALUE_MAX_LENGTH for x in vals):
             raise RuntimeError(f"{self} has a value longer than {models.BLOCKING_VALUE_MAX_LENGTH}")
         return vals
+
+    def blocking_values(self) -> typing.Iterator[tuple[models.BlockingKey, str]]:
+        """
+        Return an iterator of all possible BlockingValues for this record.
+        """
+        for key in models.BlockingKey:
+            # For each Key, get all the values from the data dictionary
+            # Many Keys will only have 1 value, but its possible that
+            # a PII data dict could have multiple given names
+            for val in self.blocking_keys(key):
+                yield key, val
