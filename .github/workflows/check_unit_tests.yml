@@ -79,13 +79,13 @@ jobs:
             export TEST_DB_URI=mssql+pyodbc://sa:YourStrong!Passw0rd@localhost:1433/master?driver=ODBC+Driver+17+for+SQL+Server
           fi
 
-          pytest --cov=recordlinker --cov-report=xml tests/unit
+          pytest --cov=recordlinker tests/unit
 
       - name: Upload coverage artifact
         uses: actions/upload-artifact@v4
         with:
-          name: coverage-${{ matrix.database }}.xml
-          path: coverage.xml # Save the coverage report as an artifact for each database
+          name: coverage-${{ matrix.database }}
+          path: .coverage # Save the coverage data file as an artifact for each database
 
   coverage:
     runs-on: ubuntu-latest
@@ -96,7 +96,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           path: coverage_artifacts
-          pattern: coverage-*.xml
+          pattern: coverage-*
           merge-multiple: true
 
       - name: Combine coverage reports
@@ -104,7 +104,7 @@ jobs:
           ls -l coverage_artifacts
           pip install coverage
           cd coverage_artifacts
-          coverage combine coverage-*.xml
+          coverage combine coverage-*
           coverage xml -o combined_coverage.xml
 
       - name: Upload combined coverage to Codecov
