@@ -84,8 +84,8 @@ jobs:
       - name: Upload coverage artifact
         uses: actions/upload-artifact@v4
         with:
-          name: coverage-${{ matrix.database }}
-          path: .coverage  # Save the coverage report as an artifact for each database
+          name: coverage-${{ matrix.database }}.xml
+          path: coverage.xml # Save the coverage report as an artifact for each database
 
   coverage:
     runs-on: ubuntu-latest
@@ -96,14 +96,14 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           path: coverage_artifacts
-          pattern: coverage-*
+          pattern: coverage-*.xml
           merge-multiple: true
 
       - name: Combine coverage reports
         run: |
           pip install coverage
           cd coverage_artifacts
-          coverage combine coverage-*
+          coverage combine coverage-*.xml
           coverage xml -o combined_coverage.xml
 
       - name: Upload combined coverage to Codecov
