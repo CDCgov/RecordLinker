@@ -81,15 +81,33 @@ jobs:
 
           pytest --cov=recordlinker --cov-report=xml tests/unit
 
-      - name: Upload test results to Codecov
-        if: ${{ matrix.database == 'postgres' && !cancelled() }}
-        uses: codecov/test-results-action@v1
+      - name: Upload coverage artifact
+        uses: actions/upload-artifact@v3
         with:
-          token: ${{ secrets.CODECOV_TOKEN }}
+          name: coverage-${{ matrix.database }}
+          path: .coverage  # Save the coverage report as an artifact for each database
 
-      - name: Upload coverage to Codecov
-        if: ${{ matrix.database == 'postgres' }}
+  coverage:
+    runs-on: ubuntu-latest
+    needs: test
+
+    steps:
+      - name: Download all coverage artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: coverage-*
+          path: coverage_artifacts
+
+      - name: Combine coverage reports
+        run: |
+          pip install coverage
+          cd coverage_artifacts
+          coverage combine coverage-*
+          coverage xml -o combined_coverage.xml
+
+      - name: Upload combined coverage to Codecov
         uses: codecov/codecov-action@v4
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
+          files: coverage_artifacts/combined_coverage.xml
           verbose: true
