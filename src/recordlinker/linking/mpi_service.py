@@ -122,6 +122,9 @@ def bulk_insert_patients(
 
     :returns: The inserted Patient records
     """
+    if session.get_bind().dialect.name == "mysql":
+        raise ValueError("Bulk insert not supported for MySQL")
+
     if not records:
         return []
 
