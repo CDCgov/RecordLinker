@@ -101,6 +101,7 @@ jobs:
 
       - name: Combine coverage reports
         run: |
+          ls -l coverage_artifacts
           pip install coverage
           cd coverage_artifacts
           coverage combine coverage-*.xml
