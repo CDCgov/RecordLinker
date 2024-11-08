@@ -103,9 +103,13 @@ jobs:
       - name: Combine coverage reports
         run: |
           ls -l coverage_artifacts
+          echo "installing coverage ..."
           pip install coverage
+          echo "going to coverage_artifacts ..."
           cd coverage_artifacts
+          echo "combining coverage ..."
           coverage combine coverage-*.dat
+          echo "generating coverage xml report ..."
           coverage xml -o combined_coverage.xml
 
       - name: Upload combined coverage to Codecov
