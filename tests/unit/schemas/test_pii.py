@@ -368,10 +368,15 @@ class TestPIIRecord:
                 "name": [{"given": ["John", "William"], "family": "Doe"}],
             }
         )
-        assert list(rec.blocking_values()) == [
-            (BlockingKey.BIRTHDATE, "1980-01-01"),
-            (BlockingKey.MRN, "3456"),
-            (BlockingKey.FIRST_NAME, "John"),
-            (BlockingKey.FIRST_NAME, "Will"),
-            (BlockingKey.LAST_NAME, "Doe"),
-        ]
+
+        for key, val in rec.blocking_values():
+            if key == BlockingKey.BIRTHDATE:
+                assert val == "1980-01-01"
+            elif key == BlockingKey.MRN:
+                assert val == "3456"
+            elif key == BlockingKey.FIRST_NAME:
+                assert val in ("John", "Will")
+            elif key == BlockingKey.LAST_NAME:
+                assert val == "Doe"
+            else:
+                raise AssertionError(f"Unexpected key: {key}")

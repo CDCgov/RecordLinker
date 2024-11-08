@@ -19,7 +19,8 @@ class TestBatchMySQL:
             pytest.skip("Test skipped because the database dialect is not MySQL")
 
     def test_mysql_not_supported(self, client, session):
-        response = client.post("/seed", json={"clusters": []})
+        data = {"clusters": [{"records": []} for _ in range(10)]}
+        response = client.post("/seed", json=data)
         assert response.status_code == 422
         assert response.json() == {"detail": "Batch seeding is not supported for MySQL"}
 
@@ -29,6 +30,17 @@ class TestBatch:
     def setup_class(cls):
         if db_dialect() == "mysql":
             pytest.skip("Test skipped because the database dialect is MySQL")
+
+    def test_empty_clusters(self, client):
+        response = client.post("/seed", json={"clusters": []})
+        assert response.status_code == 422
+        assert response.json()["detail"][0]["msg"] == "Value error, Clusters must not be empty"
+
+    def test_too_many_clusters(self, client):
+        data = {"clusters": [{"records": []} for _ in range(101)]}
+        response = client.post("/seed", json=data)
+        assert response.status_code == 422
+        assert response.json()["detail"][0]["msg"] == "Value error, Clusters must not exceed 100 records"
 
     def test_large_batch(self, client):
         data = load_test_json_asset("seed_test.json.gz")
