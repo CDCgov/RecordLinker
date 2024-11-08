@@ -98,4 +98,4 @@ jobs:
         -H "Content-Type: application/json")
 
         echo "Response: $RESPONSE_5"
-        echo "$RESPONSE_5" | grep -q "Invalid algorithm specified" 
+        echo "$RESPONSE_5" | grep -q "No algorithm found" 
