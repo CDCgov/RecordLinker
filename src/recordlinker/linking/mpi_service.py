@@ -5,7 +5,6 @@ recordlinker.linking.mpi_service
 This module provides the data access functions to the MPI tables
 """
 
-import json
 import typing
 import uuid
 
