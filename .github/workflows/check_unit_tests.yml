@@ -86,6 +86,7 @@ jobs:
         with:
           name: coverage-${{ matrix.database }}
           path: .coverage # Save the coverage data file as an artifact for each database
+          include-hidden-files: true
 
   coverage:
     runs-on: ubuntu-latest
