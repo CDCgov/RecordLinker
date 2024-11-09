@@ -38,7 +38,7 @@ async def link_piirecord(
         algorithm = algorithm_service.default_algorithm(db_session)
 
     if not algorithm:
-        msg = "Error: Invalid algorithm specified"
+        msg = "Error: No algorithm found"
         raise fastapi.HTTPException(
             status_code=fastapi.status.HTTP_422_UNPROCESSABLE_ENTITY, detail=msg
         )
@@ -90,7 +90,7 @@ async def link_dibbs(
         return schemas.LinkFhirResponse(
             found_match=False,
             updated_bundle=input_bundle,
-            message="Error: Invalid algorithm specified",
+            message="Error: No algorithm found",
         )
 
     # Now extract the patient record we want to link
@@ -154,7 +154,7 @@ async def link_fhir(
 
     if not algorithm:
         response.status_code = fastapi.status.HTTP_422_UNPROCESSABLE_ENTITY
-        raise fastapi.HTTPException(status_code=422, detail="Error: Invalid algorithm specified")
+        raise fastapi.HTTPException(status_code=422, detail="Error: No algorithm found")
 
     # Now extract the patient record we want to link
     try:

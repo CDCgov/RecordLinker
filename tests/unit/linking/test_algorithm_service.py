@@ -27,8 +27,7 @@ def test_list_algorithms(session):
 
 
 def test_default_algorithm(session):
-    with pytest.raises(ValueError):
-        algorithm_service.default_algorithm(session)
+    assert algorithm_service.default_algorithm(session) is None
 
     algo1 = models.Algorithm(label="basic", is_default=False, description="First algorithm")
     algo2 = models.Algorithm(label="enhanced", is_default=True, description="Second algorithm")
