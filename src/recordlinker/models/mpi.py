@@ -92,7 +92,7 @@ class Patient(Base):
         assert isinstance(value, pii.PIIRecord), "Expected a PIIRecord object"
         # convert the data to a JSON string, then load it back as a dictionary
         # this is necessary to ensure all data elements are JSON serializable
-        # recursively remove all None, empty lists and empty dicts from the data
+        # recursively remove all None and unset values from the data
         # this is an optimization to reduce the amount of data stored in the
         # database, if a value is empty, no need to store it
         self._data = json.loads(value.to_json(prune_empty=True))
