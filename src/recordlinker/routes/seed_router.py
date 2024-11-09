@@ -17,7 +17,6 @@ from recordlinker.linking import mpi_service as service
 router = fastapi.APIRouter()
 
 
-# TODO: test cases
 @router.post("", summary="Batch seed records", status_code=fastapi.status.HTTP_201_CREATED)
 def batch(
     data: schemas.ClusterGroup, session: orm.Session = fastapi.Depends(get_session)
@@ -71,7 +70,6 @@ def batch(
     return schemas.PersonGroup(persons=results)
 
 
-# TODO: test cases
 @router.delete("", summary="Reset the MPI database", status_code=fastapi.status.HTTP_204_NO_CONTENT)
 def reset(session: orm.Session = fastapi.Depends(get_session)):
     """
