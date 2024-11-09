@@ -10,42 +10,42 @@
 
 ## Summary
 
-Briefly explain what this RFC proposes. The summary should be a few sentences that capture the purpose and scope of the change.
+**(Replace this text)** Briefly explain what this RFC proposes. The summary should be a few sentences that capture the purpose and scope of the change.
 
 ## Motivation
 
-Explain why this proposal is necessary or valuable. Describe the problem or limitations that this RFC aims to address, and what benefits it brings to the project. Highlight any relevant background information or previous discussions.
+**(Replace this text)** Explain why this proposal is necessary or valuable. Describe the problem or limitations that this RFC aims to address, and what benefits it brings to the project. Highlight any relevant background information or previous discussions.
 
 ## Prior Art
 
-Describe similar solutions, patterns, or standards in other projects, libraries, or frameworks that influenced this proposal. Explain how this RFC builds on or differs from prior art, and why this specific approach is recommended for this project.
+**(Replace this text)** Describe similar solutions, patterns, or standards in other projects, libraries, or frameworks that influenced this proposal. Explain how this RFC builds on or differs from prior art, and why this specific approach is recommended for this project.
 
 ## Proposal
 
-Describe the details of the proposal. Include technical specifications, design choices, and any relevant diagrams or examples. The goal is to provide enough detail for reviewers to understand exactly what is being proposed.
+**(Replace this text)** Describe the details of the proposal. Include technical specifications, design choices, and any relevant diagrams or examples. The goal is to provide enough detail for reviewers to understand exactly what is being proposed.
 
 ## Alternatives Considered
 
-List any alternative solutions that were considered and explain why they were not chosen. This helps reviewers understand the trade-offs and decision-making process.
+**(Replace this text)** List any alternative solutions that were considered and explain why they were not chosen. This helps reviewers understand the trade-offs and decision-making process.
 
 ## Risks and Drawbacks
 
-Outline any potential risks, drawbacks, or negative implications of implementing this proposal. Consider the impact on users, maintainers, performance, and other factors.
+**(Replace this text)** Outline any potential risks, drawbacks, or negative implications of implementing this proposal. Consider the impact on users, maintainers, performance, and other factors.
 
 ## Implementation Plan
 
-Provide an overview of the steps required to implement the proposal, if it is accepted. Include any necessary code changes, documentation updates, migration plans, etc.
+**(Replace this text)** Provide an overview of the steps required to implement the proposal, if it is accepted. Include any necessary code changes, documentation updates, migration plans, etc.
 
 ## Unresolved Questions
 
-List any open questions that still need to be addressed. This section can be used to highlight uncertainties and gather feedback from reviewers.
+**(Replace this text)** List any open questions that still need to be addressed. This section can be used to highlight uncertainties and gather feedback from reviewers.
 
 ## Future Possibilities
 
-(Optional) Describe any future improvements or extensions that could be considered after implementing this proposal.
+**(Optional; replace or remove this text)** Describe any future improvements or extensions that could be considered after implementing this proposal.
 
 ---
 
 ## Footnotes or References
 
-Include links to relevant documents, issues, discussions, or additional resources.
+**(Replace this text)** Include links to relevant documents, issues, discussions, or additional resources.
