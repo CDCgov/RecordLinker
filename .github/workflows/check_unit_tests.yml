@@ -93,6 +93,9 @@ jobs:
     needs: test
 
     steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
       - name: Download all coverage artifacts
         uses: actions/download-artifact@v4
         with:
