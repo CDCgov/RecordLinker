@@ -32,28 +32,27 @@ def batch(
     The endpoint will return a list of Person objects, each containing a person_reference_id and a
     list of Patient objects, each containing patient_reference_ids.
 
-    NOTE: This endpoint is not supported for MySQL databases.
+    NOTE: MySQL does not support bulk insert, so when using this dialect, each patient record will
+    be inserted individually.  This will be slower than using a dialect that supports bulk insert.
 
     NOTE: The maximum number of clusters that can be seeded in a single request is 100.
     """
-    # check if engine is mysql, if so raise a not supported error
-    if session.get_bind().dialect.name == "mysql":
-        raise fastapi.HTTPException(
-            status_code=fastapi.status.HTTP_422_UNPROCESSABLE_ENTITY,
-            detail="Batch seeding is not supported for MySQL",
-        )
-
     results: list[schemas.PersonCluster] = []
+    dialect = session.get_bind().dialect.name
 
     for cluster in data.clusters:
         person = models.Person()
-        patients = service.bulk_insert_patients(
-            session,
-            cluster.records,
-            person=person,
-            external_person_id=cluster.external_person_id,
-            commit=False,
-        )
+        kwargs = {
+            "person": person,
+            "external_person_id": cluster.external_person_id,
+            "commit": False,
+        }
+        patients: list[models.Patient] = []
+        if dialect == "mysql":
+            # MySQL does not support bulk insert, so we need to insert each patient individually
+            patients = [service.insert_patient(session, r, **kwargs) for r in cluster.records]
+        else:
+            patients = service.bulk_insert_patients(session, cluster.records, **kwargs)
 
         results.append(
             schemas.PersonCluster(
@@ -73,9 +72,7 @@ def batch(
 
 
 # TODO: test cases
-@router.delete(
-    "", summary="Reset the MPI database", status_code=fastapi.status.HTTP_204_NO_CONTENT
-)
+@router.delete("", summary="Reset the MPI database", status_code=fastapi.status.HTTP_204_NO_CONTENT)
 def reset(session: orm.Session = fastapi.Depends(get_session)):
     """
     Reset the MPI database by deleting all Person and Patient records.

@@ -5,32 +5,12 @@ unit.routes.test_seed_router.py
 This module contains the unit tests for the recordlinker.routes.seed_router module.
 """
 
-import pytest
-from conftest import db_dialect
 from conftest import load_test_json_asset
 
 from recordlinker import models
 
 
-class TestBatchMySQL:
-    @classmethod
-    def setup_class(cls):
-        if db_dialect() != "mysql":
-            pytest.skip("Test skipped because the database dialect is not MySQL")
-
-    def test_mysql_not_supported(self, client, session):
-        data = {"clusters": [{"records": []} for _ in range(10)]}
-        response = client.post("/seed", json=data)
-        assert response.status_code == 422
-        assert response.json() == {"detail": "Batch seeding is not supported for MySQL"}
-
-
 class TestBatch:
-    @classmethod
-    def setup_class(cls):
-        if db_dialect() == "mysql":
-            pytest.skip("Test skipped because the database dialect is MySQL")
-
     def test_empty_clusters(self, client):
         response = client.post("/seed", json={"clusters": []})
         assert response.status_code == 422
