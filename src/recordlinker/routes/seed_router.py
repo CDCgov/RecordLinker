@@ -6,6 +6,8 @@ This module implements the seed router for the RecordLinker API. Exposing
 the seed API endpoints.
 """
 
+import typing
+
 import fastapi
 import sqlalchemy.orm as orm
 
@@ -41,17 +43,28 @@ def batch(
 
     for cluster in data.clusters:
         person = models.Person()
-        kwargs = {
-            "person": person,
-            "external_person_id": cluster.external_person_id,
-            "commit": False,
-        }
-        patients: list[models.Patient] = []
+        patients: typing.Sequence[models.Patient] = []
         if dialect == "mysql":
             # MySQL does not support bulk insert, so we need to insert each patient individually
-            patients = [service.insert_patient(session, r, **kwargs) for r in cluster.records]
+            patients = [
+                service.insert_patient(
+                    session,
+                    r,
+                    person,
+                    external_patient_id=r.external_id,
+                    external_person_id=cluster.external_person_id,
+                    commit=False,
+                )
+                for r in cluster.records
+            ]
         else:
-            patients = service.bulk_insert_patients(session, cluster.records, **kwargs)
+            patients = service.bulk_insert_patients(
+                session,
+                cluster.records,
+                person,
+                external_person_id=cluster.external_person_id,
+                commit=False,
+            )
 
         results.append(
             schemas.PersonCluster(
