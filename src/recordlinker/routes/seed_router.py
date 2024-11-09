@@ -32,6 +32,8 @@ def batch(
     The endpoint will return a list of Person objects, each containing a person_reference_id and a
     list of Patient objects, each containing patient_reference_ids.
 
+    NOTE: This endpoint is not supported for MySQL databases.
+
     NOTE: The maximum number of clusters that can be seeded in a single request is 100.
     """
     # check if engine is mysql, if so raise a not supported error
