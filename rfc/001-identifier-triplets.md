@@ -64,29 +64,124 @@ The proposal is to use a 3-tuple of type, authority and value to specify patient
     example: `[{type: 'DL', authority: 'CA', value: 'A123456'}, {type: 'SS', authority: '', value: '123-45-6789'}]`
 - Business Rules: Algorithm configuration will accept the `IDENTIFIER` field with a type suffix, to specify
     the type of identifier to compare.
-    example: `IDENTIFIER:DL`, `IDENTIFIER:SSN`
+    example: `IDENTIFIER:DL`, `IDENTIFIER:SS`
 - Blocking: The blocking key will be `IDENTIFIER` and values will be inserted for every identifier specified in
     the document using the type and the last four of the value.
-    example: `IDENTIFIER:DL:3456`, `IDENTIFIER:SSN:6789`
+    example: `DL:CA:3456`, `SS::6789`
 - Evaluation: The evaluation function will accept a list of identifier strings, containing all 3 parts of the
     tuple, and compare them using the specified evaluation function.
     example: `['DL:CA:A123456', 'SS::123-45-6789']`
 
 ### Input
 
-TBD
+The input to the Record Linker process will be a list of identifier objects, each with a type, authority and value.
+The type and value attributes are required, while authority is optional.
+
+```json
+{
+    "identifiers": [
+        {
+            "type": "DL",
+            "authority": "CA",
+            "value": "A123456"
+        },
+        {
+            "type": "SS",
+            "authority": "",
+            "value": "123-45-6789"
+        }
+    ]
+}
+```
+
+The type attribute will be limited to a codes defined by the
+[HL7 identifierType code system](https://terminology.hl7.org/6.0.2/CodeSystem-v2-0203.html). This 
+includes roughly 100 different types of identifiers that are all coded using a 2-7 character value.
+For example, `DL` is the code for Driver's License, `SS` is the code for Social Security Number, `MR`
+is the code for Medical Record Number.
+
+The authority attribute will be a free-form string that can be used to specify the issuing authority
+of the identifier.  For example, `CA` could be used to specify that the Driver's License was issued
+by the state of California.  There is no standard code system for this attribute, so it will be up to
+the user to specify a value that makes sense for their data.
+
+The value attribute will be a free-form string that contains the actual value of the identifier.  For
+example, `A123456` could be the value of a Driver's License, `123-45-6789` could be the value of a
+Social Security Number.
+
 
 ### Business Rules
 
-TBD
+When specifying a blocking key or evaluation field in an Algorithm configuration, identifier matches
+can be specified in two different forms.  The first form, which is applicable to blocking keys
+and evaluation fields, is to specify `IDENTIFIER` indicating it will match on any like identifier.
+The second form, which is **only applicable to evaluation fields**, is to specify `IDENTIFIER:<type>`
+indicating it will match on a specific type of identifier.
+
+```json
+{
+    "blocking_keys": [
+        "IDENTIFIER",
+        "BIRTH_DATE",
+    ],
+    "evaluators": {
+        "IDENTIFIER": "func:recordlinker.linking.matchers.feature_match_exact",
+    }
+}
+
+```json
+{
+    "blocking_keys": [
+        "IDENTIFIER",
+        "BIRTH_DATE",
+    ],
+    "evaluators": {
+        "IDENTIFIER:SS": "func:recordlinker.linking.matchers.feature_match_exact",
+    }
+}
+```
 
 ### Blocking
 
-TBD
+Blocking keys are an important part of the linkage process, but only from a performance perspective.
+We use these values to efficiently index the documents, and pull out a subset of documents to compare
+in detail. For them to work efficiently, we have some limitations to the size of the values we can
+store in the blocking table.  Currently, that is limited to 20 characters which is a bit arbitrary,
+but the idea is to keep the values small so we can index them efficiently.  If we keep that limit, we
+need to use identifier values that are guaranteed to be less than that limit.
+
+Previous research has shown that the last **4 characters of an identifier value** are often the most
+unique and can be used to block on.  However, we should likely also include elements of the type and
+authority, if we want to provide some assurance that we are not blocking on a different identifier
+all together. For that, we recommend storing the **entire type** (which is limited to 7 characters)
+and the **first 2 characters of the authority** (which is free-form).
+
+```markdown
+| patient_id | blocking_key | value      |
+|------------|--------------|------------|
+| 1          | IDENTIFIER   | DL:CA:3456 |
+| 1          | IDENTIFIER   | SS::6789   |
+```
 
 ### Evaluation
 
-TBD
+As indicated in the business rules section, evaluation on identifiers can happen in two ways. The
+first way is to evaluate on any identifier, meaning that the evaluation step will result in a
+match if any two identifiers between the documents are a match.  The second way is to evaluate on
+a specific type of identifier, meaning that the evaluation step will result in a match if the 
+specified type of identifier between the documents is a match.
+
+The evaluation functions will be comparing all 3 parts of the identifier tuple (type, authority,
+value) when determining if two identifiers are a match.  The difference is just between what types
+of identifiers are we going to compare.
+
+```python
+
+if feature == 'IDENTIFIER':
+    assert values == ['DL:CA:A123456', 'SS::123-45-6789']
+if feature == 'IDENTIFIER:SS':
+    assert values == ['SS::123-45-6789']
+```
 
 ## Alternatives Considered
 
@@ -94,7 +189,8 @@ TBD
 
 ## Risks and Drawbacks
 
-**(Replace this text)** Outline any potential risks, drawbacks, or negative implications of implementing this proposal. Consider the impact on users, maintainers, performance, and other factors.
+- Variations in authority values could lead to false negatives in comparisons (eg `CA` vs `California`).
+- Variations in value formats could lead to false negatives in comparisons (eg `123-45-6789` vs `123456789`).
 
 ## Implementation Plan
 
