@@ -128,6 +128,7 @@ indicating it will match on a specific type of identifier.
         "IDENTIFIER": "func:recordlinker.linking.matchers.feature_match_exact",
     }
 }
+```
 
 ```json
 {
@@ -156,12 +157,10 @@ authority, if we want to provide some assurance that we are not blocking on a di
 all together. For that, we recommend storing the **entire type** (which is limited to 7 characters)
 and the **first 2 characters of the authority** (which is free-form).
 
-```markdown
 | patient_id | blocking_key | value      |
 |------------|--------------|------------|
 | 1          | IDENTIFIER   | DL:CA:3456 |
 | 1          | IDENTIFIER   | SS::6789   |
-```
 
 ### Evaluation
 
