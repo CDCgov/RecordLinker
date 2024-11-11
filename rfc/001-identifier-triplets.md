@@ -3,7 +3,7 @@
 - **Status**: Draft
 - **Author(s)**: @ericbuckley
 - **Creation Date**: 2024-11-09
-- **Last Updated**: 2024-11-09
+- **Last Updated**: 2024-11-11
 - **RFC ID**: RFC-001
 
 ---
@@ -184,27 +184,18 @@ if feature == 'IDENTIFIER:SS':
 
 ## Alternatives Considered
 
-**(Replace this text)** List any alternative solutions that were considered and explain why they were not chosen. This helps reviewers understand the trade-offs and decision-making process.
+The main alternative to a generic identifier triplet is to continue creating specific fields (eg 
+`MRN`, `SSN`, `drivers_license`) for each identifier type.  This would require more configuration
+and would not be as flexible as the proposed solution. However, this does allow for customization's
+when blocking or evaluating on specific identifier types.  For example, we know that SSN will never
+require an authority, so we can make a slight reduction in the blocking value size knowing that is
+never required.  In the case of Driver's License, we know that the authority will always be a state,
+so we could implement custom normalization logic attempting to standardize the state values (eg `CA`
+vs `California`).  This is more work long-term, and likely more confusing for users as each identifier
+field has slightly different behavior, but does allow for maximum flexibility.
 
 ## Risks and Drawbacks
 
 - Variations in authority values could lead to false negatives in comparisons (eg `CA` vs `California`).
 - Variations in value formats could lead to false negatives in comparisons (eg `123-45-6789` vs `123456789`).
-
-## Implementation Plan
-
-**(Replace this text)** Provide an overview of the steps required to implement the proposal, if it is accepted. Include any necessary code changes, documentation updates, migration plans, etc.
-
-## Unresolved Questions
-
-**(Replace this text)** List any open questions that still need to be addressed. This section can be used to highlight uncertainties and gather feedback from reviewers.
-
-## Future Possibilities
-
-**(Replace this text)** (Optional) Describe any future improvements or extensions that could be considered after implementing this proposal.
-
----
-
-## Footnotes or References
-
- **(Replace this text)** Include links to relevant documents, issues, discussions, or additional resources.
+- Blocking values can't be specified per type, so if we want to block on identifiers we need to block on all.
