@@ -156,7 +156,24 @@ class TestLinkDIBBS:
         expected_response = {
             "found_match": False,
             "updated_bundle": test_bundle,
-            "message": "Error: Invalid algorithm specified",
+            "message": "Error: No algorithm found",
+        }
+
+        actual_response = client.post(
+            "/link/dibbs", json={"bundle": test_bundle, "algorithm": "INVALID"}
+        )
+
+        assert actual_response.json() == expected_response
+        assert actual_response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
+
+    @mock.patch("recordlinker.linking.algorithm_service.default_algorithm")
+    def test_no_default_algorithm(self, patched_subprocess, client):
+        patched_subprocess.return_value = None
+        test_bundle = load_test_json_asset("patient_bundle_to_link_with_mpi.json")
+        expected_response = {
+            "found_match": False,
+            "updated_bundle": test_bundle,
+            "message": "Error: No algorithm found",
         }
 
         actual_response = client.post(
@@ -180,7 +197,6 @@ class TestLink:
     @mock.patch("recordlinker.linking.algorithm_service.default_algorithm")
     def test_link_success(self, patched_subprocess, basic_algorithm, patients, client):
         patched_subprocess.return_value = basic_algorithm
-
         response_1 = client.post(
             "/link", json={"record": json.loads(patients[0].model_dump_json(exclude_none=True))}
         )
@@ -295,7 +311,21 @@ class TestLink:
         )
 
         assert actual_response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
-        assert actual_response.json()["detail"] == "Error: Invalid algorithm specified"
+        assert actual_response.json()["detail"] == "Error: No algorithm found"
+
+    @mock.patch("recordlinker.linking.algorithm_service.default_algorithm")
+    def test_link_no_default_algorithm(self, patched_subprocess, patients, client):
+        patched_subprocess.return_value = None
+        actual_response = client.post(
+            "/link",
+            json={
+                "record": json.loads(patients[0].model_dump_json(exclude_none=True)),
+                "algorithm": "INVALID",
+            },
+        )
+
+        assert actual_response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
+        assert actual_response.json()["detail"] == "Error: No algorithm found"
 
 class TestLinkFHIR:
     @mock.patch("recordlinker.linking.algorithm_service.default_algorithm")
@@ -418,4 +448,16 @@ class TestLinkFHIR:
         )
 
         assert actual_response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
-        assert actual_response.json()["detail"] == "Error: Invalid algorithm specified"
+        assert actual_response.json()["detail"] == "Error: No algorithm found"
+
+    @mock.patch("recordlinker.linking.algorithm_service.default_algorithm")
+    def test_linkrecord_no_default_algorithm(self, patched_subprocess, client):
+        patched_subprocess.return_value = None
+        test_bundle = load_test_json_asset("patient_bundle_to_link_with_mpi.json")
+
+        actual_response = client.post(
+            "/link/fhir", json={"bundle": test_bundle, "algorithm": "INVALID"}
+        )
+
+        assert actual_response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
+        assert actual_response.json()["detail"] == "Error: No algorithm found"
