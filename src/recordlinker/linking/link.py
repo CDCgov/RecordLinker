@@ -127,7 +127,6 @@ def link_record_against_mpi(
         # Match (1 or many)
         matched_person = sorted_scores[0]["person"]
         results = [x for x in sorted_scores if x["belongingness_ratio"] >= belongingness_ratio_upper_bound] # Multiple matches
-        sorted_results = [{"person": k, "belongingness_ratio": v} for k, v in sorted(results, key=lambda item: item["belongingness_ratio"])]
         if not algorithm.include_multiple_matches:
             results = [results[0]] # 1 Match (highest Belongingness Ratio)
     else:

@@ -99,7 +99,10 @@ async def link_dibbs(
             if entry.get("resource", {}).get("resourceType", "") == "Patient"
         ][0]
     except IndexError:
-        raise fastapi.HTTPException(status_code=fastapi.status.HTTP_400_BAD_REQUEST, detail="Supplied bundle contains no Patient resource to link on.")
+        raise fastapi.HTTPException(
+            status_code=fastapi.status.HTTP_400_BAD_REQUEST,
+            detail="Supplied bundle contains no Patient resource to link on."
+            )
 
 
     # convert record to PII
@@ -130,7 +133,6 @@ async def link_dibbs(
             status_code=fastapi.status.HTTP_400_BAD_REQUEST,
             detail=f"Could not connect to database: {err}"
             )
-
 
 
 @router.post("/fhir", summary="Link FHIR")
@@ -183,13 +185,15 @@ async def link_fhir(
             algorithm=algorithm,
             external_person_id=external_id,
         )
-        return schemas.LinkResponse(    
+        return schemas.LinkResponse(
             patient_reference_id=patient.reference_id,
             person_reference_id=(person and person.reference_id),
             results=results
         )
 
-
     except ValueError:
         response.status_code = fastapi.status.HTTP_400_BAD_REQUEST
-        raise fastapi.HTTPException(status_code=400, detail="Error: Bad request")
+        raise fastapi.HTTPException(
+            status_code=400,
+            detail="Error: Bad request"
+            )
