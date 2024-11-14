@@ -118,7 +118,7 @@ def link_record_against_mpi(
         # Find the person with the highest matching score
         matched_person, _ = max(scores.items(), key=lambda i: i[1])
 
-    sorted_scores = [{"person": k, "belongingness_ratio": v} for k, v in sorted(scores.items(), key=lambda item: item[1])]
+    sorted_scores = [{"person": k, "belongingness_ratio": v} for k, v in sorted(scores.items(), reverse=True, key=lambda item: item[1])]
     if not scores:
         # No match
         matched_person = models.Person() # Create new Person Cluster
@@ -127,8 +127,9 @@ def link_record_against_mpi(
         # Match (1 or many)
         matched_person = sorted_scores[0]["person"]
         results = [x for x in sorted_scores if x["belongingness_ratio"] >= belongingness_ratio_upper_bound] # Multiple matches
+        sorted_results = [{"person": k, "belongingness_ratio": v} for k, v in sorted(results, key=lambda item: item["belongingness_ratio"])]
         if not algorithm.include_multiple_matches:
-            results = results[0:0] # 1 Match (highest Belongingness Ratio)
+            results = [results[0]] # 1 Match (highest Belongingness Ratio)
     else:
         # Possible match
         matched_person = None
