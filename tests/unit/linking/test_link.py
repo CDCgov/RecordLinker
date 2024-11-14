@@ -175,6 +175,7 @@ class TestLinkRecordAgainstMpi:
         assert matches == [False, True, False, True, False, False]
         assert sorted(list(mapped_patients.values())) == [1, 1, 1, 3]
 
+
     def test_basic_possible_match(
         self,
         session,
