@@ -189,9 +189,27 @@ class TestLinkRecordAgainstMpi:
         self,
         session,
         basic_algorithm,
-        patients: list[schemas.PIIRecord]
+        possible_match_basic_patients: list[schemas.PIIRecord]
         ):
-        pass
+
+        predictions: dict[str, dict] = collections.defaultdict(dict)
+        # Decrease Belongingness Ratio lower bound to catch Possible Match when Belongingness Ratio = 0.5
+        for lower_bound in [0.5, 0.45]: # test >= lower bound
+            basic_algorithm.belongingness_ratio_lower_bound = lower_bound
+            for i, data in enumerate(possible_match_basic_patients):
+                (patient, person, results) = link.link_record_against_mpi(data, session, basic_algorithm)
+                predictions[i] = {
+                    "patient": patient,
+                    "person": person,
+                    "results": results
+                }
+            assert predictions[2]["patient"]
+            # 1 Possible Match
+            assert not predictions[2]["person"]
+            assert len(predictions[2]["results"]) == 1
+            assert predictions[2]["results"][0]["person"] == predictions[0]["person"]
+            assert predictions[2]["results"][0]["belongingness_ratio"] >= basic_algorithm.belongingness_ratio_lower_bound
+            assert predictions[2]["results"][0]["belongingness_ratio"] < basic_algorithm.belongingness_ratio_upper_bound
 
 
     def test_enhanced_match_three(self, session, enhanced_algorithm, patients: list[schemas.PIIRecord]):
@@ -227,19 +245,21 @@ class TestLinkRecordAgainstMpi:
             possible_match_enhanced_patients: list[schemas.PIIRecord]
         ):
         predictions: dict[str, dict] = collections.defaultdict(dict)
-        # Decrease Belongingness Ratio lower bound to be more lenient and catch Possible Match
-        enhanced_algorithm.belongingness_ratio_lower_bound = 0.5
-        for i, data in enumerate(possible_match_enhanced_patients):
-            (patient, person, results) = link.link_record_against_mpi(data, session, enhanced_algorithm)
-            predictions[i] = {
-                "patient": patient,
-                "person": person,
-                "results": results
-            }
-        assert predictions[2]["patient"]
-        # 1 Possible Match
-        assert not predictions[2]["person"]
-        assert len(predictions[2]["results"]) == 1
-        assert predictions[2]["results"][0]["person"] == predictions[0]["person"]
-        assert predictions[2]["results"][0]["belongingness_ratio"] >= enhanced_algorithm.belongingness_ratio_lower_bound
-        assert predictions[2]["results"][0]["belongingness_ratio"] < enhanced_algorithm.belongingness_ratio_upper_bound
+        
+        # Decrease Belongingness Ratio lower bound to catch Possible Match when Belongingness Ratio = 0.5
+        for lower_bound in [0.5, 0.45]: # test >= lower bound
+            enhanced_algorithm.belongingness_ratio_lower_bound = lower_bound
+            for i, data in enumerate(possible_match_enhanced_patients):
+                (patient, person, results) = link.link_record_against_mpi(data, session, enhanced_algorithm)
+                predictions[i] = {
+                    "patient": patient,
+                    "person": person,
+                    "results": results
+                }
+            assert predictions[2]["patient"]
+            # 1 Possible Match
+            assert not predictions[2]["person"]
+            assert len(predictions[2]["results"]) == 1
+            assert predictions[2]["results"][0]["person"] == predictions[0]["person"]
+            assert predictions[2]["results"][0]["belongingness_ratio"] >= enhanced_algorithm.belongingness_ratio_lower_bound
+            assert predictions[2]["results"][0]["belongingness_ratio"] < enhanced_algorithm.belongingness_ratio_upper_bound
