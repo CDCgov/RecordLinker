@@ -1,4 +1,5 @@
 import functools
+import gzip
 import json
 import pathlib
 
@@ -13,12 +14,20 @@ from recordlinker.utils import path as utils
 
 def load_test_json_asset(*paths: str) -> dict | list:
     """
-    Loads a JSON file from the testing 'assets' directory.
+    Loads a JSON file from the testing 'assets' directory. Works with both
+    regular and gzipped JSON files.
     """
     cwd = pathlib.Path(__file__).resolve().parent
     filename = pathlib.Path(cwd, "assets", *paths)
-    with open(filename, "r") as fobj:
+    func = gzip.open if filename.suffix == ".gz" else open
+    with func(filename, "rt") as fobj:
         return json.load(fobj)
+
+
+@functools.lru_cache
+def db_dialect():
+    with database.get_test_session() as session:
+        return session.get_bind().dialect.name
 
 
 @pytest.fixture(scope="function")

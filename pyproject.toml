@@ -104,6 +104,12 @@ env = [
     "INITIAL_ALGORITHMS=",
 ]
 
+[tool.coverage.run]
+omit = [
+    # Omit the generated version file from coverage
+    "src/recordlinker/_version.py",
+    ]
+
 [tool.mypy]
 files = ["src"]
 mypy_path = ["src"]

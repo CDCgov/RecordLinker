@@ -126,6 +126,7 @@ def link_record_against_mpi(
             matched_person,
             record.external_id,
             external_person_id,
+            commit=False
         )
 
     # return a tuple indicating whether a match was found and the person ID

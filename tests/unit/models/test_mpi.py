@@ -20,5 +20,5 @@ class TestPatient:
         assert patient.data == {}
         patient.record = pii.PIIRecord(birthDate="1980-01-01", sex="male")
         assert patient.data == {"birth_date": "1980-01-01", "sex": "M"}
-        patient.record = pii.PIIRecord(birthDate="1980-01-01", sex="male", mrn="", name=[])
-        assert patient.data == {"birth_date": "1980-01-01", "sex": "M", "mrn": ""}
+        patient.record = pii.PIIRecord(birthDate="1980-01-01", sex="male", mrn="", name=[], gender=None)
+        assert patient.data == {"birth_date": "1980-01-01", "sex": "M", "mrn": "", "name": []}
