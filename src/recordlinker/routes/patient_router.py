@@ -13,7 +13,7 @@ import sqlalchemy.orm as orm
 
 from recordlinker import schemas
 from recordlinker.database import get_session
-from recordlinker.linking import mpi_service as service
+from recordlinker.database import mpi_service as service
 
 router = fastapi.APIRouter()
 

@@ -13,9 +13,9 @@ from sqlalchemy import orm
 
 from recordlinker import models
 from recordlinker import schemas
-from recordlinker.linking import matchers
+from recordlinker.database import mpi_service
 
-from . import mpi_service
+from . import matchers
 
 TRACER: typing.Any = None
 try:
@@ -27,6 +27,7 @@ except ImportError:
     from recordlinker.utils.mock import MockTracer
 
     TRACER = MockTracer()
+
 
 def compare(
     record: schemas.PIIRecord, patient: models.Patient, algorithm_pass: models.AlgorithmPass

@@ -1,8 +1,8 @@
 """
-unit.linking.test_mpi_service.py
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+unit.database.test_mpi_service.py
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-This module contains the unit tests for the recordlinker.linking.mpi_service module.
+This module contains the unit tests for the recordlinker.database.mpi_service module.
 """
 
 import uuid
@@ -12,7 +12,7 @@ import sqlalchemy.exc
 
 from recordlinker import models
 from recordlinker import schemas
-from recordlinker.linking import mpi_service
+from recordlinker.database import mpi_service
 
 
 @pytest.fixture(scope="function")
