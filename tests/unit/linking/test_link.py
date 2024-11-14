@@ -133,7 +133,7 @@ class TestLinkRecordAgainstMpi:
 
     @pytest.fixture
     def possible_match_basic_patients(self):
-        bundle = load_json_asset("possible_match_basic_patient_bundle.json")
+        bundle = load_test_json_asset("possible_match_basic_patient_bundle.json")
         patients = []
         patients: list[schemas.PIIRecord] = []
         for entry in bundle["entry"]:
@@ -143,7 +143,7 @@ class TestLinkRecordAgainstMpi:
     
     @pytest.fixture
     def possible_match_enhanced_patients(self):
-        bundle = load_json_asset("possible_match_enhanced_patient_bundle.json")
+        bundle = load_test_json_asset("possible_match_enhanced_patient_bundle.json")
         patients = []
         patients: list[schemas.PIIRecord] = []
         for entry in bundle["entry"]:
@@ -153,7 +153,7 @@ class TestLinkRecordAgainstMpi:
     
     @pytest.fixture
     def multiple_matches_patients(self):
-        bundle = load_json_asset("multiple_matches_patient_bundle.json")
+        bundle = load_test_json_asset("multiple_matches_patient_bundle.json")
         patients = []
         patients: list[schemas.PIIRecord] = []
         for entry in bundle["entry"]:

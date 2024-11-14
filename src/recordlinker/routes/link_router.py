@@ -86,19 +86,10 @@ async def link_dibbs(
         algorithm = algorithm_service.default_algorithm(db_session)
 
     if not algorithm:
-<<<<<<< HEAD
-        response.status_code = fastapi.status.HTTP_422_UNPROCESSABLE_ENTITY
-        return schemas.LinkFhirResponse(
-            found_match=False,
-            updated_bundle=input_bundle,
-            message="Error: No algorithm found",
-        )
-=======
         raise fastapi.HTTPException(
             status_code=fastapi.status.HTTP_422_UNPROCESSABLE_ENTITY,
             detail="Error: Invalid algorithm specified"
             )
->>>>>>> fed04f0 (feat(api): update response and tests)
 
     # Now extract the patient record we want to link
     try:
