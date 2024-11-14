@@ -117,7 +117,7 @@ async def link_dibbs(
             external_person_id=external_id,
         )
         updated_bundle: dict | None = None
-        if person.reference_id:
+        if person:
             updated_bundle = fhir.add_person_resource(
                 str(person.reference_id), pii_record.external_id, input_bundle
             )
