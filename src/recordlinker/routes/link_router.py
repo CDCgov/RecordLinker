@@ -198,6 +198,7 @@ async def link_fhir(
             results=results
         )
 
+
     except ValueError:
         response.status_code = fastapi.status.HTTP_400_BAD_REQUEST
         raise fastapi.HTTPException(status_code=400, detail="Error: Bad request")
