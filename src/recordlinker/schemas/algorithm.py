@@ -9,25 +9,22 @@ These are used for parsing and validating algorithm configurations.
 import typing
 
 import pydantic
+from typing_extensions import Annotated
 
 from recordlinker.linking import matchers
 from recordlinker.models.mpi import BlockingKey
 from recordlinker.schemas.pii import Feature
 
-BlockingKeys = typing.Literal[tuple(k.name for k in BlockingKey)]
-Features = typing.Literal[tuple(f.name for f in Feature)]
-FeatureFuncs = typing.Literal[tuple(f for f in matchers.get_feature_func_names())]
-RuleFuncs = typing.Literal[tuple(f for f in matchers.get_rule_func_names())]
 
 class Evaluator(pydantic.BaseModel):
     """
     The schema for an evaluator record.
     """
 
-    model_config = pydantic.ConfigDict(from_attributes=True)
+    model_config = pydantic.ConfigDict(from_attributes=True, use_enum_values=True)
 
-    feature: Features
-    func: FeatureFuncs
+    feature: Feature
+    func: matchers.FeatureFunc
 
 
 class AlgorithmPass(pydantic.BaseModel):
@@ -35,12 +32,12 @@ class AlgorithmPass(pydantic.BaseModel):
     The schema for an algorithm pass record.
     """
 
-    model_config = pydantic.ConfigDict(from_attributes=True)
+    model_config = pydantic.ConfigDict(from_attributes=True, use_enum_values=True)
 
-    blocking_keys: list[BlockingKeys]
+    blocking_keys: list[BlockingKey]
     evaluators: list[Evaluator]
-    rule: RuleFuncs
-    cluster_ratio: pydantic.confloat(ge=0, le=1)
+    rule: matchers.RuleFunc
+    cluster_ratio: Annotated[float, pydantic.Field(ge=0, le=1)]
     kwargs: dict[str, typing.Any] = {}
 
 
@@ -49,7 +46,7 @@ class Algorithm(pydantic.BaseModel):
     The schema for an algorithm record.
     """
 
-    model_config = pydantic.ConfigDict(from_attributes=True)
+    model_config = pydantic.ConfigDict(from_attributes=True, use_enum_values=True)
 
     label: str = pydantic.Field(pattern=r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
     description: typing.Optional[str] = None
