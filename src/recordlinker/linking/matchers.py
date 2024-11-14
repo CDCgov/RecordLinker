@@ -9,7 +9,6 @@ pair of records should be considered a match or not.
 """
 
 import enum
-import functools
 import typing
 
 import rapidfuzz
@@ -53,19 +52,21 @@ class FeatureFunc(enum.Enum):
     )
 
 
-@functools.lru_cache
-def get_available_kwargs() -> dict[str, typing.Any]:
+class AvailableKwarg(enum.Enum):
     """
-    Return a dictionary of all available keyword arguments that can be
-    passed to the AlgorithmPass schema.
+    Enum for the different types of keyword arguments that can be used in the
+    AlgorithmPass schema. This is the universe of all possible keyword arguments
+    that a user can choose from when configuring their algorithm.  When data is
+    loaded into the MPI, all possible AvailableKwargs will be created for the
+    defined keyword arguments. However, only a subset will be used in matching,
+    based on the configuration of the algorithm.
     """
-    return {
-        "similarity_measure": SIMILARITY_MEASURES,
-        "threshold": float,
-        "thresholds": dict[str, float],
-        "log_odds": dict[str, float],
-        "true_match_threshold": float,
-    }
+
+    SIMILARITY_MEASURE = "similarity_measure"
+    THRESHOLD = "threshold"
+    THRESHOLDS = "thresholds"
+    LOG_ODDS = "log_odds"
+    TRUE_MATCH_THRESHOLD = "true_match_threshold"
 
 
 def _get_fuzzy_params(col: str, **kwargs) -> tuple[SIMILARITY_MEASURES, float]:

@@ -40,6 +40,22 @@ class AlgorithmPass(pydantic.BaseModel):
     cluster_ratio: Annotated[float, pydantic.Field(ge=0, le=1)]
     kwargs: dict[str, typing.Any] = {}
 
+    @pydantic.field_validator("kwargs", mode="before")
+    def validate_kwargs(cls, value):
+        """
+        Validate the kwargs keys are valid.
+        """
+        # TODO: possibly a better way to validate is to take two PIIRecords
+        # and compare them using the AlgorithmPass.  If it doesn't raise an
+        # exception, then the kwargs are valid.
+        if value:
+            allowed = {k.value for k in matchers.AvailableKwarg}
+            # Validate each key in kwargs
+            for key, val in value.items():
+                if key not in allowed:
+                    raise ValueError(f"Invalid kwargs key: '{key}'. Allowed keys are: {allowed}")
+        return value
+
 
 class Algorithm(pydantic.BaseModel):
     """

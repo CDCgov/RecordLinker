@@ -88,3 +88,48 @@ class TestAlgorithmPass:
             rule=rule,
             cluster_ratio=0.5,
         )
+
+    def test_cluster_ratio(self):
+        with pytest.raises(pydantic.ValidationError):
+            AlgorithmPass(
+                blocking_keys=[],
+                evaluators=[],
+                rule="func:recordlinker.linking.matchers.eval_perfect_match",
+                cluster_ratio=-1,
+            )
+        with pytest.raises(pydantic.ValidationError):
+            AlgorithmPass(
+                blocking_keys=[],
+                evaluators=[],
+                rule="func:recordlinker.linking.matchers.eval_perfect_match",
+                cluster_ratio=1.1,
+            )
+        AlgorithmPass(
+            blocking_keys=[],
+            evaluators=[],
+            rule="func:recordlinker.linking.matchers.eval_perfect_match",
+            cluster_ratio=0.56,
+        )
+
+    def test_kwargs(self):
+        with pytest.raises(pydantic.ValidationError):
+            AlgorithmPass(
+                blocking_keys=[],
+                evaluators=[],
+                rule="func:recordlinker.linking.matchers.eval_perfect_match",
+                cluster_ratio=0.5,
+                kwargs={"invalid": "key"}
+            )
+        AlgorithmPass(
+            blocking_keys=[],
+            evaluators=[],
+            rule="func:recordlinker.linking.matchers.eval_perfect_match",
+            cluster_ratio=0.5,
+            kwargs={
+                "similarity_measure": "JaroWinkler",
+                "thresholds": {"CITY": 0.95, "ADDRESS": 0.98},
+                "threshold": 0.9,
+                "log_odds": {"CITY": 12.0, "ADDRESS": 15.0},
+                "true_match_threshold": 0.8,
+            }
+        )

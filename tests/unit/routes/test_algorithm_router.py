@@ -56,6 +56,7 @@ class TestGetAlgorithm:
                     ],
                     rule="func:recordlinker.linking.matchers.eval_perfect_match",
                     cluster_ratio=0.5,
+                    kwargs={"similarity_measure": "JaroWinkler"},
                 )
             ],
         )
@@ -79,7 +80,9 @@ class TestGetAlgorithm:
                     ],
                     "rule": "func:recordlinker.linking.matchers.eval_perfect_match",
                     "cluster_ratio": 0.5,
-                    "kwargs": {},
+                    "kwargs": {
+                        "similarity_measure": "JaroWinkler",
+                    }
                 }
             ],
         }
