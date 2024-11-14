@@ -18,7 +18,7 @@ from recordlinker.hl7 import fhir
 
 
 class TestLinkDIBBS:
-    @mock.patch("recordlinker.linking.algorithm_service.default_algorithm")
+    @mock.patch("recordlinker.database.algorithm_service.default_algorithm")
     def test_bundle_with_no_patient(self, patched_subprocess, basic_algorithm, client):
         patched_subprocess.return_value = basic_algorithm
         bad_bundle = {"entry": []}
@@ -34,7 +34,7 @@ class TestLinkDIBBS:
         assert actual_response.json() == expected_response
         assert actual_response.status_code == status.HTTP_400_BAD_REQUEST
 
-    @mock.patch("recordlinker.linking.algorithm_service.default_algorithm")
+    @mock.patch("recordlinker.database.algorithm_service.default_algorithm")
     def test_success(self, patched_subprocess, basic_algorithm, client):
         patched_subprocess.return_value = basic_algorithm
         test_bundle = load_test_json_asset("patient_bundle_to_link_with_mpi.json")
@@ -92,7 +92,7 @@ class TestLinkDIBBS:
         new_bundle = resp_6.json()["updated_bundle"]
         assert not resp_6.json()["found_match"]
 
-    @mock.patch("recordlinker.linking.algorithm_service.get_algorithm")
+    @mock.patch("recordlinker.database.algorithm_service.get_algorithm")
     def test_enhanced_algo(self, patched_subprocess, enhanced_algorithm, client):
         patched_subprocess.return_value = enhanced_algorithm
         test_bundle = load_test_json_asset("patient_bundle_to_link_with_mpi.json")
@@ -149,7 +149,7 @@ class TestLinkDIBBS:
         new_bundle = resp_6.json()["updated_bundle"]
         assert not resp_6.json()["found_match"]
 
-    @mock.patch("recordlinker.linking.algorithm_service.get_algorithm")
+    @mock.patch("recordlinker.database.algorithm_service.get_algorithm")
     def test_invalid_algorithm_param(self, patched_subprocess, client):
         patched_subprocess.return_value = None
         test_bundle = load_test_json_asset("patient_bundle_to_link_with_mpi.json")
@@ -166,7 +166,7 @@ class TestLinkDIBBS:
         assert actual_response.json() == expected_response
         assert actual_response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
 
-    @mock.patch("recordlinker.linking.algorithm_service.default_algorithm")
+    @mock.patch("recordlinker.database.algorithm_service.default_algorithm")
     def test_no_default_algorithm(self, patched_subprocess, client):
         patched_subprocess.return_value = None
         test_bundle = load_test_json_asset("patient_bundle_to_link_with_mpi.json")
@@ -194,7 +194,7 @@ class TestLink:
                 patients.append(fhir.fhir_record_to_pii_record(entry["resource"]))
         return patients
 
-    @mock.patch("recordlinker.linking.algorithm_service.default_algorithm")
+    @mock.patch("recordlinker.database.algorithm_service.default_algorithm")
     def test_link_success(self, patched_subprocess, basic_algorithm, patients, client):
         patched_subprocess.return_value = basic_algorithm
         response_1 = client.post(
@@ -233,7 +233,7 @@ class TestLink:
         )
         assert not response_6.json()["is_match"]
 
-    @mock.patch("recordlinker.linking.algorithm_service.get_algorithm")
+    @mock.patch("recordlinker.database.algorithm_service.get_algorithm")
     def test_link_enhanced_algorithm(
         self, patched_subprocess, enhanced_algorithm, patients, client
     ):
@@ -299,7 +299,7 @@ class TestLink:
         )
         assert not response_6.json()["is_match"]
 
-    @mock.patch("recordlinker.linking.algorithm_service.get_algorithm")
+    @mock.patch("recordlinker.database.algorithm_service.get_algorithm")
     def test_link_invalid_algorithm_param(self, patched_subprocess, patients, client):
         patched_subprocess.return_value = None
         actual_response = client.post(
@@ -313,7 +313,7 @@ class TestLink:
         assert actual_response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
         assert actual_response.json()["detail"] == "Error: No algorithm found"
 
-    @mock.patch("recordlinker.linking.algorithm_service.default_algorithm")
+    @mock.patch("recordlinker.database.algorithm_service.default_algorithm")
     def test_link_no_default_algorithm(self, patched_subprocess, patients, client):
         patched_subprocess.return_value = None
         actual_response = client.post(
@@ -328,7 +328,7 @@ class TestLink:
         assert actual_response.json()["detail"] == "Error: No algorithm found"
 
 class TestLinkFHIR:
-    @mock.patch("recordlinker.linking.algorithm_service.default_algorithm")
+    @mock.patch("recordlinker.database.algorithm_service.default_algorithm")
     def test_linkrecord_bundle_with_no_patient(self, patched_subprocess, basic_algorithm, client):
         patched_subprocess.return_value = basic_algorithm
         bad_bundle = {"entry": []}
@@ -340,7 +340,7 @@ class TestLinkFHIR:
         assert actual_response.status_code == status.HTTP_400_BAD_REQUEST
         assert actual_response.json()["detail"] == "Error: Supplied bundle contains no Patient resource to link on."
 
-    @mock.patch("recordlinker.linking.algorithm_service.default_algorithm")
+    @mock.patch("recordlinker.database.algorithm_service.default_algorithm")
     def test_link_success(self, patched_subprocess, basic_algorithm, client):
         patched_subprocess.return_value = basic_algorithm
         test_bundle = load_test_json_asset("patient_bundle_to_link_with_mpi.json")
@@ -382,7 +382,7 @@ class TestLinkFHIR:
         response_6 = client.post("/link/fhir", json={"bundle": bundle_6})
         assert not response_6.json()["is_match"]
     
-    @mock.patch("recordlinker.linking.algorithm_service.get_algorithm")
+    @mock.patch("recordlinker.database.algorithm_service.get_algorithm")
     def test_link_enhanced_algorithm(
         self, patched_subprocess, enhanced_algorithm, client
     ):
@@ -438,7 +438,7 @@ class TestLinkFHIR:
         )
         assert not response_6.json()["is_match"]
     
-    @mock.patch("recordlinker.linking.algorithm_service.get_algorithm")
+    @mock.patch("recordlinker.database.algorithm_service.get_algorithm")
     def test_linkrecord_invalid_algorithm_param(self, patched_subprocess, client):
         patched_subprocess.return_value = None
         test_bundle = load_test_json_asset("patient_bundle_to_link_with_mpi.json")
@@ -450,7 +450,7 @@ class TestLinkFHIR:
         assert actual_response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
         assert actual_response.json()["detail"] == "Error: No algorithm found"
 
-    @mock.patch("recordlinker.linking.algorithm_service.default_algorithm")
+    @mock.patch("recordlinker.database.algorithm_service.default_algorithm")
     def test_linkrecord_no_default_algorithm(self, patched_subprocess, client):
         patched_subprocess.return_value = None
         test_bundle = load_test_json_asset("patient_bundle_to_link_with_mpi.json")

@@ -11,7 +11,7 @@ from sqlalchemy.sql import select
 
 from recordlinker import models
 from recordlinker import schemas
-from recordlinker.linking import algorithm_service
+from recordlinker.database import algorithm_service
 
 
 def test_list_algorithms(session):
