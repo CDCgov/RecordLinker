@@ -13,7 +13,6 @@ from sqlalchemy import orm
 
 from recordlinker import models
 from recordlinker import schemas
-from recordlinker.linking import matchers
 
 from . import mpi_service
 
@@ -37,7 +36,7 @@ def compare(
     # all the functions used for comparison
     evals: list[models.BoundEvaluator] = algorithm_pass.bound_evaluators()
     # a function to determine a match based on the comparison results
-    matching_rule: matchers.MATCH_RULE_FUNC = algorithm_pass.bound_rule()
+    matching_rule: typing.Callable = algorithm_pass.bound_rule()
     # keyword arguments to pass to comparison functions and matching rule
     kwargs: dict[typing.Any, typing.Any] = algorithm_pass.kwargs
 
