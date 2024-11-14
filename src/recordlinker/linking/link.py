@@ -13,8 +13,7 @@ from sqlalchemy import orm
 
 from recordlinker import models
 from recordlinker import schemas
-
-from . import mpi_service
+from recordlinker.database import mpi_service
 
 TRACER: typing.Any = None
 try:
@@ -26,6 +25,7 @@ except ImportError:
     from recordlinker.utils.mock import MockTracer
 
     TRACER = MockTracer()
+
 
 def compare(
     record: schemas.PIIRecord, patient: models.Patient, algorithm_pass: models.AlgorithmPass
@@ -119,12 +119,7 @@ def link_record_against_mpi(
 
     with TRACER.start_as_current_span("insert"):
         patient = mpi_service.insert_patient(
-            session,
-            record,
-            matched_person,
-            record.external_id,
-            external_person_id,
-            commit=False
+            session, record, matched_person, record.external_id, external_person_id, commit=False
         )
 
     # return a tuple indicating whether a match was found and the person ID

@@ -1,8 +1,8 @@
 """
-unit.linking.test_mpi_service.py
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+unit.database.test_mpi_service.py
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-This module contains the unit tests for the recordlinker.linking.mpi_service module.
+This module contains the unit tests for the recordlinker.database.mpi_service module.
 """
 
 import json
@@ -14,7 +14,7 @@ from conftest import db_dialect
 
 from recordlinker import models
 from recordlinker import schemas
-from recordlinker.linking import mpi_service
+from recordlinker.database import mpi_service
 
 
 class TestInsertBlockingValues:

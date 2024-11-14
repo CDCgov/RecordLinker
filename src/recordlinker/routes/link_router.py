@@ -12,9 +12,9 @@ import fastapi
 import sqlalchemy.orm as orm
 
 from recordlinker import schemas
+from recordlinker.database import algorithm_service
 from recordlinker.database import get_session
 from recordlinker.hl7 import fhir
-from recordlinker.linking import algorithm_service
 from recordlinker.linking import link
 
 router = fastapi.APIRouter()
@@ -132,6 +132,7 @@ async def link_dibbs(
             message=f"Could not connect to database: {err}",
         )
 
+
 @router.post("/fhir", summary="Link FHIR")
 async def link_fhir(
     request: fastapi.Request,
@@ -165,7 +166,10 @@ async def link_fhir(
         ][0]
     except IndexError:
         response.status_code = fastapi.status.HTTP_400_BAD_REQUEST
-        raise fastapi.HTTPException(status_code=400, detail="Error: Supplied bundle contains no Patient resource to link on.")
+        raise fastapi.HTTPException(
+            status_code=400,
+            detail="Error: Supplied bundle contains no Patient resource to link on.",
+        )
 
     # convert record to PII
     pii_record: schemas.PIIRecord = fhir.fhir_record_to_pii_record(record_to_link)
