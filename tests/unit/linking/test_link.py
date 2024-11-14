@@ -111,6 +111,46 @@ class TestLinkRecordAgainstMpi:
                 patients.append(fhir.fhir_record_to_pii_record(entry["resource"]))
         return patients
 
+    @pytest.fixture
+    def possible_match_basic_patients(self):
+        bundle = load_test_json_asset("possible_match_basic_patient_bundle.json")
+        patients = []
+        patients: list[schemas.PIIRecord] = []
+        for entry in bundle["entry"]:
+            if entry.get("resource", {}).get("resourceType", {}) == "Patient":
+                patients.append(fhir.fhir_record_to_pii_record(entry["resource"]))
+        return patients
+    
+    @pytest.fixture
+    def possible_match_enhanced_patients(self):
+        bundle = load_test_json_asset("possible_match_enhanced_patient_bundle.json")
+        patients = []
+        patients: list[schemas.PIIRecord] = []
+        for entry in bundle["entry"]:
+            if entry.get("resource", {}).get("resourceType", {}) == "Patient":
+                patients.append(fhir.fhir_record_to_pii_record(entry["resource"]))
+        return patients
+
+    @pytest.fixture
+    def possible_match_basic_patients(self):
+        bundle = load_json_asset("possible_match_basic_patient_bundle.json")
+        patients = []
+        patients: list[schemas.PIIRecord] = []
+        for entry in bundle["entry"]:
+            if entry.get("resource", {}).get("resourceType", {}) == "Patient":
+                patients.append(fhir.fhir_record_to_pii_record(entry["resource"]))
+        return patients
+    
+    @pytest.fixture
+    def possible_match_enhanced_patients(self):
+        bundle = load_json_asset("possible_match_enhanced_patient_bundle.json")
+        patients = []
+        patients: list[schemas.PIIRecord] = []
+        for entry in bundle["entry"]:
+            if entry.get("resource", {}).get("resourceType", {}) == "Patient":
+                patients.append(fhir.fhir_record_to_pii_record(entry["resource"]))
+        return patients
+
     def test_basic_match_one(self, session, basic_algorithm, patients):
         # Test various null data values in incoming record
         matches: list[bool] = []
@@ -178,16 +218,28 @@ class TestLinkRecordAgainstMpi:
         #  finds greatest strength match and correctly assigns to larger cluster
         assert matches == [False, True, False, True, False, False, True]
         assert sorted(list(mapped_patients.values())) == [1, 1, 1, 4]
-<<<<<<< HEAD
-=======
 
 
     def test_enhanced_possible_match(
             self,
             session,
             enhanced_algorithm,
-            patients: list[schemas.PIIRecord]
+            possible_match_enhanced_patients: list[schemas.PIIRecord]
         ):
-
-        pass
->>>>>>> 6791dd7 (test(api): add tests for new api response)
+        predictions: dict[str, dict] = collections.defaultdict(dict)
+        # Decrease Belongingness Ratio lower bound to be more lenient and catch Possible Match
+        enhanced_algorithm.belongingness_ratio_lower_bound = 0.5
+        for i, data in enumerate(possible_match_enhanced_patients):
+            (patient, person, results) = link.link_record_against_mpi(data, session, enhanced_algorithm)
+            predictions[i] = {
+                "patient": patient,
+                "person": person,
+                "results": results
+            }
+        assert predictions[2]["patient"]
+        # 1 Possible Match
+        assert not predictions[2]["person"]
+        assert len(predictions[2]["results"]) == 1
+        assert predictions[2]["results"][0]["person"] == predictions[0]["person"]
+        assert predictions[2]["results"][0]["belongingness_ratio"] >= enhanced_algorithm.belongingness_ratio_lower_bound
+        assert predictions[2]["results"][0]["belongingness_ratio"] < enhanced_algorithm.belongingness_ratio_upper_bound
