@@ -32,7 +32,7 @@ class TestPIIRecord:
                     "state": "NY",
                     "postalCode": "12345",
                     "country": "US",
-                    "county": "county"
+                    "county": "county",
                 },
                 {
                     "line": ["456 Elm St", "Apt 2"],
@@ -40,14 +40,11 @@ class TestPIIRecord:
                     "state": "CA",
                     "postal_code": "98765-4321",
                     "country": "US",
-                    "county": "county2"
+                    "county": "county2",
                 },
             ],
             "telecom": [{"value": "555-123-4567"}, {"value": "555-987-6543"}],
-            "drivers_license": {
-                "authority": "VA",
-                "value": "D1234567"
-            }
+            "drivers_license": {"authority": "VA", "value": "D1234567"},
         }
         record = pii.PIIRecord.model_construct(**data)
         assert record.mrn == "99"
@@ -68,7 +65,6 @@ class TestPIIRecord:
         assert record.address[1].county == "county2"
         assert record.drivers_license.value == "D1234567"
         assert record.drivers_license.authority == "VA"
-
 
     def test_parse_external_id(self):
         record = pii.PIIRecord(external_id=uuid.UUID("7ca699d9-1986-4c0c-a0fd-ac4ae0dfa297"))
@@ -125,7 +121,7 @@ class TestPIIRecord:
         assert record.ssn is None
         record = pii.PIIRecord()
         assert record.ssn is None
-    
+
     def test_parse_race(self):
         # testing verbose races
         record = pii.PIIRecord(race="american indian or alaska native")
@@ -166,7 +162,7 @@ class TestPIIRecord:
         # testing none result
         record = pii.PIIRecord()
         assert record.race is None
-    
+
     def test_parse_gender(self):
         # testing verbose genders
         record = pii.PIIRecord(gender="identifies as female gender (finding)")
@@ -204,7 +200,6 @@ class TestPIIRecord:
 
         record = pii.PIIRecord()
         assert record.gender is None
-        
 
     def test_feature_iter(self):
         record = pii.PIIRecord(
@@ -240,7 +235,7 @@ class TestPIIRecord:
                 pii.Telecom(value="555-123-4567"),
                 pii.Telecom(value="555-987-6543"),
             ],
-            drivers_license=pii.DriversLicense(value="D1234567", authority="VA")
+            drivers_license=pii.DriversLicense(value="D1234567", authority="VA"),
         )
 
         with pytest.raises(ValueError):
@@ -364,3 +359,24 @@ class TestPIIRecord:
         assert rec.blocking_keys(BlockingKey.ADDRESS) == {"123 "}
         rec = pii.PIIRecord(**{"address": [{"line": ["123 Main St"]}, {"line": ["456 Elm St"]}]})
         assert rec.blocking_keys(BlockingKey.ADDRESS) == {"123 ", "456 "}
+
+    def test_blocking_values(self):
+        rec = pii.PIIRecord(
+            **{
+                "mrn": "123456",
+                "birth_date": "1980-01-01",
+                "name": [{"given": ["John", "William"], "family": "Doe"}],
+            }
+        )
+
+        for key, val in rec.blocking_values():
+            if key == BlockingKey.BIRTHDATE:
+                assert val == "1980-01-01"
+            elif key == BlockingKey.MRN:
+                assert val == "3456"
+            elif key == BlockingKey.FIRST_NAME:
+                assert val in ("John", "Will")
+            elif key == BlockingKey.LAST_NAME:
+                assert val == "Doe"
+            else:
+                raise AssertionError(f"Unexpected key: {key}")
