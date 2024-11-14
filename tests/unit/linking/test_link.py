@@ -150,6 +150,16 @@ class TestLinkRecordAgainstMpi:
             if entry.get("resource", {}).get("resourceType", {}) == "Patient":
                 patients.append(fhir.fhir_record_to_pii_record(entry["resource"]))
         return patients
+    
+    @pytest.fixture
+    def multiple_matches_patients(self):
+        bundle = load_json_asset("multiple_matches_patient_bundle.json")
+        patients = []
+        patients: list[schemas.PIIRecord] = []
+        for entry in bundle["entry"]:
+            if entry.get("resource", {}).get("resourceType", {}) == "Patient":
+                patients.append(fhir.fhir_record_to_pii_record(entry["resource"]))
+        return patients
 
     def test_basic_match_one(self, session, basic_algorithm, patients):
         # Test various null data values in incoming record
@@ -191,7 +201,6 @@ class TestLinkRecordAgainstMpi:
         basic_algorithm,
         possible_match_basic_patients: list[schemas.PIIRecord]
         ):
-
         predictions: dict[str, dict] = collections.defaultdict(dict)
         # Decrease Belongingness Ratio lower bound to catch Possible Match when Belongingness Ratio = 0.5
         for lower_bound in [0.5, 0.45]: # test >= lower bound
@@ -203,7 +212,6 @@ class TestLinkRecordAgainstMpi:
                     "person": person,
                     "results": results
                 }
-            assert predictions[2]["patient"]
             # 1 Possible Match
             assert not predictions[2]["person"]
             assert len(predictions[2]["results"]) == 1
@@ -245,7 +253,6 @@ class TestLinkRecordAgainstMpi:
             possible_match_enhanced_patients: list[schemas.PIIRecord]
         ):
         predictions: dict[str, dict] = collections.defaultdict(dict)
-        
         # Decrease Belongingness Ratio lower bound to catch Possible Match when Belongingness Ratio = 0.5
         for lower_bound in [0.5, 0.45]: # test >= lower bound
             enhanced_algorithm.belongingness_ratio_lower_bound = lower_bound
@@ -256,10 +263,34 @@ class TestLinkRecordAgainstMpi:
                     "person": person,
                     "results": results
                 }
-            assert predictions[2]["patient"]
             # 1 Possible Match
             assert not predictions[2]["person"]
             assert len(predictions[2]["results"]) == 1
             assert predictions[2]["results"][0]["person"] == predictions[0]["person"]
             assert predictions[2]["results"][0]["belongingness_ratio"] >= enhanced_algorithm.belongingness_ratio_lower_bound
             assert predictions[2]["results"][0]["belongingness_ratio"] < enhanced_algorithm.belongingness_ratio_upper_bound
+
+
+    def test_include_multiple_matches_true(
+            self,
+            session,
+            basic_algorithm,
+            multiple_matches_patients: list[schemas.PIIRecord]
+        ):
+        predictions: dict[str, dict] = collections.defaultdict(dict)
+        # Adjust Belongingness Ratio bounds to catch Match when Belongingness Ratio = 0.5
+        basic_algorithm.belongingness_ratio_lower_bound = 0.3
+        for upper_bound in [0.5, 0.45]: # test >= upper bound
+            basic_algorithm.belongingness_ratio_upper_bound = upper_bound
+            for i, data in enumerate(multiple_matches_patients):
+                (patient, person, results) = link.link_record_against_mpi(data, session, basic_algorithm)
+                predictions[i] = {
+                    "patient": patient,
+                    "person": person,
+                    "results": results
+                }
+            # 2 Matches
+            assert len(predictions[3]["results"]) == 2
+            assert predictions[3]["person"] == predictions[0]["person"] # Assign to Person with highest Belongingness Ratio (1.0)
+            for match in predictions[2]["results"]:
+                assert match["belongingness_ratio"] >= basic_algorithm.belongingness_ratio_upper_bound
