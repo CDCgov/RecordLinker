@@ -33,7 +33,7 @@ class LinkInput(pydantic.BaseModel):
 
 class LinkResult(pydantic.BaseModel):
     """
-    TODO
+    Schema for linkage results to a person cluster.
     """
 
     person_reference_id: uuid.UUID = pydantic.Field(
