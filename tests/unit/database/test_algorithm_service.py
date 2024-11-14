@@ -1,8 +1,8 @@
 """
-unit.linking.test_algorithm_service.py
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+unit.database.test_algorithm_service.py
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-This module contains the unit tests for the recordlinker.linking.algorithm_service module.
+This module contains the unit tests for the recordlinker.database.algorithm_service module.
 """
 
 import pytest
@@ -11,7 +11,7 @@ from sqlalchemy.sql import select
 
 from recordlinker import models
 from recordlinker import schemas
-from recordlinker.linking import algorithm_service
+from recordlinker.database import algorithm_service
 
 
 def test_list_algorithms(session):
