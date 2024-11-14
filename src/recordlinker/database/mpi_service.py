@@ -125,7 +125,6 @@ def bulk_insert_patients(
     if not records:
         return []
 
-    person = person or models.Person()
     session.add(person)
     session.flush()
     pat_data = [
