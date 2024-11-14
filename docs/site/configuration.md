@@ -61,6 +61,16 @@ Each setting can be configured as follows:
 
     **Development Default**: `""`
 
+`SPLUNK_URI (Optional)`
+
+:   URI for the Splunk HTTP Event Collector (HEC) endpoint. When set, logs will be sent to
+    the configured Splunk instance for analysis. The format is
+    `splunkhec://<token>@<host>:<port>?index=<index>&proto=<protocol>&ssl_verify=<verify>&source=<source>`
+
+    **Docker Default**: `""`
+
+    **Development Default**: `""`
+
 `INITIAL_ALGORITHMS (Optional)`
 
 :   Path to a JSON file with initial algorithms to load if the algorithms table is empty.
