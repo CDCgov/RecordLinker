@@ -1,8 +1,8 @@
 """
-unit.linking.test_algorithm_service.py
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+unit.database.test_algorithm_service.py
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-This module contains the unit tests for the recordlinker.linking.algorithm_service module.
+This module contains the unit tests for the recordlinker.database.algorithm_service module.
 """
 
 import pytest
