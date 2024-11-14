@@ -76,7 +76,9 @@ class LinkResponse(pydantic.BaseModel):
                     "all Persons with which the Patient record possibly matches."
     )
 
-    @pydantic.computed_field
+    # mypy doesn't support decorators on properties; https://github.com/python/mypy/issues/1362
+    @pydantic.computed_field  # type: ignore[misc]
+    @property
     def prediction(self) -> typing.Literal["match", "possible_match", "no_match"]:
         """
         Record Linkage algorithm prediction.

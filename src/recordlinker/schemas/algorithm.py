@@ -9,6 +9,7 @@ These are used for parsing and validating algorithm configurations.
 import typing
 
 import pydantic
+from typing_extensions import Annotated
 
 from recordlinker.linking import matchers
 from recordlinker.models.mpi import BlockingKey
@@ -78,7 +79,7 @@ class Algorithm(pydantic.BaseModel):
     description: typing.Optional[str] = None
     is_default: bool = False
     include_multiple_matches: bool = True
-    belongingness_ratio: tuple[float, float]
+    belongingness_ratio: tuple[Annotated[float, pydantic.Field(ge=0, le=1)], Annotated[float, pydantic.Field(ge=0, le=1)]]
     passes: typing.Sequence[AlgorithmPass]
 
     @pydantic.field_validator("belongingness_ratio", mode="before")
