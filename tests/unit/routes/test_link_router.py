@@ -7,6 +7,7 @@ This module contains the unit tests for the recordlinker.routes.link_router modu
 
 import copy
 import json
+import uuid
 from unittest import mock
 
 import pytest
@@ -47,7 +48,10 @@ class TestLinkDIBBS:
             for r in new_bundle["entry"]
             if r.get("resource").get("resourceType") == "Person"
         ][0]
+        assert resp_1.json()["patient_reference_id"] and uuid.UUID(resp_1.json()["patient_reference_id"])
+        assert resp_1.json()["person_reference_id"] == person_1.get("id")
         assert resp_1.json()["prediction"] == "no_match"
+        assert not resp_1.json()["results"]
 
         bundle_2 = test_bundle
         bundle_2["entry"] = [entry_list[1]]
@@ -58,13 +62,25 @@ class TestLinkDIBBS:
             for r in new_bundle["entry"]
             if r.get("resource").get("resourceType") == "Person"
         ][0]
-        assert resp_2.json()["prediction"] == "match"
+        assert resp_2.json()["patient_reference_id"] and uuid.UUID(resp_2.json()["patient_reference_id"])
+        assert resp_2.json()["person_reference_id"] == person_1.get("id")
         assert person_2.get("id") == person_1.get("id")
+        assert resp_2.json()["prediction"] == "match"
+        assert len(resp_2.json()["results"]) == 1
 
         bundle_3 = test_bundle
         bundle_3["entry"] = [entry_list[2]]
         resp_3 = client.post("/link/dibbs", json={"bundle": bundle_3})
+        new_bundle = resp_3.json()["updated_bundle"]
+        person_3 = [
+            r.get("resource")
+            for r in new_bundle["entry"]
+            if r.get("resource").get("resourceType") == "Person"
+        ][0]
+        assert resp_3.json()["patient_reference_id"] and uuid.UUID(resp_3.json()["patient_reference_id"])
+        assert resp_3.json()["person_reference_id"] == person_3.get("id")
         assert resp_3.json()["prediction"] == "no_match"
+        assert not resp_3.json()["results"]
 
         # Cluster membership success--justified match
         bundle_4 = test_bundle
@@ -76,19 +92,39 @@ class TestLinkDIBBS:
             for r in new_bundle["entry"]
             if r.get("resource").get("resourceType") == "Person"
         ][0]
-        assert resp_4.json()["prediction"] == "match"
+        assert resp_4.json()["patient_reference_id"] and uuid.UUID(resp_4.json()["patient_reference_id"])
+        assert resp_4.json()["person_reference_id"] == person_4.get("id")
         assert person_4.get("id") == person_1.get("id")
+        assert resp_4.json()["prediction"] == "match"
+        assert len(resp_4.json()["results"]) == 1
 
         bundle_5 = test_bundle
         bundle_5["entry"] = [entry_list[4]]
         resp_5 = client.post("/link/dibbs", json={"bundle": bundle_5})
+        new_bundle = resp_5.json()["updated_bundle"]
+        person_5 = [
+            r.get("resource")
+            for r in new_bundle["entry"]
+            if r.get("resource").get("resourceType") == "Person"
+        ][0]
+        assert resp_5.json()["patient_reference_id"] and uuid.UUID(resp_5.json()["patient_reference_id"])
+        assert resp_5.json()["person_reference_id"] == person_5.get("id")
         assert resp_5.json()["prediction"] == "no_match"
+        assert not resp_5.json()["results"]
 
         bundle_6 = test_bundle
         bundle_6["entry"] = [entry_list[5]]
         resp_6 = client.post("/link/dibbs", json={"bundle": bundle_6})
         new_bundle = resp_6.json()["updated_bundle"]
+        person_6 = [
+            r.get("resource")
+            for r in new_bundle["entry"]
+            if r.get("resource").get("resourceType") == "Person"
+        ][0]
+        assert resp_6.json()["patient_reference_id"] and uuid.UUID(resp_6.json()["patient_reference_id"])
+        assert resp_6.json()["person_reference_id"] == person_6.get("id")
         assert resp_6.json()["prediction"] == "no_match"
+        assert not resp_6.json()["results"]
 
     @mock.patch("recordlinker.database.algorithm_service.get_algorithm")
     def test_enhanced_algo(self, patched_subprocess, enhanced_algorithm, client):
@@ -105,7 +141,10 @@ class TestLinkDIBBS:
             for r in new_bundle["entry"]
             if r.get("resource").get("resourceType") == "Person"
         ][0]
+        assert resp_1.json()["patient_reference_id"] and uuid.UUID(resp_1.json()["patient_reference_id"])
+        assert resp_1.json()["person_reference_id"] == person_1.get("id")
         assert resp_1.json()["prediction"] == "no_match"
+        assert not resp_1.json()["results"]
 
         bundle_2 = test_bundle
         bundle_2["entry"] = [entry_list[1]]
@@ -116,13 +155,25 @@ class TestLinkDIBBS:
             for r in new_bundle["entry"]
             if r.get("resource").get("resourceType") == "Person"
         ][0]
-        assert resp_2.json()["prediction"] == "match"
+        assert resp_2.json()["patient_reference_id"] and uuid.UUID(resp_2.json()["patient_reference_id"])
+        assert resp_2.json()["person_reference_id"] == person_2.get("id")
         assert person_2.get("id") == person_1.get("id")
+        assert resp_2.json()["prediction"] == "match"
+        assert len(resp_2.json()["results"]) == 1
 
         bundle_3 = test_bundle
         bundle_3["entry"] = [entry_list[2]]
         resp_3 = client.post("/link/dibbs", json={"bundle": bundle_3, "algorithm": "dibbs-enhanced"})
+        new_bundle = resp_3.json()["updated_bundle"]
+        person_3 = [
+            r.get("resource")
+            for r in new_bundle["entry"]
+            if r.get("resource").get("resourceType") == "Person"
+        ][0]
+        assert resp_3.json()["patient_reference_id"] and uuid.UUID(resp_3.json()["patient_reference_id"])
+        assert resp_3.json()["person_reference_id"] == person_3.get("id")
         assert resp_3.json()["prediction"] == "no_match"
+        assert not resp_3.json()["results"]
 
         bundle_4 = test_bundle
         bundle_4["entry"] = [entry_list[3]]
@@ -133,19 +184,39 @@ class TestLinkDIBBS:
             for r in new_bundle["entry"]
             if r.get("resource").get("resourceType") == "Person"
         ][0]
-        assert resp_4.json()["prediction"] == "match"
+        assert resp_4.json()["patient_reference_id"] and uuid.UUID(resp_4.json()["patient_reference_id"])
+        assert resp_4.json()["person_reference_id"] == person_1.get("id")
         assert person_4.get("id") == person_1.get("id")
+        assert resp_4.json()["prediction"] == "match"
+        assert len(resp_4.json()["results"]) == 1
 
         bundle_5 = test_bundle
         bundle_5["entry"] = [entry_list[4]]
         resp_5 = client.post("/link/dibbs", json={"bundle": bundle_5, "algorithm": "dibbs-enhanced"})
+        new_bundle = resp_5.json()["updated_bundle"]
+        person_5 = [
+            r.get("resource")
+            for r in new_bundle["entry"]
+            if r.get("resource").get("resourceType") == "Person"
+        ][0]
+        assert resp_5.json()["patient_reference_id"] and uuid.UUID(resp_5.json()["patient_reference_id"])
+        assert resp_5.json()["person_reference_id"] == person_5.get("id")
         assert resp_5.json()["prediction"] == "no_match"
+        assert not resp_5.json()["results"]
 
         bundle_6 = test_bundle
         bundle_6["entry"] = [entry_list[5]]
         resp_6 = client.post("/link/dibbs", json={"bundle": bundle_6, "algorithm": "dibbs-enhanced"})
         new_bundle = resp_6.json()["updated_bundle"]
+        person_6 = [
+            r.get("resource")
+            for r in new_bundle["entry"]
+            if r.get("resource").get("resourceType") == "Person"
+        ][0]
+        assert resp_6.json()["patient_reference_id"] and uuid.UUID(resp_6.json()["patient_reference_id"])
+        assert resp_6.json()["person_reference_id"] == person_6.get("id")
         assert resp_6.json()["prediction"] == "no_match"
+        assert not resp_6.json()["results"]
 
     @mock.patch("recordlinker.database.algorithm_service.get_algorithm")
     def test_invalid_algorithm_param(self, patched_subprocess, client):
@@ -180,37 +251,56 @@ class TestLink:
             "/link", json={"record": json.loads(patients[0].model_dump_json(exclude_none=True))}
         )
         person_1 = response_1.json()["person_reference_id"]
+        assert response_1.json()["patient_reference_id"] and uuid.UUID(response_1.json()["patient_reference_id"])
+        assert person_1
         assert response_1.json()["prediction"] == "no_match"
+        assert not response_1.json()["results"]
 
         response_2 = client.post(
             "/link", json={"record": json.loads(patients[1].model_dump_json(exclude_none=True))}
         )
         person_2 = response_2.json()["person_reference_id"]
-        assert response_2.json()["prediction"] == "match"
+        assert response_2.json()["patient_reference_id"] and uuid.UUID(response_2.json()["patient_reference_id"])
         assert person_2 == person_1
+        assert response_2.json()["prediction"] == "match"
+        assert len(response_2.json()["results"]) == 1
 
         response_3 = client.post(
             "/link", json={"record": json.loads(patients[2].model_dump_json(exclude_none=True))}
         )
+        person_3 = response_3.json()["person_reference_id"]
+        assert response_3.json()["patient_reference_id"] and uuid.UUID(response_3.json()["patient_reference_id"])
+        assert person_3
         assert response_3.json()["prediction"] == "no_match"
+        assert not response_3.json()["results"]
 
         # Cluster membership success--justified match
         response_4 = client.post(
             "/link", json={"record": json.loads(patients[3].model_dump_json(exclude_none=True))}
         )
         person_4 = response_4.json()["person_reference_id"]
-        assert response_4.json()["prediction"] == "match"
+        assert response_4.json()["patient_reference_id"] and uuid.UUID(response_4.json()["patient_reference_id"])
         assert person_4 == person_1
+        assert response_4.json()["prediction"] == "match"
+        assert len(response_2.json()["results"]) == 1
 
         response_5 = client.post(
             "/link", json={"record": json.loads(patients[4].model_dump_json(exclude_none=True))}
         )
+        person_5 = response_5.json()["person_reference_id"]
+        assert response_5.json()["patient_reference_id"] and uuid.UUID(response_5.json()["patient_reference_id"])
+        assert person_5
         assert response_5.json()["prediction"] == "no_match"
+        assert not response_3.json()["results"]
 
         response_6 = client.post(
             "/link", json={"record": json.loads(patients[5].model_dump_json(exclude_none=True))}
         )
+        person_6 = response_6.json()["person_reference_id"]
+        assert response_6.json()["patient_reference_id"] and uuid.UUID(response_6.json()["patient_reference_id"])
+        assert person_6
         assert response_6.json()["prediction"] == "no_match"
+        assert not response_6.json()["results"]
 
     @mock.patch("recordlinker.database.algorithm_service.get_algorithm")
     def test_link_enhanced_algorithm(
@@ -226,7 +316,10 @@ class TestLink:
             },
         )
         person_1 = response_1.json()["person_reference_id"]
+        assert response_1.json()["patient_reference_id"] and uuid.UUID(response_1.json()["patient_reference_id"])
+        assert person_1
         assert response_1.json()["prediction"] == "no_match"
+        assert not response_1.json()["results"]
 
         response_2 = client.post(
             "/link",
@@ -236,8 +329,10 @@ class TestLink:
             },
         )
         person_2 = response_2.json()["person_reference_id"]
-        assert response_2.json()["prediction"] == "match"
+        assert response_2.json()["patient_reference_id"] and uuid.UUID(response_2.json()["patient_reference_id"])
         assert person_2 == person_1
+        assert response_2.json()["prediction"] == "match"
+        assert len(response_2.json()["results"]) == 1
 
         response_3 = client.post(
             "/link",
@@ -246,7 +341,11 @@ class TestLink:
                 "algorithm": "dibbs-enhanced",
             },
         )
+        person_3 = response_3.json()["person_reference_id"]
+        assert response_3.json()["patient_reference_id"] and uuid.UUID(response_3.json()["patient_reference_id"])
+        assert person_3
         assert response_3.json()["prediction"] == "no_match"
+        assert not response_3.json()["results"]
 
         # Cluster membership success--justified match
         response_4 = client.post(
@@ -257,8 +356,10 @@ class TestLink:
             },
         )
         person_4 = response_4.json()["person_reference_id"]
-        assert response_4.json()["prediction"] == "match"
+        assert response_4.json()["patient_reference_id"] and uuid.UUID(response_4.json()["patient_reference_id"])
         assert person_4 == person_1
+        assert response_4.json()["prediction"] == "match"
+        assert len(response_4.json()["results"]) == 1
 
         response_5 = client.post(
             "/link",
@@ -267,7 +368,11 @@ class TestLink:
                 "algorithm": "dibbs-enhanced",
             },
         )
+        person_5 = response_5.json()["person_reference_id"]
+        assert response_5.json()["patient_reference_id"] and uuid.UUID(response_5.json()["patient_reference_id"])
+        assert person_5
         assert response_5.json()["prediction"] == "no_match"
+        assert not response_5.json()["results"]
 
         response_6 = client.post(
             "/link",
@@ -276,7 +381,11 @@ class TestLink:
                 "algorithm": "dibbs-enhanced",
             },
         )
+        person_6 = response_6.json()["person_reference_id"]
+        assert response_6.json()["patient_reference_id"] and uuid.UUID(response_6.json()["patient_reference_id"])
+        assert person_6
         assert response_6.json()["prediction"] == "no_match"
+        assert not response_6.json()["results"]
 
     @mock.patch("recordlinker.database.algorithm_service.get_algorithm")
     def test_link_invalid_algorithm_param(self, patched_subprocess, patients, client):
@@ -324,43 +433,61 @@ class TestLinkFHIR:
         patched_subprocess.return_value = basic_algorithm
         test_bundle = load_test_json_asset("patient_bundle_to_link_with_mpi.json")
         entry_list = copy.deepcopy(test_bundle["entry"])
-        print(basic_algorithm)
 
         bundle_1 = test_bundle
         bundle_1["entry"] = [entry_list[0]]
         response_1 = client.post("/link/fhir", json={"bundle": bundle_1})
         person_1 = response_1.json()["person_reference_id"]
+        assert response_1.json()["patient_reference_id"] and uuid.UUID(response_1.json()["patient_reference_id"])
+        assert person_1
         assert response_1.json()["prediction"] == "no_match"
+        assert not response_1.json()["results"]
 
         bundle_2 = test_bundle
         bundle_2["entry"] = [entry_list[1]]
         response_2 = client.post("/link/fhir", json={"bundle": bundle_2})
         person_2 = response_2.json()["person_reference_id"]
-        assert response_2.json()["prediction"] == "match" # Blocks on Pass 1, fuzzy match first name yes, exact match last name yes; fails of Pass 2
+        assert response_2.json()["patient_reference_id"] and uuid.UUID(response_2.json()["patient_reference_id"])
         assert person_2 == person_1
+        assert response_2.json()["prediction"] == "match"
+        assert len(response_2.json()["results"]) == 1
 
         bundle_3 = test_bundle
         bundle_3["entry"] = [entry_list[2]]
         response_3 = client.post("/link/fhir", json={"bundle": bundle_3})
+        person_3 = response_3.json()["person_reference_id"]
+        assert response_3.json()["patient_reference_id"] and uuid.UUID(response_3.json()["patient_reference_id"])
+        assert person_3
         assert response_3.json()["prediction"] == "no_match"
+        assert not response_3.json()["results"]
 
         # Cluster membership success--justified match
         bundle_4 = test_bundle
         bundle_4["entry"] = [entry_list[3]]
         response_4 = client.post("/link/fhir", json={"bundle": bundle_4})
         person_4 = response_4.json()["person_reference_id"]
-        assert response_4.json()["prediction"] == "match"
+        assert response_4.json()["patient_reference_id"] and uuid.UUID(response_4.json()["patient_reference_id"])
         assert person_4 == person_1
+        assert response_4.json()["prediction"] == "match"
+        assert len(response_4.json()["results"]) == 1
 
         bundle_5 = test_bundle
         bundle_5["entry"] = [entry_list[4]]
         response_5 = client.post("/link/fhir", json={"bundle": bundle_5})
+        person_5 = response_5.json()["person_reference_id"]
+        assert response_5.json()["patient_reference_id"] and uuid.UUID(response_5.json()["patient_reference_id"])
+        assert person_5
         assert response_5.json()["prediction"] == "no_match"
+        assert not response_5.json()["results"]
 
         bundle_6 = test_bundle
         bundle_6["entry"] = [entry_list[5]]
         response_6 = client.post("/link/fhir", json={"bundle": bundle_6})
+        person_6 = response_6.json()["person_reference_id"]
+        assert response_6.json()["patient_reference_id"] and uuid.UUID(response_6.json()["patient_reference_id"])
+        assert person_6
         assert response_6.json()["prediction"] == "no_match"
+        assert not response_6.json()["results"]
     
     @mock.patch("recordlinker.database.algorithm_service.get_algorithm")
     def test_link_enhanced_algorithm(
@@ -376,7 +503,10 @@ class TestLinkFHIR:
             "/link/fhir", json={"bundle": bundle_1, "algorithm": "dibbs-enhanced"}
         )
         person_1 = response_1.json()["person_reference_id"]
+        assert response_1.json()["patient_reference_id"] and uuid.UUID(response_1.json()["patient_reference_id"])
+        assert person_1
         assert response_1.json()["prediction"] == "no_match"
+        assert not response_1.json()["results"]
 
         bundle_2 = test_bundle
         bundle_2["entry"] = [entry_list[1]]
@@ -384,15 +514,21 @@ class TestLinkFHIR:
             "/link/fhir", json={"bundle": bundle_2, "algorithm": "dibbs-enhanced"}
         )
         person_2 = response_2.json()["person_reference_id"]
-        assert response_2.json()["prediction"] == "match"
+        assert response_2.json()["patient_reference_id"] and uuid.UUID(response_2.json()["patient_reference_id"])
         assert person_2 == person_1
+        assert response_2.json()["prediction"] == "match"
+        assert len(response_2.json()["results"]) == 1
 
         bundle_3 = test_bundle
         bundle_3["entry"] = [entry_list[2]]
         response_3 = client.post(
             "/link/fhir", json={"bundle": bundle_3, "algorithm": "dibbs-enhanced"}
         )
+        person_3 = response_3.json()["person_reference_id"]
+        assert response_3.json()["patient_reference_id"] and uuid.UUID(response_3.json()["patient_reference_id"])
+        assert person_3
         assert response_3.json()["prediction"] == "no_match"
+        assert not response_3.json()["results"]
 
         # Cluster membership success--justified match
         bundle_4 = test_bundle
@@ -401,22 +537,32 @@ class TestLinkFHIR:
             "/link/fhir", json={"bundle": bundle_4, "algorithm": "dibbs-enhanced"}
         )
         person_4 = response_4.json()["person_reference_id"]
-        assert response_4.json()["prediction"] == "match"
+        assert response_4.json()["patient_reference_id"] and uuid.UUID(response_4.json()["patient_reference_id"])
         assert person_4 == person_1
+        assert response_4.json()["prediction"] == "match"
+        assert len(response_4.json()["results"]) == 1
 
         bundle_5 = test_bundle
         bundle_5["entry"] = [entry_list[4]]
         response_5 = client.post(
             "/link/fhir", json={"bundle": bundle_5, "algorithm": "dibbs-enhanced"}
         )
+        person_5 = response_5.json()["person_reference_id"]
+        assert response_5.json()["patient_reference_id"] and uuid.UUID(response_5.json()["patient_reference_id"])
+        assert person_5
         assert response_5.json()["prediction"] == "no_match"
+        assert not response_5.json()["results"]
 
         bundle_6 = test_bundle
         bundle_6["entry"] = [entry_list[5]]
         response_6 = client.post(
             "/link/fhir", json={"bundle": bundle_6, "algorithm": "dibbs-enhanced"}
         )
+        person_6 = response_6.json()["person_reference_id"]
+        assert response_6.json()["patient_reference_id"] and uuid.UUID(response_6.json()["patient_reference_id"])
+        assert person_6
         assert response_6.json()["prediction"] == "no_match"
+        assert not response_6.json()["results"]
     
     @mock.patch("recordlinker.database.algorithm_service.get_algorithm")
     def test_linkrecord_invalid_algorithm_param(self, patched_subprocess, client):

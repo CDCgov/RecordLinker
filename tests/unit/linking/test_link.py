@@ -145,6 +145,15 @@ class TestLinkRecordAgainstMpi:
         assert matches == [False, True, False, True, False, False]
         assert sorted(list(mapped_patients.values())) == [1, 1, 1, 3]
 
+    def test_basic_possible_match(
+        self,
+        session,
+        basic_algorithm,
+        patients: list[schemas.PIIRecord]
+        ):
+        pass
+
+
     def test_enhanced_match_three(self, session, enhanced_algorithm, patients: list[schemas.PIIRecord]):
         # add an additional patient that will fuzzy match to patient 0
         patient0_copy = copy.deepcopy(patients[0])
@@ -169,3 +178,16 @@ class TestLinkRecordAgainstMpi:
         #  finds greatest strength match and correctly assigns to larger cluster
         assert matches == [False, True, False, True, False, False, True]
         assert sorted(list(mapped_patients.values())) == [1, 1, 1, 4]
+<<<<<<< HEAD
+=======
+
+
+    def test_enhanced_possible_match(
+            self,
+            session,
+            enhanced_algorithm,
+            patients: list[schemas.PIIRecord]
+        ):
+
+        pass
+>>>>>>> 6791dd7 (test(api): add tests for new api response)

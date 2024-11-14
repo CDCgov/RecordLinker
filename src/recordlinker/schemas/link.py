@@ -82,7 +82,6 @@ class LinkResponse(pydantic.BaseModel):
         """
         Record Linkage algorithm prediction.
         """
-        print(f"self.results: {self.results}")
         if self.person_reference_id and self.results:
             return "match"
         elif not self.results:
