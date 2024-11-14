@@ -76,7 +76,6 @@ class LinkResponse(pydantic.BaseModel):
                     "all Persons with which the Patient record possibly matches."
     )
 
-    @property
     @pydantic.computed_field
     def prediction(self) -> typing.Literal["match", "possible_match", "no_match"]:
         """
