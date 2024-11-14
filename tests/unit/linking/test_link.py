@@ -291,6 +291,31 @@ class TestLinkRecordAgainstMpi:
                 }
             # 2 Matches
             assert len(predictions[3]["results"]) == 2
-            assert predictions[3]["person"] == predictions[0]["person"] # Assign to Person with highest Belongingness Ratio (1.0)
+            assert predictions[3]["person"] == predictions[1]["person"] # Assign to Person with highest Belongingness Ratio (1.0)
             for match in predictions[2]["results"]:
                 assert match["belongingness_ratio"] >= basic_algorithm.belongingness_ratio_upper_bound
+
+
+    def test_include_multiple_matches_false(
+            self,
+            session,
+            basic_algorithm,
+            multiple_matches_patients: list[schemas.PIIRecord]
+        ):
+        predictions: dict[str, dict] = collections.defaultdict(dict)
+        basic_algorithm.include_multiple_matches = False
+        # Adjust Belongingness Ratio bounds to catch Match when Belongingness Ratio = 0.5
+        basic_algorithm.belongingness_ratio_lower_bound = 0.3
+        for upper_bound in [0.5, 0.45]: # test >= upper bound
+            basic_algorithm.belongingness_ratio_upper_bound = upper_bound
+            for i, data in enumerate(multiple_matches_patients):
+                (patient, person, results) = link.link_record_against_mpi(data, session, basic_algorithm)
+                predictions[i] = {
+                    "patient": patient,
+                    "person": person,
+                    "results": results
+                }
+            # 2 Matches, but only include 1
+            assert len(predictions[3]["results"]) == 1
+            assert predictions[3]["person"] == predictions[1]["person"] # Assign to Person with highest Belongingness Ratio (1.0)
+            assert predictions[3]["results"][0]["belongingness_ratio"] >= basic_algorithm.belongingness_ratio_upper_bound
