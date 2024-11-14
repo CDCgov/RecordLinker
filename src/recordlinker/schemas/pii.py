@@ -53,6 +53,7 @@ class Sex(enum.Enum):
         """
         return self.value
 
+
 class Race(enum.Enum):
     """
     Enum for the Race field.
@@ -72,7 +73,8 @@ class Race(enum.Enum):
         Return the value of the enum as a string.
         """
         return self.value
-    
+
+
 class Gender(enum.Enum):
     """
     Enum for the Gender field.
@@ -138,6 +140,7 @@ class Telecom(pydantic.BaseModel):
     system: typing.Optional[str] = None
     use: typing.Optional[str] = None
 
+
 class DriversLicense(pydantic.BaseModel):
     """
     The schema for a Drivers License record
@@ -147,6 +150,7 @@ class DriversLicense(pydantic.BaseModel):
 
     value: str
     authority: str
+
 
 class PIIRecord(pydantic.BaseModel):
     """
@@ -170,7 +174,9 @@ class PIIRecord(pydantic.BaseModel):
     drivers_license: typing.Optional[DriversLicense] = None
 
     @classmethod
-    def model_construct(cls, _fields_set: set[str] | None = None, **values: typing.Any) -> typing.Self:
+    def model_construct(
+        cls, _fields_set: set[str] | None = None, **values: typing.Any
+    ) -> typing.Self:
         """
         Construct a PIIRecord object from a dictionary. This is similar to the
         `pydantic.BaseModel.models_construct` method, but allows for additional parsing
@@ -213,25 +219,25 @@ class PIIRecord(pydantic.BaseModel):
             elif val in ["f", "female"]:
                 return Sex.FEMALE
             return Sex.UNKNOWN
-    
+
     @pydantic.field_validator("ssn", mode="before")
     def parse_ssn(cls, value):
         """
-        Parse the ssn string 
+        Parse the ssn string
         """
         if value:
             val = str(value).strip()
-            
+
             if re.match(r"^\d{3}-\d{2}-\d{4}$", val):
-                return val 
+                return val
 
             if len(val) != 9 or not val.isdigit():
                 return None
-            
+
             # Format back to the standard SSN format (XXX-XX-XXXX)
             formatted_ssn = f"{val[:3]}-{val[3:5]}-{val[5:]}"
             return formatted_ssn
-    
+
     @pydantic.field_validator("race", mode="before")
     def parse_race(cls, value):
         """
@@ -239,14 +245,14 @@ class PIIRecord(pydantic.BaseModel):
         """
 
         race_mapping = [
-        (["american indian", "alaska native"], Race.AMERICAN_INDIAN),
-        (["asian"], Race.ASIAN),
-        (["black", "african american"], Race.BLACK),
-        (["white"], Race.WHITE),
-        (["hawaiian", "pacific islander"], Race.HAWAIIAN),
-        (["asked unknown", "asked but unknown"], Race.ASKED_UNKNOWN),
-        (["unknown"], Race.UNKNOWN),
-    ]
+            (["american indian", "alaska native"], Race.AMERICAN_INDIAN),
+            (["asian"], Race.ASIAN),
+            (["black", "african american"], Race.BLACK),
+            (["white"], Race.WHITE),
+            (["hawaiian", "pacific islander"], Race.HAWAIIAN),
+            (["asked unknown", "asked but unknown"], Race.ASKED_UNKNOWN),
+            (["unknown"], Race.UNKNOWN),
+        ]
 
         if value:
             val = str(value).lower().strip()
@@ -255,8 +261,6 @@ class PIIRecord(pydantic.BaseModel):
                     return race
             return Race.OTHER
 
-                
-            
     @pydantic.field_validator("gender", mode="before")
     def parse_gender(cls, value):
         """
@@ -275,8 +279,13 @@ class PIIRecord(pydantic.BaseModel):
                     return Gender.NON_BINARY
                 elif "declined" in val or "asked" in val:
                     return Gender.ASKED_DECLINED
-                return Gender.UNKNOWN        
+                return Gender.UNKNOWN
 
+    def to_json(self, prune_empty: bool = False) -> str:
+        """
+        Convert the PIIRecord object to a JSON string.
+        """
+        return self.model_dump_json(exclude_unset=prune_empty, exclude_none=prune_empty)
 
     def feature_iter(self, feature: Feature) -> typing.Iterator[str]:
         """
@@ -381,3 +390,14 @@ class PIIRecord(pydantic.BaseModel):
         if any(len(x) > models.BLOCKING_VALUE_MAX_LENGTH for x in vals):
             raise RuntimeError(f"{self} has a value longer than {models.BLOCKING_VALUE_MAX_LENGTH}")
         return vals
+
+    def blocking_values(self) -> typing.Iterator[tuple[models.BlockingKey, str]]:
+        """
+        Return an iterator of all possible BlockingValues for this record.
+        """
+        for key in models.BlockingKey:
+            # For each Key, get all the values from the data dictionary
+            # Many Keys will only have 1 value, but its possible that
+            # a PII data dict could have multiple given names
+            for val in self.blocking_keys(key):
+                yield key, val

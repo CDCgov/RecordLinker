@@ -9,6 +9,7 @@ from recordlinker.database import get_session
 from recordlinker.routes.algorithm_router import router as algorithm_router
 from recordlinker.routes.link_router import router as link_router
 from recordlinker.routes.patient_router import router as patient_router
+from recordlinker.routes.seed_router import router as seed_router
 
 app = fastapi.FastAPI(
     title="Record Linker",
@@ -78,3 +79,4 @@ async def health_check(
 app.include_router(algorithm_router, prefix="/algorithm", tags=["algorithm"])
 app.include_router(link_router, prefix="/link", tags=["link"])
 app.include_router(patient_router, prefix="/patient", tags=["patient"])
+app.include_router(seed_router, prefix="/seed", tags=["seed"])
