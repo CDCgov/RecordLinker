@@ -89,7 +89,7 @@ jobs:
         -H "Content-Type: application/json")
 
         echo "Response: $RESPONSE_4"
-        echo "$RESPONSE_4" | jq -e '.prediction == match' 
+        echo "$RESPONSE_4" | jq -e '.prediction == "match"' 
         echo "$RESPONSE_4" | jq -e --arg id "$PERSON_REFERENCE_ID" '.person_reference_id == $id'     
       
         #invalid tests
