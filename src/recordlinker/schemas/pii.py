@@ -26,7 +26,7 @@ class Feature(enum.Enum):
     SSN = "SSN"
     RACE = "RACE"
     GENDER = "GENDER"
-    TELEPHONE = "TELEPHONE"
+    TELECOM = "TELECOM"
     SUFFIX = "SUFFIX"
     COUNTY = "COUNTY"
     DRIVERS_LICENSE = "DRIVERS_LICENSE"
@@ -341,7 +341,7 @@ class PIIRecord(pydantic.BaseModel):
         elif feature == Feature.GENDER:
             if self.gender:
                 yield str(self.gender)
-        elif feature == Feature.TELEPHONE:
+        elif feature == Feature.TELECOM:
             for telecom in self.telecom:
                 if telecom.value:
                     yield telecom.value

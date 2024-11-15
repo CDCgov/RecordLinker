@@ -67,9 +67,9 @@ linkage evaluation phase. The following features are supported:
 
 :   The patient's county.
 
-`TELEPHONE`
+`TELECOM`
 
-:   The patient's telephone number.
+:   The patient's phone, email, fax, or other contact information.
 
 
 ### Blocking Key Types

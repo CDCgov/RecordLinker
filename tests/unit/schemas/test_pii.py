@@ -233,7 +233,8 @@ class TestPIIRecord:
             ],
             telecom=[
                 pii.Telecom(value="555-123-4567"),
-                pii.Telecom(value="555-987-6543"),
+                pii.Telecom(value="555-987-6543", system="phone"),
+                pii.Telecom(value="test@email.com", system="email"),
             ],
             drivers_license=pii.DriversLicense(value="D1234567", authority="VA"),
         )
@@ -253,7 +254,11 @@ class TestPIIRecord:
         assert list(record.feature_iter(pii.Feature.SSN)) == ["123-45-6789"]
         assert list(record.feature_iter(pii.Feature.RACE)) == ["UNKNOWN"]
         assert list(record.feature_iter(pii.Feature.GENDER)) == ["UNKNOWN"]
-        assert list(record.feature_iter(pii.Feature.TELEPHONE)) == ["555-123-4567", "555-987-6543"]
+        assert list(record.feature_iter(pii.Feature.TELECOM)) == [
+            "555-123-4567",
+            "555-987-6543",
+            "test@email.com",
+        ]
         assert list(record.feature_iter(pii.Feature.SUFFIX)) == ["suffix", "suffix2"]
         assert list(record.feature_iter(pii.Feature.COUNTY)) == ["county"]
         assert list(record.feature_iter(pii.Feature.DRIVERS_LICENSE)) == ["D1234567|VA"]
