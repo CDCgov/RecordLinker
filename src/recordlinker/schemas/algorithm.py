@@ -88,10 +88,6 @@ class Algorithm(pydantic.BaseModel):
         Validate the Belongingness Ratio Threshold Range.
         """
         lower_bound, upper_bound = value
-        if lower_bound < 0 or lower_bound > 1:
-            raise ValueError(f"Invalid lower bound: {lower_bound}")
-        if upper_bound < 0 or upper_bound > 1:
-            raise ValueError(f"Invalid upper bound: {upper_bound}")
         if lower_bound > upper_bound:
             raise ValueError(f"Invalid range. Lower bound must be less than upper bound: {value}")
         return (lower_bound, upper_bound)
