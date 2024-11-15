@@ -36,7 +36,6 @@ class TestAlgorithmPass:
                 blocking_keys=[],
                 evaluators=evaluators,
                 rule="func:recordlinker.linking.matchers.eval_perfect_match",
-                belongingness_ratio=[0.25, 0.5],
             )
         evaluators = {"LAST_NAME": "func:recordlinker.linking.matchers.unknown"}
         with pytest.raises(pydantic.ValidationError):
