@@ -40,8 +40,9 @@ class LinkResult(pydantic.BaseModel):
         description="The identifier for a person that the patient may be linked to."
     )
 
-    belongingness_ratio: float = pydantic.Field(
-        description="The percentage of patient records matched in this person cluster."
+    belongingness_ratio: typing.Annotated[float, pydantic.Field(ge=0, le=1)] = pydantic.Field(
+        description="The proportion of patient records matched in this person cluster ("
+        "between 0 and 1.0)."
     )
 
 
@@ -67,7 +68,8 @@ class LinkResponse(pydantic.BaseModel):
         description="The unique identifier for the patient that has been linked."
     )
     person_reference_id: uuid.UUID | None = pydantic.Field(
-        description="The identifier for the person that the patient record has been linked to.",
+        description="The identifier for the person that the patient record has been linked to."
+        " If prediction=\"possible_match\", this value will be null."
     )
     results: list[LinkResult] = pydantic.Field(
         description="A list of (possibly) matched Persons. If prediction='match', either the single"

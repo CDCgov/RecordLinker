@@ -251,7 +251,7 @@ class TestBulkInsertPatients:
         rec = schemas.PIIRecord(**{"name": [{"given": ["Johnathon"], "family": "Smith"}]})
         patients = mpi_service.bulk_insert_patients(session, [rec], external_person_id="123456")
         assert len(patients) == 1
-        assert patients[0].person_id is not None
+        assert patients[0].person_id is None
         assert json.loads(patients[0].data) == {
             "name": [{"given": ["Johnathon"], "family": "Smith"}]
         }

@@ -125,12 +125,13 @@ def bulk_insert_patients(
     if not records:
         return []
 
-    person = person or models.Person()
-    session.add(person)
-    session.flush()
+    if person:
+        session.add(person)
+        session.flush()
+
     pat_data = [
         {
-            "person_id": person.id,
+            "person_id": person and person.id,
             "_data": record.to_json(prune_empty=True),
             "external_patient_id": record.external_id,
             "external_person_id": external_person_id,

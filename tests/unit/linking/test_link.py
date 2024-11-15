@@ -196,9 +196,9 @@ class TestLinkRecordAgainstMpi:
             # 1 Possible Match
             assert not predictions[2]["person"]
             assert len(predictions[2]["results"]) == 1
-            assert predictions[2]["results"][0]["person"] == predictions[0]["person"]
-            assert predictions[2]["results"][0]["belongingness_ratio"] >= basic_algorithm.belongingness_ratio_lower_bound
-            assert predictions[2]["results"][0]["belongingness_ratio"] < basic_algorithm.belongingness_ratio_upper_bound
+            assert predictions[2]["results"][0].person == predictions[0]["person"]
+            assert predictions[2]["results"][0].belongingness_ratio >= basic_algorithm.belongingness_ratio_lower_bound
+            assert predictions[2]["results"][0].belongingness_ratio < basic_algorithm.belongingness_ratio_upper_bound
 
 
     def test_enhanced_match_three(self, session, enhanced_algorithm, patients: list[schemas.PIIRecord]):
@@ -247,9 +247,9 @@ class TestLinkRecordAgainstMpi:
             # 1 Possible Match
             assert not predictions[2]["person"]
             assert len(predictions[2]["results"]) == 1
-            assert predictions[2]["results"][0]["person"] == predictions[0]["person"]
-            assert predictions[2]["results"][0]["belongingness_ratio"] >= enhanced_algorithm.belongingness_ratio_lower_bound
-            assert predictions[2]["results"][0]["belongingness_ratio"] < enhanced_algorithm.belongingness_ratio_upper_bound
+            assert predictions[2]["results"][0].person == predictions[0]["person"]
+            assert predictions[2]["results"][0].belongingness_ratio >= enhanced_algorithm.belongingness_ratio_lower_bound
+            assert predictions[2]["results"][0].belongingness_ratio < enhanced_algorithm.belongingness_ratio_upper_bound
 
 
     def test_include_multiple_matches_true(
@@ -274,7 +274,7 @@ class TestLinkRecordAgainstMpi:
             assert len(predictions[3]["results"]) == 2
             assert predictions[3]["person"] == predictions[1]["person"] # Assign to Person with highest Belongingness Ratio (1.0)
             for match in predictions[2]["results"]:
-                assert match["belongingness_ratio"] >= basic_algorithm.belongingness_ratio_upper_bound
+                assert match.belongingness_ratio >= basic_algorithm.belongingness_ratio_upper_bound
 
 
     def test_include_multiple_matches_false(
@@ -299,4 +299,4 @@ class TestLinkRecordAgainstMpi:
             # 2 Matches, but only include 1
             assert len(predictions[3]["results"]) == 1
             assert predictions[3]["person"] == predictions[1]["person"] # Assign to Person with highest Belongingness Ratio (1.0)
-            assert predictions[3]["results"][0]["belongingness_ratio"] >= basic_algorithm.belongingness_ratio_upper_bound
+            assert predictions[3]["results"][0].belongingness_ratio >= basic_algorithm.belongingness_ratio_upper_bound

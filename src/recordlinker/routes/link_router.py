@@ -55,7 +55,7 @@ async def link_piirecord(
         return schemas.LinkResponse(
             patient_reference_id=patient.reference_id,
             person_reference_id=(person and person.reference_id),
-            results=results
+            results=[schemas.LinkResult(**r.__dict__) for r in results]
         )
 
     except ValueError:
@@ -124,7 +124,7 @@ async def link_dibbs(
         return schemas.LinkFhirResponse(
             patient_reference_id=patient.reference_id,
             person_reference_id=(person and person.reference_id),
-            results=results,
+            results=[schemas.LinkResult(**r.__dict__) for r in results],
             updated_bundle=updated_bundle
         )
 
@@ -188,7 +188,7 @@ async def link_fhir(
         return schemas.LinkResponse(
             patient_reference_id=patient.reference_id,
             person_reference_id=(person and person.reference_id),
-            results=results
+            results=[schemas.LinkResult(**r.__dict__) for r in results]
         )
 
     except ValueError:

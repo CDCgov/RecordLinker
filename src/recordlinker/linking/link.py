@@ -6,6 +6,7 @@ This module is used to run the linkage algorithm using the MPI service
 """
 
 import collections
+import dataclasses
 import typing
 
 from sqlalchemy import orm
@@ -26,6 +27,12 @@ except ImportError:
     from recordlinker.utils.mock import MockTracer
 
     TRACER = MockTracer()
+
+
+@dataclasses.dataclass
+class LinkResult:
+    person: models.Person
+    belongingness_ratio: float
 
 
 def compare(
@@ -58,7 +65,7 @@ def link_record_against_mpi(
     session: orm.Session,
     algorithm: models.Algorithm,
     external_person_id: typing.Optional[str] = None,
-) -> tuple[models.Patient, models.Person | None, list[dict]]:
+) -> tuple[models.Patient, models.Person | None, list[LinkResult]]:
     """
     Runs record linkage on a single incoming record (extracted from a FHIR
     bundle) using an existing database as an MPI. Uses a flexible algorithm
@@ -118,15 +125,15 @@ def link_record_against_mpi(
         # Find the person with the highest matching score
         matched_person, _ = max(scores.items(), key=lambda i: i[1])
 
-    sorted_scores = [{"person": k, "belongingness_ratio": v} for k, v in sorted(scores.items(), reverse=True, key=lambda item: item[1])]
+    sorted_scores: list[LinkResult] = [LinkResult(k, v) for k, v in sorted(scores.items(), reverse=True, key=lambda item: item[1])]
     if not scores:
         # No match
         matched_person = models.Person() # Create new Person Cluster
         results = []
-    elif float(sorted_scores[0]["belongingness_ratio"]) >= belongingness_ratio_upper_bound:
+    elif sorted_scores[0].belongingness_ratio >= belongingness_ratio_upper_bound:
         # Match (1 or many)
-        matched_person = sorted_scores[0]["person"]
-        results = [x for x in sorted_scores if float(x["belongingness_ratio"]) >= belongingness_ratio_upper_bound] # Multiple matches
+        matched_person = sorted_scores[0].person
+        results = [x for x in sorted_scores if x.belongingness_ratio >= belongingness_ratio_upper_bound] # Multiple matches
         if not algorithm.include_multiple_matches:
             results = [results[0]] # 1 Match (highest Belongingness Ratio)
     else:
