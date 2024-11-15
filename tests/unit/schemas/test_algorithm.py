@@ -8,7 +8,8 @@ This module contains the unit tests for the recordlinker.schemas.algorithm modul
 import pydantic
 import pytest
 
-from recordlinker.schemas.algorithm import AlgorithmPass, Algorithm
+from recordlinker.schemas.algorithm import Algorithm
+from recordlinker.schemas.algorithm import AlgorithmPass
 
 
 class TestAlgorithmPass:
