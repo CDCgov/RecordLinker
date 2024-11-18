@@ -9,6 +9,7 @@ These are used for parsing and validating algorithm configurations.
 import typing
 
 import pydantic
+from typing_extensions import Annotated
 
 from recordlinker.linking import matchers
 from recordlinker.models.mpi import BlockingKey
@@ -26,7 +27,6 @@ class AlgorithmPass(pydantic.BaseModel):
     blocking_keys: list[str]
     evaluators: dict[str, str]
     rule: str
-    cluster_ratio: float
     kwargs: dict[str, typing.Any] = {}
 
     @pydantic.field_validator("blocking_keys", mode="before")
@@ -44,7 +44,7 @@ class AlgorithmPass(pydantic.BaseModel):
     @pydantic.field_validator("evaluators", mode="before")
     def validate_evaluators(cls, value):
         """
-        Validated the evaluators into a list of feature comparison functions.
+        Validate the evaluators into a list of feature comparison functions.
         """
         for k, v in value.items():
             try:
@@ -78,7 +78,19 @@ class Algorithm(pydantic.BaseModel):
     label: str = pydantic.Field(pattern=r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
     description: typing.Optional[str] = None
     is_default: bool = False
+    include_multiple_matches: bool = True
+    belongingness_ratio: tuple[Annotated[float, pydantic.Field(ge=0, le=1)], Annotated[float, pydantic.Field(ge=0, le=1)]]
     passes: typing.Sequence[AlgorithmPass]
+
+    @pydantic.field_validator("belongingness_ratio", mode="before")
+    def validate_belongingness_ratio(cls, value):
+        """
+        Validate the Belongingness Ratio Threshold Range.
+        """
+        lower_bound, upper_bound = value
+        if lower_bound > upper_bound:
+            raise ValueError(f"Invalid range. Lower bound must be less than upper bound: {value}")
+        return (lower_bound, upper_bound)
 
 
 class AlgorithmSummary(Algorithm):
