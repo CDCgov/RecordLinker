@@ -15,8 +15,6 @@ from recordlinker import models
 from recordlinker import schemas
 from recordlinker.database import mpi_service
 
-from . import matchers
-
 TRACER: typing.Any = None
 try:
     from opentelemetry import trace
@@ -42,20 +40,20 @@ def compare(
     Compare the incoming record to the linked patient
     """
     # all the functions used for comparison
-    funcs: dict[str, matchers.FEATURE_COMPARE_FUNC] = algorithm_pass.bound_evaluators()
+    evals: list[models.BoundEvaluator] = algorithm_pass.bound_evaluators()
     # a function to determine a match based on the comparison results
-    matching_rule: matchers.MATCH_RULE_FUNC = algorithm_pass.bound_rule()
+    matching_rule: typing.Callable = algorithm_pass.bound_rule()
     # keyword arguments to pass to comparison functions and matching rule
     kwargs: dict[typing.Any, typing.Any] = algorithm_pass.kwargs
 
     results: list[float] = []
-    for field, func in funcs.items():
+    for e in evals:
         # TODO: can we do this check earlier?
-        feature = getattr(schemas.Feature, field, None)
+        feature = getattr(schemas.Feature, e.feature, None)
         if feature is None:
-            raise ValueError(f"Invalid comparison field: {field}")
+            raise ValueError(f"Invalid comparison field: {e.feature}")
         # Evaluate the comparison function and append the result to the list
-        result: float = func(record, patient, feature, **kwargs)  # type: ignore
+        result: float = e.func(record, patient, feature, **kwargs)  # type: ignore
         results.append(result)
     return matching_rule(results, **kwargs)  # type: ignore
 
@@ -143,12 +141,7 @@ def link_record_against_mpi(
 
     with TRACER.start_as_current_span("insert"):
         patient = mpi_service.insert_patient(
-            session,
-            record,
-            matched_person,
-            record.external_id,
-            external_person_id,
-            commit=False
+            session, record, matched_person, record.external_id, external_person_id, commit=False
         )
 
     # return a tuple indicating whether a match was found and the person ID

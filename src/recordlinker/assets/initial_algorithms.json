@@ -12,10 +12,16 @@
                     "MRN",
                     "SEX"
                 ],
-                "evaluators": {
-                    "FIRST_NAME": "func:recordlinker.linking.matchers.feature_match_fuzzy_string",
-                    "LAST_NAME": "func:recordlinker.linking.matchers.feature_match_exact"
-                },
+                "evaluators": [
+                    {
+                        "feature": "FIRST_NAME",
+                        "func": "func:recordlinker.linking.matchers.feature_match_fuzzy_string"
+                    },
+                    {
+                        "feature": "LAST_NAME",
+                        "func": "func:recordlinker.linking.matchers.feature_match_exact"
+                    }
+                ],
                 "rule": "func:recordlinker.linking.matchers.eval_perfect_match",
                 "kwargs": {
                     "thresholds": {
@@ -35,10 +41,16 @@
                     "LAST_NAME",
                     "SEX"
                 ],
-                "evaluators": {
-                    "ADDRESS": "func:recordlinker.linking.matchers.feature_match_fuzzy_string",
-                    "BIRTHDATE": "func:recordlinker.linking.matchers.feature_match_exact"
-                },
+                "evaluators": [
+                    {
+                        "feature": "ADDRESS",
+                        "func": "func:recordlinker.linking.matchers.feature_match_fuzzy_string"
+                    },
+                    {
+                        "feature": "BIRTHDATE",
+                        "func": "func:recordlinker.linking.matchers.feature_match_exact"
+                    }
+                ],
                 "rule": "func:recordlinker.linking.matchers.eval_perfect_match",
                 "kwargs": {
                     "thresholds": {
@@ -66,10 +78,16 @@
                     "MRN",
                     "SEX"
                 ],
-                "evaluators": {
-                    "FIRST_NAME": "func:recordlinker.linking.matchers.feature_match_log_odds_fuzzy_compare",
-                    "LAST_NAME": "func:recordlinker.linking.matchers.feature_match_log_odds_fuzzy_compare"
-                },
+                "evaluators": [
+                    {
+                        "feature": "FIRST_NAME",
+                        "func": "func:recordlinker.linking.matchers.feature_match_log_odds_fuzzy_compare"
+                    },
+                    {
+                        "feature": "LAST_NAME",
+                        "func": "func:recordlinker.linking.matchers.feature_match_log_odds_fuzzy_compare"
+                    }
+                ],
                 "rule": "func:recordlinker.linking.matchers.eval_log_odds_cutoff",
                 "kwargs": {
                     "similarity_measure": "JaroWinkler",
@@ -102,10 +120,16 @@
                     "LAST_NAME",
                     "SEX"
                 ],
-                "evaluators": {
-                    "ADDRESS": "func:recordlinker.linking.matchers.feature_match_log_odds_fuzzy_compare",
-                    "BIRTHDATE": "func:recordlinker.linking.matchers.feature_match_log_odds_fuzzy_compare"
-                },
+                "evaluators": [
+                    {
+                        "feature": "ADDRESS",
+                        "func": "func:recordlinker.linking.matchers.feature_match_log_odds_fuzzy_compare"
+                    },
+                    {
+                        "feature": "BIRTHDATE",
+                        "func": "func:recordlinker.linking.matchers.feature_match_log_odds_fuzzy_compare"
+                    }
+                ],
                 "rule": "func:recordlinker.linking.matchers.eval_log_odds_cutoff",
                 "kwargs": {
                     "similarity_measure": "JaroWinkler",

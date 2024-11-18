@@ -71,6 +71,10 @@ linkage evaluation phase. The following features are supported:
 
 :   The patient's telephone number.
 
+`DRIVERS_LICENSE`
+
+:   The patient's driver's license number.
+
 
 ### Blocking Key Types
 

@@ -53,10 +53,14 @@ class TestGetAlgorithm:
                     blocking_keys=[
                         "BIRTHDATE",
                     ],
-                    evaluators={
-                        "FIRST_NAME": "func:recordlinker.linking.matchers.feature_match_fuzzy_string",
-                    },
+                    evaluators=[
+                        {
+                            "feature": "FIRST_NAME",
+                            "func": "func:recordlinker.linking.matchers.feature_match_fuzzy_string",
+                        },
+                    ],
                     rule="func:recordlinker.linking.matchers.eval_perfect_match",
+                    kwargs={"similarity_measure": "JaroWinkler"},
                 )
             ],
         )
@@ -74,11 +78,16 @@ class TestGetAlgorithm:
             "passes": [
                 {
                     "blocking_keys": ["BIRTHDATE"],
-                    "evaluators": {
-                        "FIRST_NAME": "func:recordlinker.linking.matchers.feature_match_fuzzy_string",
-                    },
+                    "evaluators": [
+                        {
+                            "feature": "FIRST_NAME",
+                            "func": "func:recordlinker.linking.matchers.feature_match_fuzzy_string",
+                        }
+                    ],
                     "rule": "func:recordlinker.linking.matchers.eval_perfect_match",
-                    "kwargs": {},
+                    "kwargs": {
+                        "similarity_measure": "JaroWinkler",
+                    },
                 }
             ],
         }
@@ -113,10 +122,13 @@ class TestCreateAlgorithm:
                     "blocking_keys": [
                         "BIRTHDATE",
                     ],
-                    "evaluators": {
-                        "FIRST_NAME": "func:recordlinker.linking.matchers.feature_match_fuzzy_string",
-                    },
-                    "rule": "func:recordlinker.linking.matchers.eval_perfect_match"
+                    "evaluators": [
+                        {
+                            "feature": "FIRST_NAME",
+                            "func": "func:recordlinker.linking.matchers.feature_match_fuzzy_string",
+                        }
+                    ],
+                    "rule": "func:recordlinker.linking.matchers.eval_perfect_match",
                 }
             ],
         }
@@ -132,9 +144,12 @@ class TestCreateAlgorithm:
         assert algo.belongingness_ratio == (0.25, 0.5)
         assert len(algo.passes) == 1
         assert algo.passes[0].blocking_keys == ["BIRTHDATE"]
-        assert algo.passes[0].evaluators == {
-            "FIRST_NAME": "func:recordlinker.linking.matchers.feature_match_fuzzy_string"
-        }
+        assert algo.passes[0].evaluators == [
+            {
+                "feature": "FIRST_NAME",
+                "func": "func:recordlinker.linking.matchers.feature_match_fuzzy_string",
+            }
+        ]
         assert algo.passes[0].rule == "func:recordlinker.linking.matchers.eval_perfect_match"
         assert algo.passes[0].kwargs == {}
 
@@ -174,13 +189,8 @@ class TestUpdateAlgorithm:
         response = client.post("/algorithm", json=payload)
         assert response.status_code == 422
 
-
     def test_update(self, client):
-        algo = models.Algorithm(
-            label="basic",
-            description="First algorithm",
-            passes=[]
-        )
+        algo = models.Algorithm(label="basic", description="First algorithm", passes=[])
         client.session.add(algo)
         client.session.commit()
 
@@ -193,9 +203,12 @@ class TestUpdateAlgorithm:
                     "blocking_keys": [
                         "BIRTHDATE",
                     ],
-                    "evaluators": {
-                        "FIRST_NAME": "func:recordlinker.linking.matchers.feature_match_fuzzy_string",
-                    },
+                    "evaluators": [
+                        {
+                            "feature": "FIRST_NAME",
+                            "func": "func:recordlinker.linking.matchers.feature_match_fuzzy_string",
+                        }
+                    ],
                     "rule": "func:recordlinker.linking.matchers.eval_perfect_match",
                 }
             ],
@@ -212,9 +225,12 @@ class TestUpdateAlgorithm:
         assert algo.belongingness_ratio == (0.25, 0.5)
         assert len(algo.passes) == 1
         assert algo.passes[0].blocking_keys == ["BIRTHDATE"]
-        assert algo.passes[0].evaluators == {
-            "FIRST_NAME": "func:recordlinker.linking.matchers.feature_match_fuzzy_string"
-        }
+        assert algo.passes[0].evaluators == [
+            {
+                "feature": "FIRST_NAME",
+                "func": "func:recordlinker.linking.matchers.feature_match_fuzzy_string",
+            }
+        ]
         assert algo.passes[0].rule == "func:recordlinker.linking.matchers.eval_perfect_match"
         assert algo.passes[0].kwargs == {}
 

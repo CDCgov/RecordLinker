@@ -8,6 +8,7 @@ used by the record linkage algorithm to determine whether a candidate
 pair of records should be considered a match or not.
 """
 
+import enum
 import typing
 
 import rapidfuzz
@@ -18,10 +19,54 @@ from recordlinker.schemas.pii import PIIRecord
 
 SIMILARITY_MEASURES = typing.Literal["JaroWinkler", "Levenshtein", "DamerauLevenshtein"]
 
-# A Callable type for comparing a feature on two records
-FEATURE_COMPARE_FUNC = typing.Callable[[PIIRecord, Patient, Feature, typing.Any], float]
-# A Callable type for evaluating whether a set of feature comparisons constitutes a match
-MATCH_RULE_FUNC = typing.Callable[[list[float], typing.Any], bool]
+
+class RuleFunc(enum.Enum):
+    """
+    Enum for the different types of match rules that can be used for patient
+    matching. This is the universe of all possible match rules that a user can
+    choose from when configuring their algorithm.  When data is loaded into the
+    MPI, all possible RuleFuncs will be created for the defined match rules.
+    However, only a subset will be used in matching, based on the configuration of
+    the algorithm.
+    """
+
+    PERFECT_MATCH = "func:recordlinker.linking.matchers.eval_perfect_match"
+    LOG_ODDS_CUTOFF = "func:recordlinker.linking.matchers.eval_log_odds_cutoff"
+
+
+class FeatureFunc(enum.Enum):
+    """
+    Enum for the different types of feature comparison functions that can be used
+    for patient matching. This is the universe of all possible feature comparison
+    functions that a user can choose from when configuring their algorithm.  When
+    data is loaded into the MPI, all possible FeatureFuncs will be created for the
+    defined feature comparison functions. However, only a subset will be used in
+    matching, based on the configuration of the algorithm.
+    """
+
+    MATCH_ANY = "func:recordlinker.linking.matchers.feature_match_any"
+    MATCH_EXACT = "func:recordlinker.linking.matchers.feature_match_exact"
+    MATCH_FUZZY_STRING = "func:recordlinker.linking.matchers.feature_match_fuzzy_string"
+    MATCH_LOG_ODDS_FUZZY_COMPARE = (
+        "func:recordlinker.linking.matchers.feature_match_log_odds_fuzzy_compare"
+    )
+
+
+class AvailableKwarg(enum.Enum):
+    """
+    Enum for the different types of keyword arguments that can be used in the
+    AlgorithmPass schema. This is the universe of all possible keyword arguments
+    that a user can choose from when configuring their algorithm.  When data is
+    loaded into the MPI, all possible AvailableKwargs will be created for the
+    defined keyword arguments. However, only a subset will be used in matching,
+    based on the configuration of the algorithm.
+    """
+
+    SIMILARITY_MEASURE = "similarity_measure"
+    THRESHOLD = "threshold"
+    THRESHOLDS = "thresholds"
+    LOG_ODDS = "log_odds"
+    TRUE_MATCH_THRESHOLD = "true_match_threshold"
 
 
 def _get_fuzzy_params(col: str, **kwargs) -> tuple[SIMILARITY_MEASURES, float]:
