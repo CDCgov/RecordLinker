@@ -31,21 +31,66 @@ class LinkInput(pydantic.BaseModel):
     )
 
 
+class LinkResult(pydantic.BaseModel):
+    """
+    Schema for linkage results to a person cluster.
+    """
+
+    person_reference_id: uuid.UUID = pydantic.Field(
+        description="The identifier for a person that the patient may be linked to."
+    )
+
+    belongingness_ratio: typing.Annotated[float, pydantic.Field(ge=0, le=1)] = pydantic.Field(
+        description="The proportion of patient records matched in this person cluster ("
+        "between 0 and 1.0)."
+    )
+
+
+    @pydantic.model_validator(mode="before")
+    @classmethod
+    def extract_person_reference_id(cls, data: typing.Any) -> typing.Any:
+        """
+        Extract the person_reference_id from the person_reference_id field.
+        """
+        person = data.pop("person", None)
+        if person:
+            data["person_reference_id"] = person.reference_id
+        return data
+
+
 class LinkResponse(pydantic.BaseModel):
     """
     Schema for responses from the link endpoint.
     """
 
-    is_match: bool = pydantic.Field(
-        description="A true value indicates that one or more existing records "
-        "matched with the provided record, and these results have been linked."
-    )
+    
     patient_reference_id: uuid.UUID = pydantic.Field(
-        description="The unique identifier for the patient that has been linked"
+        description="The unique identifier for the patient that has been linked."
     )
-    person_reference_id: uuid.UUID = pydantic.Field(
-        description="The identifier for the person that the patient record has " "been linked to.",
+    person_reference_id: uuid.UUID | None = pydantic.Field(
+        description="The identifier for the person that the patient record has been linked to."
+        " If prediction=\"possible_match\", this value will be null."
     )
+    results: list[LinkResult] = pydantic.Field(
+        description="A list of (possibly) matched Persons. If prediction='match', either the single"
+                    "(include_multiple_matches=False) or multiple (include_multiple_matches=True) "
+                    "Persons with which the Patient record matches. If prediction='possible_match',"
+                    "all Persons with which the Patient record possibly matches."
+    )
+
+    # mypy doesn't support decorators on properties; https://github.com/python/mypy/issues/1362
+    @pydantic.computed_field  # type: ignore[misc]
+    @property
+    def prediction(self) -> typing.Literal["match", "possible_match", "no_match"]:
+        """
+        Record Linkage algorithm prediction.
+        """
+        if self.person_reference_id and self.results:
+            return "match"
+        elif not self.results:
+            return "no_match"
+        else:
+            return "possible_match"
 
 
 class LinkFhirInput(pydantic.BaseModel):
@@ -69,23 +114,14 @@ class LinkFhirInput(pydantic.BaseModel):
     )
 
 
-class LinkFhirResponse(pydantic.BaseModel):
+class LinkFhirResponse(LinkResponse):
     """
     The schema for responses from the link FHIR endpoint.
     """
 
-    found_match: bool = pydantic.Field(
-        description="A true value indicates that one or more existing records "
-        "matched with the provided record, and these results have been linked."
-    )
-    updated_bundle: dict = pydantic.Field(
-        description="If link_found is true, returns the FHIR bundle with updated"
-        " references to existing Personresource. If link_found is false, "
+    updated_bundle: dict | None = pydantic.Field(
+        description="If 'prediction' is 'match', returns the FHIR bundle with updated"
+        " references to existing Person resource. If 'prediction' is 'no_match', "
         "returns the FHIR bundle with a reference to a newly created "
-        "Person resource."
-    )
-    message: typing.Optional[str] = pydantic.Field(
-        description="An optional message in the case that the linkage endpoint did "
-        "not run successfully containing a description of the error that happened.",
-        default="",
+        "Person resource. If 'prediction' is 'possible_match', returns null."
     )
