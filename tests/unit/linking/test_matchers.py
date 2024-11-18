@@ -4,12 +4,43 @@ unit.linking.test_matchers
 
 This module contains unit tests for the :mod:`~recordlinker.linking.matchers` module.
 """
+import inspect
+import typing
 
 import pytest
 
 from recordlinker import models
 from recordlinker import schemas
 from recordlinker.linking import matchers
+from recordlinker.utils import functools as utils
+
+
+class TestRuleFunc:
+    def test_correct_signatures(self):
+        for rule in matchers.RuleFunc:
+            fn = utils.str_to_callable(rule.value)
+            assert callable(fn)
+            signature = inspect.signature(fn)
+            params = list(signature.parameters.values())
+            assert len(params) == 2
+            assert params[0].annotation == list[float]
+            assert params[1].annotation == typing.Any
+            assert signature.return_annotation is bool
+
+
+class TestFeatureFunc:
+    def test_correct_signatures(self):
+        for rule in matchers.FeatureFunc:
+            fn = utils.str_to_callable(rule.value)
+            assert callable(fn)
+            signature = inspect.signature(fn)
+            params = list(signature.parameters.values())
+            assert len(params) == 4
+            assert params[0].annotation == schemas.PIIRecord
+            assert params[1].annotation == models.Patient
+            assert params[2].annotation == schemas.Feature
+            assert params[3].annotation == typing.Any
+            assert signature.return_annotation is float
 
 
 def test_get_fuzzy_params():
@@ -26,7 +57,7 @@ def test_get_fuzzy_params():
 
 def test_feature_match_any():
     record = schemas.PIIRecord(
-        name=[{"given": ["John"], "family": "Smith"}, {"family": "Harrison"}],
+        name=[{"given": ["John", "Michael"], "family": "Smith"}, {"family": "Harrison"}],
         birthDate="Jan 1 1980",
     )
     pat1 = models.Patient(
@@ -35,16 +66,19 @@ def test_feature_match_any():
     pat2 = models.Patient(data={"name": [{"given": ["Michael"], "family": "Smith"}], "sex": "male"})
     pat3 = models.Patient(data={"name": [{"family": "Smith"}, {"family": "Williams"}]})
 
+    assert matchers.feature_match_any(record, pat1, schemas.Feature.GIVEN_NAME)
     assert matchers.feature_match_any(record, pat1, schemas.Feature.FIRST_NAME)
     assert not matchers.feature_match_any(record, pat1, schemas.Feature.LAST_NAME)
     assert matchers.feature_match_any(record, pat1, schemas.Feature.BIRTHDATE)
     assert not matchers.feature_match_any(record, pat1, schemas.Feature.ZIP)
 
+    assert matchers.feature_match_any(record, pat2, schemas.Feature.GIVEN_NAME)
     assert not matchers.feature_match_any(record, pat2, schemas.Feature.FIRST_NAME)
     assert matchers.feature_match_any(record, pat2, schemas.Feature.LAST_NAME)
     assert not matchers.feature_match_any(record, pat2, schemas.Feature.SEX)
     assert not matchers.feature_match_any(record, pat1, schemas.Feature.ZIP)
 
+    assert not matchers.feature_match_any(record, pat3, schemas.Feature.GIVEN_NAME)
     assert not matchers.feature_match_any(record, pat3, schemas.Feature.FIRST_NAME)
     assert matchers.feature_match_any(record, pat3, schemas.Feature.LAST_NAME)
     assert not matchers.feature_match_any(record, pat3, schemas.Feature.BIRTHDATE)
@@ -70,11 +104,13 @@ def test_feature_match_exact():
     )
     pat3 = models.Patient(data={"name": [{"family": "Smith"}, {"family": "Harrison"}]})
 
-    assert not matchers.feature_match_exact(record, pat1, schemas.Feature.FIRST_NAME)
+    assert not matchers.feature_match_exact(record, pat1, schemas.Feature.GIVEN_NAME)
+    assert matchers.feature_match_exact(record, pat1, schemas.Feature.FIRST_NAME)
     assert not matchers.feature_match_exact(record, pat1, schemas.Feature.LAST_NAME)
     assert matchers.feature_match_exact(record, pat1, schemas.Feature.BIRTHDATE)
     assert not matchers.feature_match_exact(record, pat1, schemas.Feature.ZIP)
 
+    assert matchers.feature_match_exact(record, pat2, schemas.Feature.GIVEN_NAME)
     assert matchers.feature_match_exact(record, pat2, schemas.Feature.FIRST_NAME)
     assert not matchers.feature_match_exact(record, pat2, schemas.Feature.LAST_NAME)
     assert not matchers.feature_match_exact(record, pat2, schemas.Feature.SEX)

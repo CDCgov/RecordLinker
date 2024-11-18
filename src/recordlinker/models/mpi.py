@@ -19,7 +19,9 @@ class Person(Base):
     __tablename__ = "mpi_person"
 
     id: orm.Mapped[int] = orm.mapped_column(get_bigint_pk(), autoincrement=True, primary_key=True)
-    reference_id: orm.Mapped[uuid.UUID] = orm.mapped_column(default=uuid.uuid4, unique=True, index=True)
+    reference_id: orm.Mapped[uuid.UUID] = orm.mapped_column(
+        default=uuid.uuid4, unique=True, index=True
+    )
     patients: orm.Mapped[list["Patient"]] = orm.relationship(back_populates="person")
 
     def __hash__(self):
@@ -39,7 +41,7 @@ class Patient(Base):
     __tablename__ = "mpi_patient"
 
     id: orm.Mapped[int] = orm.mapped_column(get_bigint_pk(), autoincrement=True, primary_key=True)
-    person_id: orm.Mapped[int] = orm.mapped_column(schema.ForeignKey(f"{Person.__tablename__}.id"))
+    person_id: orm.Mapped[int] = orm.mapped_column(schema.ForeignKey(f"{Person.__tablename__}.id"), nullable=True)
     person: orm.Mapped["Person"] = orm.relationship(back_populates="patients")
     # NOTE: We're using a protected attribute here to store the data string, as we
     # want getter/setter access to the data dictionary to trigger updating the
@@ -50,25 +52,9 @@ class Patient(Base):
     external_person_id: orm.Mapped[str] = orm.mapped_column(sqltypes.String(255), nullable=True)
     external_person_source: orm.Mapped[str] = orm.mapped_column(sqltypes.String(100), nullable=True)
     blocking_values: orm.Mapped[list["BlockingValue"]] = orm.relationship(back_populates="patient")
-    reference_id: orm.Mapped[uuid.UUID] = orm.mapped_column(default=uuid.uuid4, unique=True, index=True)
-
-    @classmethod
-    def _scrub_empty(cls, data: dict) -> dict:
-        """
-        Recursively remove all None, empty lists and empty dicts from the data.
-        """
-
-        def is_empty(value):
-            return value is None or value == [] or value == {}
-
-        if isinstance(data, dict):
-            # Recursively process nested dictionaries
-            return {k: cls._scrub_empty(v) for k, v in data.items() if not is_empty(v)}
-        elif isinstance(data, list):
-            # Recursively process lists, removing None elements
-            return [cls._scrub_empty(v) for v in data if not is_empty(v)]
-        # Base case: return the value if it's not a dict or list
-        return data
+    reference_id: orm.Mapped[uuid.UUID] = orm.mapped_column(
+        default=uuid.uuid4, unique=True, index=True
+    )
 
     @property
     def data(self) -> dict:
@@ -95,6 +81,7 @@ class Patient(Base):
         Return a PIIRecord object with the data from this patient record.
         """
         from recordlinker.schemas import pii
+
         if not hasattr(self, "_record"):
             # caching the result of the record property for performance
             self._record = pii.PIIRecord.model_construct(**(self._data or {}))
@@ -107,14 +94,14 @@ class Patient(Base):
         Set the Patient data from a PIIRecord object.
         """
         from recordlinker.schemas import pii
+
         assert isinstance(value, pii.PIIRecord), "Expected a PIIRecord object"
         # convert the data to a JSON string, then load it back as a dictionary
         # this is necessary to ensure all data elements are JSON serializable
-        data = json.loads(value.model_dump_json())
-        # recursively remove all None, empty lists and empty dicts from the data
+        # recursively remove all None and unset values from the data
         # this is an optimization to reduce the amount of data stored in the
         # database, if a value is empty, no need to store it
-        self._data = self._scrub_empty(data)
+        self._data = json.loads(value.to_json(prune_empty=True))
         if hasattr(self, "_record"):
             # if the record property is cached, delete it
             del self._record
@@ -136,17 +123,25 @@ class BlockingKey(enum.Enum):
     **HERE BE DRAGONS**: IN A PRODUCTION SYSTEM, THESE ENUMS SHOULD NOT BE CHANGED!!!
     """
 
-    BIRTHDATE = 1, "Date of Birth"
-    MRN = 2, "Last 4 chars of MRN"
-    SEX = 3, "Sex"
-    ZIP = 4, "Zip Code"
-    FIRST_NAME = 5, "First 4 chars of First Name"
-    LAST_NAME = 6, "First 4 chars of Last Name"
-    ADDRESS = 7, "First 4 chars of Address"
+    BIRTHDATE = ("BIRTHDATE", 1, "Date of birth as YYYY-MM-DD")
+    MRN = ("MRN", 2, "Last 4 characters of Medical record number")
+    SEX = ("SEX", 3, "Sex at birth; M, F or U")
+    ZIP = ("ZIP", 4, "5 digital US Postal Code")
+    FIRST_NAME = ("FIRST_NAME", 5, "First 4 characters of the first name")
+    LAST_NAME = ("LAST_NAME", 6, "First 4 characters of the last name")
+    ADDRESS = ("ADDRESS", 7, "First 4 characters of the address")
 
-    def __init__(self, id: int, description: str):
-        self.id = id
+    def __init__(self, value: str, _id: int, description: str):
+        self._value = value
+        self.id = _id
         self.description = description
+
+    @property
+    def value(self) -> str:
+        """
+        Return the value of the enum.
+        """
+        return self._value
 
 
 class BlockingValue(Base):
@@ -157,7 +152,9 @@ class BlockingValue(Base):
     )
 
     id: orm.Mapped[int] = orm.mapped_column(get_bigint_pk(), autoincrement=True, primary_key=True)
-    patient_id: orm.Mapped[int] = orm.mapped_column(schema.ForeignKey(f"{Patient.__tablename__}.id"))
+    patient_id: orm.Mapped[int] = orm.mapped_column(
+        schema.ForeignKey(f"{Patient.__tablename__}.id")
+    )
     patient: orm.Mapped["Patient"] = orm.relationship(back_populates="blocking_values")
     blockingkey: orm.Mapped[int] = orm.mapped_column(sqltypes.SmallInteger)
     value: orm.Mapped[str] = orm.mapped_column(sqltypes.String(BLOCKING_VALUE_MAX_LENGTH))

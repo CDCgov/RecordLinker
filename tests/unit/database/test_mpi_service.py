@@ -1,58 +1,125 @@
 """
-unit.linking.test_mpi_service.py
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+unit.database.test_mpi_service.py
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-This module contains the unit tests for the recordlinker.linking.mpi_service module.
+This module contains the unit tests for the recordlinker.database.mpi_service module.
 """
 
+import json
 import uuid
 
 import pytest
 import sqlalchemy.exc
+from conftest import db_dialect
 
 from recordlinker import models
 from recordlinker import schemas
-from recordlinker.linking import mpi_service
+from recordlinker.database import mpi_service
 
 
-@pytest.fixture(scope="function")
-def new_patient(session):
-    patient = models.Patient(person=models.Person(), data={})
-    session.add(patient)
-    session.flush()
-    return patient
+class TestInsertBlockingValues:
+    def new_patient(self, session, data=None):
+        patient = models.Patient(person=models.Person(), data=(data or {}))
+        session.add(patient)
+        session.flush()
+        return patient
 
+    def test_no_values(self, session):
+        pat = self.new_patient(session, data={"name": []})
+        mpi_service.insert_blocking_values(session, [pat])
+        assert len(pat.blocking_values) == 0
 
-class TestInsertBlockingKeys:
-    def test_patient_no_blocking_keys(self, session, new_patient):
-        new_patient.data = {"name": []}
-        assert mpi_service.insert_blocking_keys(session, new_patient) == []
-
-    def test_patient_with_blocking_keys(self, session, new_patient):
-        new_patient.data = {
-            "name": [
-                {
-                    "given": [
-                        "Johnathon",
-                        "Bill",
-                    ],
-                    "family": "Smith",
-                }
-            ],
-            "birthdate": "1980-01-01",
-        }
-        keys = mpi_service.insert_blocking_keys(session, new_patient)
-        assert len(keys) == 4
-        for key in keys:
-            assert keys[0].patient_id == new_patient.id
-            if key.blockingkey == models.BlockingKey.BIRTHDATE.id:
-                assert key.value == "1980-01-01"
-            elif key.blockingkey == models.BlockingKey.FIRST_NAME.id:
-                assert key.value in ["John", "Bill"]
-            elif key.blockingkey == models.BlockingKey.LAST_NAME.id:
-                assert key.value == "Smit"
+    def test_patient(self, session):
+        pat = self.new_patient(
+            session,
+            data={
+                "name": [
+                    {
+                        "given": [
+                            "Johnathon",
+                            "Bill",
+                        ],
+                        "family": "Smith",
+                    }
+                ],
+                "birthdate": "1980-01-01",
+            },
+        )
+        mpi_service.insert_blocking_values(session, [pat])
+        values = pat.blocking_values
+        assert len(values) == 3
+        for val in values:
+            assert values[0].patient_id == pat.id
+            if val.blockingkey == models.BlockingKey.BIRTHDATE.id:
+                assert val.value == "1980-01-01"
+            elif val.blockingkey == models.BlockingKey.FIRST_NAME.id:
+                assert val.value in ["John", "Bill"]
+            elif val.blockingkey == models.BlockingKey.LAST_NAME.id:
+                assert val.value == "Smit"
             else:
-                assert False, f"Unexpected blocking key: {key.blockingkey}"
+                assert False, f"Unexpected blocking key: {val.blockingkey}"
+
+    def test_multiple_patients(self, session):
+        pat1 = self.new_patient(
+            session,
+            data={
+                "name": [
+                    {
+                        "given": [
+                            "Johnathon",
+                            "Bill",
+                        ],
+                        "family": "Smith",
+                    }
+                ],
+                "birthdate": "1980-01-01",
+            },
+        )
+        pat2 = self.new_patient(
+            session,
+            data={
+                "name": [
+                    {
+                        "given": [
+                            "George",
+                        ],
+                        "family": "Harrison",
+                    }
+                ],
+                "birthdate": "1943-2-25",
+            },
+        )
+        mpi_service.insert_blocking_values(session, [pat1, pat2])
+        assert len(pat1.blocking_values) == 3
+        assert len(pat2.blocking_values) == 3
+
+    def test_with_mismatched_records(self, session):
+        pat = self.new_patient(session, data={"name": []})
+        with pytest.raises(ValueError):
+            mpi_service.insert_blocking_values(session, [pat], [])
+
+    def test_with_records(self, session):
+        pat = self.new_patient(
+            session,
+            data={
+                "name": [
+                    {
+                        "given": [
+                            "Johnathon",
+                            "Bill",
+                        ],
+                        "family": "Smith",
+                    }
+                ],
+                "birthdate": "1980-01-01",
+            },
+        )
+        rec = schemas.PIIRecord(**pat.data)
+        mpi_service.insert_blocking_values(session, [pat], [rec])
+        values = pat.blocking_values
+        assert len(values) == 3
+        assert set(v.patient_id for v in values) == {pat.id}
+        assert set(v.value for v in values) == {"1980-01-01", "John", "Smit"}
 
 
 class TestInsertPatient:
@@ -71,7 +138,7 @@ class TestInsertPatient:
         }
         record = schemas.PIIRecord(**data)
         patient = mpi_service.insert_patient(session, record)
-        assert patient.person_id is not None
+        assert patient.person_id is None
         assert patient.data["birth_date"] == "1980-01-01"
         assert patient.data["name"] == [
             {
@@ -84,9 +151,8 @@ class TestInsertPatient:
         ]
         assert patient.external_person_id is None
         assert patient.external_person_source is None
-        assert patient.person.reference_id is not None
-        assert patient.person.id == patient.person_id
-        assert len(patient.blocking_values) == 4
+        assert patient.person_id is None
+        assert len(patient.blocking_values) == 3
 
     def test_no_person_with_external_id(self, session):
         data = {
@@ -102,7 +168,7 @@ class TestInsertPatient:
         }
         record = schemas.PIIRecord(**data)
         patient = mpi_service.insert_patient(session, record, external_person_id="123456")
-        assert patient.person_id is not None
+        assert patient.person_id is None
         assert patient.data["birth_date"] == "1980-01-01"
         assert patient.data["name"] == [
             {
@@ -114,9 +180,6 @@ class TestInsertPatient:
         ]
         assert patient.external_person_id == "123456"
         assert patient.external_person_source == "IRIS"
-        assert patient.person.reference_id is not None
-        assert patient.person.id is not None
-        assert patient.person.id == patient.person_id
         assert len(patient.blocking_values) == 3
 
     def test_with_person(self, session):
@@ -176,10 +239,81 @@ class TestInsertPatient:
         assert len(patient.blocking_values) == 2
 
 
+class TestBulkInsertPatients:
+    @classmethod
+    def setup_class(cls):
+        if db_dialect() == "mysql":
+            pytest.skip("Test skipped because the database dialect is MySQL")
+
+    def test_empty(self, session):
+        assert mpi_service.bulk_insert_patients(session, []) == []
+
+    def test_no_person(self, session):
+        rec = schemas.PIIRecord(**{"name": [{"given": ["Johnathon"], "family": "Smith"}]})
+        patients = mpi_service.bulk_insert_patients(session, [rec], external_person_id="123456")
+        assert len(patients) == 1
+        assert patients[0].person_id is None
+        assert json.loads(patients[0].data) == {
+            "name": [{"given": ["Johnathon"], "family": "Smith"}]
+        }
+        assert patients[0].external_person_id == "123456"
+        values = patients[0].blocking_values
+        assert len(values) == 2
+        assert set(v.value for v in values) == {"John", "Smit"}
+
+    def test_with_person(self, session):
+        person = models.Person()
+        session.add(person)
+        session.flush()
+        rec1 = schemas.PIIRecord(
+            **{"birthdate": "1950-01-01", "name": [{"given": ["George"], "family": "Harrison"}]}
+        )
+        rec2 = schemas.PIIRecord(
+            **{
+                "birthdate": "1950-01-01",
+                "name": [{"given": ["George", "Harold"], "family": "Harrison"}],
+            }
+        )
+        patients = mpi_service.bulk_insert_patients(
+            session, [rec1, rec2], person=person, external_person_id="123456"
+        )
+        assert len(patients) == 2
+        assert patients[0].person_id == person.id
+        assert patients[1].person_id == person.id
+        assert json.loads(patients[0].data) == {
+            "birth_date": "1950-01-01",
+            "name": [{"given": ["George"], "family": "Harrison"}],
+        }
+        assert json.loads(patients[1].data) == {
+            "birth_date": "1950-01-01",
+            "name": [{"given": ["George", "Harold"], "family": "Harrison"}],
+        }
+        assert patients[0].external_person_id == "123456"
+        assert patients[1].external_person_id == "123456"
+        assert len(patients[0].blocking_values) == 3
+        assert set(v.value for v in patients[0].blocking_values) == {"1950-01-01", "Geor", "Harr"}
+        assert len(patients[1].blocking_values) == 3
+        assert set(v.value for v in patients[1].blocking_values) == {
+            "1950-01-01",
+            "Geor",
+            "Harr",
+        }
+
+
+class TestBulkInsertPatientsMySQL:
+    @classmethod
+    def setup_class(cls):
+        if db_dialect() != "mysql":
+            pytest.skip("Test skipped because the database dialect is not MySQL")
+
+    def test_error(self, session):
+        with pytest.raises(ValueError):
+            assert mpi_service.bulk_insert_patients(session, [])
+
+
 class TestGetBlockData:
     @pytest.fixture
     def prime_index(self, session):
-
         person_1 = models.Person()
         session.add(person_1)
         session.flush()
@@ -207,7 +341,7 @@ class TestGetBlockData:
                     }
                 ],
                 "birthdate": "1943-2-25",
-            }, None),
+            }, models.Person()),
             ({
                 "name": [
                     {
@@ -219,7 +353,7 @@ class TestGetBlockData:
                     {"given": ["John"], "family": "Lewis"},
                 ],
                 "birthdate": "1980-01-01",
-            }, None),
+            }, models.Person()),
             ({
                 "name": [
                     {
@@ -252,7 +386,7 @@ class TestGetBlockData:
                     }
                 ],
                 "birthdate": "1985-11-12",
-            }, None),
+            }, models.Person()),
             ({
                 "name": [
                     {
@@ -263,9 +397,9 @@ class TestGetBlockData:
                     }
                 ],
                 "birthdate": "",
-            }, None)
+            }, models.Person())
         ]
-        for (datum, person) in data:
+        for datum, person in data:
             mpi_service.insert_patient(session, schemas.PIIRecord(**datum), person=person)
 
     def test_block_invalid_key(self, session):
@@ -442,7 +576,6 @@ class TestGetBlockData:
             blocking_keys=["FIRST_NAME", "LAST_NAME"],
             evaluators={},
             rule="",
-            cluster_ratio=1.0,
             kwargs={},
         )
         matches = mpi_service.get_block_data(session, schemas.PIIRecord(**data), algorithm_pass)
@@ -490,9 +623,9 @@ class TestGetBlockData:
             ],
             "phone": [{"system": "phone", "value": "555-401-5073", "use": "home"}],
         }
-        mpi_service.insert_patient(session, schemas.PIIRecord(**data))
-        mpi_service.insert_patient(session, schemas.PIIRecord(**data))
-        mpi_service.insert_patient(session, schemas.PIIRecord(**data))
+        mpi_service.insert_patient(session, schemas.PIIRecord(**data), models.Person())
+        mpi_service.insert_patient(session, schemas.PIIRecord(**data), models.Person())
+        mpi_service.insert_patient(session, schemas.PIIRecord(**data), models.Person())
         algorithm_pass = models.AlgorithmPass(
             blocking_keys=["FIRST_NAME", "LAST_NAME", "ZIP", "SEX"]
         )
@@ -549,3 +682,27 @@ class TestUpdatePersonCluster:
         session.flush()
         person = mpi_service.update_person_cluster(session, patient, person=new_person)
         assert person.id == new_person.id
+
+
+class TestResetMPI:
+    def test(self, session):
+        data = {
+            "name": [
+                {
+                    "given": [
+                        "Johnathon",
+                        "Bill",
+                    ],
+                    "family": "Smith",
+                }
+            ],
+            "birthdate": "1980-01-01",
+        }
+        mpi_service.insert_patient(session, schemas.PIIRecord(**data), person=models.Person())
+        assert session.query(models.Patient).count() == 1
+        assert session.query(models.Person).count() == 1
+        assert session.query(models.BlockingValue).count() == 3
+        mpi_service.reset_mpi(session)
+        assert session.query(models.Patient).count() == 0
+        assert session.query(models.Person).count() == 0
+        assert session.query(models.BlockingValue).count() == 0

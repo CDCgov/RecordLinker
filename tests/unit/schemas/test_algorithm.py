@@ -8,6 +8,7 @@ This module contains the unit tests for the recordlinker.schemas.algorithm modul
 import pydantic
 import pytest
 
+from recordlinker.schemas.algorithm import Algorithm
 from recordlinker.schemas.algorithm import AlgorithmPass
 
 
@@ -17,51 +18,56 @@ class TestAlgorithmPass:
         with pytest.raises(pydantic.ValidationError):
             AlgorithmPass(
                 blocking_keys=keys,
-                evaluators={},
+                evaluators=[],
                 rule="func:recordlinker.linking.matchers.eval_perfect_match",
-                cluster_ratio=0.5,
             )
         keys = ["LAST_NAME", "BIRTHDATE", "ZIP"]
         # write an assertion that no exception is raised
         AlgorithmPass(
             blocking_keys=keys,
-            evaluators={},
+            evaluators=[],
             rule="func:recordlinker.linking.matchers.eval_perfect_match",
-            cluster_ratio=0.5,
         )
 
     def test_validate_evaluators(self):
-        evaluators = {"name": "func:recordlinker.linking.matchers.feature_match_any"}
+        evaluators = [
+            {"feature": "name", "func": "func:recordlinker.linking.matchers.feature_match_any"}
+        ]
         with pytest.raises(pydantic.ValidationError):
             AlgorithmPass(
                 blocking_keys=[],
                 evaluators=evaluators,
                 rule="func:recordlinker.linking.matchers.eval_perfect_match",
-                cluster_ratio=0.5,
             )
-        evaluators = {"LAST_NAME": "func:recordlinker.linking.matchers.unknown"}
+        evaluators = [
+            {"feature": "LAST_NAME", "func": "func:recordlinker.linking.matchers.unknown"}
+        ]
         with pytest.raises(pydantic.ValidationError):
             AlgorithmPass(
                 blocking_keys=[],
                 evaluators=evaluators,
                 rule="func:recordlinker.linking.matchers.eval_perfect_match",
-                cluster_ratio=0.5,
             )
-        evaluators = {"LAST_NAME": "func:recordlinker.linking.matchers.eval_perfect_match"}
+        evaluators = [
+            {
+                "feature": "LAST_NAME",
+                "func": "func:recordlinker.linking.matchers.eval_perfect_match",
+            }
+        ]
         with pytest.raises(pydantic.ValidationError):
             AlgorithmPass(
                 blocking_keys=[],
                 evaluators=evaluators,
                 rule="func:recordlinker.linking.matchers.eval_perfect_match",
-                cluster_ratio=0.5,
             )
-        evaluators = {"LAST_NAME": "func:recordlinker.linking.matchers.feature_match_any"}
+        evaluators = [
+            {"feature": "LAST_NAME", "func": "func:recordlinker.linking.matchers.feature_match_any"}
+        ]
         # write an assertion that no exception is raised
         AlgorithmPass(
             blocking_keys=[],
             evaluators=evaluators,
             rule="func:recordlinker.linking.matchers.eval_perfect_match",
-            cluster_ratio=0.5,
         )
 
     def test_validate_rule(self):
@@ -69,29 +75,82 @@ class TestAlgorithmPass:
         with pytest.raises(pydantic.ValidationError):
             AlgorithmPass(
                 blocking_keys=[],
-                evaluators={},
+                evaluators=[],
                 rule=rule,
-                cluster_ratio=0.5,
             )
         rule = "func:recordlinker.linking.matchers.feature_match_any"
         with pytest.raises(pydantic.ValidationError):
             AlgorithmPass(
                 blocking_keys=[],
-                evaluators={},
+                evaluators=[],
                 rule=rule,
-                cluster_ratio=0.5,
             )
-        rule = "fn:recordlinker.linking.matchers.eval_perfect_match"
+        rule = "func:recordlinker.linking.matchers.eval_perfect_match"
         AlgorithmPass(
             blocking_keys=[],
-            evaluators={},
+            evaluators=[],
             rule=rule,
-            cluster_ratio=0.5,
         )
-        rule = "recordlinker.linking.matchers.eval_perfect_match"
+
+    def test_kwargs(self):
+        with pytest.raises(pydantic.ValidationError):
+            AlgorithmPass(
+                blocking_keys=[],
+                evaluators=[],
+                rule="func:recordlinker.linking.matchers.eval_perfect_match",
+                cluster_ratio=0.5,
+                kwargs={"invalid": "key"},
+            )
         AlgorithmPass(
             blocking_keys=[],
-            evaluators={},
-            rule=rule,
-            cluster_ratio=0.5,
+            evaluators=[],
+            rule="func:recordlinker.linking.matchers.eval_perfect_match",
+            kwargs={
+                "similarity_measure": "JaroWinkler",
+                "thresholds": {"CITY": 0.95, "ADDRESS": 0.98},
+                "threshold": 0.9,
+                "log_odds": {"CITY": 12.0, "ADDRESS": 15.0},
+                "true_match_threshold": 0.8,
+            },
+        )
+
+
+class TestAlgorithm:
+    def test_validate_belongingness_ratio(self):
+        belongingness_ratio = (0.9, 0.75)
+        with pytest.raises(pydantic.ValidationError):
+            Algorithm(
+                label="label",
+                belongingness_ratio=belongingness_ratio,
+                passes=[
+                    AlgorithmPass(
+                        blocking_keys=[],
+                        evaluators=[],
+                        rule="func:recordlinker.linking.matchers.eval_perfect_match",
+                    )
+                ],
+            )
+        belongingness_ratio = (0.75, 0.9)
+        Algorithm(
+            label="label",
+            belongingness_ratio=belongingness_ratio,
+            passes=[
+                AlgorithmPass(
+                    blocking_keys=[],
+                    evaluators=[],
+                    rule="func:recordlinker.linking.matchers.eval_perfect_match",
+                )
+            ],
+        )
+        belongingness_ratio = (0.9, 0.9)
+        Algorithm(
+            label="label",
+            belongingness_ratio=belongingness_ratio,
+            passes=[
+                AlgorithmPass(
+                    blocking_keys=[],
+                    evaluators=[],
+                    rule="func:recordlinker.linking.matchers.eval_perfect_match",
+                )
+            ],
         )

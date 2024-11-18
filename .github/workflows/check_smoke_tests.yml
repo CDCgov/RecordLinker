@@ -62,7 +62,7 @@ jobs:
         -H "Content-Type: application/json")
 
         echo "Response: $RESPONSE_1"
-        echo "$RESPONSE_1" | jq -e '.is_match == false' 
+        echo "$RESPONSE_1" | jq -e '.prediction == "no_match"' 
 
         PERSON_REFERENCE_ID=$(echo "$RESPONSE_1" | jq -r '.person_reference_id')
 
@@ -71,7 +71,7 @@ jobs:
         -H "Content-Type: application/json")
 
         echo "Response: $RESPONSE_2"
-        echo "$RESPONSE_2" | jq -e '.is_match == true'  
+        echo "$RESPONSE_2" | jq -e '.prediction == "match"'  
         echo "$RESPONSE_2" | jq -e --arg id "$PERSON_REFERENCE_ID" '.person_reference_id == $id'
 
         #enhanced tests
@@ -80,7 +80,7 @@ jobs:
         -H "Content-Type: application/json")
 
         echo "Response: $RESPONSE_3"
-        echo "$RESPONSE_3" | jq -e '.is_match == false'  
+        echo "$RESPONSE_3" | jq -e '.prediction == "no_match"'  
 
         PERSON_REFERENCE_ID=$(echo "$RESPONSE_3" | jq -r '.person_reference_id')
 
@@ -89,7 +89,7 @@ jobs:
         -H "Content-Type: application/json")
 
         echo "Response: $RESPONSE_4"
-        echo "$RESPONSE_4" | jq -e '.is_match == true' 
+        echo "$RESPONSE_4" | jq -e '.prediction == "match"' 
         echo "$RESPONSE_4" | jq -e --arg id "$PERSON_REFERENCE_ID" '.person_reference_id == $id'     
       
         #invalid tests

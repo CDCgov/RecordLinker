@@ -26,7 +26,7 @@ from sqlalchemy import orm
 
 from recordlinker import database
 from recordlinker import schemas
-from recordlinker.linking import algorithm_service as service
+from recordlinker.database import algorithm_service as service
 
 # ANSI escape codes for colors
 RED = "\033[91m"
