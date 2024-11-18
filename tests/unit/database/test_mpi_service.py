@@ -47,7 +47,7 @@ class TestInsertBlockingValues:
         )
         mpi_service.insert_blocking_values(session, [pat])
         values = pat.blocking_values
-        assert len(values) == 4
+        assert len(values) == 3
         for val in values:
             assert values[0].patient_id == pat.id
             if val.blockingkey == models.BlockingKey.BIRTHDATE.id:
@@ -90,7 +90,7 @@ class TestInsertBlockingValues:
             },
         )
         mpi_service.insert_blocking_values(session, [pat1, pat2])
-        assert len(pat1.blocking_values) == 4
+        assert len(pat1.blocking_values) == 3
         assert len(pat2.blocking_values) == 3
 
     def test_with_mismatched_records(self, session):
@@ -117,9 +117,9 @@ class TestInsertBlockingValues:
         rec = schemas.PIIRecord(**pat.data)
         mpi_service.insert_blocking_values(session, [pat], [rec])
         values = pat.blocking_values
-        assert len(values) == 4
+        assert len(values) == 3
         assert set(v.patient_id for v in values) == {pat.id}
-        assert set(v.value for v in values) == {"1980-01-01", "John", "Bill", "Smit"}
+        assert set(v.value for v in values) == {"1980-01-01", "John", "Smit"}
 
 
 class TestInsertPatient:
@@ -151,7 +151,8 @@ class TestInsertPatient:
         ]
         assert patient.external_person_id is None
         assert patient.external_person_source is None
-        assert len(patient.blocking_values) == 4
+        assert patient.person_id is None
+        assert len(patient.blocking_values) == 3
 
     def test_no_person_with_external_id(self, session):
         data = {
@@ -291,11 +292,10 @@ class TestBulkInsertPatients:
         assert patients[1].external_person_id == "123456"
         assert len(patients[0].blocking_values) == 3
         assert set(v.value for v in patients[0].blocking_values) == {"1950-01-01", "Geor", "Harr"}
-        assert len(patients[1].blocking_values) == 4
+        assert len(patients[1].blocking_values) == 3
         assert set(v.value for v in patients[1].blocking_values) == {
             "1950-01-01",
             "Geor",
-            "Haro",
             "Harr",
         }
 
@@ -701,7 +701,7 @@ class TestResetMPI:
         mpi_service.insert_patient(session, schemas.PIIRecord(**data), person=models.Person())
         assert session.query(models.Patient).count() == 1
         assert session.query(models.Person).count() == 1
-        assert session.query(models.BlockingValue).count() == 4
+        assert session.query(models.BlockingValue).count() == 3
         mpi_service.reset_mpi(session)
         assert session.query(models.Patient).count() == 0
         assert session.query(models.Person).count() == 0

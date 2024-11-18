@@ -17,6 +17,7 @@ class Feature(enum.Enum):
     BIRTHDATE = "BIRTHDATE"
     MRN = "MRN"
     SEX = "SEX"
+    GIVEN_NAME = "GIVEN_NAME"
     FIRST_NAME = "FIRST_NAME"
     LAST_NAME = "LAST_NAME"
     ADDRESS = "ADDRESS"
@@ -26,7 +27,7 @@ class Feature(enum.Enum):
     SSN = "SSN"
     RACE = "RACE"
     GENDER = "GENDER"
-    TELEPHONE = "TELEPHONE"
+    TELECOM = "TELECOM"
     SUFFIX = "SUFFIX"
     COUNTY = "COUNTY"
     DRIVERS_LICENSE = "DRIVERS_LICENSE"
@@ -323,9 +324,15 @@ class PIIRecord(pydantic.BaseModel):
                 if address.postal_code:
                     # only use the first 5 digits for comparison
                     yield address.postal_code[:5]
-        elif feature == Feature.FIRST_NAME:
+        elif feature == Feature.GIVEN_NAME:
             for name in self.name:
                 for given in name.given:
+                    if given:
+                        yield given
+        elif feature == Feature.FIRST_NAME:
+            for name in self.name:
+                # We only want the first given name for comparison
+                for given in name.given[0:1]:
                     if given:
                         yield given
         elif feature == Feature.LAST_NAME:
@@ -341,7 +348,7 @@ class PIIRecord(pydantic.BaseModel):
         elif feature == Feature.GENDER:
             if self.gender:
                 yield str(self.gender)
-        elif feature == Feature.TELEPHONE:
+        elif feature == Feature.TELECOM:
             for telecom in self.telecom:
                 if telecom.value:
                     yield telecom.value

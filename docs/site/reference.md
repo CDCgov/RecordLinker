@@ -35,9 +35,13 @@ linkage evaluation phase. The following features are supported:
 
 :   The patient's race in the format of "AMERICAN_INDIAN", "ASIAN", "BLACK", "HAWAIIAN", "WHITE", "OTHER", "ASKED_UNKNOWN" or "UNKNOWN".
 
-`FIRST_NAME`
+`GIVEN_NAME`
 
 :   The patient's given name, this includes first and middle names.
+
+`FIRST_NAME`
+
+:   The patient's first name.
 
 `LAST_NAME`
 
@@ -67,9 +71,9 @@ linkage evaluation phase. The following features are supported:
 
 :   The patient's county.
 
-`TELEPHONE`
+`TELECOM`
 
-:   The patient's telephone number.
+:   The patient's phone, email, fax, or other contact information.
 
 `DRIVERS_LICENSE`
 
@@ -134,10 +138,10 @@ These are the functions that can be used to compare the values of two features t
 if they are a match or not.
 
 **Note**: When most features are compared, we are doing a 1 to 1 comparison (e.g. "M" == "M").
-However, some features have the ability to have multiple values (e.g. `FIRST_NAME`), thus feature
+However, some features have the ability to have multiple values (e.g. `GIVEN_NAME`), thus feature
 matching is designed to compare one list of values to another list of values.  For example, an
-incoming record could have a FIRST_NAME of ["John", "Dean"] and we could be comparing them to an
-existing Patient with the FIRST_NAME of ["John", "D"].
+incoming record could have a GIVEN_NAME of ["John", "Dean"] and we could be comparing them to an
+existing Patient with the GIVEN_NAME of ["John", "D"].
 
 `func:recordlinker.linking.matchers.feature_match_any`
 
