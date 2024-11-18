@@ -37,7 +37,6 @@ class AlgorithmPass(pydantic.BaseModel):
     blocking_keys: list[BlockingKey]
     evaluators: list[Evaluator]
     rule: matchers.RuleFunc
-    cluster_ratio: Annotated[float, pydantic.Field(ge=0, le=1)]
     kwargs: dict[str, typing.Any] = {}
 
     @pydantic.field_validator("kwargs", mode="before")
@@ -67,7 +66,21 @@ class Algorithm(pydantic.BaseModel):
     label: str = pydantic.Field(pattern=r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
     description: typing.Optional[str] = None
     is_default: bool = False
+    include_multiple_matches: bool = True
+    belongingness_ratio: tuple[
+        Annotated[float, pydantic.Field(ge=0, le=1)], Annotated[float, pydantic.Field(ge=0, le=1)]
+    ]
     passes: typing.Sequence[AlgorithmPass]
+
+    @pydantic.field_validator("belongingness_ratio", mode="before")
+    def validate_belongingness_ratio(cls, value):
+        """
+        Validate the Belongingness Ratio Threshold Range.
+        """
+        lower_bound, upper_bound = value
+        if lower_bound > upper_bound:
+            raise ValueError(f"Invalid range. Lower bound must be less than upper bound: {value}")
+        return (lower_bound, upper_bound)
 
 
 class AlgorithmSummary(Algorithm):

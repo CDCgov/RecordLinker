@@ -6,8 +6,8 @@ This module is used to run the linkage algorithm using the MPI service
 """
 
 import collections
+import dataclasses
 import typing
-import uuid
 
 from sqlalchemy import orm
 
@@ -25,6 +25,12 @@ except ImportError:
     from recordlinker.utils.mock import MockTracer
 
     TRACER = MockTracer()
+
+
+@dataclasses.dataclass
+class LinkResult:
+    person: models.Person
+    belongingness_ratio: float
 
 
 def compare(
@@ -57,7 +63,7 @@ def link_record_against_mpi(
     session: orm.Session,
     algorithm: models.Algorithm,
     external_person_id: typing.Optional[str] = None,
-) -> tuple[bool, uuid.UUID, uuid.UUID]:
+) -> tuple[models.Patient, models.Person | None, list[LinkResult]]:
     """
     Runs record linkage on a single incoming record (extracted from a FHIR
     bundle) using an existing database as an MPI. Uses a flexible algorithm
@@ -80,10 +86,10 @@ def link_record_against_mpi(
     # Membership scores need to persist across linkage passes so that we can
     # find the highest scoring match across all passes
     scores: dict[models.Person, float] = collections.defaultdict(float)
+    # the minimum ratio of matches needed to be considered a cluster member
+    belongingness_ratio_lower_bound, belongingness_ratio_upper_bound = algorithm.belongingness_ratio
     for algorithm_pass in algorithm.passes:
         with TRACER.start_as_current_span("link.pass"):
-            # the minimum ratio of matches needed to be considered a cluster member
-            cluster_ratio = algorithm_pass.cluster_ratio
             # initialize a dictionary to hold the clusters of patients for each person
             clusters: dict[models.Person, list[models.Patient]] = collections.defaultdict(list)
             # block on the pii_record and the algorithm's blocking criteria, then
@@ -106,16 +112,32 @@ def link_record_against_mpi(
                             if compare(record, patient, algorithm_pass):
                                 matched_count += 1
                     # calculate the match ratio for this person cluster
-                    match_ratio = matched_count / len(patients)
-                    if match_ratio >= cluster_ratio:
+                    belongingness_ratio = matched_count / len(patients)
+                    if belongingness_ratio >= belongingness_ratio_lower_bound:
                         # The match ratio is larger than the minimum cluster threshold,
                         # optionally update the max score for this person
-                        scores[person] = max(scores[person], match_ratio)
+                        scores[person] = max(scores[person], belongingness_ratio)
 
     matched_person: typing.Optional[models.Person] = None
     if scores:
         # Find the person with the highest matching score
         matched_person, _ = max(scores.items(), key=lambda i: i[1])
+
+    sorted_scores: list[LinkResult] = [LinkResult(k, v) for k, v in sorted(scores.items(), reverse=True, key=lambda item: item[1])]
+    if not scores:
+        # No match
+        matched_person = models.Person() # Create new Person Cluster
+        results = []
+    elif sorted_scores[0].belongingness_ratio >= belongingness_ratio_upper_bound:
+        # Match (1 or many)
+        matched_person = sorted_scores[0].person
+        results = [x for x in sorted_scores if x.belongingness_ratio >= belongingness_ratio_upper_bound] # Multiple matches
+        if not algorithm.include_multiple_matches:
+            results = [results[0]] # 1 Match (highest Belongingness Ratio)
+    else:
+        # Possible match
+        matched_person = None
+        results = sorted_scores
 
     with TRACER.start_as_current_span("insert"):
         patient = mpi_service.insert_patient(
@@ -123,4 +145,4 @@ def link_record_against_mpi(
         )
 
     # return a tuple indicating whether a match was found and the person ID
-    return (bool(matched_person), patient.person.reference_id, patient.reference_id)
+    return (patient, patient.person, results)

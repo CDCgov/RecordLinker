@@ -66,6 +66,7 @@ class TestLoadAlgorithm:
         data = schemas.Algorithm(
             label="dibss-basic",
             description="First algorithm",
+            belongingness_ratio=(0.75, 0.8),
             passes=[
                 schemas.AlgorithmPass(
                     blocking_keys=["FIRST_NAME"],
@@ -76,7 +77,6 @@ class TestLoadAlgorithm:
                         }
                     ],
                     rule="func:recordlinker.linking.matchers.eval_perfect_match",
-                    cluster_ratio=0.8,
                 )
             ],
         )
@@ -86,6 +86,7 @@ class TestLoadAlgorithm:
         assert obj.id == 1
         assert obj.label == "dibss-basic"
         assert obj.description == "First algorithm"
+        assert obj.belongingness_ratio == (0.75, 0.8)
         assert len(obj.passes) == 1
         assert obj.passes[0].algorithm_id == 1
         assert obj.passes[0].blocking_keys == ["FIRST_NAME"]
@@ -93,12 +94,12 @@ class TestLoadAlgorithm:
             {"feature": "ZIP", "func": "func:recordlinker.linking.matchers.feature_match_any"}
         ]
         assert obj.passes[0].rule == "func:recordlinker.linking.matchers.eval_perfect_match"
-        assert obj.passes[0].cluster_ratio == 0.8
 
     def test_load_algorithm_updated(self, session):
         data = schemas.Algorithm(
             label="dibss-basic",
             description="First algorithm",
+            belongingness_ratio=(0.75, 0.8),
             passes=[
                 schemas.AlgorithmPass(
                     blocking_keys=["FIRST_NAME"],
@@ -109,7 +110,6 @@ class TestLoadAlgorithm:
                         }
                     ],
                     rule="func:recordlinker.linking.matchers.eval_perfect_match",
-                    cluster_ratio=0.8,
                 )
             ],
         )
@@ -123,6 +123,7 @@ class TestLoadAlgorithm:
         assert obj.id == 1
         assert obj.label == "dibss-basic"
         assert obj.description == "Updated description"
+        assert obj.belongingness_ratio == (0.75, 0.8)
         assert len(obj.passes) == 1
         assert obj.passes[0].algorithm_id == 1
         assert obj.passes[0].blocking_keys == ["LAST_NAME"]
@@ -130,7 +131,6 @@ class TestLoadAlgorithm:
             {"feature": "ZIP", "func": "func:recordlinker.linking.matchers.feature_match_any"}
         ]
         assert obj.passes[0].rule == "func:recordlinker.linking.matchers.eval_perfect_match"
-        assert obj.passes[0].cluster_ratio == 0.8
 
 
 def test_delete_algorithm(session):
@@ -145,7 +145,6 @@ def test_delete_algorithm(session):
             {"feature": "ZIP", "func": "func:recordlinker.linking.matchers.feature_match_any"}
         ],
         rule="func:recordlinker.linking.matchers.eval_perfect_match",
-        cluster_ratio=0.8,
     )
     session.add(pass1)
     session.commit()
@@ -167,7 +166,6 @@ def test_clear_algorithms(session):
             {"feature": "ZIP", "func": "func:recordlinker.linking.matchers.feature_match_any"}
         ],
         rule="func:recordlinker.linking.matchers.eval_perfect_match",
-        cluster_ratio=0.8,
     )
     session.add(pass1)
     session.commit()

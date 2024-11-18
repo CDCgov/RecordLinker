@@ -83,6 +83,7 @@ class TestAlgorithm:
         data = {
             "label": "Algorithm 1",
             "description": "First algorithm",
+            "belongingness_ratio": (0.75, 1.0),
             "passes": [
                 {
                     "blocking_keys": ["ZIP"],
@@ -97,13 +98,13 @@ class TestAlgorithm:
                         },
                     ],
                     "rule": "func:recordlinker.linking.matchers.eval_perfect_match",
-                    "cluster_ratio": 1.0,
                 }
             ],
         }
         algo = models.Algorithm.from_dict(**data)
         assert algo.label == "Algorithm 1"
         assert algo.description == "First algorithm"
+        assert algo.belongingness_ratio == (0.75, 1.0)
         assert len(algo.passes) == 1
         assert algo.passes[0].blocking_keys == ["ZIP"]
         assert algo.passes[0].evaluators == [
@@ -117,7 +118,6 @@ class TestAlgorithm:
             },
         ]
         assert algo.passes[0].rule == "func:recordlinker.linking.matchers.eval_perfect_match"
-        assert algo.passes[0].cluster_ratio == 1.0
 
 
 class TestAlgorithmPass:
