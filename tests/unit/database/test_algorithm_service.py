@@ -73,10 +73,10 @@ class TestLoadAlgorithm:
                     evaluators=[
                         {
                             "feature": "ZIP",
-                            "func": "func:recordlinker.linking.matchers.feature_match_any",
+                            "func": "func:recordlinker.linking.matchers.exact_match_any",
                         }
                     ],
-                    rule="func:recordlinker.linking.matchers.eval_perfect_match",
+                    rule="func:recordlinker.linking.matchers.match_rule",
                 )
             ],
         )
@@ -91,9 +91,9 @@ class TestLoadAlgorithm:
         assert obj.passes[0].algorithm_id == 1
         assert obj.passes[0].blocking_keys == ["FIRST_NAME"]
         assert obj.passes[0].evaluators == [
-            {"feature": "ZIP", "func": "func:recordlinker.linking.matchers.feature_match_any"}
+            {"feature": "ZIP", "func": "func:recordlinker.linking.matchers.exact_match_any"}
         ]
-        assert obj.passes[0].rule == "func:recordlinker.linking.matchers.eval_perfect_match"
+        assert obj.passes[0].rule == "func:recordlinker.linking.matchers.match_rule"
 
     def test_load_algorithm_updated(self, session):
         data = schemas.Algorithm(
@@ -106,10 +106,10 @@ class TestLoadAlgorithm:
                     evaluators=[
                         {
                             "feature": "ZIP",
-                            "func": "func:recordlinker.linking.matchers.feature_match_any",
+                            "func": "func:recordlinker.linking.matchers.exact_match_any",
                         }
                     ],
-                    rule="func:recordlinker.linking.matchers.eval_perfect_match",
+                    rule="func:recordlinker.linking.matchers.match_rule",
                 )
             ],
         )
@@ -128,9 +128,9 @@ class TestLoadAlgorithm:
         assert obj.passes[0].algorithm_id == 1
         assert obj.passes[0].blocking_keys == ["LAST_NAME"]
         assert obj.passes[0].evaluators == [
-            {"feature": "ZIP", "func": "func:recordlinker.linking.matchers.feature_match_any"}
+            {"feature": "ZIP", "func": "func:recordlinker.linking.matchers.exact_match_any"}
         ]
-        assert obj.passes[0].rule == "func:recordlinker.linking.matchers.eval_perfect_match"
+        assert obj.passes[0].rule == "func:recordlinker.linking.matchers.match_rule"
 
 
 def test_delete_algorithm(session):
@@ -142,9 +142,9 @@ def test_delete_algorithm(session):
         algorithm=algo1,
         blocking_keys=["FIRST_NAME"],
         evaluators=[
-            {"feature": "ZIP", "func": "func:recordlinker.linking.matchers.feature_match_any"}
+            {"feature": "ZIP", "func": "func:recordlinker.linking.matchers.exact_match_any"}
         ],
-        rule="func:recordlinker.linking.matchers.eval_perfect_match",
+        rule="func:recordlinker.linking.matchers.match_rule",
     )
     session.add(pass1)
     session.commit()
@@ -163,9 +163,9 @@ def test_clear_algorithms(session):
         algorithm=algo1,
         blocking_keys=["FIRST_NAME"],
         evaluators=[
-            {"feature": "ZIP", "func": "func:recordlinker.linking.matchers.feature_match_any"}
+            {"feature": "ZIP", "func": "func:recordlinker.linking.matchers.exact_match_any"}
         ],
-        rule="func:recordlinker.linking.matchers.eval_perfect_match",
+        rule="func:recordlinker.linking.matchers.match_rule",
     )
     session.add(pass1)
     session.commit()

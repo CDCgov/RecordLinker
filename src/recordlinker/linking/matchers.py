@@ -30,8 +30,8 @@ class RuleFunc(enum.Enum):
     the algorithm.
     """
 
-    PERFECT_MATCH = "func:recordlinker.linking.matchers.eval_perfect_match"
-    LOG_ODDS_CUTOFF = "func:recordlinker.linking.matchers.eval_log_odds_cutoff"
+    MATCH_RULE = "func:recordlinker.linking.matchers.match_rule"
+    PROBABILISTIC_MATCH_RULE = "func:recordlinker.linking.matchers.probabilistic_match_rule"
 
 
 class FeatureFunc(enum.Enum):
@@ -44,11 +44,11 @@ class FeatureFunc(enum.Enum):
     matching, based on the configuration of the algorithm.
     """
 
-    MATCH_ANY = "func:recordlinker.linking.matchers.feature_match_any"
-    MATCH_EXACT = "func:recordlinker.linking.matchers.feature_match_exact"
-    MATCH_FUZZY_STRING = "func:recordlinker.linking.matchers.feature_match_fuzzy_string"
-    MATCH_LOG_ODDS_FUZZY_COMPARE = (
-        "func:recordlinker.linking.matchers.feature_match_log_odds_fuzzy_compare"
+    EXACT_MATCH_ANY = "func:recordlinker.linking.matchers.exact_match_any"
+    EXACT_MATCH_ALL = "func:recordlinker.linking.matchers.exact_match_all"
+    FUZZY_MATCH = "func:recordlinker.linking.matchers.fuzzy_match"
+    PROBABILISTIC_FUZZY_MATCH = (
+        "func:recordlinker.linking.matchers.probabilistic_fuzzy_match"
     )
 
 
@@ -99,7 +99,7 @@ def _get_fuzzy_params(col: str, **kwargs) -> tuple[SIMILARITY_MEASURES, float]:
     return (similarity_measure, threshold)
 
 
-def eval_perfect_match(feature_comparisons: list[float], **kwargs: typing.Any) -> bool:
+def match_rule(feature_comparisons: list[float], **kwargs: typing.Any) -> bool:
     """
     Determines whether a given set of feature comparisons represent a
     'perfect' match (i.e. whether all features that were compared match
@@ -112,7 +112,7 @@ def eval_perfect_match(feature_comparisons: list[float], **kwargs: typing.Any) -
     return sum(feature_comparisons) == len(feature_comparisons)
 
 
-def eval_log_odds_cutoff(feature_comparisons: list[float], **kwargs: typing.Any) -> bool:
+def probabilistic_match_rule(feature_comparisons: list[float], **kwargs: typing.Any) -> bool:
     """
     Determines whether a given set of feature comparisons matches enough
     to be the result of a true patient link instead of just random chance.
@@ -129,7 +129,7 @@ def eval_log_odds_cutoff(feature_comparisons: list[float], **kwargs: typing.Any)
     return sum(feature_comparisons) >= float(threshold)
 
 
-def feature_match_any(
+def exact_match_any(
     record: PIIRecord, patient: Patient, key: Feature, **kwargs: typing.Any
 ) -> float:
     """
@@ -138,7 +138,7 @@ def feature_match_any(
     :param record: The incoming record to evaluate.
     :param patient: The patient record to compare against.
     :param key: The name of the column being evaluated (e.g. "city").
-    :return: A float indicating whether the features are an exact match.
+    :return: A float indicating whether any of the features are an exact match.
     """
     rec_values = set(record.feature_iter(key))
     if not rec_values:
@@ -147,8 +147,7 @@ def feature_match_any(
     return float(bool(rec_values & pat_values))
 
 
-# TODO: rename to feature_match_all
-def feature_match_exact(
+def exact_match_all(
     record: PIIRecord, patient: Patient, key: Feature, **kwargs: typing.Any
 ) -> float:
     """
@@ -157,7 +156,7 @@ def feature_match_exact(
     :param record: The incoming record to evaluate.
     :param patient: The patient record to compare against.
     :param key: The name of the column being evaluated (e.g. "city").
-    :return: A float indicating whether the features are an exact match.
+    :return: A float indicating whether all of the features are an exact match.
     """
     rec_values = set(record.feature_iter(key))
     if not rec_values:
@@ -166,8 +165,7 @@ def feature_match_exact(
     return float(rec_values == pat_values)
 
 
-# TODO: rename to feature_match_fuzzy_any
-def feature_match_fuzzy_string(
+def fuzzy_match(
     record: PIIRecord, patient: Patient, key: Feature, **kwargs: typing.Any
 ) -> float:
     """
@@ -191,8 +189,7 @@ def feature_match_fuzzy_string(
     return 0
 
 
-# TODO: rename to feature_match_log_odds_fuzzy_any
-def feature_match_log_odds_fuzzy_compare(
+def probabilistic_fuzzy_match(
     record: PIIRecord, patient: Patient, key: Feature, **kwargs: typing.Any
 ) -> float:
     """

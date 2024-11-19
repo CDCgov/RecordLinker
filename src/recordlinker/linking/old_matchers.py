@@ -51,7 +51,7 @@ def compare_strings(
         return rapidfuzz.distance.DamerauLevenshtein.normalized_similarity(string1, string2)
 
 
-def eval_perfect_match(feature_comparisons: list, **kwargs) -> bool:
+def match_rule(feature_comparisons: list, **kwargs) -> bool:
     """
     Determines whether a given set of feature comparisons represent a
     'perfect' match (i.e. whether all features that were compared match
@@ -64,7 +64,7 @@ def eval_perfect_match(feature_comparisons: list, **kwargs) -> bool:
     return sum(feature_comparisons) == len(feature_comparisons)
 
 
-def eval_log_odds_cutoff(feature_comparisons: list, **kwargs) -> bool:
+def probabilistic_match_rule(feature_comparisons: list, **kwargs) -> bool:
     """
     Determines whether a given set of feature comparisons matches enough
     to be the result of a true patient link instead of just random chance.
@@ -80,7 +80,7 @@ def eval_log_odds_cutoff(feature_comparisons: list, **kwargs) -> bool:
     return sum(feature_comparisons) >= kwargs["true_match_threshold"]
 
 
-def feature_match_exact(
+def exact_match_all(
     record_i: list,
     record_j: list,
     feature_col: str,
@@ -132,7 +132,7 @@ def feature_match_four_char(
     return first_four_i == first_four_j
 
 
-def feature_match_fuzzy_string(
+def fuzzy_match(
     record_i: list,
     record_j: list,
     feature_col: str,
@@ -205,7 +205,7 @@ def feature_match_log_odds_exact(
         return 0.0
 
 
-def feature_match_log_odds_fuzzy_compare(
+def probabilistic_fuzzy_match(
     record_i: list,
     record_j: list,
     feature_col: str,

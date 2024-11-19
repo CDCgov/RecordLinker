@@ -27,14 +27,14 @@ def test_get_fuzzy_params():
     assert matchers._get_fuzzy_params("last_name", **kwargs) == ("JaroWinkler", 0.7)
 
 
-def test_feature_match_fuzzy_string():
+def test_fuzzy_match():
     record_i = ["string1", "John", "John", "1985-12-12", None]
     record_j = ["string2", "Jhon", "Jon", "1985-12-12", None]
 
     cols = {"col_1": 0, "col_2": 1, "col_3": 2, "col_4": 3}
 
     for c in cols:
-        assert matchers.feature_match_fuzzy_string(
+        assert matchers.fuzzy_match(
             record_i,
             record_j,
             c,
@@ -42,7 +42,7 @@ def test_feature_match_fuzzy_string():
             similarity_measure="JaroWinkler",
             threshold=0.7,
         )
-    assert not matchers.feature_match_fuzzy_string(
+    assert not matchers.fuzzy_match(
         ["no match"],
         ["dont match me bro"],
         "col_5",
@@ -52,11 +52,11 @@ def test_feature_match_fuzzy_string():
     )
 
 
-def test_eval_perfect_match():
-    assert matchers.eval_perfect_match([1, 1, 1])
-    assert not matchers.eval_perfect_match([1, 1, 0])
-    assert not matchers.eval_perfect_match([1, 0, 0])
-    assert not matchers.eval_perfect_match([0, 0, 0])
+def test_match_rule():
+    assert matchers.match_rule([1, 1, 1])
+    assert not matchers.match_rule([1, 1, 0])
+    assert not matchers.match_rule([1, 0, 0])
+    assert not matchers.match_rule([0, 0, 0])
 
 
 def test_match_within_block_cluster_ratio():
@@ -75,12 +75,12 @@ def test_match_within_block_cluster_ratio():
         [32, "Aelxdrano", "Villanueve", "1-1-1980", "15935"],
     ]
 
-    eval_rule = matchers.eval_perfect_match
+    eval_rule = matchers.match_rule
     funcs = {
-        "first_name": matchers.feature_match_fuzzy_string,
-        "last_name": matchers.feature_match_fuzzy_string,
-        "birthdate": matchers.feature_match_exact,
-        "zip": matchers.feature_match_exact,
+        "first_name": matchers.fuzzy_match,
+        "last_name": matchers.fuzzy_match,
+        "birthdate": matchers.exact_match_all,
+        "zip": matchers.exact_match_all,
     }
     col_to_idx = {"first_name": 1, "last_name": 2, "birthdate": 3, "zip": 4}
 
@@ -111,15 +111,15 @@ def test_match_within_block():
         [27, "Philip", "", "2-2-1990", "64873"],
         [31, "Alejandr", "Villanueve", "1-1-1980", "15935"],
     ]
-    eval_rule = matchers.eval_perfect_match
+    eval_rule = matchers.match_rule
 
     # First, require exact matches on everything to match
     # Expect 0 pairs
     funcs = {
-        "first_name": matchers.feature_match_exact,
-        "last_name": matchers.feature_match_exact,
-        "birthdate": matchers.feature_match_exact,
-        "zip": matchers.feature_match_exact,
+        "first_name": matchers.exact_match_all,
+        "last_name": matchers.exact_match_all,
+        "birthdate": matchers.exact_match_all,
+        "zip": matchers.exact_match_all,
     }
     col_to_idx = {"first_name": 1, "last_name": 2, "birthdate": 3, "zip": 4}
     match_pairs = matchers.match_within_block(data, funcs, col_to_idx, eval_rule)
@@ -127,8 +127,8 @@ def test_match_within_block():
 
     # Now, require exact on DOB and zip, but allow fuzzy on first and last
     # Expect 6 matches
-    funcs["first_name"] = matchers.feature_match_fuzzy_string
-    funcs["last_name"] = matchers.feature_match_fuzzy_string
+    funcs["first_name"] = matchers.fuzzy_match
+    funcs["last_name"] = matchers.fuzzy_match
     match_pairs = matchers.match_within_block(data, funcs, col_to_idx, eval_rule)
     assert match_pairs == [(0, 1), (0, 2), (1, 2), (5, 6), (5, 8), (6, 8)]
 
@@ -159,7 +159,7 @@ def test_feature_match_four_char():
         assert not matchers.feature_match_four_char(record_i, record_k, c, cols)
 
 
-def test_feature_match_exact():
+def test_exact_match_all():
     record_i = [
         "240 Rippin Ranch Apt 66",
         "1980-01-01",
@@ -230,23 +230,23 @@ def test_feature_match_exact():
 
     # Simultaneously test matches and non-matches of different data types
     for c in cols:
-        assert matchers.feature_match_exact(record_i, record_j, c, cols)
-        assert matchers.feature_match_exact(record_i, record_k, c, cols)
-        assert not matchers.feature_match_exact(record_i, record_l, c, cols)
-        assert not matchers.feature_match_exact(record_i, record_m, c, cols)
+        assert matchers.exact_match_all(record_i, record_j, c, cols)
+        assert matchers.exact_match_all(record_i, record_k, c, cols)
+        assert not matchers.exact_match_all(record_i, record_l, c, cols)
+        assert not matchers.exact_match_all(record_i, record_m, c, cols)
 
     # Special case for matching None--None == None is vacuous
-    assert matchers.feature_match_exact([None], [None], "col_7", {"col_7": 0})
+    assert matchers.exact_match_all([None], [None], "col_7", {"col_7": 0})
 
 
-def test_eval_log_odds_cutoff():
+def test_probabilistic_match_rule():
     with pytest.raises(KeyError) as e:
-        matchers.eval_log_odds_cutoff([])
+        matchers.probabilistic_match_rule([])
     assert "Cutoff threshold for true matches must be passed" in str(e.value)
 
-    assert not matchers.eval_log_odds_cutoff([], true_match_threshold=10.0)
-    assert not matchers.eval_log_odds_cutoff([1.0, 0.0, 6.0, 2.7], true_match_threshold=10.0)
-    assert matchers.eval_log_odds_cutoff([4.3, 6.1, 2.5], true_match_threshold=10.0)
+    assert not matchers.probabilistic_match_rule([], true_match_threshold=10.0)
+    assert not matchers.probabilistic_match_rule([1.0, 0.0, 6.0, 2.7], true_match_threshold=10.0)
+    assert matchers.probabilistic_match_rule([4.3, 6.1, 2.5], true_match_threshold=10.0)
 
 
 def test_feature_match_log_odds_exact():

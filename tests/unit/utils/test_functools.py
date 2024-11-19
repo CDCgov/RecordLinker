@@ -6,46 +6,46 @@ from recordlinker.utils import functools as utils
 
 def test_bind_functions():
     funcs = {
-        "first_name": "func:recordlinker.linking.matchers.feature_match_fuzzy_string",
-        "last_name": "func:recordlinker.linking.matchers.feature_match_exact",
+        "first_name": "func:recordlinker.linking.matchers.fuzzy_match",
+        "last_name": "func:recordlinker.linking.matchers.exact_match_all",
     }
     assert utils.bind_functions(funcs) == {
-        "first_name": matchers.feature_match_fuzzy_string,
-        "last_name": matchers.feature_match_exact,
+        "first_name": matchers.fuzzy_match,
+        "last_name": matchers.exact_match_all,
     }
 
     funcs = {
         "blocks": [
             {"value": "birthdate"},
-            {"value": "func:recordlinker.linking.matchers.feature_match_exact"},
+            {"value": "func:recordlinker.linking.matchers.exact_match_all"},
         ]
     }
     assert utils.bind_functions(funcs) == {
         "blocks": [
             {"value": "birthdate"},
-            {"value": matchers.feature_match_exact},
+            {"value": matchers.exact_match_all},
         ]
     }
 
     funcs = {
         "nested": {
-            "first_name": "func:recordlinker.linking.matchers.feature_match_fuzzy_string",
-            "last_name": "func:recordlinker.linking.matchers.feature_match_exact",
+            "first_name": "func:recordlinker.linking.matchers.fuzzy_match",
+            "last_name": "func:recordlinker.linking.matchers.exact_match_all",
         }
     }
     assert utils.bind_functions(funcs) == {
         "nested": {
-            "first_name": matchers.feature_match_fuzzy_string,
-            "last_name": matchers.feature_match_exact,
+            "first_name": matchers.fuzzy_match,
+            "last_name": matchers.exact_match_all,
         }
     }
 
 
 def test_str_to_callable():
-    val = "func:recordlinker.linking.matchers.feature_match_exact"
-    assert utils.str_to_callable(val) == matchers.feature_match_exact
-    val = "recordlinker.linking.matchers.feature_match_exact"
-    assert utils.str_to_callable(val) == matchers.feature_match_exact
+    val = "func:recordlinker.linking.matchers.exact_match_all"
+    assert utils.str_to_callable(val) == matchers.exact_match_all
+    val = "recordlinker.linking.matchers.exact_match_all"
+    assert utils.str_to_callable(val) == matchers.exact_match_all
     val = "recordlinker.unknown_module.unknown_function"
     with pytest.raises(ValueError):
         utils.str_to_callable(val)
@@ -56,10 +56,10 @@ def test_str_to_callable():
 
 def test_func_to_str():
     assert (
-        utils.func_to_str(matchers.feature_match_exact)
-        == "func:recordlinker.linking.matchers.feature_match_exact"
+        utils.func_to_str(matchers.exact_match_all)
+        == "func:recordlinker.linking.matchers.exact_match_all"
     )
     assert (
-        utils.func_to_str(matchers.feature_match_fuzzy_string)
-        == "func:recordlinker.linking.matchers.feature_match_fuzzy_string"
+        utils.func_to_str(matchers.fuzzy_match)
+        == "func:recordlinker.linking.matchers.fuzzy_match"
     )

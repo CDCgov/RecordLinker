@@ -56,10 +56,10 @@ class TestGetAlgorithm:
                     evaluators=[
                         {
                             "feature": "FIRST_NAME",
-                            "func": "func:recordlinker.linking.matchers.feature_match_fuzzy_string",
+                            "func": "func:recordlinker.linking.matchers.fuzzy_match",
                         },
                     ],
-                    rule="func:recordlinker.linking.matchers.eval_perfect_match",
+                    rule="func:recordlinker.linking.matchers.match_rule",
                     kwargs={"similarity_measure": "JaroWinkler"},
                 )
             ],
@@ -81,10 +81,10 @@ class TestGetAlgorithm:
                     "evaluators": [
                         {
                             "feature": "FIRST_NAME",
-                            "func": "func:recordlinker.linking.matchers.feature_match_fuzzy_string",
+                            "func": "func:recordlinker.linking.matchers.fuzzy_match",
                         }
                     ],
-                    "rule": "func:recordlinker.linking.matchers.eval_perfect_match",
+                    "rule": "func:recordlinker.linking.matchers.match_rule",
                     "kwargs": {
                         "similarity_measure": "JaroWinkler",
                     },
@@ -125,10 +125,10 @@ class TestCreateAlgorithm:
                     "evaluators": [
                         {
                             "feature": "FIRST_NAME",
-                            "func": "func:recordlinker.linking.matchers.feature_match_fuzzy_string",
+                            "func": "func:recordlinker.linking.matchers.fuzzy_match",
                         }
                     ],
-                    "rule": "func:recordlinker.linking.matchers.eval_perfect_match",
+                    "rule": "func:recordlinker.linking.matchers.match_rule",
                 }
             ],
         }
@@ -147,10 +147,10 @@ class TestCreateAlgorithm:
         assert algo.passes[0].evaluators == [
             {
                 "feature": "FIRST_NAME",
-                "func": "func:recordlinker.linking.matchers.feature_match_fuzzy_string",
+                "func": "func:recordlinker.linking.matchers.fuzzy_match",
             }
         ]
-        assert algo.passes[0].rule == "func:recordlinker.linking.matchers.eval_perfect_match"
+        assert algo.passes[0].rule == "func:recordlinker.linking.matchers.match_rule"
         assert algo.passes[0].kwargs == {}
 
 
@@ -206,10 +206,10 @@ class TestUpdateAlgorithm:
                     "evaluators": [
                         {
                             "feature": "FIRST_NAME",
-                            "func": "func:recordlinker.linking.matchers.feature_match_fuzzy_string",
+                            "func": "func:recordlinker.linking.matchers.fuzzy_match",
                         }
                     ],
-                    "rule": "func:recordlinker.linking.matchers.eval_perfect_match",
+                    "rule": "func:recordlinker.linking.matchers.match_rule",
                 }
             ],
         }
@@ -228,10 +228,10 @@ class TestUpdateAlgorithm:
         assert algo.passes[0].evaluators == [
             {
                 "feature": "FIRST_NAME",
-                "func": "func:recordlinker.linking.matchers.feature_match_fuzzy_string",
+                "func": "func:recordlinker.linking.matchers.fuzzy_match",
             }
         ]
-        assert algo.passes[0].rule == "func:recordlinker.linking.matchers.eval_perfect_match"
+        assert algo.passes[0].rule == "func:recordlinker.linking.matchers.match_rule"
         assert algo.passes[0].kwargs == {}
 
 
