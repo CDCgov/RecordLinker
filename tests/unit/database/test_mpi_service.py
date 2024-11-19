@@ -5,7 +5,6 @@ unit.database.test_mpi_service.py
 This module contains the unit tests for the recordlinker.database.mpi_service module.
 """
 
-import json
 import uuid
 
 import pytest
@@ -253,7 +252,7 @@ class TestBulkInsertPatients:
         patients = mpi_service.bulk_insert_patients(session, [rec], external_person_id="123456")
         assert len(patients) == 1
         assert patients[0].person_id is None
-        assert json.loads(patients[0].data) == {
+        assert patients[0].data == {
             "name": [{"given": ["Johnathon"], "family": "Smith"}]
         }
         assert patients[0].external_person_id == "123456"
@@ -280,11 +279,11 @@ class TestBulkInsertPatients:
         assert len(patients) == 2
         assert patients[0].person_id == person.id
         assert patients[1].person_id == person.id
-        assert json.loads(patients[0].data) == {
+        assert patients[0].data == {
             "birth_date": "1950-01-01",
             "name": [{"given": ["George"], "family": "Harrison"}],
         }
-        assert json.loads(patients[1].data) == {
+        assert patients[1].data == {
             "birth_date": "1950-01-01",
             "name": [{"given": ["George", "Harold"], "family": "Harrison"}],
         }

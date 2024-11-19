@@ -1,5 +1,4 @@
 import enum
-import json
 import uuid
 
 from sqlalchemy import orm
@@ -96,12 +95,10 @@ class Patient(Base):
         from recordlinker.schemas import pii
 
         assert isinstance(value, pii.PIIRecord), "Expected a PIIRecord object"
-        # convert the data to a JSON string, then load it back as a dictionary
-        # this is necessary to ensure all data elements are JSON serializable
         # recursively remove all None and unset values from the data
         # this is an optimization to reduce the amount of data stored in the
         # database, if a value is empty, no need to store it
-        self._data = json.loads(value.to_json(prune_empty=True))
+        self._data = value.to_dict(prune_empty=True)
         if hasattr(self, "_record"):
             # if the record property is cached, delete it
             del self._record
