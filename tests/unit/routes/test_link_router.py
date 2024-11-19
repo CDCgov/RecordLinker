@@ -183,7 +183,7 @@ class TestLink:
         )
 
         assert actual_response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
-        assert actual_response.json()["detail"] == "Error: No algorithm found"
+        assert actual_response.json()["detail"] == "No algorithm found"
 
     @mock.patch("recordlinker.database.algorithm_service.default_algorithm")
     def test_link_no_default_algorithm(self, patched_subprocess, patients, client):
@@ -197,7 +197,7 @@ class TestLink:
         )
 
         assert actual_response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
-        assert actual_response.json()["detail"] == "Error: No algorithm found"
+        assert actual_response.json()["detail"] == "No algorithm found"
 
 
 class TestLinkFHIR:
@@ -206,14 +206,28 @@ class TestLinkFHIR:
         patched_subprocess.return_value = basic_algorithm
         bad_bundle = {"entry": []}
         expected_response = {
-            "detail": "Supplied bundle contains no Patient resource to link on.",
+            "detail": "Supplied bundle contains no Patient resource",
         }
         actual_response = client.post(
             "/link/fhir",
             json={"bundle": bad_bundle},
         )
         assert actual_response.json() == expected_response
-        assert actual_response.status_code == status.HTTP_400_BAD_REQUEST
+        assert actual_response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
+
+    @mock.patch("recordlinker.database.algorithm_service.default_algorithm")
+    def test_invalid_bundle(self, patched_subprocess, basic_algorithm, client):
+        patched_subprocess.return_value = basic_algorithm
+        bad_bundle = {"entry": [{"resource": {"resourceType": "Patient", "name": "John Doe"}}]}
+        expected_response = {
+            "detail": "Invalid Patient resource",
+        }
+        actual_response = client.post(
+            "/link/fhir",
+            json={"bundle": bad_bundle},
+        )
+        assert actual_response.json() == expected_response
+        assert actual_response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
 
     @mock.patch("recordlinker.database.algorithm_service.default_algorithm")
     def test_success(self, patched_subprocess, basic_algorithm, client):
@@ -405,7 +419,7 @@ class TestLinkFHIR:
         patched_subprocess.return_value = None
         test_bundle = load_test_json_asset("patient_bundle_to_link_with_mpi.json")
         expected_response = {
-            "detail": "Error: No algorithm found",
+            "detail": "No algorithm found",
         }
 
         actual_response = client.post(
