@@ -1,5 +1,6 @@
 import datetime
 import enum
+import json
 import re
 import typing
 
@@ -287,6 +288,15 @@ class PIIRecord(pydantic.BaseModel):
         Convert the PIIRecord object to a JSON string.
         """
         return self.model_dump_json(exclude_unset=prune_empty, exclude_none=prune_empty)
+
+    def to_dict(self, prune_empty: bool = False) -> dict:
+        """
+        Convert the PIIRecord object to a dictionary.
+        """
+        # convert the data to a JSON string, then load it back as a dictionary
+        # this is necessary to ensure all data elements are JSON serializable
+        data = self.to_json(prune_empty=prune_empty)
+        return json.loads(data)
 
     def feature_iter(self, feature: Feature) -> typing.Iterator[str]:
         """

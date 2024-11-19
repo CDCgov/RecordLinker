@@ -132,7 +132,7 @@ def bulk_insert_patients(
     pat_data = [
         {
             "person_id": person and person.id,
-            "_data": record.to_json(prune_empty=True),
+            "_data": record.to_dict(prune_empty=True),
             "external_patient_id": record.external_id,
             "external_person_id": external_person_id,
             "external_person_source": "IRIS" if external_person_id else None,
