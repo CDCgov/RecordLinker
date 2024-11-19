@@ -41,7 +41,7 @@ for ((i=1; i<=ITERATIONS; i++)); do
             # record the response to response.txt and capture the status code from STDOUT
             response=$(curl -s -o response.txt -w "%{http_code}" \
                 --header "Content-Type: application/json" --header "$simple_header" \
-                -X POST -d "$payload" "${API_URL}/link/dibbs")
+                -X POST -d "$payload" "${API_URL}/link/fhir")
             status_code="${response: -3}"
             # parse the response to see if a MPI match was found
             match=$(jq '.found_match' response.txt)
