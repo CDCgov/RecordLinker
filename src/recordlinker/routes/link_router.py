@@ -46,13 +46,14 @@ async def link_piirecord(
     # link the record
     try:
         # Make a copy of record_to_link so we don't modify the original
-        (patient, person, results) = link.link_record_against_mpi(
+        (patient, person, results, prediction) = link.link_record_against_mpi(
             record=input.record,
             session=db_session,
             algorithm=algorithm,
             external_person_id=input.external_person_id,
         )
         return schemas.LinkResponse(
+            prediction=prediction,
             patient_reference_id=patient.reference_id,
             person_reference_id=(person and person.reference_id),
             results=[schemas.LinkResult(**r.__dict__) for r in results]
@@ -110,7 +111,7 @@ async def link_dibbs(
 
     # Now link the record
     try:
-        (patient, person, results) = link.link_record_against_mpi(
+        (patient, person, results, prediction) = link.link_record_against_mpi(
             record=pii_record,
             session=db_session,
             algorithm=algorithm,
@@ -122,6 +123,7 @@ async def link_dibbs(
                 str(person.reference_id), pii_record.external_id, input_bundle
             )
         return schemas.LinkFhirResponse(
+            prediction=prediction,
             patient_reference_id=patient.reference_id,
             person_reference_id=(person and person.reference_id),
             results=[schemas.LinkResult(**r.__dict__) for r in results],
@@ -179,13 +181,14 @@ async def link_fhir(
     # link the record
     try:
         # Make a copy of pii_record so we don't modify the original
-        (patient, person, results) = link.link_record_against_mpi(
+        (patient, person, results, prediction) = link.link_record_against_mpi(
             record=pii_record,
             session=db_session,
             algorithm=algorithm,
             external_person_id=external_id,
         )
         return schemas.LinkResponse(
+            prediction=prediction,
             patient_reference_id=patient.reference_id,
             person_reference_id=(person and person.reference_id),
             results=[schemas.LinkResult(**r.__dict__) for r in results]

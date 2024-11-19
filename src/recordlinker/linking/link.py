@@ -7,6 +7,7 @@ This module is used to run the linkage algorithm using the MPI service
 
 import collections
 import dataclasses
+import logging
 import typing
 
 from sqlalchemy import orm
@@ -14,7 +15,9 @@ from sqlalchemy import orm
 from recordlinker import models
 from recordlinker import schemas
 from recordlinker.database import mpi_service
+from recordlinker.utils.mock import MockTracer
 
+LOGGER = logging.getLogger(__name__)
 TRACER: typing.Any = None
 try:
     from opentelemetry import trace
@@ -22,8 +25,6 @@ try:
     TRACER = trace.get_tracer(__name__)
 except ImportError:
     # OpenTelemetry is an optional dependency, if its not installed use a mock tracer
-    from recordlinker.utils.mock import MockTracer
-
     TRACER = MockTracer()
 
 
@@ -63,7 +64,7 @@ def link_record_against_mpi(
     session: orm.Session,
     algorithm: models.Algorithm,
     external_person_id: typing.Optional[str] = None,
-) -> tuple[models.Patient, models.Person | None, list[LinkResult]]:
+) -> tuple[models.Patient, models.Person | None, list[LinkResult], schemas.Prediction]:
     """
     Runs record linkage on a single incoming record (extracted from a FHIR
     bundle) using an existing database as an MPI. Uses a flexible algorithm
@@ -113,36 +114,58 @@ def link_record_against_mpi(
                                 matched_count += 1
                     # calculate the match ratio for this person cluster
                     belongingness_ratio = matched_count / len(patients)
+                    LOGGER.info(
+                        "cluster belongingness",
+                        extra={
+                            "ratio": belongingness_ratio,
+                            "person.reference_id": person.reference_id,
+                            "matched": matched_count,
+                            "total": len(patients),
+                            "algorithm.ratio_lower": belongingness_ratio_lower_bound,
+                            "algorithm.ratio_upper": belongingness_ratio_upper_bound,
+                            "algorithm.pass.blockingkeys": algorithm_pass.blocking_keys,
+                            "algorithm.pass.evaluators": algorithm_pass.evaluator_features,
+                        },
+                    )
                     if belongingness_ratio >= belongingness_ratio_lower_bound:
                         # The match ratio is larger than the minimum cluster threshold,
                         # optionally update the max score for this person
                         scores[person] = max(scores[person], belongingness_ratio)
 
+    prediction: schemas.Prediction = "possible_match"
     matched_person: typing.Optional[models.Person] = None
-    if scores:
-        # Find the person with the highest matching score
-        matched_person, _ = max(scores.items(), key=lambda i: i[1])
-
-    sorted_scores: list[LinkResult] = [LinkResult(k, v) for k, v in sorted(scores.items(), reverse=True, key=lambda item: item[1])]
-    if not scores:
+    results: list[LinkResult] = [
+        LinkResult(k, v) for k, v in sorted(scores.items(), reverse=True, key=lambda i: i[1])
+    ]
+    if not results:
         # No match
-        matched_person = models.Person() # Create new Person Cluster
-        results = []
-    elif sorted_scores[0].belongingness_ratio >= belongingness_ratio_upper_bound:
+        prediction = "no_match"
+        matched_person = models.Person()  # Create new Person Cluster
+    elif results[0].belongingness_ratio >= belongingness_ratio_upper_bound:
         # Match (1 or many)
-        matched_person = sorted_scores[0].person
-        results = [x for x in sorted_scores if x.belongingness_ratio >= belongingness_ratio_upper_bound] # Multiple matches
+        prediction = "match"
+        matched_person = results[0].person
+        # reduce results to only those that meet the upper bound threshold
+        results = [x for x in results if x.belongingness_ratio >= belongingness_ratio_upper_bound]
         if not algorithm.include_multiple_matches:
-            results = [results[0]] # 1 Match (highest Belongingness Ratio)
-    else:
-        # Possible match
-        matched_person = None
-        results = sorted_scores
+            # reduce results to only the highest match
+            results = [results[0]]
 
     with TRACER.start_as_current_span("insert"):
         patient = mpi_service.insert_patient(
             session, record, matched_person, record.external_id, external_person_id, commit=False
         )
 
+    LOGGER.info(
+        "link results",
+        extra={
+            "person.reference_id": matched_person and matched_person.reference_id,
+            "patient.reference_id": patient.reference_id,
+            "result.prediction": prediction,
+            "result.count": len(results),
+            "result.scored_count": len(scores),
+        },
+    )
+
     # return a tuple indicating whether a match was found and the person ID
-    return (patient, patient.person, results)
+    return (patient, patient.person, results, prediction)
