@@ -17,8 +17,9 @@ def get_first_patient_resource(bundle: dict) -> dict:
     Get the first patient resource from a FHIR bundle
     """
     for entry in bundle.get("entry", []):
-        if entry.get("resource", {}).get("resourceType") == "Patient":
-            return entry.get("resource")
+        resource = entry.get("resource", {})
+        if resource.get("resourceType") == "Patient":
+            return resource
     return {}
 
 
