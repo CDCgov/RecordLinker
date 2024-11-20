@@ -136,8 +136,6 @@ def link_record_against_mpi(
                             "total": len(patients),
                             "algorithm.ratio_lower": belongingness_ratio_lower_bound,
                             "algorithm.ratio_upper": belongingness_ratio_upper_bound,
-                            "algorithm.pass.blockingkeys": algorithm_pass.blocking_keys,
-                            "algorithm.pass.evaluators": algorithm_pass.evaluator_features,
                         },
                     )
                     if belongingness_ratio >= belongingness_ratio_lower_bound:
