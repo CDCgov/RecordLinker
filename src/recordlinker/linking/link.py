@@ -48,7 +48,7 @@ def compare(
     kwargs: dict[typing.Any, typing.Any] = algorithm_pass.kwargs
 
     results: list[float] = []
-    details: dict[str, dict[str, typing.Any]] = {"patient.reference_id": patient.reference_id}
+    details: dict[str, typing.Any] = {"patient.reference_id": patient.reference_id}
     for e in evals:
         # TODO: can we do this check earlier?
         feature = getattr(schemas.Feature, e.feature, None)
@@ -95,6 +95,12 @@ def link_record_against_mpi(
     scores: dict[models.Person, float] = collections.defaultdict(float)
     # the minimum ratio of matches needed to be considered a cluster member
     belongingness_ratio_lower_bound, belongingness_ratio_upper_bound = algorithm.belongingness_ratio
+    # initialize counters to track evaluation results to log
+    result_counts: dict[str, int] = {
+        "patients_compared": 0,
+        "above_lower_bound": 0,
+        "above_upper_bound": 0,
+    }
     for algorithm_pass in algorithm.passes:
         with TRACER.start_as_current_span("link.pass"):
             # initialize a dictionary to hold the clusters of patients for each person
@@ -118,6 +124,7 @@ def link_record_against_mpi(
                         with TRACER.start_as_current_span("link.compare"):
                             if compare(record, patient, algorithm_pass):
                                 matched_count += 1
+                    result_counts["patients_compared"] += len(patients)
                     # calculate the match ratio for this person cluster
                     belongingness_ratio = matched_count / len(patients)
                     LOGGER.info(
@@ -143,8 +150,7 @@ def link_record_against_mpi(
     results: list[LinkResult] = [
         LinkResult(k, v) for k, v in sorted(scores.items(), reverse=True, key=lambda i: i[1])
     ]
-    result_count_above_lower_bound: int = len(results)
-    result_cound_above_upper_bound: int = 0
+    result_counts["above_lower_bound"] += len(patients)
     if not results:
         # No match
         prediction = "no_match"
@@ -155,7 +161,7 @@ def link_record_against_mpi(
         matched_person = results[0].person
         # reduce results to only those that meet the upper bound threshold
         results = [x for x in results if x.belongingness_ratio >= belongingness_ratio_upper_bound]
-        result_cound_above_upper_bound = len(results)
+        result_counts["above_upper_bound"] += len(results)
         if not algorithm.include_multiple_matches:
             # reduce results to only the highest match
             results = [results[0]]
@@ -171,8 +177,9 @@ def link_record_against_mpi(
             "person.reference_id": matched_person and matched_person.reference_id,
             "patient.reference_id": patient.reference_id,
             "result.prediction": prediction,
-            "result.count_above_lower_bound": result_count_above_lower_bound,
-            "result.count_above_upper_bound": result_cound_above_upper_bound,
+            "result.count_patients_compared": result_counts["patients_compared"],
+            "result.count_above_lower_bound": result_counts["above_lower_bound"],
+            "result.count_above_upper_bound": result_counts["above_upper_bound"],
         },
     )
 
