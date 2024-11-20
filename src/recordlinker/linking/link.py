@@ -148,7 +148,7 @@ def link_record_against_mpi(
     results: list[LinkResult] = [
         LinkResult(k, v) for k, v in sorted(scores.items(), reverse=True, key=lambda i: i[1])
     ]
-    result_counts["above_lower_bound"] += len(patients)
+    result_counts["above_lower_bound"] += len(results)
     if not results:
         # No match
         prediction = "no_match"
@@ -176,8 +176,8 @@ def link_record_against_mpi(
             "patient.reference_id": patient.reference_id,
             "result.prediction": prediction,
             "result.count_patients_compared": result_counts["patients_compared"],
-            "result.count_above_lower_bound": result_counts["above_lower_bound"],
-            "result.count_above_upper_bound": result_counts["above_upper_bound"],
+            "result.count_persons_above_lower": result_counts["above_lower_bound"],
+            "result.count_persons_above_upper": result_counts["above_upper_bound"],
         },
     )
 
