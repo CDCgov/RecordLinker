@@ -48,6 +48,7 @@ def compare(
     kwargs: dict[typing.Any, typing.Any] = algorithm_pass.kwargs
 
     results: list[float] = []
+    details: dict[str, dict[str, typing.Any]] = {"patient.reference_id": patient.reference_id}
     for e in evals:
         # TODO: can we do this check earlier?
         feature = getattr(schemas.Feature, e.feature, None)
@@ -56,7 +57,12 @@ def compare(
         # Evaluate the comparison function and append the result to the list
         result: float = e.func(record, patient, feature, **kwargs)  # type: ignore
         results.append(result)
-    return matching_rule(results, **kwargs)  # type: ignore
+        details[f"evaluator.{e.feature}.result"] = result
+    is_match = matching_rule(results, **kwargs)
+    details["rule.results"] = is_match
+    # TODO: this may add a lot of noise, consider moving to debug
+    LOGGER.info("patient comparison", extra=details)
+    return is_match
 
 
 def link_record_against_mpi(
