@@ -143,6 +143,8 @@ def link_record_against_mpi(
     results: list[LinkResult] = [
         LinkResult(k, v) for k, v in sorted(scores.items(), reverse=True, key=lambda i: i[1])
     ]
+    result_count_above_lower_bound: int = len(results)
+    result_cound_above_upper_bound: int = 0
     if not results:
         # No match
         prediction = "no_match"
@@ -153,6 +155,7 @@ def link_record_against_mpi(
         matched_person = results[0].person
         # reduce results to only those that meet the upper bound threshold
         results = [x for x in results if x.belongingness_ratio >= belongingness_ratio_upper_bound]
+        result_cound_above_upper_bound = len(results)
         if not algorithm.include_multiple_matches:
             # reduce results to only the highest match
             results = [results[0]]
@@ -168,8 +171,8 @@ def link_record_against_mpi(
             "person.reference_id": matched_person and matched_person.reference_id,
             "patient.reference_id": patient.reference_id,
             "result.prediction": prediction,
-            "result.count": len(results),
-            "result.scored_count": len(scores),
+            "result.count_above_lower_bound": result_count_above_lower_bound,
+            "result.count_above_upper_bound": result_cound_above_upper_bound,
         },
     )
 
