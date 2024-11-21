@@ -23,7 +23,7 @@ def dict_to_pii(record_data) -> dict | None:
                 "suffix": [record_data.get("SUFFIX", None)]
             }
         ],
-        "ssn": record_data.get("SSN", ""),
+        "ssn": record_data.get("SSN", None),
         "race": record_data.get("RACE", None)
     }
 
