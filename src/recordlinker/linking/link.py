@@ -148,7 +148,7 @@ def link_record_against_mpi(
     results: list[LinkResult] = [
         LinkResult(k, v) for k, v in sorted(scores.items(), reverse=True, key=lambda i: i[1])
     ]
-    result_counts["above_lower_bound"] += len(results)
+    result_counts["above_lower_bound"] = len(results)
     if not results:
         # No match
         prediction = "no_match"
@@ -159,7 +159,7 @@ def link_record_against_mpi(
         matched_person = results[0].person
         # reduce results to only those that meet the upper bound threshold
         results = [x for x in results if x.belongingness_ratio >= belongingness_ratio_upper_bound]
-        result_counts["above_upper_bound"] += len(results)
+        result_counts["above_upper_bound"] = len(results)
         if not algorithm.include_multiple_matches:
             # reduce results to only the highest match
             results = [results[0]]
