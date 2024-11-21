@@ -1,5 +1,7 @@
 import os
+
 import requests
+
 
 def reset_db(api_url):
     print("Resetting the database...")

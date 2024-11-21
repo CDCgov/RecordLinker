@@ -1,11 +1,11 @@
 import os
 
-from set_configuration import add_configuration
-from set_configuration import update_configuration
-from set_configuration import check_if_config_already_exists
 from helpers import load_json
 from seed_db import seed_database
 from send_test_records import send_test_records
+from set_configuration import add_configuration
+from set_configuration import check_if_config_already_exists
+from set_configuration import update_configuration
 
 
 def main():  

@@ -33,5 +33,5 @@ def check_if_config_already_exists(algorithm_config, api_url):
         response = requests.get(f"{api_url}/algorithm/{algorithm_config["label"]}")
         response.raise_for_status()  # Raise an error for bad status codes
         return True
-    except requests.exceptions.RequestException as e:
+    except requests.exceptions.RequestException:
         return False
