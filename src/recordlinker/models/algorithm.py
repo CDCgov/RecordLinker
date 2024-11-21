@@ -128,13 +128,6 @@ class AlgorithmPass(Base):
         if hasattr(self, "_bound_evaluators"):
             del self._bound_evaluators
 
-    @property
-    def evaluator_features(self) -> list[str]:
-        """
-        Get the features used by the evaluators for this algorithm pass.
-        """
-        return [e["feature"] for e in self.evaluators]
-
     def bound_evaluators(self) -> list[BoundEvaluator]:
         """
         Get the evaluators for this algorithm pass, bound to the algorithm.
