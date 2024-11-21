@@ -9,4 +9,4 @@ COPY scripts /app/scripts
 COPY data /app/data
 
 # Install Python dependencies
-RUN pip install --no-cache-dir pandas requests
+RUN pip install --no-cache-dir requests

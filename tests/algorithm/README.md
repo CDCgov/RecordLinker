@@ -1,6 +1,6 @@
 # Record Linkage Algorithm Testing
 
-This repository contains a project to test the effectiveness of the RecordLinker algorithm.
+This repository contains a project to evaluate the match accuracy performance of the RecordLinker algorithm.
 
 ## Prerequisites
 
@@ -12,12 +12,12 @@ Before getting started, ensure you have the following installed:
 ## Directory Structure
 
 - `/`: Contains the `.env` file and `Dockerfile` to build
-- `configurations/`: Contains the configuration file for the algorithm tests
-- `data/`: Contains the data `.csv` files used for the algorithm tests (seed file and test file)
-- `results/`: Contains the results of the algorithm tests
-- `scripts/`: Contains the scripts to run the algorithm tests
+- `configurations/`: Contains the configuration `.json` file that will be used for the test
+- `data/`: Contains the data `.csv` files used for the algorithm test (seed file and test file)
+- `results/`: Contains the results `.csv` file after running the test
+- `scripts/`: Contains the scripts to run the test
 
-## Steup
+## Setup
 
 1. Build the Docker images:
 
@@ -25,13 +25,22 @@ Before getting started, ensure you have the following installed:
     docker compose --profile algo-test build
     ```
 
-2. Configure environment variables
+2. Add seed and test data files
+    You can use the sample data files provided in the `data` directory or add your own data files.
+    The format of the input files should be a CSV file with the same column headers as shown in the sample files.
+    
+        `/data/sample_seed_data.csv`
+        
+        `/data/sample_test_data.csv`
+        
+
+3. Configure environment variables
 
     `/algo.env`
     
     Edit the environment variables in the file
 
-3. Edit the algorithm configuration file
+4. Edit the algorithm configuration file
 
     `/configurations/algorithm_configuration.json`
 
@@ -39,21 +48,39 @@ Before getting started, ensure you have the following installed:
 
 ## Running Algorithm Tests
 
-1. Run the tests
+1. Run the test
 
     ```bash
-    docker compose --profile algo-test run --rm algo-test-runner python scripts/run_test.py
+    docker compose run --rm algo-test-runner scripts/run_test.py
     ```
 
 2. Analyze the results
 
     The results of the algorithm tests will be available in the `results/output.csv` file.
 
-    The results will be in a csv formatted file with each test case number, the expected result, and the actual response from the algorithm.
+    The results will be in a CSV formatted file with the following columns: 
+    `Test Case #`, `Expected Result`, `Match Result`, `Details`
+
+## Rerunning Algorithm Tests
+
+After you've run the algorithm tests, you may want to rerun the tests with different seed data, test data, or configurations.
+
+Edit the csv files and/or the configuration file as needed and then run the following commands to rerun the tests.
+
+1. Reset the mpi database
+    
+    ```bash
+    docker compose run --rm algo-test-runner python scripts/reset_db.py
+    ```
+2. Run the tests
+    
+    ```bash
+    docker compose run --rm algo-test-runner scripts/run_test.py
+    ```
 
 ## Environment Variables
 
-1. `env_file`: The attributes that should be tuned for your particular algorithm test,
+1. `env file`: The attributes that should be tuned for your particular algorithm test,
     are located in the `algo_test.env` file.
 
 2. `environment`: The attributes that should likely remain static for all algorithm tests are located directly in the `compose.yml` file.
