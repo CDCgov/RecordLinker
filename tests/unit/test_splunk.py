@@ -20,7 +20,8 @@ class TestSplunkHECClient:
             assert client.url == "https://localhost:8088/services/collector/event"
             assert client.headers == {
                 "Authorization": "Splunk token",
-                "Content-Type": "application/json",
+                "Content-type": "application/json",
+                "X-splunk-request-channel": "token",
             }
             assert client.params == {"host": "localhost", "sourcetype": "_json", "index": "idx", "source": "src"}
 
@@ -34,7 +35,8 @@ class TestSplunkHECClient:
             assert client.url == "https://localhost/services/collector/event"
             assert client.headers == {
                 "Authorization": "Splunk token",
-                "Content-Type": "application/json",
+                "Content-type": "application/json",
+                "X-splunk-request-channel": "token",
             }
             assert client.params == {"host": "localhost", "sourcetype": "_json", "index": "idx", "source": "src"}
 
@@ -52,5 +54,6 @@ class TestSplunkHECClient:
             assert req.headers == {
                 "Authorization": "Splunk token",
                 "Content-type": "application/json",
+                "X-splunk-request-channel": "token",
             }
             assert req.data == b'{"time": 10.5, "event": {"key": "value"}, "host": "localhost", "sourcetype": "_json", "index": "idx", "source": "src"}'
