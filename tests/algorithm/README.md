@@ -27,13 +27,13 @@ Before getting started, ensure you have the following installed:
 
 2. Configure environment variables
 
-    `tests/algorithm/algo.env`
+    `/algo.env`
     
     Edit the environment variables in the file
 
 3. Edit the algorithm configuration file
 
-    `tests/algorithm/configurations/algorithm_configuration.json`
+    `/configurations/algorithm_configuration.json`
 
     Edit the configuration file to tune the algorithm parameters
 
@@ -75,6 +75,3 @@ After you've finished running algorithm tests and analyzing the results, you can
 ```bash
 docker compose --profile algo-test down
 ```
-
-## Output
-
