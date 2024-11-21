@@ -47,9 +47,9 @@ Before getting started, ensure you have the following installed:
 
 2. Analyze the results
 
-    The results of the algorithm tests will be available in the `results/` directory.
+    The results of the algorithm tests will be available in the `results/output.csv` file.
 
-    The results will be in a csv formatted file with each test case result information
+    The results will be in a csv formatted file with each test case number, the expected result, and the actual response from the algorithm.
 
 ## Environment Variables
 
