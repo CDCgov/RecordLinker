@@ -49,7 +49,23 @@ Before getting started, ensure you have the following installed:
 
     The results of the algorithm tests will be available in the `results/output.csv` file.
 
-    The results will be in a csv formatted file with each test case number, the expected result, and the actual response from the algorithm.
+    The results will be in a csv formatted file withthe following columns: `Test Case #`, `Expected Result`, `Match Results`, and `Error`.
+
+## Rerunning Algorithm Tests
+
+After you've run the algorithm tests, you may want to rerun the tests with different seed data, test data, or configurations.
+Edit the csv files and/or the confirguration file as needed and then run the following commands to rerun the tests.
+
+1. Reset the mpi database
+    
+    ```bash
+    docker compose --profile algo-test run --rm algo-test-runner python scripts/reset_db.py
+    ```
+2. Run the tests
+    
+    ```bash
+    docker compose --profile algo-test run --rm algo-test-runner python scripts/run_tests.py
+    ```
 
 ## Environment Variables
 

@@ -7,8 +7,7 @@
     "passes": [
         {
             "blocking_keys": [
-                "BIRTHDATE",
-                "SEX"
+                "BIRTHDATE"
             ],
             "evaluators": [
                     {
