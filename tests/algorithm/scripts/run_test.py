@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 import os
 
 from helpers import load_json

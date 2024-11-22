@@ -39,10 +39,16 @@ Before getting started, ensure you have the following installed:
 
 ## Running Algorithm Tests
 
-1. Run the tests
+1. Run the test
 
+    Make the script executable
     ```bash
-    docker compose --profile algo-test run --rm algo-test-runner python scripts/run_test.py
+    chmod +x scripts/run_tests.py
+    ```
+
+    Run the test
+    ```bash
+    docker compose run --rm algo-test-runner scripts/run_test.py
     ```
 
 2. Analyze the results
