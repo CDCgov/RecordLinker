@@ -65,12 +65,12 @@ Edit the csv files and/or the confirguration file as needed and then run the fol
 1. Reset the mpi database
     
     ```bash
-    docker compose --profile algo-test run --rm algo-test-runner python scripts/reset_db.py
+    docker compose run --rm algo-test-runner python scripts/reset_db.py
     ```
 2. Run the tests
     
     ```bash
-    docker compose --profile algo-test run --rm algo-test-runner python scripts/run_tests.py
+    docker compose run --rm algo-test-runner python scripts/run_tests.py
     ```
 
 ## Environment Variables
