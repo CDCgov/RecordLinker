@@ -43,7 +43,7 @@ Before getting started, ensure you have the following installed:
 
     Make the script executable
     ```bash
-    chmod +x scripts/run_tests.py
+    chmod +x scripts/run_test.py
     ```
 
     Run the test
