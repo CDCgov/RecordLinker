@@ -70,7 +70,7 @@ Edit the csv files and/or the confirguration file as needed and then run the fol
 2. Run the tests
     
     ```bash
-    docker compose run --rm algo-test-runner python scripts/run_tests.py
+    docker compose run --rm algo-test-runner python scripts/run_test.py
     ```
 
 ## Environment Variables
