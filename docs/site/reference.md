@@ -147,7 +147,7 @@ existing Patient with the GIVEN_NAME of ["John", "D"].
 
 :   Determines if any of the features are a direct match.
 
-`func:recordlinker.linking.matchers.feature_match_all`
+`func:recordlinker.linking.matchers.exact_match_all`
 
 :   Determines if all of the features are a direct match.
 
