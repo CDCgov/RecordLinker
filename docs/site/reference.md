@@ -119,12 +119,12 @@ patient data and used during query retrieval. The following blocking key types a
 These are the functions that can be used to evaluate the matching results as a collection, thus
 determining it the incoming payload is a match or not to an existing Patient record.
 
-`func:recordlinker.linking.matchers.match_rule`
+`func:recordlinker.linking.matchers.rule_match`
 
 :   Determines whether a given set of feature comparisons represent a 'perfect' match
     (i.e. all features that were compared match in whatever criteria was specified).
 
-`func:recordlinker.linking.matchers.probabilistic_match_rule`
+`func:recordlinker.linking.matchers.rule_probabilistic_match`
 
 :   Determines whether a given set of feature comparisons matches enough to be the
     result of a true patient link instead of just random chance. This is represented
@@ -143,22 +143,22 @@ matching is designed to compare one list of values to another list of values.  F
 incoming record could have a GIVEN_NAME of ["John", "Dean"] and we could be comparing them to an
 existing Patient with the GIVEN_NAME of ["John", "D"].
 
-`func:recordlinker.linking.matchers.exact_match_any`
+`func:recordlinker.linking.matchers.compare_match_any`
 
 :   Determines if any of the features are a direct match.
 
-`func:recordlinker.linking.matchers.exact_match_all`
+`func:recordlinker.linking.matchers.compare_match_all`
 
 :   Determines if all of the features are a direct match.
 
-`func:recordlinker.linking.matchers.fuzzy_match`
+`func:recordlinker.linking.matchers.compare_fuzzy_match`
 
 :   Determines if the features are a fuzzy match based on a string comparison.
     JaroWinkler, Levenshtein and Damerau-Levenshtein are supported, with JaroWinkler as the default.
     Use the `kwargs` parameter to specify the desired algorithm and thresholds.
     Example: `{"kwargs": {"similarity_measure": "levenshtein", "thresholds": {"FIRST_NAME": 0.8}}}`
 
-`func:recordlinker.linking.matchers.probabilistic_fuzzy_match`
+`func:recordlinker.linking.matchers.compare_probabilistic_fuzzy_match`
 
 :   Similar to the above function, but uses a log-odds ratio to determine if the features are a match 
     probabilistically. This is useful when wanting to more robustly compare features by incorporating

@@ -30,8 +30,8 @@ class RuleFunc(enum.Enum):
     the algorithm.
     """
 
-    MATCH_RULE = "func:recordlinker.linking.matchers.match_rule"
-    PROBABILISTIC_MATCH_RULE = "func:recordlinker.linking.matchers.probabilistic_match_rule"
+    RULE_MATCH = "func:recordlinker.linking.matchers.rule_match"
+    RULE_PROBABILISTIC_MATCH = "func:recordlinker.linking.matchers.rule_probabilistic_match"
 
 
 class FeatureFunc(enum.Enum):
@@ -44,11 +44,11 @@ class FeatureFunc(enum.Enum):
     matching, based on the configuration of the algorithm.
     """
 
-    EXACT_MATCH_ANY = "func:recordlinker.linking.matchers.exact_match_any"
-    EXACT_MATCH_ALL = "func:recordlinker.linking.matchers.exact_match_all"
-    FUZZY_MATCH = "func:recordlinker.linking.matchers.fuzzy_match"
-    PROBABILISTIC_FUZZY_MATCH = (
-        "func:recordlinker.linking.matchers.probabilistic_fuzzy_match"
+    COMPARE_MATCH_ANY = "func:recordlinker.linking.matchers.compare_match_any"
+    COMPARE_MATCH_ALL = "func:recordlinker.linking.matchers.compare_match_all"
+    COMPARE_FUZZY_MATCH = "func:recordlinker.linking.matchers.compare_fuzzy_match"
+    COMPARE_PROBABILISTIC_FUZZY_MATCH = (
+        "func:recordlinker.linking.matchers.compare_probabilistic_fuzzy_match"
     )
 
 
@@ -99,7 +99,7 @@ def _get_fuzzy_params(col: str, **kwargs) -> tuple[SIMILARITY_MEASURES, float]:
     return (similarity_measure, threshold)
 
 
-def match_rule(feature_comparisons: list[float], **kwargs: typing.Any) -> bool:
+def rule_match(feature_comparisons: list[float], **kwargs: typing.Any) -> bool:
     """
     Determines whether a given set of feature comparisons represent a
     'perfect' match (i.e. whether all features that were compared match
@@ -112,7 +112,7 @@ def match_rule(feature_comparisons: list[float], **kwargs: typing.Any) -> bool:
     return sum(feature_comparisons) == len(feature_comparisons)
 
 
-def probabilistic_match_rule(feature_comparisons: list[float], **kwargs: typing.Any) -> bool:
+def rule_probabilistic_match(feature_comparisons: list[float], **kwargs: typing.Any) -> bool:
     """
     Determines whether a given set of feature comparisons matches enough
     to be the result of a true patient link instead of just random chance.
@@ -129,7 +129,7 @@ def probabilistic_match_rule(feature_comparisons: list[float], **kwargs: typing.
     return sum(feature_comparisons) >= float(threshold)
 
 
-def exact_match_any(
+def compare_match_any(
     record: PIIRecord, patient: Patient, key: Feature, **kwargs: typing.Any
 ) -> float:
     """
@@ -147,7 +147,7 @@ def exact_match_any(
     return float(bool(rec_values & pat_values))
 
 
-def exact_match_all(
+def compare_match_all(
     record: PIIRecord, patient: Patient, key: Feature, **kwargs: typing.Any
 ) -> float:
     """
@@ -165,7 +165,7 @@ def exact_match_all(
     return float(rec_values == pat_values)
 
 
-def fuzzy_match(
+def compare_fuzzy_match(
     record: PIIRecord, patient: Patient, key: Feature, **kwargs: typing.Any
 ) -> float:
     """
@@ -189,7 +189,7 @@ def fuzzy_match(
     return 0
 
 
-def probabilistic_fuzzy_match(
+def compare_probabilistic_fuzzy_match(
     record: PIIRecord, patient: Patient, key: Feature, **kwargs: typing.Any
 ) -> float:
     """

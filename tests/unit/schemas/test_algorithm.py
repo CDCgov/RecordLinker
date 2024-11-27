@@ -19,25 +19,25 @@ class TestAlgorithmPass:
             AlgorithmPass(
                 blocking_keys=keys,
                 evaluators=[],
-                rule="func:recordlinker.linking.matchers.match_rule",
+                rule="func:recordlinker.linking.matchers.rule_match",
             )
         keys = ["LAST_NAME", "BIRTHDATE", "ZIP"]
         # write an assertion that no exception is raised
         AlgorithmPass(
             blocking_keys=keys,
             evaluators=[],
-            rule="func:recordlinker.linking.matchers.match_rule",
+            rule="func:recordlinker.linking.matchers.rule_match",
         )
 
     def test_validate_evaluators(self):
         evaluators = [
-            {"feature": "name", "func": "func:recordlinker.linking.matchers.exact_match_any"}
+            {"feature": "name", "func": "func:recordlinker.linking.matchers.compare_match_any"}
         ]
         with pytest.raises(pydantic.ValidationError):
             AlgorithmPass(
                 blocking_keys=[],
                 evaluators=evaluators,
-                rule="func:recordlinker.linking.matchers.match_rule",
+                rule="func:recordlinker.linking.matchers.rule_match",
             )
         evaluators = [
             {"feature": "LAST_NAME", "func": "func:recordlinker.linking.matchers.unknown"}
@@ -46,28 +46,28 @@ class TestAlgorithmPass:
             AlgorithmPass(
                 blocking_keys=[],
                 evaluators=evaluators,
-                rule="func:recordlinker.linking.matchers.match_rule",
+                rule="func:recordlinker.linking.matchers.rule_match",
             )
         evaluators = [
             {
                 "feature": "LAST_NAME",
-                "func": "func:recordlinker.linking.matchers.match_rule",
+                "func": "func:recordlinker.linking.matchers.rule_match",
             }
         ]
         with pytest.raises(pydantic.ValidationError):
             AlgorithmPass(
                 blocking_keys=[],
                 evaluators=evaluators,
-                rule="func:recordlinker.linking.matchers.match_rule",
+                rule="func:recordlinker.linking.matchers.rule_match",
             )
         evaluators = [
-            {"feature": "LAST_NAME", "func": "func:recordlinker.linking.matchers.exact_match_any"}
+            {"feature": "LAST_NAME", "func": "func:recordlinker.linking.matchers.compare_match_any"}
         ]
         # write an assertion that no exception is raised
         AlgorithmPass(
             blocking_keys=[],
             evaluators=evaluators,
-            rule="func:recordlinker.linking.matchers.match_rule",
+            rule="func:recordlinker.linking.matchers.rule_match",
         )
 
     def test_validate_rule(self):
@@ -78,14 +78,14 @@ class TestAlgorithmPass:
                 evaluators=[],
                 rule=rule,
             )
-        rule = "func:recordlinker.linking.matchers.exact_match_any"
+        rule = "func:recordlinker.linking.matchers.compare_match_any"
         with pytest.raises(pydantic.ValidationError):
             AlgorithmPass(
                 blocking_keys=[],
                 evaluators=[],
                 rule=rule,
             )
-        rule = "func:recordlinker.linking.matchers.match_rule"
+        rule = "func:recordlinker.linking.matchers.rule_match"
         AlgorithmPass(
             blocking_keys=[],
             evaluators=[],
@@ -97,14 +97,14 @@ class TestAlgorithmPass:
             AlgorithmPass(
                 blocking_keys=[],
                 evaluators=[],
-                rule="func:recordlinker.linking.matchers.match_rule",
+                rule="func:recordlinker.linking.matchers.rule_match",
                 cluster_ratio=0.5,
                 kwargs={"invalid": "key"},
             )
         AlgorithmPass(
             blocking_keys=[],
             evaluators=[],
-            rule="func:recordlinker.linking.matchers.match_rule",
+            rule="func:recordlinker.linking.matchers.rule_match",
             kwargs={
                 "similarity_measure": "JaroWinkler",
                 "thresholds": {"CITY": 0.95, "ADDRESS": 0.98},
@@ -126,7 +126,7 @@ class TestAlgorithm:
                     AlgorithmPass(
                         blocking_keys=[],
                         evaluators=[],
-                        rule="func:recordlinker.linking.matchers.match_rule",
+                        rule="func:recordlinker.linking.matchers.rule_match",
                     )
                 ],
             )
@@ -138,7 +138,7 @@ class TestAlgorithm:
                 AlgorithmPass(
                     blocking_keys=[],
                     evaluators=[],
-                    rule="func:recordlinker.linking.matchers.match_rule",
+                    rule="func:recordlinker.linking.matchers.rule_match",
                 )
             ],
         )
@@ -150,7 +150,7 @@ class TestAlgorithm:
                 AlgorithmPass(
                     blocking_keys=[],
                     evaluators=[],
-                    rule="func:recordlinker.linking.matchers.match_rule",
+                    rule="func:recordlinker.linking.matchers.rule_match",
                 )
             ],
         )
