@@ -1,6 +1,6 @@
 # Record Linkage Algorithm Testing
 
-This repository contains a project to test the effectiveness of the RecordLinker algorithm.
+This repository contains a project to evaluate the match accuracy performance of the RecordLinker algorithm.
 
 ## Prerequisites
 
