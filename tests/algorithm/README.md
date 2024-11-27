@@ -17,7 +17,7 @@ Before getting started, ensure you have the following installed:
 - `results/`: Contains the results of the algorithm tests
 - `scripts/`: Contains the scripts to run the algorithm tests
 
-## Steup
+## Setup
 
 1. Build the Docker images:
 
