@@ -16,7 +16,6 @@ class Feature(enum.Enum):
     """
 
     BIRTHDATE = "BIRTHDATE"
-    MRN = "MRN"
     SEX = "SEX"
     GIVEN_NAME = "GIVEN_NAME"
     FIRST_NAME = "FIRST_NAME"
@@ -25,13 +24,12 @@ class Feature(enum.Enum):
     CITY = "CITY"
     STATE = "STATE"
     ZIP = "ZIP"
-    SSN = "SSN"
     RACE = "RACE"
     GENDER = "GENDER"
     TELECOM = "TELECOM"
     SUFFIX = "SUFFIX"
     COUNTY = "COUNTY"
-    DRIVERS_LICENSE = "DRIVERS_LICENSE"
+    IDENTIFIER = "IDENTIFIER"
 
     def __str__(self):
         """
@@ -142,16 +140,50 @@ class Telecom(pydantic.BaseModel):
     system: typing.Optional[str] = None
     use: typing.Optional[str] = None
 
-
-class DriversLicense(pydantic.BaseModel):
+class IdentifierType(enum.Enum):
     """
-    The schema for a Drivers License record
+    Enum for the Race field.
+    """
+
+    SS = "SS"
+    MR = "MR"
+    DL = "DL"
+    # TODO: Add the rest
+
+    def __str__(self):
+        return self.value
+
+class Identifier(pydantic.BaseModel):
+    """
+    The schema for an Identifier record
     """
 
     model_config = pydantic.ConfigDict(extra="allow")
 
-    value: str
-    authority: str
+    type: typing.Optional[IdentifierType] = None
+    value: typing.Optional[str] = None
+    authority: typing.Optional[str] = None
+
+    @pydantic.field_validator("value", mode="before")
+    def parse_value(cls, value, values):
+        """
+        Parse the value string
+        """
+        if values.data.get("type") == IdentifierType.SS:           
+            val = str(value).strip()
+
+            if re.match(r"^\d{3}-\d{2}-\d{4}$", val):
+                return val
+
+            if len(val) != 9 or not val.isdigit():
+                return None
+
+            # Format back to the standard SSN format (XXX-XX-XXXX)
+            formatted_ssn = f"{val[:3]}-{val[3:5]}-{val[5:]}"
+            return formatted_ssn
+        
+        return value
+
 
 
 class PIIRecord(pydantic.BaseModel):
@@ -166,14 +198,12 @@ class PIIRecord(pydantic.BaseModel):
         default=None, validation_alias=pydantic.AliasChoices("birth_date", "birthdate", "birthDate")
     )
     sex: typing.Optional[Sex] = None
-    mrn: typing.Optional[str] = None
     address: typing.List[Address] = []
     name: typing.List[Name] = []
     telecom: typing.List[Telecom] = []
-    ssn: typing.Optional[str] = None
     race: typing.Optional[Race] = None
     gender: typing.Optional[Gender] = None
-    drivers_license: typing.Optional[DriversLicense] = None
+    identifiers: typing.List[Identifier] = []
 
     @classmethod
     def model_construct(
@@ -190,7 +220,7 @@ class PIIRecord(pydantic.BaseModel):
         obj.address = [Address.model_construct(**a) for a in values.get("address", [])]
         obj.name = [Name.model_construct(**n) for n in values.get("name", [])]
         obj.telecom = [Telecom.model_construct(**t) for t in values.get("telecom", [])]
-        obj.drivers_license = DriversLicense.model_construct(**values.get("drivers_license", {}))
+        obj.identifiers = [Identifier.model_construct(**i) for i in values.get("identifiers", [])]
         return obj
 
     @pydantic.field_validator("external_id", mode="before")
@@ -221,24 +251,6 @@ class PIIRecord(pydantic.BaseModel):
             elif val in ["f", "female"]:
                 return Sex.FEMALE
             return Sex.UNKNOWN
-
-    @pydantic.field_validator("ssn", mode="before")
-    def parse_ssn(cls, value):
-        """
-        Parse the ssn string
-        """
-        if value:
-            val = str(value).strip()
-
-            if re.match(r"^\d{3}-\d{2}-\d{4}$", val):
-                return val
-
-            if len(val) != 9 or not val.isdigit():
-                return None
-
-            # Format back to the standard SSN format (XXX-XX-XXXX)
-            formatted_ssn = f"{val[:3]}-{val[3:5]}-{val[5:]}"
-            return formatted_ssn
 
     @pydantic.field_validator("race", mode="before")
     def parse_race(cls, value):
@@ -309,9 +321,6 @@ class PIIRecord(pydantic.BaseModel):
         if feature == Feature.BIRTHDATE:
             if self.birth_date:
                 yield str(self.birth_date)
-        elif feature == Feature.MRN:
-            if self.mrn:
-                yield self.mrn
         elif feature == Feature.SEX:
             if self.sex:
                 yield str(self.sex)
@@ -349,9 +358,6 @@ class PIIRecord(pydantic.BaseModel):
             for name in self.name:
                 if name.family:
                     yield name.family
-        elif feature == Feature.SSN:
-            if self.ssn:
-                yield self.ssn
         elif feature == Feature.RACE:
             if self.race:
                 yield str(self.race)
@@ -371,11 +377,12 @@ class PIIRecord(pydantic.BaseModel):
             for address in self.address:
                 if address.county:
                     yield address.county
-        elif feature == Feature.DRIVERS_LICENSE:
-            if self.drivers_license:
-                if self.drivers_license.value and self.drivers_license.authority:
-                    yield f"{self.drivers_license.value}|{self.drivers_license.authority}"
+        elif feature == Feature.IDENTIFIER:
+            for identifier in self.identifiers:
+                if identifier.value:
+                    yield f"{identifier.type or ''}:{identifier.authority or ''}:{identifier.value}"
 
+    # TODO: update blocking keys
     def blocking_keys(self, key: models.BlockingKey) -> set[str]:
         """
         For a particular Feature, return a set of all possible Blocking Key values
@@ -390,8 +397,8 @@ class PIIRecord(pydantic.BaseModel):
         if key == models.BlockingKey.BIRTHDATE:
             # NOTE: we could optimize here and remove the dashes from the date
             vals.update(self.feature_iter(Feature.BIRTHDATE))
-        elif key == models.BlockingKey.MRN:
-            vals.update({x[-4:] for x in self.feature_iter(Feature.MRN)})
+        # elif key == models.BlockingKey.MRN:
+        #     vals.update({x[-4:] for x in self.feature_iter(Feature.MRN)})
         elif key == models.BlockingKey.SEX:
             vals.update(self.feature_iter(Feature.SEX))
         elif key == models.BlockingKey.ZIP:
