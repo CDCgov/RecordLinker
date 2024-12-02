@@ -69,7 +69,6 @@ jobs:
 
       - name: Run Pytest with the matrix database
         run: |
-          export DB_URI=sqlite:///:memory:
           if [[ "${{ matrix.database }}" == "postgres" ]]; then
             export TEST_DB_URI=postgresql+psycopg2://postgres:pw@localhost:5432/postgres
           elif [[ "${{ matrix.database }}" == "sqlite" ]]; then
