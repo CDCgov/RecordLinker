@@ -66,22 +66,22 @@ def test_compare_match_any():
     pat2 = models.Patient(data={"name": [{"given": ["Michael"], "family": "Smith"}], "sex": "male"})
     pat3 = models.Patient(data={"name": [{"family": "Smith"}, {"family": "Williams"}]})
 
-    assert matchers.compare_match_any(record, pat1, schemas.Feature.GIVEN_NAME)
-    assert matchers.compare_match_any(record, pat1, schemas.Feature.FIRST_NAME)
-    assert not matchers.compare_match_any(record, pat1, schemas.Feature.LAST_NAME)
-    assert matchers.compare_match_any(record, pat1, schemas.Feature.BIRTHDATE)
-    assert not matchers.compare_match_any(record, pat1, schemas.Feature.ZIP)
+    assert matchers.compare_match_any(record, pat1, schemas.Feature(attribute=schemas.FeatureAttribute.GIVEN_NAME))
+    assert matchers.compare_match_any(record, pat1, schemas.Feature(attribute=schemas.FeatureAttribute.FIRST_NAME))
+    assert not matchers.compare_match_any(record, pat1, schemas.Feature(attribute=schemas.FeatureAttribute.LAST_NAME))
+    assert matchers.compare_match_any(record, pat1, schemas.Feature(attribute=schemas.FeatureAttribute.BIRTHDATE))
+    assert not matchers.compare_match_any(record, pat1, schemas.Feature(attribute=schemas.FeatureAttribute.ZIP))
 
-    assert matchers.compare_match_any(record, pat2, schemas.Feature.GIVEN_NAME)
-    assert not matchers.compare_match_any(record, pat2, schemas.Feature.FIRST_NAME)
-    assert matchers.compare_match_any(record, pat2, schemas.Feature.LAST_NAME)
-    assert not matchers.compare_match_any(record, pat2, schemas.Feature.SEX)
-    assert not matchers.compare_match_any(record, pat1, schemas.Feature.ZIP)
+    assert matchers.compare_match_any(record, pat2, schemas.Feature(attribute=schemas.FeatureAttribute.GIVEN_NAME))
+    assert not matchers.compare_match_any(record, pat2, schemas.Feature(attribute=schemas.FeatureAttribute.FIRST_NAME))
+    assert matchers.compare_match_any(record, pat2, schemas.Feature(attribute=schemas.FeatureAttribute.LAST_NAME))
+    assert not matchers.compare_match_any(record, pat2, schemas.Feature(attribute=schemas.FeatureAttribute.SEX))
+    assert not matchers.compare_match_any(record, pat1, schemas.Feature(attribute=schemas.FeatureAttribute.ZIP))
 
-    assert not matchers.compare_match_any(record, pat3, schemas.Feature.GIVEN_NAME)
-    assert not matchers.compare_match_any(record, pat3, schemas.Feature.FIRST_NAME)
-    assert matchers.compare_match_any(record, pat3, schemas.Feature.LAST_NAME)
-    assert not matchers.compare_match_any(record, pat3, schemas.Feature.BIRTHDATE)
+    assert not matchers.compare_match_any(record, pat3, schemas.Feature(attribute=schemas.FeatureAttribute.GIVEN_NAME))
+    assert not matchers.compare_match_any(record, pat3, schemas.Feature(attribute=schemas.FeatureAttribute.FIRST_NAME))
+    assert matchers.compare_match_any(record, pat3, schemas.Feature(attribute=schemas.FeatureAttribute.LAST_NAME))
+    assert not matchers.compare_match_any(record, pat3, schemas.Feature(attribute=schemas.FeatureAttribute.BIRTHDATE))
 
     with pytest.raises(ValueError):
         matchers.compare_match_any(record, pat1, "unknown")
@@ -104,21 +104,21 @@ def test_compare_match_all():
     )
     pat3 = models.Patient(data={"name": [{"family": "Smith"}, {"family": "Harrison"}]})
 
-    assert not matchers.compare_match_all(record, pat1, schemas.Feature.GIVEN_NAME)
-    assert matchers.compare_match_all(record, pat1, schemas.Feature.FIRST_NAME)
-    assert not matchers.compare_match_all(record, pat1, schemas.Feature.LAST_NAME)
-    assert matchers.compare_match_all(record, pat1, schemas.Feature.BIRTHDATE)
-    assert not matchers.compare_match_all(record, pat1, schemas.Feature.ZIP)
+    assert not matchers.compare_match_all(record, pat1, schemas.Feature(attribute=schemas.FeatureAttribute.GIVEN_NAME))
+    assert matchers.compare_match_all(record, pat1, schemas.Feature(attribute=schemas.FeatureAttribute.FIRST_NAME))
+    assert not matchers.compare_match_all(record, pat1, schemas.Feature(attribute=schemas.FeatureAttribute.LAST_NAME))
+    assert matchers.compare_match_all(record, pat1, schemas.Feature(attribute=schemas.FeatureAttribute.BIRTHDATE))
+    assert not matchers.compare_match_all(record, pat1, schemas.Feature(attribute=schemas.FeatureAttribute.ZIP))
 
-    assert matchers.compare_match_all(record, pat2, schemas.Feature.GIVEN_NAME)
-    assert matchers.compare_match_all(record, pat2, schemas.Feature.FIRST_NAME)
-    assert not matchers.compare_match_all(record, pat2, schemas.Feature.LAST_NAME)
-    assert not matchers.compare_match_all(record, pat2, schemas.Feature.SEX)
-    assert not matchers.compare_match_all(record, pat2, schemas.Feature.ZIP)
+    assert matchers.compare_match_all(record, pat2, schemas.Feature(attribute=schemas.FeatureAttribute.GIVEN_NAME))
+    assert matchers.compare_match_all(record, pat2, schemas.Feature(attribute=schemas.FeatureAttribute.FIRST_NAME))
+    assert not matchers.compare_match_all(record, pat2, schemas.Feature(attribute=schemas.FeatureAttribute.LAST_NAME))
+    assert not matchers.compare_match_all(record, pat2, schemas.Feature(attribute=schemas.FeatureAttribute.SEX))
+    assert not matchers.compare_match_all(record, pat1, schemas.Feature(attribute=schemas.FeatureAttribute.ZIP))
 
-    assert not matchers.compare_match_all(record, pat3, schemas.Feature.FIRST_NAME)
-    assert matchers.compare_match_all(record, pat3, schemas.Feature.LAST_NAME)
-    assert not matchers.compare_match_all(record, pat3, schemas.Feature.BIRTHDATE)
+    assert not matchers.compare_match_all(record, pat3, schemas.Feature(attribute=schemas.FeatureAttribute.FIRST_NAME))
+    assert matchers.compare_match_all(record, pat3, schemas.Feature(attribute=schemas.FeatureAttribute.LAST_NAME))
+    assert not matchers.compare_match_all(record, pat3, schemas.Feature(attribute=schemas.FeatureAttribute.BIRTHDATE))
 
     with pytest.raises(ValueError):
         matchers.compare_match_all(record, pat1, "unknown")
@@ -135,17 +135,17 @@ def test_compare_fuzzy_match():
     pat2 = models.Patient(data={"name": [{"given": ["Michael"], "family": "Smtih"}], "sex": "male"})
     pat3 = models.Patient(data={"name": [{"family": "Smyth"}, {"family": "Williams"}]})
 
-    assert matchers.compare_fuzzy_match(record, pat1, schemas.Feature.FIRST_NAME)
-    assert not matchers.compare_fuzzy_match(record, pat1, schemas.Feature.LAST_NAME)
+    assert matchers.compare_fuzzy_match(record, pat1, schemas.Feature(attribute=schemas.FeatureAttribute.FIRST_NAME))
+    assert not matchers.compare_fuzzy_match(record, pat1, schemas.Feature(attribute=schemas.FeatureAttribute.LAST_NAME))
 
-    assert not matchers.compare_fuzzy_match(record, pat2, schemas.Feature.FIRST_NAME)
-    assert matchers.compare_fuzzy_match(record, pat2, schemas.Feature.LAST_NAME)
+    assert not matchers.compare_fuzzy_match(record, pat2, schemas.Feature(attribute=schemas.FeatureAttribute.FIRST_NAME))
+    assert matchers.compare_fuzzy_match(record, pat2, schemas.Feature(attribute=schemas.FeatureAttribute.LAST_NAME))
 
-    assert not matchers.compare_fuzzy_match(record, pat3, schemas.Feature.FIRST_NAME)
-    assert matchers.compare_fuzzy_match(record, pat3, schemas.Feature.LAST_NAME)
+    assert not matchers.compare_fuzzy_match(record, pat3, schemas.Feature(attribute=schemas.FeatureAttribute.FIRST_NAME))
+    assert matchers.compare_fuzzy_match(record, pat3, schemas.Feature(attribute=schemas.FeatureAttribute.LAST_NAME))
 
     with pytest.raises(ValueError):
-        matchers.compare_fuzzy_match(record, pat1, "first_name")
+        matchers.compare_fuzzy_match(record, pat1, schemas.Feature(attribute="first_name"))
 
 
 def test_compare_probabilistic_fuzzy_match():
@@ -153,7 +153,7 @@ def test_compare_probabilistic_fuzzy_match():
         matchers.compare_probabilistic_fuzzy_match(
             schemas.PIIRecord(),
             models.Patient(),
-            schemas.Feature.MRN,
+            schemas.Feature(attribute=schemas.FeatureAttribute.IDENTIFIER),
         )
 
     rec = schemas.PIIRecord(
@@ -169,15 +169,15 @@ def test_compare_probabilistic_fuzzy_match():
         }
     )
     log_odds = {
-        schemas.Feature.FIRST_NAME.value: 4.0,
-        schemas.Feature.LAST_NAME.value: 6.5,
-        schemas.Feature.BIRTHDATE.value: 9.8,
-        schemas.Feature.ADDRESS.value: 3.7,
+        schemas.FeatureAttribute.FIRST_NAME.value: 4.0,
+        schemas.FeatureAttribute.LAST_NAME.value: 6.5,
+        schemas.FeatureAttribute.BIRTHDATE.value: 9.8,
+        schemas.FeatureAttribute.ADDRESS.value: 3.7,
     }
 
     assert (
         matchers.compare_probabilistic_fuzzy_match(
-            rec, pat, schemas.Feature.FIRST_NAME, log_odds=log_odds
+            rec, pat, schemas.Feature(attribute=schemas.FeatureAttribute.FIRST_NAME), log_odds=log_odds
         )
         == 4.0
     )
@@ -185,7 +185,7 @@ def test_compare_probabilistic_fuzzy_match():
     assert (
         round(
             matchers.compare_probabilistic_fuzzy_match(
-                rec, pat, schemas.Feature.LAST_NAME, log_odds=log_odds
+                rec, pat, schemas.Feature(attribute=schemas.FeatureAttribute.LAST_NAME), log_odds=log_odds
             ),
             3,
         )
@@ -195,7 +195,7 @@ def test_compare_probabilistic_fuzzy_match():
     assert (
         round(
             matchers.compare_probabilistic_fuzzy_match(
-                rec, pat, schemas.Feature.BIRTHDATE, log_odds=log_odds
+                rec, pat, schemas.Feature(attribute=schemas.FeatureAttribute.BIRTHDATE), log_odds=log_odds
             ),
             3,
         )
@@ -205,7 +205,7 @@ def test_compare_probabilistic_fuzzy_match():
     assert (
         round(
             matchers.compare_probabilistic_fuzzy_match(
-                rec, pat, schemas.Feature.ADDRESS, log_odds=log_odds
+                rec, pat, schemas.Feature(attribute=schemas.FeatureAttribute.ADDRESS), log_odds=log_odds
             ),
             3,
         )

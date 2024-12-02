@@ -51,7 +51,7 @@ def compare(
     details: dict[str, typing.Any] = {"patient.reference_id": str(patient.reference_id)}
     for e in evals:
         # TODO: can we do this check earlier?
-        feature = getattr(schemas.Feature, e.feature, None)
+        feature = schemas.Feature.parse(e.feature)
         if feature is None:
             raise ValueError(f"Invalid comparison field: {e.feature}")
         # Evaluate the comparison function and append the result to the list

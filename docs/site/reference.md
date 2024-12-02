@@ -15,14 +15,6 @@ linkage evaluation phase. The following features are supported:
 
 :   The patient's birthdate (normalized to `YYYY-MM-DD`).
 
-`MRN`
-
-:   The patient's medical record number.
-
-`SSN`
-
-:   The patient's social security number.
-
 `SEX`
 
 :   The patient's sex (normalized to `M`, `F`, or `U` for unknown).
@@ -83,9 +75,13 @@ linkage evaluation phase. The following features are supported:
 
 :   The patient's email address.
 
-`DRIVERS_LICENSE`
+`IDENTIFIER`
 
-:   The patient's driver's license number.
+:   An identifier for the patient.  Matching on this will check if any identifier type/authority/value combination matches.
+
+`IDENTIFIER:<type>`
+
+:   The patient's specific identifier type. For example, `IDENTIFIER:MR` would be the patient's medical record number.  Unlike `IDENTIFIER`, this will ONLY compare values of a specific type.  Valid type codes can be found here http://hl7.org/fhir/R4/v2/0203/index.html.
 
 
 ### Blocking Key Types
@@ -96,10 +92,6 @@ patient data and used during query retrieval. The following blocking key types a
 `BIRTHDATE` (ID: **1**)
 
 :   The patients birthdate in the format `YYYY-MM-DD`.
-
-`MRN` (ID: **2**)
-
-:   The last 4 characters of a patient's medical record number.
 
 `SEX` (ID: **3**)
 
@@ -128,6 +120,10 @@ patient data and used during query retrieval. The following blocking key types a
 `EMAIL` (ID: **9**)
 
 :   The first 4 characters of the patient's email address.
+
+`IDENTIFIER` (ID: **10**)
+
+:  The identifier triplet containing only the type, authority, and last 4 digits of the value
 
 
 ### Evaluation Functions

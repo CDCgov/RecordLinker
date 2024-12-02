@@ -8,15 +8,16 @@ import dateutil.parser
 import pydantic
 
 from recordlinker import models
+from recordlinker.schemas.identifier import Identifier
+from recordlinker.schemas.identifier import IdentifierType
 
 
-class Feature(enum.Enum):
+class FeatureAttribute(enum.Enum):
     """
     Enum for the different Patient attributes that can be used for comparison.
     """
 
     BIRTHDATE = "BIRTHDATE"
-    MRN = "MRN"
     SEX = "SEX"
     GIVEN_NAME = "GIVEN_NAME"
     FIRST_NAME = "FIRST_NAME"
@@ -25,7 +26,6 @@ class Feature(enum.Enum):
     CITY = "CITY"
     STATE = "STATE"
     ZIP = "ZIP"
-    SSN = "SSN"
     RACE = "RACE"
     GENDER = "GENDER"
     TELECOM = "TELECOM"
@@ -33,14 +33,61 @@ class Feature(enum.Enum):
     EMAIL = "EMAIL"
     SUFFIX = "SUFFIX"
     COUNTY = "COUNTY"
-    DRIVERS_LICENSE = "DRIVERS_LICENSE"
+    IDENTIFIER = "IDENTIFIER"
 
     def __str__(self):
         """
         Return the value of the enum as a string.
         """
-        return self.value
+        return self.value    
+    
+class Feature(pydantic.BaseModel):
+    """
+    The schema for a feature.
+    """
 
+    model_config = pydantic.ConfigDict(extra="allow")
+
+    suffix: typing.Optional[IdentifierType] = None
+    attribute: FeatureAttribute
+
+    @classmethod
+    def parse(cls, feature_string: str) -> typing.Self:
+        """
+        Parse a feature string in the format 'FEATURE_ATTRIBUTE:SUFFIX' into a Feature object.
+
+        Args:
+            feature_string (str): The string to parse.
+
+        Returns:
+            Feature: A Feature object with attribute and suffix populated.
+        """
+        # Split the feature string on ":"
+        parts = feature_string.split(":", 1)
+        feature_attribute = FeatureAttribute(parts[0])
+
+        if len(parts) == 1:
+            return cls(attribute=feature_attribute)
+
+        # If suffix is provided, ensure the attribute is IDENTIFIER and validate the suffix
+        if feature_attribute != FeatureAttribute.IDENTIFIER:
+            raise ValueError(f"Suffix is not allowed for attribute '{feature_attribute}'")
+
+        feature_suffix = IdentifierType(parts[1])
+        return cls(attribute=feature_attribute, suffix=feature_suffix)
+
+    @classmethod
+    def all_options(cls) -> list[typing.Any]:
+        """
+        Return a list of all possible Feature string values that can be used for comparison.
+        """
+        options = []
+        for feature in FeatureAttribute:
+            options.append(str(feature))
+            if feature == FeatureAttribute.IDENTIFIER:
+                for identifier in IdentifierType:
+                    options.append(f"{feature}:{identifier}")
+        return options
 
 class Sex(enum.Enum):
     """
@@ -161,18 +208,6 @@ class Telecom(pydantic.BaseModel):
             return None
         return self.value
 
-
-class DriversLicense(pydantic.BaseModel):
-    """
-    The schema for a Drivers License record
-    """
-
-    model_config = pydantic.ConfigDict(extra="allow")
-
-    value: str
-    authority: str
-
-
 class PIIRecord(pydantic.BaseModel):
     """
     The schema for a PII record.
@@ -185,14 +220,12 @@ class PIIRecord(pydantic.BaseModel):
         default=None, validation_alias=pydantic.AliasChoices("birth_date", "birthdate", "birthDate")
     )
     sex: typing.Optional[Sex] = None
-    mrn: typing.Optional[str] = None
     address: typing.List[Address] = []
     name: typing.List[Name] = []
     telecom: typing.List[Telecom] = []
-    ssn: typing.Optional[str] = None
     race: typing.Optional[Race] = None
     gender: typing.Optional[Gender] = None
-    drivers_license: typing.Optional[DriversLicense] = None
+    identifiers: typing.List[Identifier] = []
 
     @classmethod
     def model_construct(
@@ -209,7 +242,8 @@ class PIIRecord(pydantic.BaseModel):
         obj.address = [Address.model_construct(**a) for a in values.get("address", [])]
         obj.name = [Name.model_construct(**n) for n in values.get("name", [])]
         obj.telecom = [Telecom.model_construct(**t) for t in values.get("telecom", [])]
-        obj.drivers_license = DriversLicense.model_construct(**values.get("drivers_license", {}))
+        obj.identifiers = [Identifier.model_construct(**i) for i in values.get("identifiers", [])]
+        
         return obj
 
     @pydantic.field_validator("external_id", mode="before")
@@ -240,24 +274,6 @@ class PIIRecord(pydantic.BaseModel):
             elif val in ["f", "female"]:
                 return Sex.FEMALE
             return Sex.UNKNOWN
-
-    @pydantic.field_validator("ssn", mode="before")
-    def parse_ssn(cls, value):
-        """
-        Parse the ssn string
-        """
-        if value:
-            val = str(value).strip()
-
-            if re.match(r"^\d{3}-\d{2}-\d{4}$", val):
-                return val
-
-            if len(val) != 9 or not val.isdigit():
-                return None
-
-            # Format back to the standard SSN format (XXX-XX-XXXX)
-            formatted_ssn = f"{val[:3]}-{val[3:5]}-{val[5:]}"
-            return formatted_ssn
 
     @pydantic.field_validator("race", mode="before")
     def parse_race(cls, value):
@@ -322,88 +338,86 @@ class PIIRecord(pydantic.BaseModel):
         Given a field name, return an iterator of all string values for that field.
         Empty strings are not included in the iterator.
         """
+
         if not isinstance(feature, Feature):
             raise ValueError(f"Invalid feature: {feature}")
+        
+        attribute = feature.attribute
+        identifier_suffix = feature.suffix
 
-        if feature == Feature.BIRTHDATE:
+        if attribute == FeatureAttribute.BIRTHDATE:
             if self.birth_date:
                 yield str(self.birth_date)
-        elif feature == Feature.MRN:
-            if self.mrn:
-                yield self.mrn
-        elif feature == Feature.SEX:
+        elif attribute == FeatureAttribute.SEX:
             if self.sex:
                 yield str(self.sex)
-        elif feature == Feature.ADDRESS:
+        elif attribute == FeatureAttribute.ADDRESS:
             for address in self.address:
                 # The 2nd, 3rd, etc lines of an address are not as important as
                 # the first line, so we only include the first line in the comparison.
                 if address.line and address.line[0]:
                     yield address.line[0]
-        elif feature == Feature.CITY:
+        elif attribute == FeatureAttribute.CITY:
             for address in self.address:
                 if address.city:
                     yield address.city
-        elif feature == Feature.STATE:
+        elif attribute == FeatureAttribute.STATE:
             for address in self.address:
                 if address.state:
                     yield address.state
-        elif feature == Feature.ZIP:
+        elif attribute == FeatureAttribute.ZIP:
             for address in self.address:
                 if address.postal_code:
                     # only use the first 5 digits for comparison
                     yield address.postal_code[:5]
-        elif feature == Feature.GIVEN_NAME:
+        elif attribute == FeatureAttribute.GIVEN_NAME:
             for name in self.name:
                 for given in name.given:
                     if given:
                         yield given
-        elif feature == Feature.FIRST_NAME:
+        elif attribute == FeatureAttribute.FIRST_NAME:
             for name in self.name:
                 # We only want the first given name for comparison
                 for given in name.given[0:1]:
                     if given:
                         yield given
-        elif feature == Feature.LAST_NAME:
+        elif attribute == FeatureAttribute.LAST_NAME:
             for name in self.name:
                 if name.family:
                     yield name.family
-        elif feature == Feature.SSN:
-            if self.ssn:
-                yield self.ssn
-        elif feature == Feature.RACE:
+        elif attribute == FeatureAttribute.RACE:
             if self.race:
                 yield str(self.race)
-        elif feature == Feature.GENDER:
+        elif attribute == FeatureAttribute.GENDER:
             if self.gender:
                 yield str(self.gender)
-        elif feature == Feature.TELECOM:
+        elif attribute == FeatureAttribute.TELECOM:
             for telecom in self.telecom:
                 if telecom.value:
                     yield telecom.value
-        elif feature == Feature.PHONE:
+        elif attribute == FeatureAttribute.PHONE:
             for telecom in self.telecom:
                 number = telecom.phone_number()
                 if number:
                     yield number
-        elif feature == Feature.EMAIL:
+        elif attribute == FeatureAttribute.EMAIL:
             for telecom in self.telecom:
                 email = telecom.email()
                 if email:
                     yield email
-        elif feature == Feature.SUFFIX:
+        elif attribute == FeatureAttribute.SUFFIX:
             for name in self.name:
                 for suffix in name.suffix:
                     if suffix:
                         yield suffix
-        elif feature == Feature.COUNTY:
+        elif attribute == FeatureAttribute.COUNTY:
             for address in self.address:
                 if address.county:
                     yield address.county
-        elif feature == Feature.DRIVERS_LICENSE:
-            if self.drivers_license:
-                if self.drivers_license.value and self.drivers_license.authority:
-                    yield f"{self.drivers_license.value}|{self.drivers_license.authority}"
+        elif attribute == FeatureAttribute.IDENTIFIER:
+            for identifier in self.identifiers:
+                if identifier_suffix is None or identifier_suffix == identifier.type:
+                    yield f"{identifier.type}:{identifier.authority or ''}:{identifier.value}"
 
     def blocking_keys(self, key: models.BlockingKey) -> set[str]:
         """
@@ -418,23 +432,27 @@ class PIIRecord(pydantic.BaseModel):
 
         if key == models.BlockingKey.BIRTHDATE:
             # NOTE: we could optimize here and remove the dashes from the date
-            vals.update(self.feature_iter(Feature.BIRTHDATE))
-        elif key == models.BlockingKey.MRN:
-            vals.update({x[-4:] for x in self.feature_iter(Feature.MRN)})
+            vals.update(self.feature_iter(Feature(attribute=FeatureAttribute.BIRTHDATE)))
+        elif key == models.BlockingKey.IDENTIFIER:
+            vals.update({
+                f"{type_part}:{authority_part}:{value_part[-4:]}"
+                for x in self.feature_iter(Feature(attribute=FeatureAttribute.IDENTIFIER))
+                for type_part, authority_part, value_part in [x.split(":", 2)]
+            })
         elif key == models.BlockingKey.SEX:
-            vals.update(self.feature_iter(Feature.SEX))
+            vals.update(self.feature_iter(Feature(attribute=FeatureAttribute.SEX)))
         elif key == models.BlockingKey.ZIP:
-            vals.update(self.feature_iter(Feature.ZIP))
+            vals.update(self.feature_iter(Feature(attribute=FeatureAttribute.ZIP)))
         elif key == models.BlockingKey.FIRST_NAME:
-            vals.update({x[:4] for x in self.feature_iter(Feature.FIRST_NAME)})
+            vals.update({x[:4] for x in self.feature_iter(Feature(attribute=FeatureAttribute.FIRST_NAME))})
         elif key == models.BlockingKey.LAST_NAME:
-            vals.update({x[:4] for x in self.feature_iter(Feature.LAST_NAME)})
+            vals.update({x[:4] for x in self.feature_iter(Feature(attribute=FeatureAttribute.LAST_NAME))})
         elif key == models.BlockingKey.ADDRESS:
-            vals.update({x[:4] for x in self.feature_iter(Feature.ADDRESS)})
+            vals.update({x[:4] for x in self.feature_iter(Feature(attribute=FeatureAttribute.ADDRESS))})
         elif key == models.BlockingKey.PHONE:
-            vals.update({x[-4:] for x in self.feature_iter(Feature.PHONE)})
+            vals.update({x[-4:] for x in self.feature_iter(Feature(attribute=FeatureAttribute.PHONE))})
         elif key == models.BlockingKey.EMAIL:
-            vals.update({x[:4] for x in self.feature_iter(Feature.EMAIL)})
+            vals.update({x[:4] for x in self.feature_iter(Feature(attribute=FeatureAttribute.EMAIL))})
 
         # if any vals are longer than the BLOCKING_KEY_MAX_LENGTH, raise an error
         if any(len(x) > models.BLOCKING_VALUE_MAX_LENGTH for x in vals):

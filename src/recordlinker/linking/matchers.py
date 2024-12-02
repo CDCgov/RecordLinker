@@ -179,7 +179,7 @@ def compare_fuzzy_match(
       beyond which to classify the strings as a partial match.
     :return: A float indicating whether the features are a fuzzy match.
     """
-    similarity_measure, threshold = _get_fuzzy_params(str(key), **kwargs)
+    similarity_measure, threshold = _get_fuzzy_params(str(key.attribute), **kwargs)
     comp_func = getattr(rapidfuzz.distance, similarity_measure).normalized_similarity
     for x in record.feature_iter(key):
         for y in patient.record.feature_iter(key):
@@ -203,11 +203,11 @@ def compare_probabilistic_fuzzy_match(
       beyond which to classify the strings as a partial match.
     :return: A float of the score the feature comparison earned.
     """
-    log_odds = kwargs.get("log_odds", {}).get(str(key))
+    log_odds = kwargs.get("log_odds", {}).get(str(key.attribute))
     if log_odds is None:
         raise ValueError(f"Log odds not found for feature {key}")
 
-    similarity_measure, threshold = _get_fuzzy_params(str(key), **kwargs)
+    similarity_measure, threshold = _get_fuzzy_params(str(key.attribute), **kwargs)
     comp_func = getattr(rapidfuzz.distance, similarity_measure).normalized_similarity
     max_score = 0.0
     for x in patient.record.feature_iter(key):

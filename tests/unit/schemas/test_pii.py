@@ -19,7 +19,6 @@ from recordlinker.schemas import pii
 class TestPIIRecord:
     def test_model_construct(self):
         data = {
-            "mrn": "99",
             "birth_date": "1980-2-1",
             "name": [
                 {"family": "Doe", "given": ["John", "L"]},
@@ -44,10 +43,19 @@ class TestPIIRecord:
                 },
             ],
             "telecom": [{"value": "555-123-4567"}, {"value": "555-987-6543"}],
-            "drivers_license": {"authority": "VA", "value": "D1234567"},
+            "identifiers": [
+                {
+                    "type": "MR",
+                    "value": "99",
+                },
+                {
+                    "type": "DL",
+                    "value": "D1234567",
+                    "authority": "VA",
+                }
+            ]
         }
         record = pii.PIIRecord.model_construct(**data)
-        assert record.mrn == "99"
         assert record.birth_date == "1980-2-1"
         assert record.name[0].family == "Doe"
         assert record.name[0].given == ["John", "L"]
@@ -63,8 +71,14 @@ class TestPIIRecord:
         assert record.address[1].state == "CA"
         assert record.address[1].postal_code == "98765-4321"
         assert record.address[1].county == "county2"
-        assert record.drivers_license.value == "D1234567"
-        assert record.drivers_license.authority == "VA"
+
+        #identifiers
+        assert str(record.identifiers[0].type) == "MR"
+        assert record.identifiers[0].value == "99"
+
+        assert str(record.identifiers[1].type) == "DL"
+        assert record.identifiers[1].value == "D1234567"
+        assert record.identifiers[1].authority == "VA"
 
     def test_parse_external_id(self):
         record = pii.PIIRecord(external_id=uuid.UUID("7ca699d9-1986-4c0c-a0fd-ac4ae0dfa297"))
@@ -113,14 +127,18 @@ class TestPIIRecord:
         assert record.sex is None
 
     def test_parse_ssn(self):
-        record = pii.PIIRecord(ssn="123-45-6789")
-        assert record.ssn == "123-45-6789"
-        record = pii.PIIRecord(ssn=" 123-45-6789 ")
-        assert record.ssn == "123-45-6789"
-        record = pii.PIIRecord(ssn="1-2-3")
-        assert record.ssn is None
+        record = pii.PIIRecord(identifiers=[pii.Identifier(type="SS", value="123-45-6789")])
+        assert record.identifiers[0].value == "123-45-6789"
+        #testing extra spaces
+        record = pii.PIIRecord(identifiers=[pii.Identifier(type="SS", value=" 123-45-6789 ")])
+        assert record.identifiers[0].value == "123-45-6789"
+        #testing no dashes
+        record = pii.PIIRecord(identifiers=[pii.Identifier(type="SS", value="123456789")])
+        assert record.identifiers[0].value == "123-45-6789"
+        record = pii.PIIRecord(identifiers=[pii.Identifier(type="SS", value="1-2-3")])
+        assert record.identifiers[0].value == ''
         record = pii.PIIRecord()
-        assert record.ssn is None
+        assert record.identifiers == []
 
     def test_parse_race(self):
         # testing verbose races
@@ -206,8 +224,6 @@ class TestPIIRecord:
             external_id="99",
             birth_date="1980-2-1",
             sex="male",
-            mrn="123456",
-            ssn="123-45-6789",
             race="unknown",
             gender="unknown",
             address=[
@@ -236,35 +252,52 @@ class TestPIIRecord:
                 pii.Telecom(value="(555) 987-6543", system="phone"),
                 pii.Telecom(value="test@email.com", system="email"),
             ],
-            drivers_license=pii.DriversLicense(value="D1234567", authority="VA"),
+            identifiers=[
+                {
+                    "type": "MR",
+                    "value": "123456",
+                },
+                {
+                    "type": "SS",
+                    "value": "123-45-6789",
+                },
+                {
+                    "type": "DL",
+                    "value": "D1234567",
+                    "authority": "VA",
+                }
+            ],
         )
 
         with pytest.raises(ValueError):
             list(record.feature_iter("external_id"))
 
-        assert list(record.feature_iter(pii.Feature.BIRTHDATE)) == ["1980-02-01"]
-        assert list(record.feature_iter(pii.Feature.MRN)) == ["123456"]
-        assert list(record.feature_iter(pii.Feature.SEX)) == ["M"]
-        assert list(record.feature_iter(pii.Feature.ADDRESS)) == ["123 Main St", "456 Elm St"]
-        assert list(record.feature_iter(pii.Feature.CITY)) == ["Anytown", "Somecity"]
-        assert list(record.feature_iter(pii.Feature.STATE)) == ["NY", "CA"]
-        assert list(record.feature_iter(pii.Feature.ZIP)) == ["12345", "98765"]
-        assert list(record.feature_iter(pii.Feature.GIVEN_NAME)) == ["John", "L", "Jane"]
-        assert list(record.feature_iter(pii.Feature.FIRST_NAME)) == ["John", "Jane"]
-        assert list(record.feature_iter(pii.Feature.LAST_NAME)) == ["Doe", "Smith"]
-        assert list(record.feature_iter(pii.Feature.SSN)) == ["123-45-6789"]
-        assert list(record.feature_iter(pii.Feature.RACE)) == ["UNKNOWN"]
-        assert list(record.feature_iter(pii.Feature.GENDER)) == ["UNKNOWN"]
-        assert list(record.feature_iter(pii.Feature.TELECOM)) == [
+        assert list(record.feature_iter(pii.Feature(attribute=pii.FeatureAttribute.BIRTHDATE))) == ["1980-02-01"]
+        assert list(record.feature_iter(pii.Feature(attribute=pii.FeatureAttribute.SEX))) == ["M"]
+        assert list(record.feature_iter(pii.Feature(attribute=pii.FeatureAttribute.ADDRESS))) == ["123 Main St", "456 Elm St"]
+        assert list(record.feature_iter(pii.Feature(attribute=pii.FeatureAttribute.CITY))) == ["Anytown", "Somecity"]
+        assert list(record.feature_iter(pii.Feature(attribute=pii.FeatureAttribute.STATE))) == ["NY", "CA"]
+        assert list(record.feature_iter(pii.Feature(attribute=pii.FeatureAttribute.ZIP))) == ["12345", "98765"]
+        assert list(record.feature_iter(pii.Feature(attribute=pii.FeatureAttribute.GIVEN_NAME))) == ["John", "L", "Jane"]
+        assert list(record.feature_iter(pii.Feature(attribute=pii.FeatureAttribute.FIRST_NAME))) == ["John", "Jane"]
+        assert list(record.feature_iter(pii.Feature(attribute=pii.FeatureAttribute.LAST_NAME))) == ["Doe", "Smith"]
+        assert list(record.feature_iter(pii.Feature(attribute=pii.FeatureAttribute.RACE))) == ["UNKNOWN"]
+        assert list(record.feature_iter(pii.Feature(attribute=pii.FeatureAttribute.GENDER))) == ["UNKNOWN"]
+        assert list(record.feature_iter(pii.Feature(attribute=pii.FeatureAttribute.TELECOM))) == [
             "555-123-4567",
             "(555) 987-6543",
             "test@email.com",
         ]
-        assert list(record.feature_iter(pii.Feature.PHONE)) == ["5559876543"]
-        assert list(record.feature_iter(pii.Feature.EMAIL)) == ["test@email.com"]
-        assert list(record.feature_iter(pii.Feature.SUFFIX)) == ["suffix", "suffix2"]
-        assert list(record.feature_iter(pii.Feature.COUNTY)) == ["county"]
-        assert list(record.feature_iter(pii.Feature.DRIVERS_LICENSE)) == ["D1234567|VA"]
+        assert list(record.feature_iter(pii.Feature(attribute=pii.FeatureAttribute.PHONE))) == ["5559876543"]
+        assert list(record.feature_iter(pii.Feature(attribute=pii.FeatureAttribute.EMAIL))) == ["test@email.com"]
+        assert list(record.feature_iter(pii.Feature(attribute=pii.FeatureAttribute.SUFFIX))) == ["suffix", "suffix2"]
+        assert list(record.feature_iter(pii.Feature(attribute=pii.FeatureAttribute.COUNTY))) == ["county"]
+        assert list(record.feature_iter(pii.Feature(attribute=pii.FeatureAttribute.IDENTIFIER))) == ["MR::123456", "SS::123-45-6789", "DL:VA:D1234567"]
+
+        # IDENTIFIER with suffix
+        assert list(record.feature_iter(pii.Feature(attribute=pii.FeatureAttribute.IDENTIFIER, suffix="MR"))) == ["MR::123456"]
+        assert list(record.feature_iter(pii.Feature(attribute=pii.FeatureAttribute.IDENTIFIER, suffix="SS"))) == ["SS::123-45-6789"]
+        
 
     def test_blocking_keys_invalid(self):
         rec = pii.PIIRecord()
@@ -273,9 +306,9 @@ class TestPIIRecord:
 
     @unittest.mock.patch("recordlinker.models.BLOCKING_VALUE_MAX_LENGTH", 1)
     def test_blocking_keys_value_too_long(self):
-        rec = pii.PIIRecord(**{"mrn": "123456789"})
+        rec = pii.PIIRecord(**{"identifiers": [{"type": "MR", "value": "123456789"}]})
         with pytest.raises(RuntimeError):
-            rec.blocking_keys(BlockingKey.MRN)
+            rec.blocking_keys(BlockingKey.IDENTIFIER)
 
     def test_blocking_keys_birthdate(self):
         rec = pii.PIIRecord(**{"dob": "01/01/1980"})
@@ -290,14 +323,21 @@ class TestPIIRecord:
         assert rec.blocking_keys(BlockingKey.BIRTHDATE) == set()
 
     def test_blocking_keys_mrn_last_four(self):
-        rec = pii.PIIRecord(**{"ssn": "123456789"})
-        assert rec.blocking_keys(BlockingKey.MRN) == set()
-        rec = pii.PIIRecord(**{"mrn": None})
-        assert rec.blocking_keys(BlockingKey.MRN) == set()
-        rec = pii.PIIRecord(**{"mrn": "123456789"})
-        assert rec.blocking_keys(BlockingKey.MRN) == {"6789"}
-        rec = pii.PIIRecord(**{"mrn": "89"})
-        assert rec.blocking_keys(BlockingKey.MRN) == {"89"}
+        rec = pii.PIIRecord()
+        assert rec.blocking_keys(BlockingKey.IDENTIFIER) == set()
+        rec = pii.PIIRecord(identifiers=[])
+        assert rec.blocking_keys(BlockingKey.IDENTIFIER) == set()
+        rec = pii.PIIRecord(identifiers=[pii.Identifier(type="MR", value="123456789")])
+        assert rec.blocking_keys(BlockingKey.IDENTIFIER) == {"MR::6789"}
+        rec = pii.PIIRecord(identifiers=[pii.Identifier(type="MR", value="89")])
+        assert rec.blocking_keys(BlockingKey.IDENTIFIER) == {"MR::89"}
+        
+        #test multiple identifiers return correctly
+        rec = pii.PIIRecord(identifiers=[
+            pii.Identifier(type="MR", value="123456789"),
+            pii.Identifier(type="SS", value="123456789"),
+        ])
+        assert rec.blocking_keys(BlockingKey.IDENTIFIER) == {"MR::6789", "SS::6789"}
 
     def test_blocking_keys_sex(self):
         rec = pii.PIIRecord(**{"gender": "M"})
@@ -392,7 +432,7 @@ class TestPIIRecord:
     def test_blocking_values(self):
         rec = pii.PIIRecord(
             **{
-                "mrn": "123456",
+                "identifiers": [{"type": "MR", "value": "3456"}],
                 "birth_date": "1980-01-01",
                 "name": [{"given": ["John", "William"], "family": "Doe"}],
             }
@@ -401,8 +441,8 @@ class TestPIIRecord:
         for key, val in rec.blocking_values():
             if key == BlockingKey.BIRTHDATE:
                 assert val == "1980-01-01"
-            elif key == BlockingKey.MRN:
-                assert val == "3456"
+            elif key == BlockingKey.IDENTIFIER:
+                assert val == "MR::3456"
             elif key == BlockingKey.FIRST_NAME:
                 assert val == "John"
             elif key == BlockingKey.LAST_NAME:
