@@ -55,7 +55,7 @@ Before getting started, ensure you have the following installed:
 
     The results of the algorithm tests will be available in the `results/output.csv` file.
 
-    The results will be in a csv formatted file withthe following columns: `Test Case #`, `Expected Result`, `Match Results`, and `Error`.
+    The results will be in a CSV formatted file with the following columns: `Test Case #`, `Expected Result`, `Match Results`, and `Error`.
 
 ## Rerunning Algorithm Tests
 
