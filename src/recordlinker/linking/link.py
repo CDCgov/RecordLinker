@@ -97,6 +97,7 @@ def link_record_against_mpi(
     belongingness_ratio_lower_bound, belongingness_ratio_upper_bound = algorithm.belongingness_ratio
     # initialize counters to track evaluation results to log
     result_counts: dict[str, int] = {
+        "persons_compared": 0,
         "patients_compared": 0,
         "above_lower_bound": 0,
         "above_upper_bound": 0,
@@ -124,6 +125,7 @@ def link_record_against_mpi(
                         with TRACER.start_as_current_span("link.compare"):
                             if compare(record, patient, algorithm_pass):
                                 matched_count += 1
+                    result_counts["persons_compared"] += 1
                     result_counts["patients_compared"] += len(patients)
                     # calculate the match ratio for this person cluster
                     belongingness_ratio = matched_count / len(patients)
