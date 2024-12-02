@@ -26,7 +26,7 @@ Record Linker and will lead to more consistent results.
 
 ## Prior Art
 
-[FHIR currently uses a 6-tuple](https://www.hl7.org/fhir/datatypes.html#Identifier) of identifier use, type,
+[FHIR currently uses a 6-tuple](http://hl7.org/fhir/R4/datatypes.html#Identifier) of identifier use, type,
 system, value, period and assigner to uniquely identify patients.  While all of these fields are optional, some
 are almost always used in practice (eg value and type).  NBS currently uses a 3-tuple system of type, authority
 and value.  Between the two, type and value are directly comparable, while assigner and authority offer similar
