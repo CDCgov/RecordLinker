@@ -132,7 +132,7 @@ def bulk_insert_patients(
     pat_data = [
         {
             "person_id": person and person.id,
-            "_data": record.to_json(prune_empty=True),
+            "_data": record.to_dict(prune_empty=True),
             "external_patient_id": record.external_id,
             "external_person_id": external_person_id,
             "external_person_source": "IRIS" if external_person_id else None,
@@ -234,5 +234,17 @@ def reset_mpi(session: orm.Session, commit: bool = True):
     session.query(models.BlockingValue).delete()
     session.query(models.Patient).delete()
     session.query(models.Person).delete()
+    if commit:
+        session.commit()
+
+def delete_patient(session: orm.Session, obj: models.Patient, commit: bool = False) -> None:
+    """
+    Deletes an Patient from the database
+
+    :param session: The database session
+    :param obj: The Patient to delete
+    :param commit: Commit the transaction
+    """
+    session.delete(obj)
     if commit:
         session.commit()
