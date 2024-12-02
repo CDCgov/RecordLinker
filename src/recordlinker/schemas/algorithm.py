@@ -23,9 +23,8 @@ class Evaluator(pydantic.BaseModel):
 
     model_config = pydantic.ConfigDict(from_attributes=True, use_enum_values=True)
 
-    feature: Feature
+    feature: str = pydantic.Field(json_schema_extra={"enum": Feature.all_options()})
     func: matchers.FeatureFunc
-
 
 class AlgorithmPass(pydantic.BaseModel):
     """
