@@ -101,6 +101,7 @@ filterwarnings = [
     "ignore:typing.io is deprecated, import directly from typing instead:DeprecationWarning"
 ]
 env = [
+    "DB_URI=sqlite:///:memory:",
     "INITIAL_ALGORITHMS=",
 ]
 
