@@ -1,9 +1,9 @@
 # RFC: Identifier Triplets
 
-- **Status**: Draft
+- **Status**: Accepted
 - **Author(s)**: @ericbuckley
 - **Creation Date**: 2024-11-09
-- **Last Updated**: 2024-11-11
+- **Last Updated**: 2024-12-02
 - **RFC ID**: RFC-001
 
 ---
