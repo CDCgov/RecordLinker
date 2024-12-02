@@ -121,7 +121,6 @@ class BlockingKey(enum.Enum):
     """
 
     BIRTHDATE = ("BIRTHDATE", 1, "Date of birth as YYYY-MM-DD")
-    MRN = ("MRN", 2, "Last 4 characters of Medical record number")
     SEX = ("SEX", 3, "Sex at birth; M, F or U")
     ZIP = ("ZIP", 4, "5 digital US Postal Code")
     FIRST_NAME = ("FIRST_NAME", 5, "First 4 characters of the first name")
@@ -129,6 +128,7 @@ class BlockingKey(enum.Enum):
     ADDRESS = ("ADDRESS", 7, "First 4 characters of the address")
     PHONE = ("PHONE", 8, "Last 4 characters of the phone number")
     EMAIL = ("EMAIL", 9, "First 4 characters of the email address")
+    IDENTIFIER = ("IDENTIFIER", 10, "Identifier triplet with only last 4 character of the value. Format \"type:authority:value\"")
 
     def __init__(self, value: str, _id: int, description: str):
         self._value = value

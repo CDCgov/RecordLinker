@@ -119,14 +119,23 @@ def test_fhir_record_to_pii_record():
     assert pii_record.address[0].state == "Massachusetts"
     assert pii_record.address[0].postal_code == "99999"
     assert pii_record.address[0].county == "county"
-    assert pii_record.mrn == "1234567890"
-    assert pii_record.ssn == "111-22-3333"
     assert pii_record.telecom[0].value == "123-456-7890"
     assert pii_record.telecom[0].system == "phone"
     assert str(pii_record.race) == "WHITE"
     assert str(pii_record.gender) == "FEMALE"
-    assert pii_record.drivers_license.authority == "CA"
-    assert pii_record.drivers_license.value == "D1234567"
+
+    # identifiers
+    assert pii_record.identifiers[0].value == "1234567890"
+    assert str(pii_record.identifiers[0].type) == "MR"
+    assert pii_record.identifiers[0].authority == ""
+
+    assert pii_record.identifiers[1].value == "111-22-3333"
+    assert str(pii_record.identifiers[1].type) == "SS"
+    assert pii_record.identifiers[1].authority == ""
+
+    assert pii_record.identifiers[2].value == "D1234567"
+    assert str(pii_record.identifiers[2].type) == "DL"
+    assert pii_record.identifiers[2].authority == "CA"
 
 
 def test_add_person_resource():
