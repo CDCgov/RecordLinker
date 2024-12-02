@@ -64,3 +64,21 @@ def update_person(
     return schemas.PatientPersonRef(
         patient_reference_id=patient.reference_id, person_reference_id=person.reference_id
     )
+
+@router.delete(
+    "/{patient_reference_id}",
+    summary="Delete a Patient",
+    status_code=fastapi.status.HTTP_204_NO_CONTENT,
+)
+def delete_patient(
+    patient_reference_id: uuid.UUID, session: orm.Session = fastapi.Depends(get_session)
+) -> None:
+    """
+    Delete a Patient from the mpi database.
+    """
+    patient = service.get_patient_by_reference_id(session, patient_reference_id)
+
+    if patient is None:
+        raise fastapi.HTTPException(status_code=fastapi.status.HTTP_404_NOT_FOUND)
+    
+    return service.delete_patient(session, patient)

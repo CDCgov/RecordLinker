@@ -65,3 +65,21 @@ class TestUpdatePerson:
         assert resp.status_code == 200
         assert resp.json()["patient_reference_id"] == str(patient.reference_id)
         assert resp.json()["person_reference_id"] == str(new_person.reference_id)
+
+class TestDeletePatient:
+    def test_invalid_reference_id(self, client):
+        response = client.delete(f"/patient/{uuid.uuid4()}")
+        assert response.status_code == 404
+
+    def test_delete_patient(self, client):
+        patient = models.Patient()
+        client.session.add(patient)
+        client.session.flush()
+
+        resp = client.delete(f"/patient/{patient.reference_id}")
+        assert resp.status_code == 204
+
+        patient = (
+            client.session.query(models.Patient).filter(models.Patient.reference_id == patient.reference_id).first()
+        )
+        assert patient is None
