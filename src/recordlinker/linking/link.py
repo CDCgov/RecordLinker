@@ -48,7 +48,7 @@ def compare(
     kwargs: dict[typing.Any, typing.Any] = algorithm_pass.kwargs
 
     results: list[float] = []
-    details: dict[str, typing.Any] = {"patient.reference_id": patient.reference_id}
+    details: dict[str, typing.Any] = {"patient.reference_id": str(patient.reference_id)}
     for e in evals:
         # TODO: can we do this check earlier?
         feature = getattr(schemas.Feature, e.feature, None)
@@ -57,9 +57,9 @@ def compare(
         # Evaluate the comparison function and append the result to the list
         result: float = e.func(record, patient, feature, **kwargs)  # type: ignore
         results.append(result)
-        details[f"evaluator.{e.feature}.result"] = result
+        details[f"evaluator.{e.feature}.{e.func.__name__}.result"] = result
     is_match = matching_rule(results, **kwargs)
-    details["rule.results"] = is_match
+    details[f"rule.{matching_rule.__name__}.results"] = is_match
     # TODO: this may add a lot of noise, consider moving to debug
     LOGGER.info("patient comparison", extra=details)
     return is_match
@@ -131,7 +131,7 @@ def link_record_against_mpi(
                         "cluster belongingness",
                         extra={
                             "ratio": belongingness_ratio,
-                            "person.reference_id": person.reference_id,
+                            "person.reference_id": str(person.reference_id),
                             "matched": matched_count,
                             "total": len(patients),
                             "algorithm.ratio_lower": belongingness_ratio_lower_bound,
@@ -172,8 +172,8 @@ def link_record_against_mpi(
     LOGGER.info(
         "link results",
         extra={
-            "person.reference_id": matched_person and matched_person.reference_id,
-            "patient.reference_id": patient.reference_id,
+            "person.reference_id": matched_person and str(matched_person.reference_id),
+            "patient.reference_id": str(patient.reference_id),
             "result.prediction": prediction,
             "result.count_patients_compared": result_counts["patients_compared"],
             "result.count_persons_above_lower": result_counts["above_lower_bound"],
