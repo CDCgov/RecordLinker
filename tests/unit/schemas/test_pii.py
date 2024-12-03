@@ -287,127 +287,131 @@ class TestPIIRecord:
         assert list(record.feature_iter(pii.Feature.SUFFIX)) == ["suffix", "suffix2"]
         assert list(record.feature_iter(pii.Feature.COUNTY)) == ["county"]
         assert list(record.feature_iter(pii.Feature.IDENTIFIER)) == ["MR::123456", "SS::123-45-6789", "DL:VA:D1234567"]
+
+        # IDENTIFIER with suffix
+        # print(record.feature_iter("IDENTIFIER:SS"))
+        # assert list(record.feature_iter(pii.Feature.parse("IDENTIFIER"))) == ["MR::123456", "SS::123-45-6789", "DL:VA:D1234567"]
         
 
-    # def test_blocking_keys_invalid(self):
-    #     rec = pii.PIIRecord()
-    #     with pytest.raises(ValueError):
-    #         rec.blocking_keys("birthdate")
+    def test_blocking_keys_invalid(self):
+        rec = pii.PIIRecord()
+        with pytest.raises(ValueError):
+            rec.blocking_keys("birthdate")
 
-    # @unittest.mock.patch("recordlinker.models.BLOCKING_VALUE_MAX_LENGTH", 1)
-    # def test_blocking_keys_value_too_long(self):
-    #     rec = pii.PIIRecord(**{"mrn": "123456789"})
-    #     with pytest.raises(RuntimeError):
-    #         rec.blocking_keys(BlockingKey.MRN)
+    @unittest.mock.patch("recordlinker.models.BLOCKING_VALUE_MAX_LENGTH", 1)
+    def test_blocking_keys_value_too_long(self):
+        rec = pii.PIIRecord(**{"identifiers": [{"type": "MR", "value": "123456789"}]})
+        with pytest.raises(RuntimeError):
+            rec.blocking_keys(BlockingKey.IDENTIFIER)
 
-    # def test_blocking_keys_birthdate(self):
-    #     rec = pii.PIIRecord(**{"dob": "01/01/1980"})
-    #     assert rec.blocking_keys(BlockingKey.BIRTHDATE) == set()
-    #     rec = pii.PIIRecord(**{"birth_date": "1980-01-01"})
-    #     assert rec.blocking_keys(BlockingKey.BIRTHDATE) == {"1980-01-01"}
-    #     rec = pii.PIIRecord(**{"birthdate": datetime.date(1980, 1, 1)})
-    #     assert rec.blocking_keys(BlockingKey.BIRTHDATE) == {"1980-01-01"}
-    #     rec = pii.PIIRecord(**{"birthDate": "01/01/1980"})
-    #     assert rec.blocking_keys(BlockingKey.BIRTHDATE) == {"1980-01-01"}
-    #     rec = pii.PIIRecord(**{"birthDate": ""})
-    #     assert rec.blocking_keys(BlockingKey.BIRTHDATE) == set()
+    def test_blocking_keys_birthdate(self):
+        rec = pii.PIIRecord(**{"dob": "01/01/1980"})
+        assert rec.blocking_keys(BlockingKey.BIRTHDATE) == set()
+        rec = pii.PIIRecord(**{"birth_date": "1980-01-01"})
+        assert rec.blocking_keys(BlockingKey.BIRTHDATE) == {"1980-01-01"}
+        rec = pii.PIIRecord(**{"birthdate": datetime.date(1980, 1, 1)})
+        assert rec.blocking_keys(BlockingKey.BIRTHDATE) == {"1980-01-01"}
+        rec = pii.PIIRecord(**{"birthDate": "01/01/1980"})
+        assert rec.blocking_keys(BlockingKey.BIRTHDATE) == {"1980-01-01"}
+        rec = pii.PIIRecord(**{"birthDate": ""})
+        assert rec.blocking_keys(BlockingKey.BIRTHDATE) == set()
 
-    # def test_blocking_keys_mrn_last_four(self):
-    #     rec = pii.PIIRecord(**{"ssn": "123456789"})
-    #     assert rec.blocking_keys(BlockingKey.MRN) == set()
-    #     rec = pii.PIIRecord(**{"mrn": None})
-    #     assert rec.blocking_keys(BlockingKey.MRN) == set()
-    #     rec = pii.PIIRecord(**{"mrn": "123456789"})
-    #     assert rec.blocking_keys(BlockingKey.MRN) == {"6789"}
-    #     rec = pii.PIIRecord(**{"mrn": "89"})
-    #     assert rec.blocking_keys(BlockingKey.MRN) == {"89"}
+    def test_blocking_keys_mrn_last_four(self):
+        rec = pii.PIIRecord()
+        assert rec.blocking_keys(BlockingKey.IDENTIFIER) == set()
+        rec = pii.PIIRecord(identifiers=[])
+        assert rec.blocking_keys(BlockingKey.IDENTIFIER) == set()
+        rec = pii.PIIRecord(identifiers=[pii.Identifier(type="MR", value="123456789")])
+        assert rec.blocking_keys(BlockingKey.IDENTIFIER) == {"MR::6789"}
+        rec = pii.PIIRecord(identifiers=[pii.Identifier(type="MR", value="89")])
+        assert rec.blocking_keys(BlockingKey.IDENTIFIER) == {"MR::89"}
 
-    # def test_blocking_keys_sex(self):
-    #     rec = pii.PIIRecord(**{"gender": "M"})
-    #     assert rec.blocking_keys(BlockingKey.SEX) == set()
-    #     rec = pii.PIIRecord(**{"sex": ""})
-    #     assert rec.blocking_keys(BlockingKey.SEX) == set()
-    #     rec = pii.PIIRecord(**{"sex": "M"})
-    #     assert rec.blocking_keys(BlockingKey.SEX) == {"M"}
-    #     rec = pii.PIIRecord(**{"sex": "Male"})
-    #     assert rec.blocking_keys(BlockingKey.SEX) == {"M"}
-    #     rec = pii.PIIRecord(**{"sex": "f"})
-    #     assert rec.blocking_keys(BlockingKey.SEX) == {"F"}
-    #     rec = pii.PIIRecord(**{"sex": "FEMALE"})
-    #     assert rec.blocking_keys(BlockingKey.SEX) == {"F"}
-    #     rec = pii.PIIRecord(**{"sex": "other"})
-    #     assert rec.blocking_keys(BlockingKey.SEX) == {"U"}
-    #     rec = pii.PIIRecord(**{"sex": "unknown"})
-    #     assert rec.blocking_keys(BlockingKey.SEX) == {"U"}
-    #     rec = pii.PIIRecord(**{"sex": "?"})
-    #     assert rec.blocking_keys(BlockingKey.SEX) == {"U"}
+    def test_blocking_keys_sex(self):
+        rec = pii.PIIRecord(**{"gender": "M"})
+        assert rec.blocking_keys(BlockingKey.SEX) == set()
+        rec = pii.PIIRecord(**{"sex": ""})
+        assert rec.blocking_keys(BlockingKey.SEX) == set()
+        rec = pii.PIIRecord(**{"sex": "M"})
+        assert rec.blocking_keys(BlockingKey.SEX) == {"M"}
+        rec = pii.PIIRecord(**{"sex": "Male"})
+        assert rec.blocking_keys(BlockingKey.SEX) == {"M"}
+        rec = pii.PIIRecord(**{"sex": "f"})
+        assert rec.blocking_keys(BlockingKey.SEX) == {"F"}
+        rec = pii.PIIRecord(**{"sex": "FEMALE"})
+        assert rec.blocking_keys(BlockingKey.SEX) == {"F"}
+        rec = pii.PIIRecord(**{"sex": "other"})
+        assert rec.blocking_keys(BlockingKey.SEX) == {"U"}
+        rec = pii.PIIRecord(**{"sex": "unknown"})
+        assert rec.blocking_keys(BlockingKey.SEX) == {"U"}
+        rec = pii.PIIRecord(**{"sex": "?"})
+        assert rec.blocking_keys(BlockingKey.SEX) == {"U"}
 
-    # def test_blocking_keys_zipcode(self):
-    #     rec = pii.PIIRecord(**{"zip_code": "12345"})
-    #     assert rec.blocking_keys(BlockingKey.ZIP) == set()
-    #     rec = pii.PIIRecord(**{"address": [{"postalCode": None}]})
-    #     assert rec.blocking_keys(BlockingKey.ZIP) == set()
-    #     rec = pii.PIIRecord(**{"address": [{"zipcode": "12345"}]})
-    #     assert rec.blocking_keys(BlockingKey.ZIP) == {"12345"}
-    #     rec = pii.PIIRecord(**{"address": [{"postal_code": "12345-6789"}]})
-    #     assert rec.blocking_keys(BlockingKey.ZIP) == {"12345"}
-    #     rec = pii.PIIRecord(**{"address": [{"zipCode": "12345-6789"}, {"zip": "54321"}]})
-    #     assert rec.blocking_keys(BlockingKey.ZIP) == {"12345", "54321"}
+    def test_blocking_keys_zipcode(self):
+        rec = pii.PIIRecord(**{"zip_code": "12345"})
+        assert rec.blocking_keys(BlockingKey.ZIP) == set()
+        rec = pii.PIIRecord(**{"address": [{"postalCode": None}]})
+        assert rec.blocking_keys(BlockingKey.ZIP) == set()
+        rec = pii.PIIRecord(**{"address": [{"zipcode": "12345"}]})
+        assert rec.blocking_keys(BlockingKey.ZIP) == {"12345"}
+        rec = pii.PIIRecord(**{"address": [{"postal_code": "12345-6789"}]})
+        assert rec.blocking_keys(BlockingKey.ZIP) == {"12345"}
+        rec = pii.PIIRecord(**{"address": [{"zipCode": "12345-6789"}, {"zip": "54321"}]})
+        assert rec.blocking_keys(BlockingKey.ZIP) == {"12345", "54321"}
 
-    # def test_blocking_keys_first_name_first_four(self):
-    #     rec = pii.PIIRecord(**{"first_name": "John"})
-    #     assert rec.blocking_keys(BlockingKey.FIRST_NAME) == set()
-    #     rec = pii.PIIRecord(**{"name": [{"given": [""], "family": "Doe"}]})
-    #     assert rec.blocking_keys(BlockingKey.FIRST_NAME) == set()
-    #     rec = pii.PIIRecord(**{"name": [{"given": ["John", "Jane"], "family": "Doe"}]})
-    #     assert rec.blocking_keys(BlockingKey.FIRST_NAME) == {"John"}
-    #     rec = pii.PIIRecord(
-    #         **{
-    #             "name": [
-    #                 {"given": ["Janet", "Johnathon"], "family": "Doe"},
-    #                 {"given": ["Jane"], "family": "Smith"},
-    #             ]
-    #         }
-    #     )
-    #     assert rec.blocking_keys(BlockingKey.FIRST_NAME) == {"Jane"}
+    def test_blocking_keys_first_name_first_four(self):
+        rec = pii.PIIRecord(**{"first_name": "John"})
+        assert rec.blocking_keys(BlockingKey.FIRST_NAME) == set()
+        rec = pii.PIIRecord(**{"name": [{"given": [""], "family": "Doe"}]})
+        assert rec.blocking_keys(BlockingKey.FIRST_NAME) == set()
+        rec = pii.PIIRecord(**{"name": [{"given": ["John", "Jane"], "family": "Doe"}]})
+        assert rec.blocking_keys(BlockingKey.FIRST_NAME) == {"John"}
+        rec = pii.PIIRecord(
+            **{
+                "name": [
+                    {"given": ["Janet", "Johnathon"], "family": "Doe"},
+                    {"given": ["Jane"], "family": "Smith"},
+                ]
+            }
+        )
+        assert rec.blocking_keys(BlockingKey.FIRST_NAME) == {"Jane"}
 
-    # def test_blocking_keys_last_name_first_four(self):
-    #     rec = pii.PIIRecord(**{"last_name": "Doe"})
-    #     assert rec.blocking_keys(BlockingKey.LAST_NAME) == set()
-    #     rec = pii.PIIRecord(**{"name": [{"family": ""}]})
-    #     assert rec.blocking_keys(BlockingKey.LAST_NAME) == set()
-    #     rec = pii.PIIRecord(**{"name": [{"family": "Doe"}]})
-    #     assert rec.blocking_keys(BlockingKey.LAST_NAME) == {"Doe"}
-    #     rec = pii.PIIRecord(**{"name": [{"family": "Smith"}, {"family": "Doe"}]})
-    #     assert rec.blocking_keys(BlockingKey.LAST_NAME) == {"Smit", "Doe"}
+    def test_blocking_keys_last_name_first_four(self):
+        rec = pii.PIIRecord(**{"last_name": "Doe"})
+        assert rec.blocking_keys(BlockingKey.LAST_NAME) == set()
+        rec = pii.PIIRecord(**{"name": [{"family": ""}]})
+        assert rec.blocking_keys(BlockingKey.LAST_NAME) == set()
+        rec = pii.PIIRecord(**{"name": [{"family": "Doe"}]})
+        assert rec.blocking_keys(BlockingKey.LAST_NAME) == {"Doe"}
+        rec = pii.PIIRecord(**{"name": [{"family": "Smith"}, {"family": "Doe"}]})
+        assert rec.blocking_keys(BlockingKey.LAST_NAME) == {"Smit", "Doe"}
 
-    # def test_blocking_keys_address_first_four(self):
-    #     rec = pii.PIIRecord(**{"line": "123 Main St"})
-    #     assert rec.blocking_keys(BlockingKey.ADDRESS) == set()
-    #     rec = pii.PIIRecord(**{"address": [{"line": ["123 Main St"]}]})
-    #     assert rec.blocking_keys(BlockingKey.ADDRESS) == {"123 "}
-    #     rec = pii.PIIRecord(**{"address": [{"line": ["123 Main St", "Apt 2"]}]})
-    #     assert rec.blocking_keys(BlockingKey.ADDRESS) == {"123 "}
-    #     rec = pii.PIIRecord(**{"address": [{"line": ["123 Main St"]}, {"line": ["456 Elm St"]}]})
-    #     assert rec.blocking_keys(BlockingKey.ADDRESS) == {"123 ", "456 "}
+    def test_blocking_keys_address_first_four(self):
+        rec = pii.PIIRecord(**{"line": "123 Main St"})
+        assert rec.blocking_keys(BlockingKey.ADDRESS) == set()
+        rec = pii.PIIRecord(**{"address": [{"line": ["123 Main St"]}]})
+        assert rec.blocking_keys(BlockingKey.ADDRESS) == {"123 "}
+        rec = pii.PIIRecord(**{"address": [{"line": ["123 Main St", "Apt 2"]}]})
+        assert rec.blocking_keys(BlockingKey.ADDRESS) == {"123 "}
+        rec = pii.PIIRecord(**{"address": [{"line": ["123 Main St"]}, {"line": ["456 Elm St"]}]})
+        assert rec.blocking_keys(BlockingKey.ADDRESS) == {"123 ", "456 "}
 
-    # def test_blocking_values(self):
-    #     rec = pii.PIIRecord(
-    #         **{
-    #             "mrn": "123456",
-    #             "birth_date": "1980-01-01",
-    #             "name": [{"given": ["John", "William"], "family": "Doe"}],
-    #         }
-    #     )
+    def test_blocking_values(self):
+        rec = pii.PIIRecord(
+            **{
+                "identifiers": [{"type": "MR", "value": "3456"}],
+                "birth_date": "1980-01-01",
+                "name": [{"given": ["John", "William"], "family": "Doe"}],
+            }
+        )
 
-    #     for key, val in rec.blocking_values():
-    #         if key == BlockingKey.BIRTHDATE:
-    #             assert val == "1980-01-01"
-    #         elif key == BlockingKey.MRN:
-    #             assert val == "3456"
-    #         elif key == BlockingKey.FIRST_NAME:
-    #             assert val == "John"
-    #         elif key == BlockingKey.LAST_NAME:
-    #             assert val == "Doe"
-    #         else:
-    #             raise AssertionError(f"Unexpected key: {key}")
+        for key, val in rec.blocking_values():
+            if key == BlockingKey.BIRTHDATE:
+                assert val == "1980-01-01"
+            elif key == BlockingKey.IDENTIFIER:
+                assert val == "MR::3456"
+            elif key == BlockingKey.FIRST_NAME:
+                assert val == "John"
+            elif key == BlockingKey.LAST_NAME:
+                assert val == "Doe"
+            else:
+                raise AssertionError(f"Unexpected key: {key}")

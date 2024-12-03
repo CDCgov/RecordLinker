@@ -36,6 +36,28 @@ class Feature(enum.Enum):
         Return the value of the enum as a string.
         """
         return self.value
+    
+
+    # @classmethod
+    # def parse(cls, value: str) -> typing.Tuple["Feature", typing.Optional[str]]:
+    #     """
+    #     Parse a string value into a Feature and optional suffix.
+
+    #     Args:
+    #         value (str): The string to parse (e.g., 'IDENTIFIER:SS').
+
+    #     Returns:
+    #         Tuple[Feature, Optional[str]]: The base Feature and suffix (if any).
+    #     """
+    #     if ':' in value:
+    #         base_value, suffix = value.split(':', 1)
+    #         try:
+    #             base_feature = cls(base_value)
+    #             return base_feature, suffix
+    #         except ValueError:
+    #             raise ValueError(f"Invalid feature: {base_value}")
+    #     else:
+    #         return cls(value), None
 
 
 class Sex(enum.Enum):
@@ -397,8 +419,8 @@ class PIIRecord(pydantic.BaseModel):
         if key == models.BlockingKey.BIRTHDATE:
             # NOTE: we could optimize here and remove the dashes from the date
             vals.update(self.feature_iter(Feature.BIRTHDATE))
-        # elif key == models.BlockingKey.MRN:
-        #     vals.update({x[-4:] for x in self.feature_iter(Feature.MRN)})
+        elif key == models.BlockingKey.IDENTIFIER:
+            vals.update({f"{x.type or ''}:{x.authority or ''}:{x.value[-4:]}" for x in self.identifiers})
         elif key == models.BlockingKey.SEX:
             vals.update(self.feature_iter(Feature.SEX))
         elif key == models.BlockingKey.ZIP:
