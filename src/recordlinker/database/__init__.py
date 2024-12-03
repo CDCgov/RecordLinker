@@ -27,7 +27,7 @@ def create_sessionmaker(init_tables: bool = True) -> orm.sessionmaker:
     engine = create_engine(settings.db_uri, **kwargs)
     if init_tables:
         models.Base.metadata.create_all(engine)
-    return orm.sessionmaker(autocommit=False, bind=engine)
+    return orm.sessionmaker(bind=engine)
 
 
 def get_session() -> typing.Iterator[orm.Session]:
