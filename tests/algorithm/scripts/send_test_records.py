@@ -33,20 +33,20 @@ def send_test_records(test_csv, algorithm_name, api_url):
                     "Test Case #": match_info['test_case_number'],
                     "Expected Result": match_info['should_match'],
                     "Match Result": response['prediction'],
-                    "Error": ""
+                    "Details": ""
                 }
             else:
                 output_row = {
                     "Test Case #": match_info['test_case_number'],
                     "Expected Result": match_info['should_match'],
                     "Match Result": "Failed",
-                    "Error": "Failed to link record"
+                    "Details": "Failed to link record"
                 }
             output_data.append(output_row)
     
     # Save output data to the output file
     with open("results/output.csv", mode='w', newline='', encoding='utf-8') as file:
-        fieldnames = ["Test Case #", "Expected Result", "Match Result", "Error"]
+        fieldnames = ["Test Case #", "Expected Result", "Match Result", "Details"]
         writer = csv.DictWriter(file, fieldnames=fieldnames)
 
         writer.writeheader()

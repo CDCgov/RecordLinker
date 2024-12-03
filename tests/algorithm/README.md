@@ -25,13 +25,22 @@ Before getting started, ensure you have the following installed:
     docker compose --profile algo-test build
     ```
 
-2. Configure environment variables
+2. Add Seed and Test data files
+    You can use the sample data files provided in the `data` directory or add your own data files.
+    The format of the input files should be a CSV file with the same column headers as shown in the sample files.
+    
+        `/data/sample_seed_data.csv`
+        
+        `/data/sample_test_data.csv`
+        
+
+3. Configure environment variables
 
     `/algo.env`
     
     Edit the environment variables in the file
 
-3. Edit the algorithm configuration file
+4. Edit the algorithm configuration file
 
     `/configurations/algorithm_configuration.json`
 
