@@ -12,10 +12,10 @@ Before getting started, ensure you have the following installed:
 ## Directory Structure
 
 - `/`: Contains the `.env` file and `Dockerfile` to build
-- `configurations/`: Contains the configuration file for the algorithm tests
-- `data/`: Contains the data `.csv` files used for the algorithm tests (seed file and test file)
-- `results/`: Contains the results of the algorithm tests
-- `scripts/`: Contains the scripts to run the algorithm tests
+- `configurations/`: Contains the configuration `.json` file that will be used for the test
+- `data/`: Contains the data `.csv` files used for the algorithm test (seed file and test file)
+- `results/`: Contains the results `.csv` file after running the test
+- `scripts/`: Contains the scripts to run the test
 
 ## Setup
 
@@ -25,7 +25,7 @@ Before getting started, ensure you have the following installed:
     docker compose --profile algo-test build
     ```
 
-2. Add Seed and Test data files
+2. Add seed and test data files
     You can use the sample data files provided in the `data` directory or add your own data files.
     The format of the input files should be a CSV file with the same column headers as shown in the sample files.
     
@@ -64,11 +64,13 @@ Before getting started, ensure you have the following installed:
 
     The results of the algorithm tests will be available in the `results/output.csv` file.
 
-    The results will be in a CSV formatted file with the following columns: `Test Case #`, `Expected Result`, `Match Results`, and `Error`.
+    The results will be in a CSV formatted file with the following columns: 
+    `Test Case #`, `Expected Result`, `Match Results`, `Details`
 
 ## Rerunning Algorithm Tests
 
 After you've run the algorithm tests, you may want to rerun the tests with different seed data, test data, or configurations.
+
 Edit the csv files and/or the confirguration file as needed and then run the following commands to rerun the tests.
 
 1. Reset the mpi database
@@ -79,12 +81,12 @@ Edit the csv files and/or the confirguration file as needed and then run the fol
 2. Run the tests
     
     ```bash
-    docker compose run --rm algo-test-runner python scripts/run_test.py
+    docker compose run --rm algo-test-runner scripts/run_test.py
     ```
 
 ## Environment Variables
 
-1. `env_file`: The attributes that should be tuned for your particular algorithm test,
+1. `env file`: The attributes that should be tuned for your particular algorithm test,
     are located in the `algo_test.env` file.
 
 2. `environment`: The attributes that should likely remain static for all algorithm tests are located directly in the `compose.yml` file.
