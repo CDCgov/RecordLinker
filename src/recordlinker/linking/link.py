@@ -132,12 +132,12 @@ def link_record_against_mpi(
                     LOGGER.info(
                         "cluster belongingness",
                         extra={
-                            "ratio": belongingness_ratio,
+                            "belongingness_ratio": belongingness_ratio,
                             "person.reference_id": str(person.reference_id),
                             "matched": matched_count,
                             "total": len(patients),
-                            "algorithm.ratio_lower": belongingness_ratio_lower_bound,
-                            "algorithm.ratio_upper": belongingness_ratio_upper_bound,
+                            "algorithm.belongingness_ratio_lower": belongingness_ratio_lower_bound,
+                            "algorithm.belongingness_ratio_upper": belongingness_ratio_upper_bound,
                         },
                     )
                     if belongingness_ratio >= belongingness_ratio_lower_bound:
