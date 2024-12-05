@@ -50,12 +50,6 @@ Before getting started, ensure you have the following installed:
 
 1. Run the test
 
-    Make the script executable
-    ```bash
-    chmod +x scripts/run_test.py
-    ```
-
-    Run the test
     ```bash
     docker compose run --rm algo-test-runner scripts/run_test.py
     ```
@@ -65,13 +59,13 @@ Before getting started, ensure you have the following installed:
     The results of the algorithm tests will be available in the `results/output.csv` file.
 
     The results will be in a CSV formatted file with the following columns: 
-    `Test Case #`, `Expected Result`, `Match Results`, `Details`
+    `Test Case #`, `Expected Result`, `Match Result`, `Details`
 
 ## Rerunning Algorithm Tests
 
 After you've run the algorithm tests, you may want to rerun the tests with different seed data, test data, or configurations.
 
-Edit the csv files and/or the confirguration file as needed and then run the following commands to rerun the tests.
+Edit the csv files and/or the configuration file as needed and then run the following commands to rerun the tests.
 
 1. Reset the mpi database
     
