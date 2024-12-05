@@ -1,0 +1,7 @@
+Test Case #,Expected Result,Match Result,Details
+1,Should be a Match,match,
+2,Should Not be a Match,no_match,
+3,Should be a Match,no_match,
+4,Should be a Match,match,
+5,Should Not be a Match,no_match,
+5,Should fail,Invalid record,"[{'type': 'value_error', 'loc': ['body', 'record', 'birth_date'], 'msg': 'Value error, month must be in 1..12: 1950-18-10', 'input': '1950-18-10', 'ctx': {'error': {}}}]"

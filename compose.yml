@@ -76,3 +76,25 @@ services:
     depends_on:
       api:
         condition: service_healthy
+
+  algo-test-runner:
+      build:
+        context: tests/algorithm
+        dockerfile: Dockerfile.algo
+      env_file:
+        - tests/algorithm/algo.env
+      environment:
+        DB_URI: "postgresql+psycopg2://postgres:pw@db:5432/postgres"
+        API_URL: "http://api:8080"
+      volumes:
+        - ./tests/algorithm/scripts:/app/scripts
+        - ./tests/algorithm/data:/app/data
+        - ./tests/algorithm/results:/app/results
+        - ./tests/algorithm/configurations:/app/configurations
+      depends_on:
+        db:
+          condition: service_healthy
+        api:
+          condition: service_healthy
+      profiles:
+        - algo-test

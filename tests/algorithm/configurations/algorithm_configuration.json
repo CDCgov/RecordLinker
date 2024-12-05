@@ -1,0 +1,66 @@
+{
+    "label": "test-config",
+    "description": "test algorithm configuration",
+    "is_default": false,
+    "include_multiple_matches": true,
+    "belongingness_ratio": [0.75, 0.9],
+    "passes": [
+        {
+            "blocking_keys": [
+                "BIRTHDATE"
+            ],
+            "evaluators": [
+                    {
+                        "feature": "FIRST_NAME",
+                        "func": "func:recordlinker.linking.matchers.compare_fuzzy_match"
+                    },
+                    {
+                        "feature": "LAST_NAME",
+                        "func": "func:recordlinker.linking.matchers.compare_match_all"
+                    }
+            ],
+            "rule": "func:recordlinker.linking.matchers.rule_match",
+            "cluster_ratio": 0.9,
+            "kwargs": {
+                "thresholds": {
+                    "FIRST_NAME": 0.9,
+                    "LAST_NAME": 0.9,
+                    "BIRTHDATE": 0.95,
+                    "ADDRESS": 0.9,
+                    "CITY": 0.92,
+                    "ZIP": 0.95
+                }
+            }
+        },
+        {
+            "blocking_keys": [
+                "ZIP",
+                "FIRST_NAME",
+                "LAST_NAME",
+                "SEX"
+            ],
+            "evaluators": [
+                    {
+                        "feature": "ADDRESS",
+                        "func": "func:recordlinker.linking.matchers.compare_fuzzy_match"
+                    },
+                    {
+                        "feature": "BIRTHDATE",
+                        "func": "func:recordlinker.linking.matchers.compare_match_all"
+                    }
+            ],
+            "rule": "func:recordlinker.linking.matchers.rule_match",
+            "cluster_ratio": 0.9,
+            "kwargs": {
+                "thresholds": {
+                    "FIRST_NAME": 0.9,
+                    "LAST_NAME": 0.9,
+                    "BIRTHDATE": 0.95,
+                    "ADDRESS": 0.9,
+                    "CITY": 0.92,
+                    "ZIP": 0.95
+                }
+            }
+        }
+    ]
+}

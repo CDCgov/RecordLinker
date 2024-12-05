@@ -1,0 +1,7 @@
+Test Case #,Match Id,ID,BIRTHDATE,FIRST,LAST,SUFFIX,MAIDEN,RACE,ETHNICITY,GENDER,ADDRESS,CITY,STATE,COUNTY,ZIP,SSN,Expected Result
+1,1,3020167,1951-06-02,Linda,Nash,Jr,Gutierrez,Asian,Hispanic,F,968 Gonzalez Mount,South Emilybury,GU,North Kennethburgh County,93236,675-79-1449,Should be a Match
+2,2,9488697,1942-08-03,Singleton,Jose,Sr,Ingram,Asian,Hispanic,M,631 Fowler Causeway,Port Williamfurt,IN,Wardburgh County,90637,587-60-3668,Should be a Match
+3,3,1805504,1963-01-29,Ryan,Law-rence,IV,Armstrong,Black,Non-Hispanic,M,5256 Lisa Light,Port Monica,GA,South Christine County,51813,371-33-0433,Should be a Match
+4,4,1792678,1950-08-10,Tho-mas,Brady,II,Cobb,White,Unknown,M,944 Hayes Port,Jonesville,FM,Jonesview County,6015,272-78-9905,Should be a Match
+5,4,1792678,1950-08-10,ThoMas,Brady,II,Cobb,White,Unknown,M,944 Hayes Port,Jonesville,FM,Jonesview County,6015,272-78-9905,Should be a Match
+6,0,1792679,1950-18-10,ThoMas,Brady,II,Cobb,White,Unknown,M,944 Hayes Port,Jonesville,FM,Jonesview County,6015,272-78-9905,Should fail
