@@ -58,9 +58,27 @@ def update_person(
 
     person = service.get_person_by_reference_id(session, data.person_reference_id)
     if person is None:
-        raise fastapi.HTTPException(status_code=fastapi.status.HTTP_400_BAD_REQUEST)
+        raise fastapi.HTTPException(status_code=fastapi.status.HTTP_422_UNPROCESSABLE_ENTITY)
 
     person = service.update_person_cluster(session, patient, person, commit=False)
     return schemas.PatientPersonRef(
         patient_reference_id=patient.reference_id, person_reference_id=person.reference_id
     )
+
+@router.delete(
+    "/{patient_reference_id}",
+    summary="Delete a Patient",
+    status_code=fastapi.status.HTTP_204_NO_CONTENT,
+)
+def delete_patient(
+    patient_reference_id: uuid.UUID, session: orm.Session = fastapi.Depends(get_session)
+) -> None:
+    """
+    Delete a Patient from the mpi database.
+    """
+    patient = service.get_patient_by_reference_id(session, patient_reference_id)
+
+    if patient is None:
+        raise fastapi.HTTPException(status_code=fastapi.status.HTTP_404_NOT_FOUND)
+    
+    return service.delete_patient(session, patient)

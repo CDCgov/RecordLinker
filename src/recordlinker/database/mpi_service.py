@@ -236,3 +236,15 @@ def reset_mpi(session: orm.Session, commit: bool = True):
     session.query(models.Person).delete()
     if commit:
         session.commit()
+
+def delete_patient(session: orm.Session, obj: models.Patient, commit: bool = False) -> None:
+    """
+    Deletes an Patient from the database
+
+    :param session: The database session
+    :param obj: The Patient to delete
+    :param commit: Commit the transaction
+    """
+    session.delete(obj)
+    if commit:
+        session.commit()

@@ -12,14 +12,14 @@
             "evaluators": [
                     {
                         "feature": "FIRST_NAME",
-                        "func": "func:recordlinker.linking.matchers.feature_match_fuzzy_string"
+                        "func": "func:recordlinker.linking.matchers.compare_fuzzy_match"
                     },
                     {
                         "feature": "LAST_NAME",
-                        "func": "func:recordlinker.linking.matchers.feature_match_exact"
+                        "func": "func:recordlinker.linking.matchers.compare_match_all"
                     }
             ],
-            "rule": "func:recordlinker.linking.matchers.eval_perfect_match",
+            "rule": "func:recordlinker.linking.matchers.rule_match",
             "cluster_ratio": 0.9,
             "kwargs": {
                 "thresholds": {
@@ -42,14 +42,14 @@
             "evaluators": [
                     {
                         "feature": "ADDRESS",
-                        "func": "func:recordlinker.linking.matchers.feature_match_fuzzy_string"
+                        "func": "func:recordlinker.linking.matchers.compare_fuzzy_match"
                     },
                     {
                         "feature": "BIRTHDATE",
-                        "func": "func:recordlinker.linking.matchers.feature_match_exact"
+                        "func": "func:recordlinker.linking.matchers.compare_match_all"
                     }
             ],
-            "rule": "func:recordlinker.linking.matchers.eval_perfect_match",
+            "rule": "func:recordlinker.linking.matchers.rule_match",
             "cluster_ratio": 0.9,
             "kwargs": {
                 "thresholds": {

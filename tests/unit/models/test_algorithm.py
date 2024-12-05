@@ -90,14 +90,14 @@ class TestAlgorithm:
                     "evaluators": [
                         {
                             "feature": "FIRST_NAME",
-                            "func": "func:recordlinker.linking.matchers.feature_match_exact",
+                            "func": "func:recordlinker.linking.matchers.compare_match_all",
                         },
                         {
                             "feature": "LAST_NAME",
-                            "func": "func:recordlinker.linking.matchers.feature_match_exact",
+                            "func": "func:recordlinker.linking.matchers.compare_match_all",
                         },
                     ],
-                    "rule": "func:recordlinker.linking.matchers.eval_perfect_match",
+                    "rule": "func:recordlinker.linking.matchers.rule_match",
                 }
             ],
         }
@@ -110,14 +110,14 @@ class TestAlgorithm:
         assert algo.passes[0].evaluators == [
             {
                 "feature": "FIRST_NAME",
-                "func": "func:recordlinker.linking.matchers.feature_match_exact",
+                "func": "func:recordlinker.linking.matchers.compare_match_all",
             },
             {
                 "feature": "LAST_NAME",
-                "func": "func:recordlinker.linking.matchers.feature_match_exact",
+                "func": "func:recordlinker.linking.matchers.compare_match_all",
             },
         ]
-        assert algo.passes[0].rule == "func:recordlinker.linking.matchers.eval_perfect_match"
+        assert algo.passes[0].rule == "func:recordlinker.linking.matchers.rule_match"
 
 
 class TestAlgorithmPass:
@@ -129,21 +129,21 @@ class TestAlgorithmPass:
             evaluators=[
                 {
                     "feature": "BIRTHDATE",
-                    "func": "func:recordlinker.linking.matchers.feature_match_any",
+                    "func": "func:recordlinker.linking.matchers.compare_match_any",
                 }
             ]
         )
         assert ap.bound_evaluators() == [
-            models.BoundEvaluator("BIRTHDATE", matchers.feature_match_any)
+            models.BoundEvaluator("BIRTHDATE", matchers.compare_match_any)
         ]
         ap.evaluators = [
             {
                 "feature": "BIRTHDATE",
-                "func": "func:recordlinker.linking.matchers.feature_match_exact",
+                "func": "func:recordlinker.linking.matchers.compare_match_all",
             }
         ]
         assert ap.bound_evaluators() == [
-            models.BoundEvaluator("BIRTHDATE", matchers.feature_match_exact)
+            models.BoundEvaluator("BIRTHDATE", matchers.compare_match_all)
         ]
         ap.evaluators = [
             {"feature": "BIRTHDATE", "func": "func:recordlinker.linking.matchers.invalid"}
@@ -155,10 +155,10 @@ class TestAlgorithmPass:
         """
         Tests that the bound_rule method returns the correct function
         """
-        ap = models.AlgorithmPass(rule="func:recordlinker.linking.matchers.eval_perfect_match")
-        assert ap.bound_rule() == matchers.eval_perfect_match
-        ap.rule = "func:recordlinker.linking.matchers.eval_log_odds_cutoff"
-        assert ap.bound_rule() == matchers.eval_log_odds_cutoff
+        ap = models.AlgorithmPass(rule="func:recordlinker.linking.matchers.rule_match")
+        assert ap.bound_rule() == matchers.rule_match
+        ap.rule = "func:recordlinker.linking.matchers.rule_probabilistic_match"
+        assert ap.bound_rule() == matchers.rule_probabilistic_match
         ap.rule = "func:recordlinker.linking.matchers.invalid"
         with pytest.raises(ValueError, match="Failed to convert string to callable"):
             ap.bound_rule()

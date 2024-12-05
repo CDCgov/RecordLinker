@@ -12,6 +12,8 @@ import pydantic
 
 from recordlinker.schemas.pii import PIIRecord
 
+Prediction = typing.Literal["match", "possible_match", "no_match"]
+
 
 class LinkInput(pydantic.BaseModel):
     """
@@ -45,7 +47,6 @@ class LinkResult(pydantic.BaseModel):
         "between 0 and 1.0)."
     )
 
-
     @pydantic.model_validator(mode="before")
     @classmethod
     def extract_person_reference_id(cls, data: typing.Any) -> typing.Any:
@@ -63,34 +64,20 @@ class LinkResponse(pydantic.BaseModel):
     Schema for responses from the link endpoint.
     """
 
-    
+    prediction: Prediction
     patient_reference_id: uuid.UUID = pydantic.Field(
         description="The unique identifier for the patient that has been linked."
     )
     person_reference_id: uuid.UUID | None = pydantic.Field(
         description="The identifier for the person that the patient record has been linked to."
-        " If prediction=\"possible_match\", this value will be null."
+        ' If prediction="possible_match", this value will be null.'
     )
     results: list[LinkResult] = pydantic.Field(
         description="A list of (possibly) matched Persons. If prediction='match', either the single"
-                    "(include_multiple_matches=False) or multiple (include_multiple_matches=True) "
-                    "Persons with which the Patient record matches. If prediction='possible_match',"
-                    "all Persons with which the Patient record possibly matches."
+        "(include_multiple_matches=False) or multiple (include_multiple_matches=True) "
+        "Persons with which the Patient record matches. If prediction='possible_match',"
+        "all Persons with which the Patient record possibly matches."
     )
-
-    # mypy doesn't support decorators on properties; https://github.com/python/mypy/issues/1362
-    @pydantic.computed_field  # type: ignore[misc]
-    @property
-    def prediction(self) -> typing.Literal["match", "possible_match", "no_match"]:
-        """
-        Record Linkage algorithm prediction.
-        """
-        if self.person_reference_id and self.results:
-            return "match"
-        elif not self.results:
-            return "no_match"
-        else:
-            return "possible_match"
 
 
 class LinkFhirInput(pydantic.BaseModel):

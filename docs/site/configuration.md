@@ -65,7 +65,7 @@ Each setting can be configured as follows:
 
 :   URI for the Splunk HTTP Event Collector (HEC) endpoint. When set, logs will be sent to
     the configured Splunk instance for analysis. The format is
-    `splunkhec://<token>@<host>:<port>?index=<index>&proto=<protocol>&ssl_verify=<verify>&source=<source>`
+    `splunkhec://<token>@<host>:<port>?index=<index>&proto=<protocol>&source=<source>`
 
     **Docker Default**: `""`
 

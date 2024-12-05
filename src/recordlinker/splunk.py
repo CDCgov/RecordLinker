@@ -3,6 +3,7 @@ import time
 import typing
 import urllib.parse
 import urllib.request
+import uuid
 
 TIMEOUT = 5
 
@@ -19,7 +20,7 @@ class SplunkHECClient:
         Create a new Splunk HEC client and test its connection.
         The URI uses a custom scheme to specify the Splunk HEC server and parameters.
         The URI format is:
-            splunkhec://<token>@<host>:<port>?index=<index>&proto=<protocol>&ssl_verify=<verify>&source=<source>
+            splunkhec://<token>@<host>:<port>?index=<index>&proto=<protocol>&source=<source>
         """
         try:
             uri: urllib.parse.ParseResult = urllib.parse.urlparse(splunk_uri)
@@ -34,7 +35,12 @@ class SplunkHECClient:
             self.url = f"{scheme}://{host}{self.PATH}"
             self.headers = {
                 "Authorization": f"Splunk {uri.username}",
-                "Content-Type": "application/json",
+                "Content-type": "application/json",
+                # There is no intention of using HEC index acknowledgments to follow up on events,
+                # however in the case that the Splunk administrator has enabled this feature on the
+                # HEC token, just pass a random UUID back as the channel so the request is accepted.
+                # When index acknowledgments are disabled, this header is ignored.
+                "X-splunk-request-channel": str(uuid.uuid4()),
             }
             # initialize the default payload parameters
             self.params: dict[str, str] = {"host": uri.hostname or "", "sourcetype": "_json"}
@@ -51,7 +57,7 @@ class SplunkHECClient:
         try:
             with urllib.request.urlopen(request, timeout=TIMEOUT) as response:
                 # return the response status code
-                return response.getcode()
+                return response.status
         except urllib.error.HTTPError as exc:
             return exc.code
 
