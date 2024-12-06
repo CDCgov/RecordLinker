@@ -33,12 +33,12 @@ class Settings(pydantic_settings.BaseSettings):
     )
     connection_pool_size: typing.Optional[int] = pydantic.Field(
         description="The number of MPI database connections in the connection pool",
-        default=5,
+        default=None,
     )
     connection_pool_max_overflow: typing.Optional[int] = pydantic.Field(
         description="The maximum number of MPI database connections that can be opened "
         "above the connection pool size",
-        default=10,
+        default=None,
     )
     log_config: typing.Optional[str] = pydantic.Field(
         description="The path to the logging configuration file",
