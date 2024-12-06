@@ -58,7 +58,7 @@ def update_person(
 
     person = service.get_person_by_reference_id(session, data.person_reference_id)
     if person is None:
-        raise fastapi.HTTPException(status_code=fastapi.status.HTTP_400_BAD_REQUEST)
+        raise fastapi.HTTPException(status_code=fastapi.status.HTTP_422_UNPROCESSABLE_ENTITY)
 
     person = service.update_person_cluster(session, patient, person, commit=False)
     return schemas.PatientPersonRef(

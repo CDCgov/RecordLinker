@@ -146,7 +146,7 @@ class TestLinkRecordAgainstMpi:
         matches: list[bool] = []
         mapped_patients: dict[str, int] = collections.defaultdict(int)
         for data in patients[:2]:
-            (patient, person, results) = link.link_record_against_mpi(data, session, basic_algorithm)
+            (_, person, results, _) = link.link_record_against_mpi(data, session, basic_algorithm)
             matches.append(bool(person and results))
             mapped_patients[person.reference_id] += 1
 
@@ -159,7 +159,7 @@ class TestLinkRecordAgainstMpi:
         matches: list[bool] = []
         mapped_patients: dict[str, int] = collections.defaultdict(int)
         for data in patients:
-            (patient, person, results) = link.link_record_against_mpi(data, session, basic_algorithm)
+            (_, person, results, _) = link.link_record_against_mpi(data, session, basic_algorithm)
             matches.append(bool(person and results))
             mapped_patients[person.reference_id] += 1
 
@@ -187,11 +187,12 @@ class TestLinkRecordAgainstMpi:
         for lower_bound in [0.5, 0.45]: # test >= lower bound
             basic_algorithm.belongingness_ratio_lower_bound = lower_bound
             for i, data in enumerate(possible_match_basic_patients):
-                (patient, person, results) = link.link_record_against_mpi(data, session, basic_algorithm)
+                (patient, person, results, prediction) = link.link_record_against_mpi(data, session, basic_algorithm)
                 predictions[i] = {
                     "patient": patient,
                     "person": person,
-                    "results": results
+                    "results": results,
+                    "prediction": prediction
                 }
             # 1 Possible Match
             assert not predictions[2]["person"]
@@ -199,6 +200,7 @@ class TestLinkRecordAgainstMpi:
             assert predictions[2]["results"][0].person == predictions[0]["person"]
             assert predictions[2]["results"][0].belongingness_ratio >= basic_algorithm.belongingness_ratio_lower_bound
             assert predictions[2]["results"][0].belongingness_ratio < basic_algorithm.belongingness_ratio_upper_bound
+            assert predictions[2]["prediction"] == "possible_match"
 
 
     def test_enhanced_match_three(self, session, enhanced_algorithm, patients: list[schemas.PIIRecord]):
@@ -210,7 +212,7 @@ class TestLinkRecordAgainstMpi:
         matches: list[bool] = []
         mapped_patients: dict[str, int] = collections.defaultdict(int)
         for data in patients:
-            (patient, person, results) = link.link_record_against_mpi(data, session, enhanced_algorithm)
+            (_, person, results, _) = link.link_record_against_mpi(data, session, enhanced_algorithm)
             matches.append(bool(person and results))
             mapped_patients[person.reference_id] += 1
 
@@ -238,11 +240,12 @@ class TestLinkRecordAgainstMpi:
         for lower_bound in [0.5, 0.45]: # test >= lower bound
             enhanced_algorithm.belongingness_ratio_lower_bound = lower_bound
             for i, data in enumerate(possible_match_enhanced_patients):
-                (patient, person, results) = link.link_record_against_mpi(data, session, enhanced_algorithm)
+                (patient, person, results, prediction) = link.link_record_against_mpi(data, session, enhanced_algorithm)
                 predictions[i] = {
                     "patient": patient,
                     "person": person,
-                    "results": results
+                    "results": results,
+                    "prediction": prediction
                 }
             # 1 Possible Match
             assert not predictions[2]["person"]
@@ -250,6 +253,7 @@ class TestLinkRecordAgainstMpi:
             assert predictions[2]["results"][0].person == predictions[0]["person"]
             assert predictions[2]["results"][0].belongingness_ratio >= enhanced_algorithm.belongingness_ratio_lower_bound
             assert predictions[2]["results"][0].belongingness_ratio < enhanced_algorithm.belongingness_ratio_upper_bound
+            assert predictions[2]["prediction"] == "possible_match"
 
 
     def test_include_multiple_matches_true(
@@ -264,17 +268,19 @@ class TestLinkRecordAgainstMpi:
         for upper_bound in [0.5, 0.45]: # test >= upper bound
             basic_algorithm.belongingness_ratio_upper_bound = upper_bound
             for i, data in enumerate(multiple_matches_patients):
-                (patient, person, results) = link.link_record_against_mpi(data, session, basic_algorithm)
+                (patient, person, results, prediction) = link.link_record_against_mpi(data, session, basic_algorithm)
                 predictions[i] = {
                     "patient": patient,
                     "person": person,
-                    "results": results
+                    "results": results,
+                    "prediction": prediction
                 }
             # 2 Matches
             assert len(predictions[3]["results"]) == 2
             assert predictions[3]["person"] == predictions[1]["person"] # Assign to Person with highest Belongingness Ratio (1.0)
             for match in predictions[2]["results"]:
                 assert match.belongingness_ratio >= basic_algorithm.belongingness_ratio_upper_bound
+            assert predictions[3]["prediction"] == "match"
 
 
     def test_include_multiple_matches_false(
@@ -290,13 +296,15 @@ class TestLinkRecordAgainstMpi:
         for upper_bound in [0.5, 0.45]: # test >= upper bound
             basic_algorithm.belongingness_ratio_upper_bound = upper_bound
             for i, data in enumerate(multiple_matches_patients):
-                (patient, person, results) = link.link_record_against_mpi(data, session, basic_algorithm)
+                (patient, person, results, prediction) = link.link_record_against_mpi(data, session, basic_algorithm)
                 predictions[i] = {
                     "patient": patient,
                     "person": person,
-                    "results": results
+                    "results": results,
+                    "prediction": prediction
                 }
             # 2 Matches, but only include 1
             assert len(predictions[3]["results"]) == 1
             assert predictions[3]["person"] == predictions[1]["person"] # Assign to Person with highest Belongingness Ratio (1.0)
             assert predictions[3]["results"][0].belongingness_ratio >= basic_algorithm.belongingness_ratio_upper_bound
+            assert predictions[3]["prediction"] == "match"

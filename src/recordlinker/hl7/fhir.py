@@ -12,6 +12,17 @@ import pydantic
 from recordlinker import schemas
 
 
+def get_first_patient_resource(bundle: dict) -> dict:
+    """
+    Get the first patient resource from a FHIR bundle
+    """
+    for entry in bundle.get("entry", []):
+        resource = entry.get("resource", {})
+        if resource.get("resourceType") == "Patient":
+            return resource
+    return {}
+
+
 def fhir_record_to_pii_record(fhir_record: dict) -> schemas.PIIRecord:
     """
     Parse the FHIR record into a PIIRecord object

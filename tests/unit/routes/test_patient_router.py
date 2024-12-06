@@ -48,7 +48,7 @@ class TestUpdatePerson:
 
         data = {"person_reference_id": str(uuid.uuid4())}
         response = client.patch(f"/patient/{patient.reference_id}/person", json=data)
-        assert response.status_code == 400
+        assert response.status_code == 422
 
     def test_update_person(self, client):
         original_person = models.Person()
