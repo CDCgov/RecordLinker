@@ -1,5 +1,18 @@
 # Reference
 
+## API Documentation
+
+The application uses the [OpenAPI specification](https://www.openapis.org/what-is-openapi) to document the API
+endpoints and their expected inputs and outputs.  These docs are available in three different formats when
+running the application, the first two for human consumption and the last for machines.
+
+- **Swagger UI**: The [Swagger UI](https://swagger.io/tools/swagger-ui/) format of the docs can be accessed at `/docs`.
+- **ReDoc**: The [ReDoc](https://github.com/Redocly/redoc) format of the docs can be accessed at `/redoc`.
+- **OpenAPI JSON**: The raw JSON format of the docs can be accessed at `/openapi.json`.
+
+The **ReDoc** format of the [API documentation](api-docs.html) has been built and served with these docs for convenience.
+
+
 ## Algorithm Configuration
 
 The Algorithm configurations are stored in the database and can be managed via the API.
