@@ -67,7 +67,7 @@
     },
     {
         "label": "dibbs-enhanced",
-        "description": "The DIBBs Log-Odds Algorithm. This optional algorithm uses statistical correction to adjust the links between incoming records and previously processed patients (it does so by taking advantage of the fact that some fields are more informative than others—e.g., two records matching on MRN is stronger evidence that they should be linked than if the records matched on zip code). It can be used if additional granularity in matching links is desired. However, while the DIBBs Log-Odds Algorithm can create higher-quality links, it is dependent on statistical updating and pre-calculated population analysis, which requires some work on the part of the user. For those cases where additional precision or stronger matching criteria are required, the Log-Odds algorithm is detailed below.",
+        "description": "The DIBBs Log-Odds Algorithm. This optional algorithm uses statistical correction to adjust the links between incoming records and previously processed patients (it does so by taking advantage of the fact that some fields are more informative than others—e.g., two records matching on MRN is stronger evidence that they should be linked than if the records matched on zip code). It can be used if additional granularity in matching links is desired. However, while the DIBBs Log-Odds Algorithm can create higher-quality links, it is dependent on statistical updating and pre-calculated population analysis, which requires some work on the part of the user. This is useful for cases where additional precision or strong matching criteria are required.",
         "is_default": false,
         "include_multiple_matches": true,
         "belongingness_ratio": [0.75, 0.9],

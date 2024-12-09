@@ -179,3 +179,33 @@ existing Patient with the GIVEN_NAME of ["John", "D"].
     that feature is in determining whether two patient records are a true match, as opposed to a match
     by random chance). Use the kwargs parameter to specify the fuzzy match threshold and log-odds ratio
     based on training. Example: `{"kwargs": {"thresholds": {"FIRST_NAME": 0.8}, "log_odds": {"FIRST_NAME": 6.8}}}`
+
+
+### Initial Algorithm Configurations
+
+By default (this can be overridden via an environment variable, see the [Configuration](configuration.md)
+guide for more info), the application is configured to be initialized with two starting algorithms;
+dibbs-basic and dibbs-enhanced.  The intention of these two configurations are as follows:
+
+`dibbs-basic`
+
+:   The DIBBs Default Algorithm. Based on field experimentation and statistical analysis, this
+    deterministic two-pass algorithm combines geographical and personal information to maximize
+    linkage quality while minimizing false positives.
+
+`dibbs-enhanced`
+
+:   The DIBBs Log-Odds Algorithm. This optional algorithm uses statistical correction to adjust
+    the links between incoming records and previously processed patients (it does so by taking
+    advantage of the fact that some fields are more informative than others—e.g., two records
+    matching on MRN is stronger evidence that they should be linked than if the records matched on
+    zip code). It can be used if additional granularity in matching links is desired. However, while
+    the DIBBs Log-Odds Algorithm can create higher-quality links, it is dependent on statistical
+    updating and pre-calculated population analysis, which requires some work on the part of the
+    user. This is useful for cases where additional precision or stronger matching criteria are
+    required.
+
+
+:   A basic configuration that uses the `BIRTHDATE` and `LAST_NAME` features to determine if a match
+    is present.  The `BIRTHDATE` feature is compared using a direct match, while the `LAST_NAME` feature
+    is compared using a fuzzy match with a JaroWinkler similarity measure and a threshold of 0.8.
