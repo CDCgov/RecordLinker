@@ -2,23 +2,35 @@
 
 This document provides an overview of the key database models involved in the Master Patient Index (MPI) system and explains how they interact to facilitate person linking via an algorithm.
 
-## Key Models
 
-### 1. **Person Model**
+## Linkage Algorithm
+
+...
+
+## Business Rules (aka Algorithm Configuration)
+
+...
+
+
+## MPI (Master Patient Index) Design
+
+### Key Models
+
+#### 1. **Person Model**
 
 The `Person` model represents an individual in the MPI system. Each person may have multiple associated `Patient` records, which are unique representations of that person in various external systems.
 
-### 2. **Patient Model**
+#### 2. **Patient Model**
 
 The `Patient` model represents an external record for a person.  This is a point-in-time representation of an individual sourced in a health care document. Each `Patient` is linked to a single `Person` and contains multiple `BlockingValue` records that aid in matching similar patients.
 
-### 3. **BlockingValue Model**
+#### 3. **BlockingValue Model**
 
 The `BlockingValue` model stores all the potential key-value pairs used in the record linkage process. These pairs represent simplified or truncated versions of personally identifiable information (PII), such as birthdate, name, or address, which are used in the blocking phase of the algorithm to quickly find potential matches.
 
 ---
 
-## Entity Relationship Diagram
+### Entity Relationship Diagram
 
 The following diagram illustrates the relationships between the `Person`, `Patient`, and `BlockingValue` models:
 
@@ -52,7 +64,7 @@ erDiagram
 
 ---
 
-## How These Models Work in the Algorithm
+### How These Models Work in the Algorithm
 
 The MPI system is designed to link records from different sources that potentially represent the same person. The record linkage algorithm uses **blocking keys** to reduce the number of potential matches to be evaluated. The workflow can be described as follows:
 
@@ -74,7 +86,7 @@ The MPI system is designed to link records from different sources that potential
 
 ---
 
-## Key Relationships
+### Key Relationships
 
 - **Person-Patient Relationship**:  
   A **`Person`** can have multiple **`Patient`** records linked to it. This one-to-many relationship allows the system to handle multiple external representations of the same person across different systems.
@@ -84,6 +96,6 @@ The MPI system is designed to link records from different sources that potential
 
 ---
 
-## Conclusion
+### Conclusion
 
 This system of models—**Person**, **Patient**, and **BlockingValue**—works together to enable scalable and efficient patient matching in the Master Patient Index. The use of **blocking values** reduces the computational complexity of the matching process while maintaining the flexibility to support different algorithms.  There is some duplication of data in the MPI, as each Patient record contains all the PII data in the `data` field, some of which is duplicated in the **BlockingValues** table.  However, the duplication is necessary to support an efficient and flexible matching process.
