@@ -20,19 +20,17 @@ The RecordLinker is a service that links records from two datasets based on a se
 ### Initial Setup
 
 Set up a Python virtual environment and install the required development dependencies:
-NOTE: The `-e` flag is used to install the package in "src/" in editable mode. This allows
-the package to be imported in other modules without needing to re-install the package.
+NOTE: Sourcing the script is recommended over simply executing the script. This allows
+the virtual environment to stay active in your shell.
 ```bash
-python -m venv .venv
-source .venv/bin/activate
-pip install -e '.[dev]'
+source scripts/bootstrap.sh
 ```
 
 ### Running the API
 
 To run the API locally, use the following command:
 ```bash
-./scripts/local_server.sh 8000
+./scripts/local_server.sh
 ```
 
 The API will be available at `http://localhost:8000`. Visit `http://localhost:8000/redocs` to view the API documentation.
@@ -47,6 +45,20 @@ pytest
 To run a single unit test, use the following command:
 ```bash
 pytest tests/unit/test_utils.py::test_bind_functions
+```
+
+### Running type checks
+
+To run type checks, use the following command:
+```bash
+mypy
+```
+
+### Running code formatting checks
+
+To run code formatting checks, use the following command:
+```bash
+ruff check
 ```
 
 For more information on developer workflows, see the [Developer Guide](docs/developer_guide.md).

@@ -31,6 +31,9 @@ temp/
 # ignore all files ending in .DS_Store
 **/.DS_Store
 
+# Project environment files
+.env
+
 # Python-Virtual Environments
 .venv
 .python-version
