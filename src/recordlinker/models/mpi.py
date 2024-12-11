@@ -127,6 +127,8 @@ class BlockingKey(enum.Enum):
     FIRST_NAME = ("FIRST_NAME", 5, "First 4 characters of the first name")
     LAST_NAME = ("LAST_NAME", 6, "First 4 characters of the last name")
     ADDRESS = ("ADDRESS", 7, "First 4 characters of the address")
+    PHONE = ("PHONE", 8, "Last 4 characters of the phone number")
+    EMAIL = ("EMAIL", 9, "First 4 characters of the email address")
 
     def __init__(self, value: str, _id: int, description: str):
         self._value = value

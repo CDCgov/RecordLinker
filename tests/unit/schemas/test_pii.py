@@ -233,7 +233,7 @@ class TestPIIRecord:
             ],
             telecom=[
                 pii.Telecom(value="555-123-4567"),
-                pii.Telecom(value="555-987-6543", system="phone"),
+                pii.Telecom(value="(555) 987-6543", system="phone"),
                 pii.Telecom(value="test@email.com", system="email"),
             ],
             drivers_license=pii.DriversLicense(value="D1234567", authority="VA"),
@@ -257,9 +257,11 @@ class TestPIIRecord:
         assert list(record.feature_iter(pii.Feature.GENDER)) == ["UNKNOWN"]
         assert list(record.feature_iter(pii.Feature.TELECOM)) == [
             "555-123-4567",
-            "555-987-6543",
+            "(555) 987-6543",
             "test@email.com",
         ]
+        assert list(record.feature_iter(pii.Feature.PHONE)) == ["5559876543"]
+        assert list(record.feature_iter(pii.Feature.EMAIL)) == ["test@email.com"]
         assert list(record.feature_iter(pii.Feature.SUFFIX)) == ["suffix", "suffix2"]
         assert list(record.feature_iter(pii.Feature.COUNTY)) == ["county"]
         assert list(record.feature_iter(pii.Feature.DRIVERS_LICENSE)) == ["D1234567|VA"]
@@ -365,6 +367,27 @@ class TestPIIRecord:
         assert rec.blocking_keys(BlockingKey.ADDRESS) == {"123 "}
         rec = pii.PIIRecord(**{"address": [{"line": ["123 Main St"]}, {"line": ["456 Elm St"]}]})
         assert rec.blocking_keys(BlockingKey.ADDRESS) == {"123 ", "456 "}
+
+    def test_blocking_keys_phone_last_four(self):
+        rec = pii.PIIRecord(**{"phone": "555-123-4567"})
+        assert rec.blocking_keys(BlockingKey.PHONE) == set()
+        rec = pii.PIIRecord(**{"telecom": [{"value": "(555) 123-4567", "system": "phone"}]})
+        assert rec.blocking_keys(BlockingKey.PHONE) == {"4567"}
+        rec = pii.PIIRecord(**{"telecom": [{"value": "555.123.4567", "system": "phone"}, {"value": "555-987-6543 ext 123", "system": "phone"}]})
+        assert rec.blocking_keys(BlockingKey.PHONE) == {"4567", "6543"}
+        rec = pii.PIIRecord(**{"telecom": [{"value": "555.123.4567", "system": "phone"}, {"value": "555-987-6543", "system": "fax"}]})
+        assert rec.blocking_keys(BlockingKey.PHONE) == {"4567"}
+
+    def test_blocking_keys_email_first_four(self):
+        rec = pii.PIIRecord(**{"email": "test123@email.com"})
+        assert rec.blocking_keys(BlockingKey.EMAIL) == set()
+        rec = pii.PIIRecord(**{"telecom": [{"value": "test123@email.com", "system": "email"}]})
+        assert rec.blocking_keys(BlockingKey.EMAIL) == {"test"}
+        rec = pii.PIIRecord(**{"telecom": [{"value": "test@email.com", "system": "email"}, {"value": "bob@email.com", "system": "email"}]})
+        assert rec.blocking_keys(BlockingKey.EMAIL) == {"test", "bob@"}
+        rec = pii.PIIRecord(**{"telecom": [{"value": "t@gmail.com", "system": "email"}, {"value": "bob@gmail.com", "system": "other"}]})
+        assert rec.blocking_keys(BlockingKey.EMAIL) == {"t@gm"}
+
 
     def test_blocking_values(self):
         rec = pii.PIIRecord(

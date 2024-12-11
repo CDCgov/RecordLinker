@@ -29,6 +29,8 @@ class Feature(enum.Enum):
     RACE = "RACE"
     GENDER = "GENDER"
     TELECOM = "TELECOM"
+    PHONE = "PHONE"
+    EMAIL = "EMAIL"
     SUFFIX = "SUFFIX"
     COUNTY = "COUNTY"
     DRIVERS_LICENSE = "DRIVERS_LICENSE"
@@ -141,6 +143,23 @@ class Telecom(pydantic.BaseModel):
     value: str
     system: typing.Optional[str] = None
     use: typing.Optional[str] = None
+
+    def phone_number(self) -> str | None:
+        """
+        Return the phone number from the telecom record.
+        """
+        if self.system != "phone":
+            return None
+        # normalize the number to include just the 10 digits
+        return re.sub(r"\D", "", self.value)[:10]
+
+    def email(self) -> str | None:
+        """
+        Return the email address from the telecom record.
+        """
+        if self.system != "email":
+            return None
+        return self.value
 
 
 class DriversLicense(pydantic.BaseModel):
@@ -362,6 +381,16 @@ class PIIRecord(pydantic.BaseModel):
             for telecom in self.telecom:
                 if telecom.value:
                     yield telecom.value
+        elif feature == Feature.PHONE:
+            for telecom in self.telecom:
+                number = telecom.phone_number()
+                if number:
+                    yield number
+        elif feature == Feature.EMAIL:
+            for telecom in self.telecom:
+                email = telecom.email()
+                if email:
+                    yield email
         elif feature == Feature.SUFFIX:
             for name in self.name:
                 for suffix in name.suffix:
@@ -402,6 +431,10 @@ class PIIRecord(pydantic.BaseModel):
             vals.update({x[:4] for x in self.feature_iter(Feature.LAST_NAME)})
         elif key == models.BlockingKey.ADDRESS:
             vals.update({x[:4] for x in self.feature_iter(Feature.ADDRESS)})
+        elif key == models.BlockingKey.PHONE:
+            vals.update({x[-4:] for x in self.feature_iter(Feature.PHONE)})
+        elif key == models.BlockingKey.EMAIL:
+            vals.update({x[:4] for x in self.feature_iter(Feature.EMAIL)})
 
         # if any vals are longer than the BLOCKING_KEY_MAX_LENGTH, raise an error
         if any(len(x) > models.BLOCKING_VALUE_MAX_LENGTH for x in vals):
