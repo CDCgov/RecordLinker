@@ -73,3 +73,6 @@ __pycache__/
 
 # Databases
 *.sqlite3
+
+# Test result files
+output.csv

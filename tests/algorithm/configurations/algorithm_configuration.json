@@ -1,0 +1,66 @@
+{
+    "label": "test-config",
+    "description": "test algorithm configuration",
+    "is_default": false,
+    "include_multiple_matches": true,
+    "belongingness_ratio": [0.75, 0.9],
+    "passes": [
+        {
+            "blocking_keys": [
+                "BIRTHDATE"
+            ],
+            "evaluators": [
+                    {
+                        "feature": "FIRST_NAME",
+                        "func": "func:recordlinker.linking.matchers.feature_match_fuzzy_string"
+                    },
+                    {
+                        "feature": "LAST_NAME",
+                        "func": "func:recordlinker.linking.matchers.feature_match_exact"
+                    }
+            ],
+            "rule": "func:recordlinker.linking.matchers.eval_perfect_match",
+            "cluster_ratio": 0.9,
+            "kwargs": {
+                "thresholds": {
+                    "FIRST_NAME": 0.9,
+                    "LAST_NAME": 0.9,
+                    "BIRTHDATE": 0.95,
+                    "ADDRESS": 0.9,
+                    "CITY": 0.92,
+                    "ZIP": 0.95
+                }
+            }
+        },
+        {
+            "blocking_keys": [
+                "ZIP",
+                "FIRST_NAME",
+                "LAST_NAME",
+                "SEX"
+            ],
+            "evaluators": [
+                    {
+                        "feature": "ADDRESS",
+                        "func": "func:recordlinker.linking.matchers.feature_match_fuzzy_string"
+                    },
+                    {
+                        "feature": "BIRTHDATE",
+                        "func": "func:recordlinker.linking.matchers.feature_match_exact"
+                    }
+            ],
+            "rule": "func:recordlinker.linking.matchers.eval_perfect_match",
+            "cluster_ratio": 0.9,
+            "kwargs": {
+                "thresholds": {
+                    "FIRST_NAME": 0.9,
+                    "LAST_NAME": 0.9,
+                    "BIRTHDATE": 0.95,
+                    "ADDRESS": 0.9,
+                    "CITY": 0.92,
+                    "ZIP": 0.95
+                }
+            }
+        }
+    ]
+}
