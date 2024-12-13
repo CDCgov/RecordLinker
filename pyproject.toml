@@ -27,7 +27,7 @@ dependencies = [
     "sqlalchemy",
     "rapidfuzz",
     # Observability
-    "python-json-logger",
+    "python-json-logger>=2.0.0,<3.0.0",
     "asgi-correlation-id",
     # Database drivers
     "psycopg2-binary",  # PostgreSQL
