@@ -1,6 +1,5 @@
 # Design
 
-This document provides an overview of the key database models involved in the Master Patient Index (MPI) system and explains how they interact to facilitate person linking via an algorithm.
 
 
 ## Linkage Algorithm
@@ -13,6 +12,8 @@ This document provides an overview of the key database models involved in the Ma
 
 
 ## MPI (Master Patient Index) Design
+
+An overview of the key database models involved in the Master Patient Index (MPI) system and explains how they interact to facilitate person linking via an algorithm.
 
 ### Key Models
 
