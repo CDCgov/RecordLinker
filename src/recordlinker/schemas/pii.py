@@ -8,6 +8,7 @@ import dateutil.parser
 import pydantic
 
 from recordlinker import models
+from recordlinker.schemas.identifier import Identifier, IdentifierType
 
 
 class FeatureAttribute(enum.Enum):
@@ -37,62 +38,7 @@ class FeatureAttribute(enum.Enum):
         """
         Return the value of the enum as a string.
         """
-        return self.value
-    
-class IdentifierType(enum.Enum):
-    """
-    Enum for the Race field.
-    """
-
-    SS = "SS"
-    MR = "MR"
-    DL = "DL"
-    # TODO: Add the rest
-
-    def __str__(self):
-        return self.value
-
-class Identifier(pydantic.BaseModel):
-    """
-    The schema for an Identifier record
-    """
-
-    model_config = pydantic.ConfigDict(extra="allow")
-
-    type: IdentifierType
-    value: str
-    authority: typing.Optional[str] = None
-
-    @pydantic.field_validator("type", mode="before")
-    def parse_type(cls, value):
-        """
-        Parse type string into an IdentifierType enum
-        """
-        if value:   
-            return IdentifierType(value)
-        return value
-
-    #TODO: should we even keep this in? Can't return none for value so what to return if bad formatted SSN?
-    @pydantic.field_validator("value", mode="before")
-    def parse_value(cls, value, values):
-        """
-        Parse the value string
-        """
-        if values.data.get("type") == IdentifierType.SS:           
-            val = str(value).strip()
-
-            if re.match(r"^\d{3}-\d{2}-\d{4}$", val):
-                return val
-
-            if len(val) != 9 or not val.isdigit():
-                return ''
-
-            # Format back to the standard SSN format (XXX-XX-XXXX)
-            formatted_ssn = f"{val[:3]}-{val[3:5]}-{val[5:]}"
-            return formatted_ssn
-        
-        return value
-    
+        return self.value    
 class Feature(pydantic.BaseModel):
     """
     The schema for a feature.
