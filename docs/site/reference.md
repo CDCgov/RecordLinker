@@ -83,9 +83,13 @@ linkage evaluation phase. The following features are supported:
 
 :   The patient's email address.
 
-`DRIVERS_LICENSE`
+`IDENTIFIER`
 
-:   The patient's driver's license number.
+:   The patient's identifier. This is a catch-all for all identifiers for the patient
+
+`IDENTIFIER:<type>`
+
+:   The patient's specific identifier type. For example, `IDENTIFIER:MRN` would be the patient's medical record number.
 
 
 ### Blocking Key Types
@@ -96,10 +100,6 @@ patient data and used during query retrieval. The following blocking key types a
 `BIRTHDATE` (ID: **1**)
 
 :   The patients birthdate in the format `YYYY-MM-DD`.
-
-`MRN` (ID: **2**)
-
-:   The last 4 characters of a patient's medical record number.
 
 `SEX` (ID: **3**)
 
@@ -128,6 +128,10 @@ patient data and used during query retrieval. The following blocking key types a
 `EMAIL` (ID: **9**)
 
 :   The first 4 characters of the patient's email address.
+
+`IDENTIFIER` (ID: **10**)
+
+:  The identifier triplet containing only the type, authority, and last 4 digits of the value
 
 
 ### Evaluation Functions
