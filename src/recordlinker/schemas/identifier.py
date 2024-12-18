@@ -1,7 +1,9 @@
-import re
 import enum
+import re
 import typing
+
 import pydantic
+
 
 class IdentifierType(enum.Enum):
     """
@@ -145,6 +147,9 @@ class IdentifierType(enum.Enum):
     XX = "XX"
 
     def __str__(self):
+        """
+        Return the value of the enum as a string.
+        """
         return self.value
 
 

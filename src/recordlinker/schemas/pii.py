@@ -8,7 +8,8 @@ import dateutil.parser
 import pydantic
 
 from recordlinker import models
-from recordlinker.schemas.identifier import Identifier, IdentifierType
+from recordlinker.schemas.identifier import Identifier
+from recordlinker.schemas.identifier import IdentifierType
 
 
 class FeatureAttribute(enum.Enum):
