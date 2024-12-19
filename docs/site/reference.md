@@ -26,7 +26,7 @@ linkage evaluation phase. The following features are supported:
 
 `BIRTHDATE`
 
-:   The patient's birthdate in the format `YYYY-MM-DD`.
+:   The patient's birthdate (normalized to `YYYY-MM-DD`).
 
 `MRN`
 
@@ -38,7 +38,7 @@ linkage evaluation phase. The following features are supported:
 
 `SEX`
 
-:   The patient's sex in the format of `M`, `F`, or `U` for unknown.
+:   The patient's sex (normalized to `M`, `F`, or `U` for unknown).
 
 `GENDER`
 
@@ -88,6 +88,14 @@ linkage evaluation phase. The following features are supported:
 
 :   The patient's phone, email, fax, or other contact information.
 
+`PHONE`
+
+:   The patient's phone number (normalized to 10 digits).
+
+`EMAIL`
+
+:   The patient's email address.
+
 `DRIVERS_LICENSE`
 
 :   The patient's driver's license number.
@@ -125,6 +133,14 @@ patient data and used during query retrieval. The following blocking key types a
 `ADDRESS` (ID: **7**)
 
 :   The first 4 characters of the patient's address.
+
+`PHONE` (ID: **8**)
+
+:   The last 4 digits of the patient's phone number.
+
+`EMAIL` (ID: **9**)
+
+:   The first 4 characters of the patient's email address.
 
 
 ### Evaluation Functions
