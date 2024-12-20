@@ -197,6 +197,46 @@ class TestCompare:
         #should fail as SS is different for both
         assert link.compare(rec, pat, algorithm_pass) is False
 
+    def test_compare_invalid_feature(self):
+        rec = schemas.PIIRecord(
+            **{
+                "name": [
+                    {
+                        "given": [
+                            "John",
+                        ],
+                        "family": "Doe",
+                    }
+                ]
+            }
+        )
+        pat = models.Patient(
+            data={
+                "name": [
+                    {
+                        "given": [
+                            "John",
+                        ],
+                        "family": "Doey",
+                    }
+                ]
+            }
+        )
+
+        algorithm_pass = models.AlgorithmPass(
+            id=1,
+            algorithm_id=1,
+            blocking_keys=[1],
+            evaluators=[
+                {"feature": "FIRST_NAME:DL", "func": "func:recordlinker.linking.matchers.compare_match_all"},
+            ],
+            rule="func:recordlinker.linking.matchers.rule_match",
+            kwargs={},
+        )
+
+        with pytest.raises(ValueError):
+            link.compare(rec, pat, algorithm_pass)
+
 
 class TestLinkRecordAgainstMpi:
     # TODO: Add test case for last name O'Neil

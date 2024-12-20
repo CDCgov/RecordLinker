@@ -63,20 +63,17 @@ class Feature(pydantic.BaseModel):
         """
         # Split the feature string on ":"
         parts = feature_string.split(":", 1)
+        feature_attribute = FeatureAttribute(parts[0])
 
         if len(parts) == 1:
-            # If no suffix is provided, set only the attribute
-            attribute = FeatureAttribute(parts[0])
-            return cls(attribute=attribute)
+            return cls(attribute=feature_attribute)
 
-        # If a suffix is provided, parse both parts
-        attribute = FeatureAttribute(parts[0])
-        try:
-            suffix = IdentifierType(parts[1])
-        except ValueError:
-            raise ValueError(f"Invalid suffix '{parts[1]}' for feature '{parts[0]}'")
+        # If suffix is provided, ensure the attribute is IDENTIFIER and validate the suffix
+        if feature_attribute != FeatureAttribute.IDENTIFIER:
+            raise ValueError(f"Suffix is not allowed for attribute '{feature_attribute}'")
 
-        return cls(attribute=attribute, suffix=suffix)
+        feature_suffix = IdentifierType(parts[1])
+        return cls(attribute=feature_attribute, suffix=feature_suffix)
 
 
 class Sex(enum.Enum):
