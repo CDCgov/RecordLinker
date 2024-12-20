@@ -136,7 +136,7 @@ class TestPIIRecord:
         record = pii.PIIRecord(identifiers=[pii.Identifier(type="SS", value="123456789")])
         assert record.identifiers[0].value == "123-45-6789"
         record = pii.PIIRecord(identifiers=[pii.Identifier(type="SS", value="1-2-3")])
-        assert record.identifiers[0].value is ''
+        assert record.identifiers[0].value == ''
         record = pii.PIIRecord()
         assert record.identifiers == []
 

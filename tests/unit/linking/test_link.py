@@ -8,7 +8,6 @@ This module contains the unit tests for the recordlinker.linking.link module.
 import collections
 import copy
 import uuid
-import json
 
 import pytest
 from conftest import load_test_json_asset

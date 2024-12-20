@@ -10,7 +10,6 @@ import pytest
 
 from recordlinker.schemas.algorithm import Algorithm
 from recordlinker.schemas.algorithm import AlgorithmPass
-from recordlinker.schemas.pii import Feature
 
 
 class TestAlgorithmPass:
