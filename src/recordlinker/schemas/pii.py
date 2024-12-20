@@ -333,7 +333,7 @@ class PIIRecord(pydantic.BaseModel):
             raise ValueError(f"Invalid feature: {feature}")
         
         attribute = feature.attribute
-        suffix = feature.suffix
+        identifier_suffix = feature.suffix
 
         if attribute == FeatureAttribute.BIRTHDATE:
             if self.birth_date:
@@ -405,12 +405,12 @@ class PIIRecord(pydantic.BaseModel):
                 if address.county:
                     yield address.county
         elif attribute == FeatureAttribute.IDENTIFIER:
-            if suffix is None:
+            if identifier_suffix is None:
                 for identifier in self.identifiers:
                     yield f"{identifier.type}:{identifier.authority or ''}:{identifier.value}"
             else:
                 for identifier in self.identifiers:
-                    if identifier.type == suffix:
+                    if identifier.type == identifier_suffix:
                         yield f"{identifier.type}:{identifier.authority or ''}:{identifier.value}"
 
     def blocking_keys(self, key: models.BlockingKey) -> set[str]:
