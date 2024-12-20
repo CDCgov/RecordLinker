@@ -169,17 +169,18 @@ class Identifier(pydantic.BaseModel):
         """
         Parse type string into an IdentifierType enum
         """
-        if value:   
+        if value: 
             return IdentifierType(value)
         return value
 
     #TODO: should we even keep this in? Can't return none for value so what to return if bad formatted SSN?
     @pydantic.field_validator("value", mode="before")
-    def parse_value(cls, value, values):
+    def parse_value(cls, value, info):
         """
         Parse the value string
         """
-        if values.data.get("type") == IdentifierType.SS:           
+        identifier_type = info.data["type"]
+        if identifier_type == IdentifierType.SS:        
             val = str(value).strip()
 
             if re.match(r"^\d{3}-\d{2}-\d{4}$", val):
