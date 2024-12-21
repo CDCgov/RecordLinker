@@ -180,7 +180,7 @@ class Identifier(pydantic.BaseModel):
         Parse the value string
         """
         identifier_type = info.data["type"]
-        if identifier_type == IdentifierType.SS:        
+        if identifier_type == IdentifierType.SS:       
             val = str(value).strip()
 
             if re.match(r"^\d{3}-\d{2}-\d{4}$", val):
