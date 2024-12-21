@@ -98,6 +98,145 @@ class TestCompare:
 
         assert link.compare(rec, pat, algorithm_pass) is False
 
+    def test_compare_identifier_match(self):
+        rec = schemas.PIIRecord(
+            **{
+                "identifiers": [
+                    {
+                        "type": "MR",
+                        "authority": "CA",
+                        "value": "123456789"
+                    },
+                    {
+                        "type": "SS",
+                        "authority": "VA",
+                        "value": "987-65-4321"
+                    }
+                ]
+            }
+        )
+        pat = models.Patient(
+            data={
+                "identifiers": [
+                    {
+                        "type": "MR",
+                        "authority": "CA",
+                        "value": "123456789"
+                    },
+                    {
+                        "type": "SS",
+                        "authority": "VA",
+                        "value": "987-65-4321"
+                    }
+                ]
+            }
+        )
+
+        algorithm_pass = models.AlgorithmPass(
+            id=1,
+            algorithm_id=1,
+            blocking_keys=[1],
+            evaluators=[
+                {"feature": "IDENTIFIER", "func": "func:recordlinker.linking.matchers.compare_match_all"},
+            ],
+            rule="func:recordlinker.linking.matchers.rule_match",
+            kwargs={},
+        )
+
+        assert link.compare(rec, pat, algorithm_pass) is True
+
+    def test_compare_identifier_with_suffix(self):
+        rec = schemas.PIIRecord(
+            **{
+                "identifiers": [
+                    {
+                        "type": "MR",
+                        "authority": "CA",
+                        "value": "123456789"
+                    },
+                    {
+                        "type": "SS",
+                        "authority": "VA",
+                        "value": "111-11-1111"
+                    }
+                ]
+            }
+        )
+        pat = models.Patient(
+            data={
+                "identifiers": [
+                    {
+                        "type": "MR",
+                        "authority": "CA",
+                        "value": "123456789"
+                    },
+                    {
+                        "type": "SS",
+                        "authority": "VA",
+                        "value": "987-65-4321"
+                    }
+                ]
+            }
+        )
+
+        algorithm_pass = models.AlgorithmPass(
+            id=1,
+            algorithm_id=1,
+            blocking_keys=[1],
+            evaluators=[
+                {"feature": "IDENTIFIER:MR", "func": "func:recordlinker.linking.matchers.compare_match_all"},
+            ],
+            rule="func:recordlinker.linking.matchers.rule_match",
+            kwargs={},
+        )
+
+        #should pass as MR is the same for both
+        assert link.compare(rec, pat, algorithm_pass) is True
+
+        algorithm_pass.evaluators = [{"feature": "IDENTIFIER:SS", "func": "func:recordlinker.linking.matchers.compare_match_all"}]
+        #should fail as SS is different for both
+        assert link.compare(rec, pat, algorithm_pass) is False
+
+    def test_compare_invalid_feature(self):
+        rec = schemas.PIIRecord(
+            **{
+                "name": [
+                    {
+                        "given": [
+                            "John",
+                        ],
+                        "family": "Doe",
+                    }
+                ]
+            }
+        )
+        pat = models.Patient(
+            data={
+                "name": [
+                    {
+                        "given": [
+                            "John",
+                        ],
+                        "family": "Doey",
+                    }
+                ]
+            }
+        )
+
+        algorithm_pass = models.AlgorithmPass(
+            id=1,
+            algorithm_id=1,
+            blocking_keys=[1],
+            evaluators=[
+                {"feature": "FIRST_NAME:DL", "func": "func:recordlinker.linking.matchers.compare_match_all"},
+            ],
+            rule="func:recordlinker.linking.matchers.rule_match",
+            kwargs={},
+        )
+
+        with pytest.raises(ValueError):
+            link.compare(rec, pat, algorithm_pass)
+
 
 class TestLinkRecordAgainstMpi:
     # TODO: Add test case for last name O'Neil
@@ -141,6 +280,7 @@ class TestLinkRecordAgainstMpi:
                 patients.append(fhir.fhir_record_to_pii_record(entry["resource"]))
         return patients
 
+    #TODO: change the initial algorithms (basic and enhanced) to reflect new IDENTIFIER changes
     def test_basic_match_one(self, session, basic_algorithm, patients):
         # Test various null data values in incoming record
         matches: list[bool] = []

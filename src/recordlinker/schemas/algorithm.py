@@ -13,7 +13,6 @@ from typing_extensions import Annotated
 
 from recordlinker.linking import matchers
 from recordlinker.models.mpi import BlockingKey
-from recordlinker.schemas.pii import Feature
 
 
 class Evaluator(pydantic.BaseModel):
@@ -23,9 +22,8 @@ class Evaluator(pydantic.BaseModel):
 
     model_config = pydantic.ConfigDict(from_attributes=True, use_enum_values=True)
 
-    feature: Feature
+    feature: str
     func: matchers.FeatureFunc
-
 
 class AlgorithmPass(pydantic.BaseModel):
     """
