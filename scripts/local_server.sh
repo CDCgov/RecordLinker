@@ -13,5 +13,7 @@ cd "$(dirname "$0")/.."
 
 PORT=${1:-8000}
 
-# Start the API server
-uvicorn recordlinker.main:app --reload --reload-dir src/ --port ${PORT}
+# Start the API server, reloading the server with the source code changes.
+# Also specify the app directory to run the server based off the source code
+# and not whats been installed into the virtual environment.
+uvicorn recordlinker.main:app --reload --app-dir src/ --reload-dir src/ --port ${PORT}
