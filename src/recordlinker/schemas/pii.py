@@ -40,6 +40,7 @@ class FeatureAttribute(enum.Enum):
         Return the value of the enum as a string.
         """
         return self.value    
+    
 class Feature(pydantic.BaseModel):
     """
     The schema for a feature.
@@ -74,7 +75,17 @@ class Feature(pydantic.BaseModel):
 
         feature_suffix = IdentifierType(parts[1])
         return cls(attribute=feature_attribute, suffix=feature_suffix)
-
+    
+def all_features() -> typing.Iterator[str]:
+    """
+    Return a list of all possible features that can be used for comparison.
+    """
+    for feature in FeatureAttribute:
+        yield str(feature)
+        if feature == FeatureAttribute.IDENTIFIER:
+            for identifier in IdentifierType:
+                yield f"{feature}:{identifier}"
+FeatureEnum = enum.Enum("FeatureEnum", [(f, f) for f in all_features()])
 
 class Sex(enum.Enum):
     """
@@ -405,7 +416,7 @@ class PIIRecord(pydantic.BaseModel):
             for identifier in self.identifiers:
                 if identifier_suffix is None or identifier_suffix == identifier.type:
                     yield f"{identifier.type}:{identifier.authority or ''}:{identifier.value}"
-                    
+
     def blocking_keys(self, key: models.BlockingKey) -> set[str]:
         """
         For a particular Feature, return a set of all possible Blocking Key values
