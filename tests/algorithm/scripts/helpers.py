@@ -9,7 +9,7 @@ def dict_to_pii(record_data) -> dict | None:
         "sex": record_data.get("GENDER", None),
         "address": [
             {
-                "line": [record_data.get("ADDRESS", None)],
+                "line": record_data["ADDRESS"].split(",") if "ADDRESS" in record_data else [],
                 "city": record_data.get("CITY", None),
                 "state": record_data.get("STATE", None),
                 "county": record_data.get("COUNTY", None),
