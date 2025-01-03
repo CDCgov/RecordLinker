@@ -76,16 +76,17 @@ class Feature(pydantic.BaseModel):
         feature_suffix = IdentifierType(parts[1])
         return cls(attribute=feature_attribute, suffix=feature_suffix)
     
-def all_features() -> typing.Iterator[str]:
+
+def all_features() -> list[tuple[str, str]]:
     """
     Return a list of all possible features that can be used for comparison.
+    Each feature is represented as a tuple of (name, value).
     """
-    for feature in FeatureAttribute:
-        yield str(feature)
-        if feature == FeatureAttribute.IDENTIFIER:
-            for identifier in IdentifierType:
-                yield f"{feature}:{identifier}"
-FeatureEnum = enum.Enum("FeatureEnum", [(f, f) for f in list(all_features())])
+    features = [(str(feature), str(feature)) for feature in FeatureAttribute]
+    for identifier in IdentifierType:
+        features.append((f"{FeatureAttribute.IDENTIFIER}:{identifier}", f"{FeatureAttribute.IDENTIFIER}:{identifier}"))
+    return features
+FeatureEnum = enum.Enum("FeatureEnum", all_features())
 
 class Sex(enum.Enum):
     """
