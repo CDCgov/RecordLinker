@@ -175,7 +175,7 @@ class Identifier(pydantic.BaseModel):
 
     #TODO: should we even keep this in? Can't return none for value so what to return if bad formatted SSN?
     @pydantic.field_validator("value", mode="before")
-    def parse_value(cls, value, info):
+    def parse_value(cls, value: str, info: ValidatorInfo):
         """
         Parse the value string
         """
