@@ -4,7 +4,6 @@ import typing
 
 import pydantic
 
-
 class IdentifierType(enum.Enum):
     """
     Enum for various identifier types.
@@ -175,7 +174,7 @@ class Identifier(pydantic.BaseModel):
 
     #TODO: should we even keep this in? Can't return none for value so what to return if bad formatted SSN?
     @pydantic.field_validator("value", mode="before")
-    def parse_value(cls, value: str, info: ValidatorInfo):
+    def parse_value(cls, value: str, info: pydantic.ValidationInfo):
         """
         Parse the value string
         """
