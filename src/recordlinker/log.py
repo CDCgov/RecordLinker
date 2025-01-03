@@ -3,12 +3,13 @@ import json
 import logging
 import typing
 
-import pythonjsonlogger.jsonlogger
+import pythonjsonlogger.core
+import pythonjsonlogger.json
 
 from recordlinker import config
 from recordlinker import splunk
 
-RESERVED_ATTRS = pythonjsonlogger.jsonlogger.RESERVED_ATTRS + ("taskName",)
+RESERVED_ATTRS = pythonjsonlogger.core.RESERVED_ATTRS + ["taskName"]
 
 
 # Custom filter to transform log arguments into JSON fields
@@ -35,7 +36,7 @@ class KeyValueFilter(logging.Filter):
         return True
 
 
-class JSONFormatter(pythonjsonlogger.jsonlogger.JsonFormatter):
+class JSONFormatter(pythonjsonlogger.json.JsonFormatter):
     """
     A custom JSON formatter that excldues the taskName field by default.
     """
@@ -43,7 +44,7 @@ class JSONFormatter(pythonjsonlogger.jsonlogger.JsonFormatter):
     def __init__(
         self,
         *args: typing.Any,
-        reserved_attrs: tuple[str, ...] = RESERVED_ATTRS,
+        reserved_attrs: typing.Sequence[str] = RESERVED_ATTRS,
         **kwargs: typing.Any,
     ):
         super().__init__(*args, reserved_attrs=reserved_attrs, **kwargs)
