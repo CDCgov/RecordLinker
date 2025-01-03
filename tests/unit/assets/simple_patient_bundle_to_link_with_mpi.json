@@ -118,7 +118,7 @@
             "type": {
               "coding": [
                 {
-                  "code": "SSN",
+                  "code": "SS",
                   "system": "http://terminology.hl7.org/CodeSystem/v2-0203",
                   "display": "Social security number"
                 }
