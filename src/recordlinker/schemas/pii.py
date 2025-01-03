@@ -51,7 +51,7 @@ class Feature(pydantic.BaseModel):
     attribute: FeatureAttribute
 
     @classmethod
-    def parse(cls, feature_string: str) -> "Feature":
+    def parse(cls, feature_string: str) -> typing.Self:
         """
         Parse a feature string in the format 'FEATURE_ATTRIBUTE:SUFFIX' into a Feature object.
 
