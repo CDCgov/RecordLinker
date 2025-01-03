@@ -179,6 +179,7 @@ class Identifier(pydantic.BaseModel):
         """
         Parse the value string
         """
+        # NOTE: Define "type" before "value" in the field definitions to guarentee that it will be available here.
         identifier_type = info.data["type"]
         if identifier_type == IdentifierType.SS:       
             val = str(value).strip()
