@@ -229,7 +229,7 @@ class PIIRecord(pydantic.BaseModel):
         obj.address = [Address.model_construct(**a) for a in values.get("address", [])]
         obj.name = [Name.model_construct(**n) for n in values.get("name", [])]
         obj.telecom = [Telecom.model_construct(**t) for t in values.get("telecom", [])]
-        obj.identifiers = [Identifier(**i) for i in values.get("identifiers", [])]
+        obj.identifiers = [Identifier.model_construct(**i) for i in values.get("identifiers", [])]
         
         return obj
 

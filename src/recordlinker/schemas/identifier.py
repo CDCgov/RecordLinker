@@ -164,6 +164,16 @@ class Identifier(pydantic.BaseModel):
     value: str
     authority: typing.Optional[str] = None
 
+    @classmethod
+    def model_construct(
+        cls, _fields_set: set[str] | None = None, **values: typing.Any
+    ) -> typing.Self:
+        """
+        Construct a new instance of the Identifier model
+        """
+        values["type"] = IdentifierType(values["type"])
+        return super().model_construct(_fields_set=_fields_set, **values)
+
     @pydantic.field_validator("type", mode="before")
     def parse_type(cls, value):
         """

@@ -45,7 +45,6 @@ def fhir_record_to_pii_record(fhir_record: dict) -> schemas.PIIRecord:
                 "type": code.get("code"),
                 "authority": identifier.get("assigner", {}).get("identifier", {}).get("value", ""),
             })
-            break   # Sholdn't be more than 1 code
     for address in val["address"]:
         address["county"] = address.get("district", "")
         for extension in address.get("extension", []):
