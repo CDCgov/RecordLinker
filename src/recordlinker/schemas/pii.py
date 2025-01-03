@@ -75,18 +75,39 @@ class Feature(pydantic.BaseModel):
 
         feature_suffix = IdentifierType(parts[1])
         return cls(attribute=feature_attribute, suffix=feature_suffix)
-    
 
-def all_features() -> list[tuple[str, str]]:
+class FeatureEnum(enum.Enum):
     """
-    Return a list of all possible features that can be used for comparison.
-    Each feature is represented as a tuple of (name, value).
+    Enum that represents all the Feature values that can be used. 
+    Mainly used for API docs
     """
-    features = [(str(feature), str(feature)) for feature in FeatureAttribute]
-    for identifier in IdentifierType:
-        features.append((f"{FeatureAttribute.IDENTIFIER}:{identifier}", f"{FeatureAttribute.IDENTIFIER}:{identifier}"))
-    return features
-FeatureEnum = enum.Enum("FeatureEnum", all_features())
+
+    @classmethod
+    def add_all_features(cls):
+        """
+        Add all possible features to the FeatureEnum.
+        """
+        # Create a dictionary of feature names and values
+        features = {}
+
+        # Add FeatureAttribute values to the enum
+        for feature in FeatureAttribute:
+            features[str(feature)] = str(feature)
+
+        # Add IdentifierType values prefixed with FeatureAttribute.IDENTIFIER
+        for identifier in IdentifierType:
+            features[f"{FeatureAttribute.IDENTIFIER.value}:{identifier.value}"] = f"{FeatureAttribute.IDENTIFIER.value}:{identifier.value}"
+
+        # Dynamically add the features to the enum class
+        for name, value in features.items():
+            print("adding...", name)
+            setattr(cls, name, value)
+
+    def __str__(self):
+        """
+        Return the value of the enum as a string.
+        """
+        return self.value
 
 class Sex(enum.Enum):
     """
