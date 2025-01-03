@@ -100,7 +100,6 @@ class FeatureEnum(enum.Enum):
 
         # Dynamically add the features to the enum class
         for name, value in features.items():
-            print("adding...", name)
             setattr(cls, name, value)
 
     def __str__(self):
