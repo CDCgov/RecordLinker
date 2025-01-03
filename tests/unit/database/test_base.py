@@ -4,7 +4,7 @@ unit.database.test_base.py
 
 This module contains the unit tests for the recordlinker.database module.
 """
-
+import os
 import unittest.mock
 
 from recordlinker.config import settings
@@ -29,3 +29,7 @@ def test_create_sessionmaker():
         assert session.bind.pool.size() == 10
         assert session.bind.pool._max_overflow == 20
     settings.__init__()
+    try:
+        os.remove("test.db")
+    except FileNotFoundError:
+        pass
