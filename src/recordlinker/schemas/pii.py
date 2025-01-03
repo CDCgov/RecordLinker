@@ -402,14 +402,10 @@ class PIIRecord(pydantic.BaseModel):
                 if address.county:
                     yield address.county
         elif attribute == FeatureAttribute.IDENTIFIER:
-            if identifier_suffix is None:
-                for identifier in self.identifiers:
+            for identifier in self.identifiers:
+                if identifier_suffix is None or identifier_suffix == identifier.type:
                     yield f"{identifier.type}:{identifier.authority or ''}:{identifier.value}"
-            else:
-                for identifier in self.identifiers:
-                    if identifier.type == identifier_suffix:
-                        yield f"{identifier.type}:{identifier.authority or ''}:{identifier.value}"
-
+                    
     def blocking_keys(self, key: models.BlockingKey) -> set[str]:
         """
         For a particular Feature, return a set of all possible Blocking Key values
