@@ -85,7 +85,7 @@ def all_features() -> typing.Iterator[str]:
         if feature == FeatureAttribute.IDENTIFIER:
             for identifier in IdentifierType:
                 yield f"{feature}:{identifier}"
-FeatureEnum = enum.Enum("FeatureEnum", [(f, f) for f in all_features()])
+FeatureEnum = enum.Enum("FeatureEnum", [(f, f) for f in list(all_features())])
 
 class Sex(enum.Enum):
     """
