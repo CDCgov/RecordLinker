@@ -4,6 +4,7 @@ import typing
 
 import pydantic
 
+
 class IdentifierType(enum.Enum):
     """
     Enum for various identifier types.
