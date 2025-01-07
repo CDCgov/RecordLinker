@@ -59,17 +59,14 @@ class LinkResult(pydantic.BaseModel):
         return data
 
 
-class LinkResponse(pydantic.BaseModel):
+class MatchResponse(pydantic.BaseModel):
     """
-    Schema for responses from the link endpoint.
+    Schema for responses from the match endpoint.
     """
 
     prediction: Prediction
-    patient_reference_id: uuid.UUID = pydantic.Field(
-        description="The unique identifier for the patient that has been linked."
-    )
     person_reference_id: uuid.UUID | None = pydantic.Field(
-        description="The identifier for the person that the patient record has been linked to."
+        description="The identifier for the person that the patient record has been matched to."
         ' If prediction="possible_match", this value will be null.'
     )
     results: list[LinkResult] = pydantic.Field(
@@ -77,6 +74,16 @@ class LinkResponse(pydantic.BaseModel):
         "(include_multiple_matches=False) or multiple (include_multiple_matches=True) "
         "Persons with which the Patient record matches. If prediction='possible_match',"
         "all Persons with which the Patient record possibly matches."
+    )
+
+
+class LinkResponse(MatchResponse):
+    """
+    Schema for responses from the link endpoint.
+    """
+
+    patient_reference_id: uuid.UUID = pydantic.Field(
+        description="The unique identifier for the patient that has been linked."
     )
 
 
@@ -98,6 +105,19 @@ class LinkFhirInput(pydantic.BaseModel):
         description="The External Identifier, provided by the client,"
         " for a unique patient/person that is linked to patient(s)",
         default=None,
+    )
+
+
+class MatchFhirResponse(MatchResponse):
+    """
+    The schema for responses from the match FHIR endpoint.
+    """
+
+    updated_bundle: dict | None = pydantic.Field(
+        description="If 'prediction' is 'match', returns the FHIR bundle with updated"
+        " references to existing Person resource. If 'prediction' is 'no_match', "
+        "returns the FHIR bundle with a reference to a newly created "
+        "Person resource. If 'prediction' is 'possible_match', returns null."
     )
 
 

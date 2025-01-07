@@ -6,6 +6,8 @@ from .link import LinkFhirResponse
 from .link import LinkInput
 from .link import LinkResponse
 from .link import LinkResult
+from .link import MatchFhirResponse
+from .link import MatchResponse
 from .link import Prediction
 from .mpi import PatientPersonRef
 from .mpi import PatientRef
@@ -26,9 +28,11 @@ __all__ = [
     "Prediction",
     "LinkInput",
     "LinkResponse",
+    "MatchResponse",
     "LinkResult",
     "LinkFhirInput",
     "LinkFhirResponse",
+    "MatchFhirResponse",
     "PersonRef",
     "PatientRef",
     "PatientPersonRef",
