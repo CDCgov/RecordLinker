@@ -123,7 +123,6 @@ def link_fhir(
     )
 
 
-# TODO: test cases
 @router.post("/match", summary="Match Record")
 def match_piirecord(
     request: fastapi.Request,
@@ -143,6 +142,7 @@ def match_piirecord(
         external_person_id=input.external_person_id,
         persist=False,
     )
+    assert patient is None, "Patient should not have been created"
     return schemas.MatchResponse(
         prediction=prediction,
         person_reference_id=(person and person.reference_id),
@@ -150,7 +150,6 @@ def match_piirecord(
     )
 
 
-# TODO: test cases
 @router.post("/match/fhir", summary="Match FHIR")
 def match_fhir(
     request: fastapi.Request,
@@ -171,6 +170,7 @@ def match_fhir(
         external_person_id=input.external_person_id,
         persist=False,
     )
+    assert patient is None, "Patient should not have been created"
     return schemas.MatchFhirResponse(
         prediction=prediction,
         person_reference_id=(person and person.reference_id),
