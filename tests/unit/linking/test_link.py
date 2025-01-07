@@ -308,16 +308,22 @@ class TestLinkRecordAgainstMpi:
         # First patient inserted into MPI, no match
         first = patients[0]
         (pat1, per1, results, prediction) = link.link_record_against_mpi(first, session, basic_algorithm, persist=True)
+        assert prediction == "no_match"
         assert pat1 is not None
         assert per1 is not None
         assert not results
-        assert prediction == "no_match"
         # Second patient not inserted into MPI, match first person
         second = patients[1]
         (pat2, per2, results, prediction) = link.link_record_against_mpi(second, session, basic_algorithm, persist=False)
+        assert prediction == "match"
         assert pat2 is None
         assert per2 is not None
         assert per2.reference_id == per1.reference_id
         assert results
-        assert prediction == "match"
-
+        # Third patient not inserted into MPI, no match
+        third = patients[2]
+        (pat3, per3, results, prediction) = link.link_record_against_mpi(third, session, basic_algorithm, persist=False)
+        assert prediction == "no_match"
+        assert pat3 is None
+        assert per3 is None
+        assert not results
