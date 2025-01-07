@@ -70,7 +70,8 @@ def link_record_against_mpi(
     session: orm.Session,
     algorithm: models.Algorithm,
     external_person_id: typing.Optional[str] = None,
-) -> tuple[models.Patient, models.Person | None, list[LinkResult], schemas.Prediction]:
+    persist: bool = True,
+) -> tuple[models.Patient | None, models.Person | None, list[LinkResult], schemas.Prediction]:
     """
     Runs record linkage on a single incoming record (extracted from a FHIR
     bundle) using an existing database as an MPI. Uses a flexible algorithm
@@ -85,6 +86,8 @@ def link_record_against_mpi(
       other records in the MPI.
     :param session: The SQLAlchemy session to use for database operations.
     :param algorithm: An algorithm configuration object
+    :param external_person_id: An optional external identifier for the person
+    :param persist: Whether to save the new patient record to the database
     :returns: A tuple consisting of a boolean indicating whether a match
       was found for the new record in the MPI, followed by the ID of the
       Person entity now associated with the incoming patient (either a
@@ -111,31 +114,31 @@ def link_record_against_mpi(
             with TRACER.start_as_current_span("link.block"):
                 # get all candidate Patient records identified in blocking
                 # and the remaining Patient records in their Person clusters
-                patients = mpi_service.get_block_data(session, record, algorithm_pass)
-                for patient in patients:
-                    clusters[patient.person].append(patient)
+                pats = mpi_service.get_block_data(session, record, algorithm_pass)
+                for pat in pats:
+                    clusters[pat.person].append(pat)
 
             # evaluate each Person cluster to see if the incoming record is a match
             with TRACER.start_as_current_span("link.evaluate"):
-                for person, patients in clusters.items():
-                    assert patients, "Patient cluster should not be empty"
+                for person, pats in clusters.items():
+                    assert pats, "Patient cluster should not be empty"
                     matched_count = 0
-                    for patient in patients:
+                    for pat in pats:
                         # increment our match count if the pii_record matches the patient
                         with TRACER.start_as_current_span("link.compare"):
-                            if compare(record, patient, algorithm_pass):
+                            if compare(record, pat, algorithm_pass):
                                 matched_count += 1
                     result_counts["persons_compared"] += 1
-                    result_counts["patients_compared"] += len(patients)
+                    result_counts["patients_compared"] += len(pats)
                     # calculate the match ratio for this person cluster
-                    belongingness_ratio = matched_count / len(patients)
+                    belongingness_ratio = matched_count / len(pats)
                     LOGGER.info(
                         "cluster belongingness",
                         extra={
                             "belongingness_ratio": belongingness_ratio,
                             "person.reference_id": str(person.reference_id),
                             "matched": matched_count,
-                            "total": len(patients),
+                            "total": len(pats),
                             "algorithm.belongingness_ratio_lower": belongingness_ratio_lower_bound,
                             "algorithm.belongingness_ratio_upper": belongingness_ratio_upper_bound,
                         },
@@ -166,16 +169,23 @@ def link_record_against_mpi(
             # reduce results to only the highest match
             results = [results[0]]
 
-    with TRACER.start_as_current_span("insert"):
-        patient = mpi_service.insert_patient(
-            session, record, matched_person, record.external_id, external_person_id, commit=False
-        )
+    patient: typing.Optional[models.Patient] = None
+    if persist:
+        with TRACER.start_as_current_span("insert"):
+            patient = mpi_service.insert_patient(
+                session,
+                record,
+                matched_person,
+                record.external_id,
+                external_person_id,
+                commit=False,
+            )
 
     LOGGER.info(
         "link results",
         extra={
             "person.reference_id": matched_person and str(matched_person.reference_id),
-            "patient.reference_id": str(patient.reference_id),
+            "patient.reference_id": patient and str(patient.reference_id),
             "result.prediction": prediction,
             "result.count_patients_compared": result_counts["patients_compared"],
             "result.count_persons_above_lower": result_counts["above_lower_bound"],
@@ -184,4 +194,4 @@ def link_record_against_mpi(
     )
 
     # return a tuple indicating whether a match was found and the person ID
-    return (patient, patient.person, results, prediction)
+    return (patient, matched_person, results, prediction)
