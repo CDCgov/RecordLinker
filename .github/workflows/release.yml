@@ -125,7 +125,7 @@ jobs:
           echo "Next tag: $next_tag"
           echo "NEXT_TAG=$next_tag" >> $GITHUB_ENV
           # If the tag ends in -rc.*, then its a draft release
-          draft=$([[ "${{ env.NEXT_TAG }}" =~ -rc\.[0-9]+$ ]] && echo true || echo false)
+          draft=$([[ "${{ env.NEXT_TAG }}" =~ -rc\.[0-9]+$ ]] && echo false || echo true)
           echo "Draft release: $draft"
           echo "DRAFT=$draft" >> $GITHUB_ENV
 
@@ -149,18 +149,6 @@ jobs:
 
       - name: Create the release
         run: |
-          curl -s -X POST \
-            -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
-            -H "Accept: application/vnd.github+json" \
-            -d @- "https://api.github.com/repos/${{ github.repository }}/releases" <<EOF
-          {
-            "tag_name": "${{ env.NEXT_TAG }}",
-            "target_commitish": "main",
-            "name": "${{ env.NEXT_TAG }}",
-            "generate_release_notes": true,
-            "draft": ${{ env.DRAFT }}
-          }
-          EOF
           # Create a new release
           response=$(curl --fail -s -X POST \
             -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
