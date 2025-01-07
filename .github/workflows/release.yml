@@ -158,7 +158,7 @@ jobs:
             "target_commitish": "main",
             "name": "${{ env.NEXT_TAG }}",
             "generate_release_notes": true,
-            "draft": "${{ env.DRAFT }}",
+            "draft": ${{ env.DRAFT }}
           }
           EOF
           )
