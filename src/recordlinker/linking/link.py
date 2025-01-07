@@ -157,7 +157,9 @@ def link_record_against_mpi(
     if not results:
         # No match
         prediction = "no_match"
-        matched_person = models.Person()  # Create new Person Cluster
+        if persist:
+            # Only create a new person cluster if we are persisting data
+            matched_person = models.Person()
     elif results[0].belongingness_ratio >= belongingness_ratio_upper_bound:
         # Match (1 or many)
         prediction = "match"

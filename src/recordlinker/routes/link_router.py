@@ -123,7 +123,8 @@ def link_fhir(
     )
 
 
-@router.post("/match", summary="Match Record without saving the incoming record")
+# TODO: test cases
+@router.post("/match", summary="Match Record")
 def match_piirecord(
     request: fastapi.Request,
     input: typing.Annotated[schemas.LinkInput, fastapi.Body()],
@@ -131,9 +132,7 @@ def match_piirecord(
     db_session: orm.Session = fastapi.Depends(get_session),
 ) -> schemas.MatchResponse:
     """
-    Compare a PII Record with records in the Master Patient Index (MPI) to
-    check for matches with existing patient records If matches are found,
-    returns the patient and person reference id's
+    Similar to the /link endpoint, but does not save the incoming data.
     """
     algorithm: models.Algorithm = algorithm_or_422(db_session, input.algorithm)
 
@@ -142,7 +141,7 @@ def match_piirecord(
         session=db_session,
         algorithm=algorithm,
         external_person_id=input.external_person_id,
-        persist=True,
+        persist=False,
     )
     return schemas.MatchResponse(
         prediction=prediction,
@@ -151,7 +150,8 @@ def match_piirecord(
     )
 
 
-@router.post("/fhir", summary="Match FHIR bundle without saving the incoming FHIR")
+# TODO: test cases
+@router.post("/match/fhir", summary="Match FHIR")
 def match_fhir(
     request: fastapi.Request,
     input: typing.Annotated[schemas.LinkFhirInput, fastapi.Body()],
@@ -159,9 +159,7 @@ def match_fhir(
     db_session: orm.Session = fastapi.Depends(get_session),
 ) -> schemas.MatchFhirResponse:
     """
-    Compare a FHIR bundle with records in the Master Patient Index (MPI) to
-    check for matches with existing patient records If matches are found,
-    returns the FHIR bundle with updated references to existing patients.
+    Similar to the /link/fhir endpoint, but does not save the incoming data.
     """
     algorithm: models.Algorithm = algorithm_or_422(db_session, input.algorithm)
     record: schemas.PIIRecord = fhir_record_or_422(input.bundle)

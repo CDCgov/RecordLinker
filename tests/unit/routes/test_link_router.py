@@ -514,3 +514,90 @@ class TestLinkFHIR:
 
         assert actual_response.json() == expected_response
         assert actual_response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
+
+
+class TestMatch:
+    @pytest.fixture
+    def patients(self) -> list[schemas.PIIRecord]:
+        bundle = load_test_json_asset("simple_patient_bundle_to_link_with_mpi.json")
+        patients: list[schemas.PIIRecord] = []
+        for entry in bundle["entry"]:
+            if entry.get("resource", {}).get("resourceType", {}) == "Patient":
+                patients.append(fhir.fhir_record_to_pii_record(entry["resource"]))
+        return patients
+
+    def test_invalid_algorithm(self, client):
+        resp = client.post("/match", json={"record": {}})
+        assert resp.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
+        assert resp.json()["detail"] == "No algorithm found"
+
+    def test_no_match(self, client, basic_algorithm, patients):
+        client.session.add(basic_algorithm)
+        client.session.commit()
+        resp = client.post("/match", json={"record": patients[0].to_dict(True)})
+        assert resp.status_code == status.HTTP_200_OK
+        payload = resp.json()
+        assert payload["prediction"] == "no_match"
+        assert payload["person_reference_id"] is None
+        assert payload["results"] == []
+        assert payload.get("patient_reference_id") is None
+        assert len(client.session.query(models.Patient).all()) == 0
+
+    def test_match(self, client, basic_algorithm, patients):
+        client.session.add(basic_algorithm)
+        client.session.commit()
+        per1 = client.post("/link", json={"record": patients[0].to_dict(True)}).json()["person_reference_id"]
+
+        resp = client.post("/match", json={"record": patients[0].to_dict(True)})
+        assert resp.status_code == status.HTTP_200_OK
+        payload = resp.json()
+        assert payload["prediction"] == "match"
+        assert payload["person_reference_id"] == per1
+        assert len(payload["results"]) == 1
+        assert payload["results"][0]["person_reference_id"] == per1
+        assert payload.get("patient_reference_id") is None
+        assert len(client.session.query(models.Patient).all()) == 1
+
+
+class TestMatchFHIR:
+    @pytest.fixture
+    def patient_bundles(self) -> list[dict]:
+        bundles: list[dict] = []
+        data = load_test_json_asset("simple_patient_bundle_to_link_with_mpi.json")
+        for entry in data["entry"]:
+            bundles.append({"entry": [entry]})
+        return bundles
+
+    def test_invalid_algorithm(self, client):
+        resp = client.post("/match/fhir", json={"bundle": {}})
+        assert resp.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
+        assert resp.json()["detail"] == "No algorithm found"
+
+    def test_no_match(self, client, basic_algorithm, patient_bundles):
+        client.session.add(basic_algorithm)
+        client.session.commit()
+        resp = client.post("/match/fhir", json={"bundle": patient_bundles[0]})
+        assert resp.status_code == status.HTTP_200_OK
+        payload = resp.json()
+        assert payload["prediction"] == "no_match"
+        assert payload["person_reference_id"] is None
+        assert payload["results"] == []
+        assert payload.get("patient_reference_id") is None
+        assert payload["updated_bundle"] is None
+        assert len(client.session.query(models.Patient).all()) == 0
+
+    def test_match(self, client, basic_algorithm, patient_bundles):
+        client.session.add(basic_algorithm)
+        client.session.commit()
+        per1 = client.post("/link/fhir", json={"bundle": patient_bundles[0]}).json()["person_reference_id"]
+
+        resp = client.post("/match/fhir", json={"bundle": patient_bundles[0]})
+        assert resp.status_code == status.HTTP_200_OK
+        payload = resp.json()
+        assert payload["prediction"] == "match"
+        assert payload["person_reference_id"] == per1
+        assert len(payload["results"]) == 1
+        assert payload["results"][0]["person_reference_id"] == per1
+        assert payload.get("patient_reference_id") is None
+        assert len(payload["updated_bundle"]["entry"]) == 2
+        assert len(client.session.query(models.Patient).all()) == 1
