@@ -64,6 +64,7 @@ jobs:
     if: startsWith(github.ref, 'refs/tags/v')
 
     permissions:
+      id-token: "write"
       pages: "write"
 
     steps:
@@ -110,8 +111,8 @@ jobs:
     if: always()
 
     permissions:
-      contents: "write"
       id-token: "write"
+      contents: "write"
 
     steps:
       - name: Checkout code
@@ -170,7 +171,7 @@ jobs:
           echo "RELEASE_URL=$html_url" >> $GITHUB_ENV
 
       - name: Post release to Slack
-        if: env.DRAFT == 'false'
+        if: env.DRAFT == 'true'
         uses: slackapi/slack-github-action@v1.27.0
         with:
           payload: |
