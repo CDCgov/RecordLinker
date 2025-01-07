@@ -149,6 +149,18 @@ jobs:
 
       - name: Create the release
         run: |
+          curl --fail -s -X POST \
+            -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+            -H "Accept: application/vnd.github+json" \
+            -d @- "https://api.github.com/repos/${{ github.repository }}/releases" <<EOF
+          {
+            "tag_name": "${{ env.NEXT_TAG }}",
+            "target_commitish": "main",
+            "name": "${{ env.NEXT_TAG }}",
+            "generate_release_notes": true,
+            "draft": ${{ env.DRAFT }}
+          }
+          EOF
           # Create a new release
           response=$(curl --fail -s -X POST \
             -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
