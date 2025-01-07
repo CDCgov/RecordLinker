@@ -19,7 +19,6 @@ on:
 jobs:
   package:
     runs-on: ubuntu-latest
-    if: startsWith(github.ref, 'refs/tags/v')
 
     permissions:
       id-token: "write"
@@ -52,16 +51,14 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           platforms: linux/amd64,linux/arm64
-          push: true
+          push: false
           cache-from: type=gha
           cache-to: type=gha,mode=max
           tags: |
-            ghcr.io/${{ env.PACKAGE_NAME }}:latest
             ghcr.io/${{ env.PACKAGE_NAME }}:${{ env.NEXT_TAG }}
 
   docs:
     runs-on: ubuntu-latest
-    if: startsWith(github.ref, 'refs/tags/v')
 
     permissions:
       id-token: "write"
@@ -102,8 +99,6 @@ jobs:
         with:
           path: _site/
 
-      - name: Deploy to GitHub Pages
-        uses: actions/deploy-pages@v4
 
   release:
     runs-on: ubuntu-latest
@@ -171,7 +166,7 @@ jobs:
           echo "RELEASE_URL=$html_url" >> $GITHUB_ENV
 
       - name: Post release to Slack
-        if: env.DRAFT == 'true'
+        if: env.DRAFT == 'false'
         uses: slackapi/slack-github-action@v1.27.0
         with:
           payload: |
