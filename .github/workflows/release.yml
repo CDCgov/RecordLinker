@@ -170,7 +170,7 @@ jobs:
           echo "RELEASE_URL=$html_url" >> $GITHUB_ENV
 
       - name: Post release to Slack
-        if: env.DRAFT == 'false'
+        if: env.DRAFT == 'true'
         uses: slackapi/slack-github-action@v1.27.0
         with:
           payload: |
