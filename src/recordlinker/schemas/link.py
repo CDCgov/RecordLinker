@@ -115,9 +115,8 @@ class MatchFhirResponse(MatchResponse):
 
     updated_bundle: dict | None = pydantic.Field(
         description="If 'prediction' is 'match', returns the FHIR bundle with updated"
-        " references to existing Person resource. If 'prediction' is 'no_match', "
-        "returns the FHIR bundle with a reference to a newly created "
-        "Person resource. If 'prediction' is 'possible_match', returns null."
+        " references to existing Person resource. If 'prediction' is 'no_match' or"
+        " 'possible_match', returns null."
     )
 
 
