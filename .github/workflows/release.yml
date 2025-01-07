@@ -165,7 +165,7 @@ jobs:
           )
           echo "Response: $response"
           # Parse the HTML URL from the array
-          html_url=$(echo "$response" | jq -r '.[0].html_url')
+          html_url=$(echo "$response" | jq -r '.html_url')
           echo "Release URL: $html_url"
           echo "RELEASE_URL=$html_url" >> $GITHUB_ENV
 
