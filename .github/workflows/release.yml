@@ -170,18 +170,18 @@ jobs:
           echo "RELEASE_URL=$html_url" >> $GITHUB_ENV
 
       - name: Post release to Slack
-        if: env.DRAFT == 'true'
+        if: env.DRAFT == 'false'
         uses: slackapi/slack-github-action@v1.27.0
         with:
           payload: |
             {
-              "text": ":package: A new release has been created. ${{ env.NEXT_TAG }}\n\n<${{ env.RELEASE_URL }}|View release>",
+              "text": ":package: A new release has been created: <${{ env.RELEASE_URL }}|${{ env.NEXT_TAG }}>",
               "blocks": [
                 {
                   "type": "section",
                   "text": {
                     "type": "mrkdwn",
-                    "text": ":package: A new release has been created. ${{ env.NEXT_TAG }}\n\n<${{ env.RELEASE_URL }}|View release>"
+                    "text": ":package: A new release has been created: <${{ env.RELEASE_URL }}|${{ env.NEXT_TAG }}>"
                   }
                 }
               ]
