@@ -26,6 +26,17 @@ class Evaluator(pydantic.BaseModel):
     feature: str = pydantic.Field(json_schema_extra={"enum": Feature.all_options()})
     func: matchers.FeatureFunc
 
+    @pydantic.field_validator("feature", mode="before")
+    def validate_feature(cls, value):
+        """
+        Validate the feature is a valid PII feature.
+        """
+        try:
+            Feature.parse(value)
+        except ValueError as e:
+            raise ValueError(f"Invalid feature: '{value}'. {e}")
+        return value
+
 class AlgorithmPass(pydantic.BaseModel):
     """
     The schema for an algorithm pass record.
