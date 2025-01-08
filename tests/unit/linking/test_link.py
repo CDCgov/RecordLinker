@@ -280,7 +280,6 @@ class TestLinkRecordAgainstMpi:
                 patients.append(fhir.fhir_record_to_pii_record(entry["resource"]))
         return patients
 
-    #TODO: change the initial algorithms (basic and enhanced) to reflect new IDENTIFIER changes
     def test_basic_match_one(self, session, basic_algorithm, patients):
         # Test various null data values in incoming record
         matches: list[bool] = []
