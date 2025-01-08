@@ -33,13 +33,12 @@ class TestAlgorithmPass:
         evaluators = [
             {"feature": "name", "func": "func:recordlinker.linking.matchers.compare_match_any"}
         ]
-        #TODO: changed evaluators type to a string
-        # with pytest.raises(pydantic.ValidationError):
-        #     AlgorithmPass(
-        #         blocking_keys=[],
-        #         evaluators=evaluators,
-        #         rule="func:recordlinker.linking.matchers.rule_match",
-        #     )
+        with pytest.raises(pydantic.ValidationError):
+            AlgorithmPass(
+                blocking_keys=[],
+                evaluators=evaluators,
+                rule="func:recordlinker.linking.matchers.rule_match",
+            )
         evaluators = [
             {"feature": "LAST_NAME", "func": "func:recordlinker.linking.matchers.unknown"}
         ]
