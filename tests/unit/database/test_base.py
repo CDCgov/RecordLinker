@@ -6,17 +6,20 @@ This module contains the unit tests for the recordlinker.database module.
 """
 import os
 import unittest.mock
+
 import pytest
+from sqlalchemy import Column
+from sqlalchemy import create_engine
+from sqlalchemy import Integer
+from sqlalchemy import String
+from sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy.sql import text
 
 from recordlinker import models
 from recordlinker.config import settings
 from recordlinker.database import create_sessionmaker
 from recordlinker.database import verify_tables_match_orm
 
-from sqlalchemy.exc import SQLAlchemyError
-from sqlalchemy.orm import declarative_base, sessionmaker
-from sqlalchemy import Column, Integer, String, create_engine
-from sqlalchemy.sql import text
 
 @pytest.fixture
 def in_memory_engine():

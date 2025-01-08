@@ -9,13 +9,15 @@ import contextlib
 import typing
 
 from sqlalchemy import create_engine
-from sqlalchemy import orm, inspect, MetaData
+from sqlalchemy import inspect
+from sqlalchemy import orm
 from sqlalchemy.exc import SQLAlchemyError
 
 from recordlinker import models
 from recordlinker.config import settings
 
-#TODO: figure out wher this variable `verify_tables` is gonna come from
+
+#TODO: figure out where this variable `verify_tables` is gonna come from
 def create_sessionmaker(init_tables: bool = True, verify_tables: bool = True) -> orm.sessionmaker:
     """
     Create a new sessionmaker for the database connection.
@@ -61,8 +63,8 @@ def verify_tables_match_orm(engine):
                     f"Column '{column_name}' is missing in the database for table '{table_name}'."
                 )
 
-            db_col_type = db_column_details[column_name]['type']
-            orm_col_type = orm_column.type
+            # db_col_type = db_column_details[column_name]['type']
+            # orm_col_type = orm_column.type
 
             # if type(db_col_type) != type(orm_col_type):
             #     raise SQLAlchemyError(
