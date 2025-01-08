@@ -41,7 +41,7 @@ def verify_tables_match_orm(engine):
     Verify that database tables match ORM definitions.
     """
     inspector = inspect(engine)
-    orm_metadata = models.Base.metadata  # Use ORM schema
+    orm_metadata = models.Base.metadata
 
     for table_name, orm_table in orm_metadata.tables.items():
         # Check if the table exists in the database
@@ -63,14 +63,20 @@ def verify_tables_match_orm(engine):
                     f"Column '{column_name}' is missing in the database for table '{table_name}'."
                 )
 
-            # db_col_type = db_column_details[column_name]['type']
-            # orm_col_type = orm_column.type
+            db_col_type = db_column_details[column_name]['type']
+            orm_col_type = orm_column.type
 
-            # if type(db_col_type) != type(orm_col_type):
-            #     raise SQLAlchemyError(
-            #         f"Type mismatch for column '{column_name}' in table '{table_name}': "
-            #         f"DB type is {db_col_type}, ORM type is {orm_col_type}."
-            #     )
+            print("db_col_type: ", db_col_type)
+            print("orm_col_type: ", orm_col_type)
+
+            if type(db_col_type) != type(orm_col_type):
+                print("Type mismatch")
+                print("db_col_type: ", db_col_type)
+                print("orm_col_type: ", orm_col_type)
+                # raise SQLAlchemyError(
+                #     f"Type mismatch for column '{column_name}' in table '{table_name}': "
+                #     f"DB type is {db_col_type}, ORM type is {orm_col_type}."
+                # )
 
 
 def get_session() -> typing.Iterator[orm.Session]:
