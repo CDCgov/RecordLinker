@@ -70,18 +70,15 @@ class TestAlgorithmPass:
             rule="func:recordlinker.linking.matchers.rule_match",
         )
 
-
-    # def test_invalid_evaluators(self):
-    #     evaluators = [
-    #         {"feature": "FIRST_NAME:DL", "func": "func:recordlinker.linking.matchers.compare_match_any"}
-    #     ]
-    #     # write an assertion that no exception is raised
-    #     AlgorithmPass(
-    #         blocking_keys=[],
-    #         evaluators=evaluators,
-    #         rule="func:recordlinker.linking.matchers.rule_match",
-    #     )
-
+        evaluators = [
+            {"feature": "FIRST_NAME:DL", "func": "func:recordlinker.linking.matchers.compare_match_any"}
+        ]
+        with pytest.raises(pydantic.ValidationError):
+            AlgorithmPass(
+                blocking_keys=[],
+                evaluators=evaluators,
+                rule="func:recordlinker.linking.matchers.rule_match",
+            )
 
     def test_validate_rule(self):
         rule = "invalid.func"
