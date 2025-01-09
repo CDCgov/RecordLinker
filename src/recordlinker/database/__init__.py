@@ -36,6 +36,17 @@ def create_sessionmaker(init_tables: bool = True, verify_tables: bool = True) ->
 
     return orm.sessionmaker(bind=engine)
 
+def are_types_equivalent(db_type, orm_type) -> bool:
+    # Using a str wrapper to normalize types from different contexts (inspector types vs ORM types)
+    db_type_str = str(db_type).lower()
+    orm_type_str = str(orm_type).lower()
+
+    # Treat INTEGER and BIGINT as equivalent
+    if {db_type_str, orm_type_str} <= {"integer", "bigint"}:
+        return True
+
+    return db_type_str == orm_type_str
+
 def verify_tables_match_orm(engine):
     """
     Verify that database tables match ORM definitions.
@@ -44,17 +55,14 @@ def verify_tables_match_orm(engine):
     orm_metadata = models.Base.metadata
 
     for table_name, orm_table in orm_metadata.tables.items():
-        # Check if the table exists in the database
         if not inspector.has_table(table_name):
             raise SQLAlchemyError(
                 f"Table '{table_name}' is missing in the database."
             )
 
-        # Retrieve database columns
         db_columns = inspector.get_columns(table_name)
         db_column_details = {col['name']: col for col in db_columns}
 
-        # Compare ORM and database columns
         for orm_column in orm_table.columns:
             column_name = orm_column.name
 
@@ -66,16 +74,11 @@ def verify_tables_match_orm(engine):
             db_col_type = db_column_details[column_name]['type']
             orm_col_type = orm_column.type
 
-            # TODO: using a str wrapper to normalize types from different contexts (inspectors types vs ORM types)
-            if str(db_col_type) != str(orm_col_type):
-                print("Type mismatch")
-                print("db_col_type: ", str(db_col_type), "\torm_col_type: ", str(orm_col_type))
-
+            if not are_types_equivalent(db_col_type, orm_col_type):
                 raise SQLAlchemyError(
                     f"Type mismatch for column '{column_name}' in table '{table_name}': "
                     f"DB type is {db_col_type}, ORM type is {orm_col_type}."
                 )
-
 
 def get_session() -> typing.Iterator[orm.Session]:
     """
