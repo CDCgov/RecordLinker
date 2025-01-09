@@ -435,7 +435,7 @@ class PIIRecord(pydantic.BaseModel):
             vals.update(self.feature_iter(Feature(attribute=FeatureAttribute.BIRTHDATE)))
         elif key == models.BlockingKey.IDENTIFIER:
             vals.update({
-                f"{type_part}:{authority_part}:{value_part[-4:]}"
+                f"{type_part}:{authority_part[:2]}:{value_part[-4:]}"
                 for x in self.feature_iter(Feature(attribute=FeatureAttribute.IDENTIFIER))
                 for type_part, authority_part, value_part in [x.split(":", 2)]
             })
