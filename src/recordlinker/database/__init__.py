@@ -66,17 +66,15 @@ def verify_tables_match_orm(engine):
             db_col_type = db_column_details[column_name]['type']
             orm_col_type = orm_column.type
 
-            print("db_col_type: ", db_col_type)
-            print("orm_col_type: ", orm_col_type)
-
-            if type(db_col_type) != type(orm_col_type):
+            # TODO: using a str wrapper to normalize types from different contexts (inspectors types vs ORM types)
+            if str(db_col_type) != str(orm_col_type):
                 print("Type mismatch")
-                print("db_col_type: ", db_col_type)
-                print("orm_col_type: ", orm_col_type)
-                # raise SQLAlchemyError(
-                #     f"Type mismatch for column '{column_name}' in table '{table_name}': "
-                #     f"DB type is {db_col_type}, ORM type is {orm_col_type}."
-                # )
+                print("db_col_type: ", str(db_col_type), "\torm_col_type: ", str(orm_col_type))
+
+                raise SQLAlchemyError(
+                    f"Type mismatch for column '{column_name}' in table '{table_name}': "
+                    f"DB type is {db_col_type}, ORM type is {orm_col_type}."
+                )
 
 
 def get_session() -> typing.Iterator[orm.Session]:
