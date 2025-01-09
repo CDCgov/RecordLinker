@@ -34,7 +34,7 @@ def in_memory_engine():
 class TableForTesting(models.Base):
     __tablename__ = "test_table"
     id = Column(Integer, primary_key=True)
-    name = Column(String)
+    name = Column(String(255))
     age = Column(Integer)
 
 def test_create_sessionmaker():
