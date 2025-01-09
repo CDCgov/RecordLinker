@@ -1,6 +1,6 @@
 # RFC: Possible Match with Log Odds Score Threshold Range
 
-- **Status**: Under Review
+- **Status**: Deferred
 - **Author(s)**: @alhayward
 - **Creation Date**: 2024-12-26
 - **Last Updated**: 2025-01-02
