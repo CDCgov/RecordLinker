@@ -112,4 +112,4 @@ def get_test_session() -> typing.Iterator[orm.Session]:
         models.Base.metadata.drop_all(engine)
 
 
-SessionMaker = create_sessionmaker()
+SessionMaker = create_sessionmaker(True, False)
