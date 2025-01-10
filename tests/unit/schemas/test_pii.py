@@ -325,11 +325,11 @@ class TestPIIRecord:
     def test_blocking_keys_mrn_last_four(self):
         rec = pii.PIIRecord()
         assert rec.blocking_keys(BlockingKey.IDENTIFIER) == set()
-        rec = pii.PIIRecord(identifiers=[])
+        rec = pii.PIIRecord(**{"identifiers": []})
         assert rec.blocking_keys(BlockingKey.IDENTIFIER) == set()
-        rec = pii.PIIRecord(identifiers=[pii.Identifier(type="MR", value="123456789")])
+        rec = pii.PIIRecord(**{"identifiers": [{ "type": "MR", "value": "123456789" }]})
         assert rec.blocking_keys(BlockingKey.IDENTIFIER) == {"MR::6789"}
-        rec = pii.PIIRecord(identifiers=[pii.Identifier(type="MR", value="89")])
+        rec = pii.PIIRecord(**{"identifiers": [{ "type": "MR", "value": "89" }]})
         assert rec.blocking_keys(BlockingKey.IDENTIFIER) == {"MR::89"}
         
         #test multiple identifiers return correctly
@@ -433,6 +433,8 @@ class TestPIIRecord:
         assert rec.blocking_keys(BlockingKey.IDENTIFIER) == set()
         rec = pii.PIIRecord(**{"identifiers": [{"type": "MR", "value": "123456789", "authority": "NY"}]})
         assert rec.blocking_keys(BlockingKey.IDENTIFIER) == {"MR:NY:6789"}
+
+        #test only get first 2 characters of authority for blocking
         rec = pii.PIIRecord(**{"identifiers": [{"type": "MR", "value": "123456789", "authority": "DMV"}]})
         assert rec.blocking_keys(BlockingKey.IDENTIFIER) == {"MR:DM:6789"}
 
