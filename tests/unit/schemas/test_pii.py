@@ -428,6 +428,13 @@ class TestPIIRecord:
         rec = pii.PIIRecord(**{"telecom": [{"value": "t@gmail.com", "system": "email"}, {"value": "bob@gmail.com", "system": "other"}]})
         assert rec.blocking_keys(BlockingKey.EMAIL) == {"t@gm"}
 
+    def test_blocking_keys_identifier(self):
+        rec = pii.PIIRecord(**{"identifiers": []})
+        assert rec.blocking_keys(BlockingKey.IDENTIFIER) == set()
+        rec = pii.PIIRecord(**{"identifiers": [{"type": "MR", "value": "123456789", "authority": "NY"}]})
+        assert rec.blocking_keys(BlockingKey.IDENTIFIER) == {"MR:NY:6789"}
+        rec = pii.PIIRecord(**{"identifiers": [{"type": "MR", "value": "123456789", "authority": "DMV"}]})
+        assert rec.blocking_keys(BlockingKey.IDENTIFIER) == {"MR:DM:6789"}
 
     def test_blocking_values(self):
         rec = pii.PIIRecord(
