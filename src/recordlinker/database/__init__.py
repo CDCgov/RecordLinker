@@ -74,11 +74,10 @@ def verify_tables_match_orm(engine):
             orm_col_type = orm_column.type
 
             if not are_types_equivalent(db_col_type, orm_col_type):
-                print("somethings wrong")
-                # raise SQLAlchemyError(
-                #     f"Type mismatch for column '{column_name}' in table '{table_name}': "
-                #     f"DB type is {db_col_type}, ORM type is {orm_col_type}."
-                # )
+                raise SQLAlchemyError(
+                    f"Type mismatch for column '{column_name}' in table '{table_name}': "
+                    f"DB type is {db_col_type}, ORM type is {orm_col_type}."
+                )
 
 def get_session() -> typing.Iterator[orm.Session]:
     """

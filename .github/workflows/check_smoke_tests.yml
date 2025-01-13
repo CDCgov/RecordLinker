@@ -10,14 +10,15 @@ jobs:
   smoke_tests:
     runs-on: ubuntu-latest
 
-    services:
-      db:
-        image: postgres:17
-        env:
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: pw
-        ports:
-          - 5432:5432
+    # TODO: modify smoke tests to cover multiple db types
+    # services:
+    #   db:
+    #     image: postgres:17
+    #     env:
+    #       POSTGRES_USER: postgres
+    #       POSTGRES_PASSWORD: pw
+    #     ports:
+    #       - 5432:5432
 
     steps:
     - name: Check out repository
@@ -26,19 +27,25 @@ jobs:
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v3
 
+    - name: Prepare SQLite Database
+      run: |
+        # Ensure the SQLite database file exists
+        touch test.db
+
     - name: Build RecordLinker Docker Image
       run: |
         docker build -t rl-service-image . 
 
     - name: Start RecordLinker Service and Run Smoke Tests
       run: |
-        # Start Record Linker Service
+        # Start Record Linker Service with SQLite
         docker run -d --name rl-service \
           --network="host" \
-          -e DB_URI="postgresql+psycopg2://postgres:pw@localhost:5432/postgres" \
+          -e DB_URI="sqlite:///test.db" \
+          -v $PWD/test.db:/app/test.db \
           -p 8080:8080 \
           rl-service-image
-
+        
         # Wait for the RL Service to be healthy
         TRIES=5
         COUNT=0
