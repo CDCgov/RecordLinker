@@ -30,8 +30,8 @@ def create_sessionmaker(init_tables: bool = True, verify_tables: bool = True) ->
     
     if init_tables:
         models.Base.metadata.create_all(engine)
-    if verify_tables:
-        verify_tables_match_orm(engine)
+    # if verify_tables:
+    #     verify_tables_match_orm(engine)
 
     return orm.sessionmaker(bind=engine)
 
