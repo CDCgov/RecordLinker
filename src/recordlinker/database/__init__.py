@@ -30,8 +30,8 @@ def create_sessionmaker(init_tables: bool = True, verify_tables: bool = True) ->
     
     if init_tables:
         models.Base.metadata.create_all(engine)
-    # if verify_tables:
-    #     verify_tables_match_orm(engine)
+    if verify_tables:
+        verify_tables_match_orm(engine)
 
     return orm.sessionmaker(bind=engine)
 
@@ -59,25 +59,25 @@ def verify_tables_match_orm(engine):
                 f"Table '{table_name}' is missing in the database."
             )
 
-        db_columns = inspector.get_columns(table_name)
-        db_column_details = {col['name']: col for col in db_columns}
+        # db_columns = inspector.get_columns(table_name)
+        # db_column_details = {col['name']: col for col in db_columns}
 
-        for orm_column in orm_table.columns:
-            column_name = orm_column.name
+        # for orm_column in orm_table.columns:
+        #     column_name = orm_column.name
 
-            if column_name not in db_column_details:
-                raise SQLAlchemyError(
-                    f"Column '{column_name}' is missing in the database for table '{table_name}'."
-                )
+        #     if column_name not in db_column_details:
+        #         raise SQLAlchemyError(
+        #             f"Column '{column_name}' is missing in the database for table '{table_name}'."
+        #         )
 
-            db_col_type = db_column_details[column_name]['type']
-            orm_col_type = orm_column.type
+        #     db_col_type = db_column_details[column_name]['type']
+        #     orm_col_type = orm_column.type
 
-            if not are_types_equivalent(db_col_type, orm_col_type):
-                raise SQLAlchemyError(
-                    f"Type mismatch for column '{column_name}' in table '{table_name}': "
-                    f"DB type is {db_col_type}, ORM type is {orm_col_type}."
-                )
+        #     if not are_types_equivalent(db_col_type, orm_col_type):
+        #         raise SQLAlchemyError(
+        #             f"Type mismatch for column '{column_name}' in table '{table_name}': "
+        #             f"DB type is {db_col_type}, ORM type is {orm_col_type}."
+        #         )
 
 def get_session() -> typing.Iterator[orm.Session]:
     """
