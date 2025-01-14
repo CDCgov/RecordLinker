@@ -174,15 +174,6 @@ class Identifier(pydantic.BaseModel):
         values["type"] = IdentifierType(values["type"])
         return super().model_construct(_fields_set=_fields_set, **values)
 
-    @pydantic.field_validator("type", mode="before")
-    def parse_type(cls, value):
-        """
-        Parse type string into an IdentifierType enum
-        """
-        if value: 
-            return IdentifierType(value)
-        return value
-
     @pydantic.field_validator("value", mode="before")
     def parse_value(cls, value: str, info: pydantic.ValidationInfo):
         """
