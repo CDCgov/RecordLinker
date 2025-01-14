@@ -212,19 +212,22 @@ def get_person_by_reference_id(
 
 def update_person_cluster(
     session: orm.Session,
-    patient: models.Patient,
+    patients: typing.Sequence[models.Patient],
     person: models.Person | None = None,
     commit: bool = True,
 ) -> models.Person:
     """
     Update the cluster for a given patient.
     """
-    patient.person = person or models.Person()
+    person = person or models.Person()
     session.flush()
+
+    for patient in patients:
+        patient.person = person
 
     if commit:
         session.commit()
-    return patient.person
+    return person
 
 
 def reset_mpi(session: orm.Session, commit: bool = True):

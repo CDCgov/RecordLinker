@@ -16,3 +16,7 @@ class PatientRef(pydantic.BaseModel):
 class PatientPersonRef(pydantic.BaseModel):
     patient_reference_id: uuid.UUID
     person_reference_id: uuid.UUID
+
+
+class PatientRefs(pydantic.BaseModel):
+    patients: list[uuid.UUID]
