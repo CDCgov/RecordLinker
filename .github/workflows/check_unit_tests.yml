@@ -67,8 +67,8 @@ jobs:
           # Update package lists
           sudo apt-get update
           
-          # Accept the EULA and install msodbcsql17
-          sudo ACCEPT_EULA=Y apt-get install -y msodbcsql17 unixodbc-dev
+          # Accept the EULA and install msodbcsql18
+          sudo ACCEPT_EULA=Y apt-get install -y msodbcsql18 unixodbc-dev
 
       - name: Run Pytest with the matrix database
         run: |
