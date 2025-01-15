@@ -56,7 +56,7 @@ jobs:
         if: ${{ matrix.database == 'sqlserver' }}
         run: |
           # Show the version of Ubuntu
-          lsb_release -a
+          lsb_release -rs
           
           # Add Microsoft repository keys
           curl https://packages.microsoft.com/keys/microsoft.asc | sudo apt-key add -
