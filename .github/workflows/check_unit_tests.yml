@@ -55,6 +55,9 @@ jobs:
       - name: Install ODBC Driver for SQL Server
         if: ${{ matrix.database == 'sqlserver' }}
         run: |
+          # Show the version of Ubuntu
+          lsb_release -a
+          
           # Add Microsoft repository keys
           curl https://packages.microsoft.com/keys/microsoft.asc | sudo apt-key add -
           
