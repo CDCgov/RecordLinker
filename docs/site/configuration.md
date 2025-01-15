@@ -100,7 +100,7 @@ drivers are installed allowing for connections to:
 
 - **[pyodbc](https://github.com/mkleehammer/pyodbc/wiki) (sqlite)**
 
-    Example: `mssql+pyodbc://user:password@localhost/dbname?driver=ODBC+Driver+17+for+SQL+Server`
+    Example: `mssql+pyodbc://user:password@localhost/dbname?driver=ODBC+Driver+18+for+SQL+Server&TrustServerCertificate=yes`
 
 
 ## Docker Configuration
