@@ -68,7 +68,7 @@ jobs:
           sudo apt-get update
           
           # Accept the EULA and install msodbcsql18
-          sudo ACCEPT_EULA=Y apt-get install -y msodbcsql18 unixodbc-dev
+          sudo ACCEPT_EULA=Y apt-get install -y msodbcsql18 unixodbc-dev  unixodbc
 
       - name: Run Pytest with the matrix database
         run: |
@@ -79,7 +79,7 @@ jobs:
           elif [[ "${{ matrix.database }}" == "mysql" ]]; then
             export TEST_DB_URI=mysql+pymysql://root:pw@localhost:3306/mysql
           elif [[ "${{ matrix.database }}" == "sqlserver" ]]; then
-            export TEST_DB_URI=mssql+pyodbc://sa:YourStrong!Passw0rd@localhost:1433/master?driver=ODBC+Driver+18+for+SQL+Server
+            export TEST_DB_URI=mssql+pyodbc://sa:YourStrong!Passw0rd@localhost:1433/master?driver=ODBC+Driver+18+for+SQL+Server&TrustServerCertificate=yes
           fi
 
           pytest --cov=recordlinker tests/unit
