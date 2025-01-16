@@ -12,11 +12,29 @@ import uuid
 import fastapi
 import sqlalchemy.orm as orm
 
+from recordlinker import models
 from recordlinker import schemas
 from recordlinker.database import get_session
 from recordlinker.database import mpi_service as service
 
 router = fastapi.APIRouter()
+
+
+def patients_by_id_or_422(
+    session: orm.Session, reference_ids: typing.Sequence[uuid.UUID]
+) -> typing.Sequence[models.Patient]:
+    """
+    Retrieve the Patients by their reference ids or return a 422 error response.
+    """
+    patients = service.get_patients_by_reference_ids(session, *reference_ids)
+    if None in patients:
+        raise fastapi.HTTPException(
+            status_code=fastapi.status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail=[
+                {"loc": ["patients"], "msg": "Invalid patient reference id", "type": "value_error"}
+            ],
+        )
+    return patients # type: ignore
 
 
 @router.post(
@@ -25,55 +43,35 @@ router = fastapi.APIRouter()
     status_code=fastapi.status.HTTP_201_CREATED,
 )
 def create_person(
-    data: typing.Annotated[schemas.PersonInput, fastapi.Body()],
-    session: orm.Session = fastapi.Depends(get_session)
+    data: typing.Annotated[schemas.PatientRefs, fastapi.Body()],
+    session: orm.Session = fastapi.Depends(get_session),
 ) -> schemas.PersonRef:
     """
     Create a new Person in the MPI database and link the Patients to them.
     """
-    patients: list[models.Patient] = []
-    for ref_id in data.patients_reference_ids:
-        patient = service.get_patient_by_reference_id(session, ref_id)
-        if patient is None:
-            raise fastapi.HTTPException(status_code=fastapi.status.HTTP_404_NOT_FOUND)
-        patients.append(patient)
-    patient = service.get_patient_by_reference_id(session, patient_reference_id)
-    if patient is None:
-        raise fastapi.HTTPException(status_code=fastapi.status.HTTP_404_NOT_FOUND)
+    patients = patients_by_id_or_422(session, data.patients)
 
-    person = service.update_person_cluster(session, patients, commit=False)
-    return schemas.PatientPersonRef(
-        patient_reference_id=patient.reference_id, person_reference_id=person.reference_id
-    )
+    person = service.update_person_cluster(session, patients, commit=False)  # type: ignore
+    return schemas.PersonRef(person_reference_id=person.reference_id)
 
 
 @router.patch(
-    "/{patient_reference_id}/person",
-    summary="Assign Patient to existing Person",
+    "/{person_reference_id}",
+    summary="Assign Patients to existing Person",
     status_code=fastapi.status.HTTP_200_OK,
-    deprecated=True,
 )
 def update_person(
-    patient_reference_id: uuid.UUID,
-    data: schemas.PersonRef,
+    person_reference_id: uuid.UUID,
+    data: typing.Annotated[schemas.PatientRefs, fastapi.Body()],
     session: orm.Session = fastapi.Depends(get_session),
-) -> schemas.PatientPersonRef:
+) -> schemas.PersonRef:
     """
-    **NOTE**: This endpoint is deprecated. Use the PATCH `/person/{person_reference_id}` endpoint instead.
-
-    **NOTE**: This endpoint will be removed in v25.2.0.
-
-    Update the Person linked on the Patient.
+    Assign the Patients to an existing Person cluster.
     """
-    patient = service.get_patient_by_reference_id(session, patient_reference_id)
-    if patient is None:
-        raise fastapi.HTTPException(status_code=fastapi.status.HTTP_404_NOT_FOUND)
-
-    person = service.get_person_by_reference_id(session, data.person_reference_id)
+    person = service.get_person_by_reference_id(session, person_reference_id)
     if person is None:
-        raise fastapi.HTTPException(status_code=fastapi.status.HTTP_422_UNPROCESSABLE_ENTITY)
+        raise fastapi.HTTPException(status_code=fastapi.status.HTTP_404_NOT_FOUND)
+    patients = patients_by_id_or_422(session, data.patients)
 
-    person = service.update_person_cluster(session, patient, person, commit=False)
-    return schemas.PatientPersonRef(
-        patient_reference_id=patient.reference_id, person_reference_id=person.reference_id
-    )
+    person = service.update_person_cluster(session, patients, person, commit=False)
+    return schemas.PersonRef(person_reference_id=person.reference_id)
