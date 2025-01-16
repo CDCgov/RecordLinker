@@ -79,6 +79,6 @@ async def health_check(
 
 app.include_router(link_router, tags=["link"])
 app.include_router(algorithm_router, prefix="/algorithm", tags=["algorithm"])
-app.include_router(patient_router, prefix="/patient", tags=["mpi"])
 app.include_router(person_router, prefix="/person", tags=["mpi"])
-app.include_router(seed_router, prefix="/seed", tags=["seed"])
+app.include_router(patient_router, prefix="/patient", tags=["mpi"])
+app.include_router(seed_router, prefix="/seed", tags=["mpi"])
