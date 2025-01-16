@@ -24,7 +24,7 @@ def patients_by_id_or_422(
     session: orm.Session, reference_ids: typing.Sequence[uuid.UUID]
 ) -> typing.Sequence[models.Patient]:
     """
-    Retrieve the Patients by their reference ids or return a 422 error response.
+    Retrieve the Patients by their reference ids or raise a 422 error response.
     """
     patients = service.get_patients_by_reference_ids(session, *reference_ids)
     if None in patients:
