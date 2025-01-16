@@ -19,4 +19,4 @@ class PatientPersonRef(pydantic.BaseModel):
 
 
 class PatientRefs(pydantic.BaseModel):
-    patients: list[uuid.UUID]
+    patients: list[uuid.UUID] = pydantic.Field(..., min_length=1)

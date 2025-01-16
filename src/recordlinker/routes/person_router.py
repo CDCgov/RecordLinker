@@ -31,7 +31,7 @@ def patients_by_id_or_422(
         raise fastapi.HTTPException(
             status_code=fastapi.status.HTTP_422_UNPROCESSABLE_ENTITY,
             detail=[
-                {"loc": ["patients"], "msg": "Invalid patient reference id", "type": "value_error"}
+                {"loc": ["body", "patients"], "msg": "Invalid patient reference id", "type": "value_error"}
             ],
         )
     return patients # type: ignore

@@ -15,6 +15,10 @@ class TestCreatePerson:
         response = client.post("/person", json={"patients": ["123"]})
         assert response.status_code == 422
 
+    def test_empty_patients(self, client):
+        response = client.post("/person", json={"patients": []})
+        assert response.status_code == 422
+
     def test_invalid_patient(self, client):
         response = client.post("/person", json={"patients": [str(uuid.uuid4())]})
         assert response.status_code == 422
@@ -38,6 +42,14 @@ class TestUpdatePerson:
     def test_invalid_person(self, client):
         response = client.patch(f"/person/{uuid.uuid4()}", json={"patients": [str(uuid.uuid4())]})
         assert response.status_code == 404
+
+    def test_empty_patients(self, client):
+        person = models.Person()
+        client.session.add(person)
+        client.session.flush()
+
+        response = client.patch(f"/person/{person.reference_id}", json={"patients": []})
+        assert response.status_code == 422
 
     def test_invalid_patient(self, client):
         person = models.Person()
