@@ -43,6 +43,7 @@ dev = [
     "ruff",
     "mypy",
     "types-python-dateutil",
+    "faker",
     # Testing
     "pytest>=8.3",
     "pytest-cov",

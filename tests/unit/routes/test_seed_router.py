@@ -28,6 +28,8 @@ class TestBatch:
         )
 
     def test_large_batch(self, client):
+        # NOTE: The seed_test.json file was generated with scripts/gen_seed_test_data.py
+        # rerun that script and adjust these values if the data format needs to change.
         data = load_test_json_asset("seed_test.json.gz")
         response = client.post("/seed", json=data)
         assert response.status_code == 201
