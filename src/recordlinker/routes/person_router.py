@@ -51,7 +51,7 @@ def create_person(
     """
     patients = patients_by_id_or_422(session, data.patients)
 
-    person = service.update_person_cluster(session, patients, commit=False)  # type: ignore
+    person = service.update_person_cluster(session, patients, commit=False)
     return schemas.PersonRef(person_reference_id=person.reference_id)
 
 
