@@ -190,14 +190,19 @@ def insert_blocking_values(
         session.commit()
 
 
-def get_patient_by_reference_id(
-    session: orm.Session, reference_id: uuid.UUID
-) -> models.Patient | None:
+def get_patients_by_reference_ids(
+    session: orm.Session, *reference_ids: uuid.UUID
+) -> list[models.Patient | None]:
     """
-    Retrieve the Patient by their reference id
+    Retrieve all the Patients by their reference ids. If a Patient is not found,
+    a None value will be returned in the list for that reference id.
     """
-    query = select(models.Patient).where(models.Patient.reference_id == reference_id)
-    return session.scalar(query)
+    query = select(models.Patient).where(models.Patient.reference_id.in_(reference_ids))
+    patients_by_id: dict[uuid.UUID, models.Patient] = {
+        patient.reference_id: patient
+        for patient in session.execute(query).scalars().all()
+    }
+    return [patients_by_id.get(ref_id) for ref_id in reference_ids]
 
 
 def get_person_by_reference_id(
@@ -220,10 +225,9 @@ def update_person_cluster(
     Update the cluster for a given patient.
     """
     person = person or models.Person()
-    session.flush()
-
     for patient in patients:
         patient.person = person
+    session.flush()
 
     if commit:
         session.commit()
@@ -239,6 +243,7 @@ def reset_mpi(session: orm.Session, commit: bool = True):
     session.query(models.Person).delete()
     if commit:
         session.commit()
+
 
 def delete_patient(session: orm.Session, obj: models.Patient, commit: bool = False) -> None:
     """

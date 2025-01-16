@@ -34,11 +34,11 @@ def create_person(
 
     Create a new Person in the MPI database and link the Patient to them.
     """
-    patient = service.get_patient_by_reference_id(session, patient_reference_id)
+    patient = service.get_patients_by_reference_ids(session, patient_reference_id)[0]
     if patient is None:
         raise fastapi.HTTPException(status_code=fastapi.status.HTTP_404_NOT_FOUND)
 
-    person = service.update_person_cluster(session, patient, commit=False)
+    person = service.update_person_cluster(session, [patient], commit=False)
     return schemas.PatientPersonRef(
         patient_reference_id=patient.reference_id, person_reference_id=person.reference_id
     )
@@ -62,7 +62,7 @@ def update_person(
 
     Update the Person linked on the Patient.
     """
-    patient = service.get_patient_by_reference_id(session, patient_reference_id)
+    patient = service.get_patients_by_reference_ids(session, patient_reference_id)[0]
     if patient is None:
         raise fastapi.HTTPException(status_code=fastapi.status.HTTP_404_NOT_FOUND)
 
@@ -70,7 +70,7 @@ def update_person(
     if person is None:
         raise fastapi.HTTPException(status_code=fastapi.status.HTTP_422_UNPROCESSABLE_ENTITY)
 
-    person = service.update_person_cluster(session, patient, person, commit=False)
+    person = service.update_person_cluster(session, [patient], person, commit=False)
     return schemas.PatientPersonRef(
         patient_reference_id=patient.reference_id, person_reference_id=person.reference_id
     )
@@ -86,7 +86,7 @@ def delete_patient(
     """
     Delete a Patient from the mpi database.
     """
-    patient = service.get_patient_by_reference_id(session, patient_reference_id)
+    patient = service.get_patients_by_reference_ids(session, patient_reference_id)[0]
 
     if patient is None:
         raise fastapi.HTTPException(status_code=fastapi.status.HTTP_404_NOT_FOUND)
