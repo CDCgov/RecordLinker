@@ -175,7 +175,6 @@ class TestLinkRecordAgainstMpi:
         assert matches == [False, True, False, True, False, False]
         assert sorted(list(mapped_patients.values())) == [1, 1, 1, 3]
 
-
     def test_basic_possible_match(
         self,
         session,
@@ -202,7 +201,6 @@ class TestLinkRecordAgainstMpi:
             assert predictions[2]["results"][0].belongingness_ratio < basic_algorithm.belongingness_ratio_upper_bound
             assert predictions[2]["prediction"] == "possible_match"
 
-
     def test_enhanced_match_three(self, session, enhanced_algorithm, patients: list[schemas.PIIRecord]):
         # add an additional patient that will fuzzy match to patient 0
         patient0_copy = copy.deepcopy(patients[0])
@@ -227,7 +225,6 @@ class TestLinkRecordAgainstMpi:
         #  finds greatest strength match and correctly assigns to larger cluster
         assert matches == [False, True, False, True, False, False, True]
         assert sorted(list(mapped_patients.values())) == [1, 1, 1, 4]
-
 
     def test_enhanced_possible_match(
             self,
@@ -255,7 +252,6 @@ class TestLinkRecordAgainstMpi:
             assert predictions[2]["results"][0].belongingness_ratio < enhanced_algorithm.belongingness_ratio_upper_bound
             assert predictions[2]["prediction"] == "possible_match"
 
-
     def test_include_multiple_matches_true(
             self,
             session,
@@ -282,7 +278,6 @@ class TestLinkRecordAgainstMpi:
                 assert match.belongingness_ratio >= basic_algorithm.belongingness_ratio_upper_bound
             assert predictions[3]["prediction"] == "match"
 
-
     def test_include_multiple_matches_false(
             self,
             session,
@@ -308,3 +303,27 @@ class TestLinkRecordAgainstMpi:
             assert predictions[3]["person"] == predictions[1]["person"] # Assign to Person with highest Belongingness Ratio (1.0)
             assert predictions[3]["results"][0].belongingness_ratio >= basic_algorithm.belongingness_ratio_upper_bound
             assert predictions[3]["prediction"] == "match"
+
+    def test_no_persist(self, session, basic_algorithm, patients):
+        # First patient inserted into MPI, no match
+        first = patients[0]
+        (pat1, per1, results, prediction) = link.link_record_against_mpi(first, session, basic_algorithm, persist=True)
+        assert prediction == "no_match"
+        assert pat1 is not None
+        assert per1 is not None
+        assert not results
+        # Second patient not inserted into MPI, match first person
+        second = patients[1]
+        (pat2, per2, results, prediction) = link.link_record_against_mpi(second, session, basic_algorithm, persist=False)
+        assert prediction == "match"
+        assert pat2 is None
+        assert per2 is not None
+        assert per2.reference_id == per1.reference_id
+        assert results
+        # Third patient not inserted into MPI, no match
+        third = patients[2]
+        (pat3, per3, results, prediction) = link.link_record_against_mpi(third, session, basic_algorithm, persist=False)
+        assert prediction == "no_match"
+        assert pat3 is None
+        assert per3 is None
+        assert not results

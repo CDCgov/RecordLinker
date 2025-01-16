@@ -12,10 +12,48 @@ from unittest import mock
 
 import pytest
 from conftest import load_test_json_asset
+from fastapi import HTTPException
 from fastapi import status
 
+from recordlinker import models
 from recordlinker import schemas
 from recordlinker.hl7 import fhir
+from recordlinker.routes import link_router
+
+
+def test_algorithm_or_422(session):
+    algo1 = models.Algorithm(label="basic", is_default=True, description="First algorithm")
+    algo2 = models.Algorithm(label="enhanced", description="Second algorithm")
+    session.add(algo1)
+    session.add(algo2)
+    session.commit()
+
+    alg = link_router.algorithm_or_422(session, "enhanced")
+    assert alg.label == "enhanced"
+    alg = link_router.algorithm_or_422(session, None)
+    assert alg.label == "basic"
+    with pytest.raises(HTTPException) as exc:
+        link_router.algorithm_or_422(session, "invalid")
+        assert exc.value.status_code == 422
+
+
+def test_fhir_record_or_422():
+    with pytest.raises(HTTPException) as exc:
+        link_router.fhir_record_or_422({})
+        assert exc.value.status_code == 422
+    with pytest.raises(HTTPException) as exc:
+        link_router.fhir_record_or_422({"resourceType": "Patient"})
+        assert exc.value.status_code == 422
+    with pytest.raises(HTTPException) as exc:
+        link_router.fhir_record_or_422({"entry": []})
+        assert exc.value.status_code == 422
+    with pytest.raises(HTTPException) as exc:
+        link_router.fhir_record_or_422({"entry": [{"resource": {"resourceType": "Encounter"}}]})
+        assert exc.value.status_code == 422
+    record = link_router.fhir_record_or_422(
+        {"entry": [{"resource": {"resourceType": "Patient", "id": "1"}}]}
+    )
+    assert record.external_id == "1"
 
 
 class TestLink:
@@ -35,7 +73,9 @@ class TestLink:
             "/link", json={"record": json.loads(patients[0].model_dump_json(exclude_none=True))}
         )
         person_1 = response_1.json()["person_reference_id"]
-        assert response_1.json()["patient_reference_id"] and uuid.UUID(response_1.json()["patient_reference_id"])
+        assert response_1.json()["patient_reference_id"] and uuid.UUID(
+            response_1.json()["patient_reference_id"]
+        )
         assert person_1
         assert response_1.json()["prediction"] == "no_match"
         assert not response_1.json()["results"]
@@ -44,7 +84,9 @@ class TestLink:
             "/link", json={"record": json.loads(patients[1].model_dump_json(exclude_none=True))}
         )
         person_2 = response_2.json()["person_reference_id"]
-        assert response_2.json()["patient_reference_id"] and uuid.UUID(response_2.json()["patient_reference_id"])
+        assert response_2.json()["patient_reference_id"] and uuid.UUID(
+            response_2.json()["patient_reference_id"]
+        )
         assert person_2 == person_1
         assert response_2.json()["prediction"] == "match"
         assert len(response_2.json()["results"]) == 1
@@ -53,7 +95,9 @@ class TestLink:
             "/link", json={"record": json.loads(patients[2].model_dump_json(exclude_none=True))}
         )
         person_3 = response_3.json()["person_reference_id"]
-        assert response_3.json()["patient_reference_id"] and uuid.UUID(response_3.json()["patient_reference_id"])
+        assert response_3.json()["patient_reference_id"] and uuid.UUID(
+            response_3.json()["patient_reference_id"]
+        )
         assert person_3
         assert response_3.json()["prediction"] == "no_match"
         assert not response_3.json()["results"]
@@ -63,7 +107,9 @@ class TestLink:
             "/link", json={"record": json.loads(patients[3].model_dump_json(exclude_none=True))}
         )
         person_4 = response_4.json()["person_reference_id"]
-        assert response_4.json()["patient_reference_id"] and uuid.UUID(response_4.json()["patient_reference_id"])
+        assert response_4.json()["patient_reference_id"] and uuid.UUID(
+            response_4.json()["patient_reference_id"]
+        )
         assert person_4 == person_1
         assert response_4.json()["prediction"] == "match"
         assert len(response_2.json()["results"]) == 1
@@ -72,7 +118,9 @@ class TestLink:
             "/link", json={"record": json.loads(patients[4].model_dump_json(exclude_none=True))}
         )
         person_5 = response_5.json()["person_reference_id"]
-        assert response_5.json()["patient_reference_id"] and uuid.UUID(response_5.json()["patient_reference_id"])
+        assert response_5.json()["patient_reference_id"] and uuid.UUID(
+            response_5.json()["patient_reference_id"]
+        )
         assert person_5
         assert response_5.json()["prediction"] == "no_match"
         assert not response_3.json()["results"]
@@ -81,7 +129,9 @@ class TestLink:
             "/link", json={"record": json.loads(patients[5].model_dump_json(exclude_none=True))}
         )
         person_6 = response_6.json()["person_reference_id"]
-        assert response_6.json()["patient_reference_id"] and uuid.UUID(response_6.json()["patient_reference_id"])
+        assert response_6.json()["patient_reference_id"] and uuid.UUID(
+            response_6.json()["patient_reference_id"]
+        )
         assert person_6
         assert response_6.json()["prediction"] == "no_match"
         assert not response_6.json()["results"]
@@ -100,7 +150,9 @@ class TestLink:
             },
         )
         person_1 = response_1.json()["person_reference_id"]
-        assert response_1.json()["patient_reference_id"] and uuid.UUID(response_1.json()["patient_reference_id"])
+        assert response_1.json()["patient_reference_id"] and uuid.UUID(
+            response_1.json()["patient_reference_id"]
+        )
         assert person_1
         assert response_1.json()["prediction"] == "no_match"
         assert not response_1.json()["results"]
@@ -113,7 +165,9 @@ class TestLink:
             },
         )
         person_2 = response_2.json()["person_reference_id"]
-        assert response_2.json()["patient_reference_id"] and uuid.UUID(response_2.json()["patient_reference_id"])
+        assert response_2.json()["patient_reference_id"] and uuid.UUID(
+            response_2.json()["patient_reference_id"]
+        )
         assert person_2 == person_1
         assert response_2.json()["prediction"] == "match"
         assert len(response_2.json()["results"]) == 1
@@ -126,7 +180,9 @@ class TestLink:
             },
         )
         person_3 = response_3.json()["person_reference_id"]
-        assert response_3.json()["patient_reference_id"] and uuid.UUID(response_3.json()["patient_reference_id"])
+        assert response_3.json()["patient_reference_id"] and uuid.UUID(
+            response_3.json()["patient_reference_id"]
+        )
         assert person_3
         assert response_3.json()["prediction"] == "no_match"
         assert not response_3.json()["results"]
@@ -140,7 +196,9 @@ class TestLink:
             },
         )
         person_4 = response_4.json()["person_reference_id"]
-        assert response_4.json()["patient_reference_id"] and uuid.UUID(response_4.json()["patient_reference_id"])
+        assert response_4.json()["patient_reference_id"] and uuid.UUID(
+            response_4.json()["patient_reference_id"]
+        )
         assert person_4 == person_1
         assert response_4.json()["prediction"] == "match"
         assert len(response_4.json()["results"]) == 1
@@ -153,7 +211,9 @@ class TestLink:
             },
         )
         person_5 = response_5.json()["person_reference_id"]
-        assert response_5.json()["patient_reference_id"] and uuid.UUID(response_5.json()["patient_reference_id"])
+        assert response_5.json()["patient_reference_id"] and uuid.UUID(
+            response_5.json()["patient_reference_id"]
+        )
         assert person_5
         assert response_5.json()["prediction"] == "no_match"
         assert not response_5.json()["results"]
@@ -166,7 +226,9 @@ class TestLink:
             },
         )
         person_6 = response_6.json()["person_reference_id"]
-        assert response_6.json()["patient_reference_id"] and uuid.UUID(response_6.json()["patient_reference_id"])
+        assert response_6.json()["patient_reference_id"] and uuid.UUID(
+            response_6.json()["patient_reference_id"]
+        )
         assert person_6
         assert response_6.json()["prediction"] == "no_match"
         assert not response_6.json()["results"]
@@ -244,7 +306,9 @@ class TestLinkFHIR:
             for r in new_bundle["entry"]
             if r.get("resource").get("resourceType") == "Person"
         ][0]
-        assert resp_1.json()["patient_reference_id"] and uuid.UUID(resp_1.json()["patient_reference_id"])
+        assert resp_1.json()["patient_reference_id"] and uuid.UUID(
+            resp_1.json()["patient_reference_id"]
+        )
         assert resp_1.json()["person_reference_id"] == person_1.get("id")
         assert resp_1.json()["prediction"] == "no_match"
         assert not resp_1.json()["results"]
@@ -258,7 +322,9 @@ class TestLinkFHIR:
             for r in new_bundle["entry"]
             if r.get("resource").get("resourceType") == "Person"
         ][0]
-        assert resp_2.json()["patient_reference_id"] and uuid.UUID(resp_2.json()["patient_reference_id"])
+        assert resp_2.json()["patient_reference_id"] and uuid.UUID(
+            resp_2.json()["patient_reference_id"]
+        )
         assert resp_2.json()["person_reference_id"] == person_1.get("id")
         assert person_2.get("id") == person_1.get("id")
         assert resp_2.json()["prediction"] == "match"
@@ -273,7 +339,9 @@ class TestLinkFHIR:
             for r in new_bundle["entry"]
             if r.get("resource").get("resourceType") == "Person"
         ][0]
-        assert resp_3.json()["patient_reference_id"] and uuid.UUID(resp_3.json()["patient_reference_id"])
+        assert resp_3.json()["patient_reference_id"] and uuid.UUID(
+            resp_3.json()["patient_reference_id"]
+        )
         assert resp_3.json()["person_reference_id"] == person_3.get("id")
         assert resp_3.json()["prediction"] == "no_match"
         assert not resp_3.json()["results"]
@@ -288,7 +356,9 @@ class TestLinkFHIR:
             for r in new_bundle["entry"]
             if r.get("resource").get("resourceType") == "Person"
         ][0]
-        assert resp_4.json()["patient_reference_id"] and uuid.UUID(resp_4.json()["patient_reference_id"])
+        assert resp_4.json()["patient_reference_id"] and uuid.UUID(
+            resp_4.json()["patient_reference_id"]
+        )
         assert resp_4.json()["person_reference_id"] == person_4.get("id")
         assert person_4.get("id") == person_1.get("id")
         assert resp_4.json()["prediction"] == "match"
@@ -303,7 +373,9 @@ class TestLinkFHIR:
             for r in new_bundle["entry"]
             if r.get("resource").get("resourceType") == "Person"
         ][0]
-        assert resp_5.json()["patient_reference_id"] and uuid.UUID(resp_5.json()["patient_reference_id"])
+        assert resp_5.json()["patient_reference_id"] and uuid.UUID(
+            resp_5.json()["patient_reference_id"]
+        )
         assert resp_5.json()["person_reference_id"] == person_5.get("id")
         assert resp_5.json()["prediction"] == "no_match"
         assert not resp_5.json()["results"]
@@ -317,7 +389,9 @@ class TestLinkFHIR:
             for r in new_bundle["entry"]
             if r.get("resource").get("resourceType") == "Person"
         ][0]
-        assert resp_6.json()["patient_reference_id"] and uuid.UUID(resp_6.json()["patient_reference_id"])
+        assert resp_6.json()["patient_reference_id"] and uuid.UUID(
+            resp_6.json()["patient_reference_id"]
+        )
         assert resp_6.json()["person_reference_id"] == person_6.get("id")
         assert resp_6.json()["prediction"] == "no_match"
         assert not resp_6.json()["results"]
@@ -337,7 +411,9 @@ class TestLinkFHIR:
             for r in new_bundle["entry"]
             if r.get("resource").get("resourceType") == "Person"
         ][0]
-        assert resp_1.json()["patient_reference_id"] and uuid.UUID(resp_1.json()["patient_reference_id"])
+        assert resp_1.json()["patient_reference_id"] and uuid.UUID(
+            resp_1.json()["patient_reference_id"]
+        )
         assert resp_1.json()["person_reference_id"] == person_1.get("id")
         assert resp_1.json()["prediction"] == "no_match"
         assert not resp_1.json()["results"]
@@ -351,7 +427,9 @@ class TestLinkFHIR:
             for r in new_bundle["entry"]
             if r.get("resource").get("resourceType") == "Person"
         ][0]
-        assert resp_2.json()["patient_reference_id"] and uuid.UUID(resp_2.json()["patient_reference_id"])
+        assert resp_2.json()["patient_reference_id"] and uuid.UUID(
+            resp_2.json()["patient_reference_id"]
+        )
         assert resp_2.json()["person_reference_id"] == person_2.get("id")
         assert person_2.get("id") == person_1.get("id")
         assert resp_2.json()["prediction"] == "match"
@@ -366,7 +444,9 @@ class TestLinkFHIR:
             for r in new_bundle["entry"]
             if r.get("resource").get("resourceType") == "Person"
         ][0]
-        assert resp_3.json()["patient_reference_id"] and uuid.UUID(resp_3.json()["patient_reference_id"])
+        assert resp_3.json()["patient_reference_id"] and uuid.UUID(
+            resp_3.json()["patient_reference_id"]
+        )
         assert resp_3.json()["person_reference_id"] == person_3.get("id")
         assert resp_3.json()["prediction"] == "no_match"
         assert not resp_3.json()["results"]
@@ -380,7 +460,9 @@ class TestLinkFHIR:
             for r in new_bundle["entry"]
             if r.get("resource").get("resourceType") == "Person"
         ][0]
-        assert resp_4.json()["patient_reference_id"] and uuid.UUID(resp_4.json()["patient_reference_id"])
+        assert resp_4.json()["patient_reference_id"] and uuid.UUID(
+            resp_4.json()["patient_reference_id"]
+        )
         assert resp_4.json()["person_reference_id"] == person_1.get("id")
         assert person_4.get("id") == person_1.get("id")
         assert resp_4.json()["prediction"] == "match"
@@ -395,7 +477,9 @@ class TestLinkFHIR:
             for r in new_bundle["entry"]
             if r.get("resource").get("resourceType") == "Person"
         ][0]
-        assert resp_5.json()["patient_reference_id"] and uuid.UUID(resp_5.json()["patient_reference_id"])
+        assert resp_5.json()["patient_reference_id"] and uuid.UUID(
+            resp_5.json()["patient_reference_id"]
+        )
         assert resp_5.json()["person_reference_id"] == person_5.get("id")
         assert resp_5.json()["prediction"] == "no_match"
         assert not resp_5.json()["results"]
@@ -409,7 +493,9 @@ class TestLinkFHIR:
             for r in new_bundle["entry"]
             if r.get("resource").get("resourceType") == "Person"
         ][0]
-        assert resp_6.json()["patient_reference_id"] and uuid.UUID(resp_6.json()["patient_reference_id"])
+        assert resp_6.json()["patient_reference_id"] and uuid.UUID(
+            resp_6.json()["patient_reference_id"]
+        )
         assert resp_6.json()["person_reference_id"] == person_6.get("id")
         assert resp_6.json()["prediction"] == "no_match"
         assert not resp_6.json()["results"]
@@ -428,3 +514,90 @@ class TestLinkFHIR:
 
         assert actual_response.json() == expected_response
         assert actual_response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
+
+
+class TestMatch:
+    @pytest.fixture
+    def patients(self) -> list[schemas.PIIRecord]:
+        bundle = load_test_json_asset("simple_patient_bundle_to_link_with_mpi.json")
+        patients: list[schemas.PIIRecord] = []
+        for entry in bundle["entry"]:
+            if entry.get("resource", {}).get("resourceType", {}) == "Patient":
+                patients.append(fhir.fhir_record_to_pii_record(entry["resource"]))
+        return patients
+
+    def test_invalid_algorithm(self, client):
+        resp = client.post("/match", json={"record": {}})
+        assert resp.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
+        assert resp.json()["detail"] == "No algorithm found"
+
+    def test_no_match(self, client, basic_algorithm, patients):
+        client.session.add(basic_algorithm)
+        client.session.commit()
+        resp = client.post("/match", json={"record": patients[0].to_dict(True)})
+        assert resp.status_code == status.HTTP_200_OK
+        payload = resp.json()
+        assert payload["prediction"] == "no_match"
+        assert payload["person_reference_id"] is None
+        assert payload["results"] == []
+        assert payload.get("patient_reference_id") is None
+        assert len(client.session.query(models.Patient).all()) == 0
+
+    def test_match(self, client, basic_algorithm, patients):
+        client.session.add(basic_algorithm)
+        client.session.commit()
+        per1 = client.post("/link", json={"record": patients[0].to_dict(True)}).json()["person_reference_id"]
+
+        resp = client.post("/match", json={"record": patients[0].to_dict(True)})
+        assert resp.status_code == status.HTTP_200_OK
+        payload = resp.json()
+        assert payload["prediction"] == "match"
+        assert payload["person_reference_id"] == per1
+        assert len(payload["results"]) == 1
+        assert payload["results"][0]["person_reference_id"] == per1
+        assert payload.get("patient_reference_id") is None
+        assert len(client.session.query(models.Patient).all()) == 1
+
+
+class TestMatchFHIR:
+    @pytest.fixture
+    def patient_bundles(self) -> list[dict]:
+        bundles: list[dict] = []
+        data = load_test_json_asset("simple_patient_bundle_to_link_with_mpi.json")
+        for entry in data["entry"]:
+            bundles.append({"entry": [entry]})
+        return bundles
+
+    def test_invalid_algorithm(self, client):
+        resp = client.post("/match/fhir", json={"bundle": {}})
+        assert resp.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
+        assert resp.json()["detail"] == "No algorithm found"
+
+    def test_no_match(self, client, basic_algorithm, patient_bundles):
+        client.session.add(basic_algorithm)
+        client.session.commit()
+        resp = client.post("/match/fhir", json={"bundle": patient_bundles[0]})
+        assert resp.status_code == status.HTTP_200_OK
+        payload = resp.json()
+        assert payload["prediction"] == "no_match"
+        assert payload["person_reference_id"] is None
+        assert payload["results"] == []
+        assert payload.get("patient_reference_id") is None
+        assert payload["updated_bundle"] is None
+        assert len(client.session.query(models.Patient).all()) == 0
+
+    def test_match(self, client, basic_algorithm, patient_bundles):
+        client.session.add(basic_algorithm)
+        client.session.commit()
+        per1 = client.post("/link/fhir", json={"bundle": patient_bundles[0]}).json()["person_reference_id"]
+
+        resp = client.post("/match/fhir", json={"bundle": patient_bundles[0]})
+        assert resp.status_code == status.HTTP_200_OK
+        payload = resp.json()
+        assert payload["prediction"] == "match"
+        assert payload["person_reference_id"] == per1
+        assert len(payload["results"]) == 1
+        assert payload["results"][0]["person_reference_id"] == per1
+        assert payload.get("patient_reference_id") is None
+        assert len(payload["updated_bundle"]["entry"]) == 2
+        assert len(client.session.query(models.Patient).all()) == 1
