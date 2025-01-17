@@ -30,19 +30,18 @@ def _generate_random_identifiers(count, faker):
     Given a count of identifiers to generate, generate a list of
     MRNs, SSNs, and Drivers Licenses.
     """
-    while count > 0:
-        if count % 3 == 0:
+    for idx in range(count):
+        if idx % 3 == 0:
             # make mrn
             yield Identifier(type="MR", value=faker.bothify(text="MRN-#######"))
-        if count % 3 == 1:
+        if idx % 3 == 1:
             # make ssn
             yield Identifier(type="SS", value=faker.ssn())
-        if count % 3 == 2:
+        if idx % 3 == 2:
             # make drivers_license
             yield Identifier(
                 type="DL", value=faker.bothify(text="DL-######"), authority=faker.state_abbr()
             )
-        count -= 1
 
 
 # Function to generate random data
@@ -99,7 +98,7 @@ def main() -> None:
     clusters = []
     for _ in range(args.count):
         cluster = schemas.Cluster(
-            external_person_id=f"EP:{faker.uuid4()}",
+            external_person_id=f"EP:{str(faker.uuid4())}",
             records=[
                 _generate_random_pii_record(faker)
                 for _ in range(random.randint(1, args.max_per_cluster))
