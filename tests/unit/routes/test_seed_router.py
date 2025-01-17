@@ -28,17 +28,19 @@ class TestBatch:
         )
 
     def test_large_batch(self, client):
+        # NOTE: The seed_test.json file was generated with scripts/gen_seed_test_data.py
+        # rerun that script and adjust these values if the data format needs to change.
         data = load_test_json_asset("seed_test.json.gz")
         response = client.post("/seed", json=data)
         assert response.status_code == 201
         persons = response.json()["persons"]
         assert len(persons) == 100
-        assert len(persons[0]["patients"]) == 13
-        assert len(persons[99]["patients"]) == 7
-        assert sum(len(p["patients"]) for p in persons) == 1285
+        assert len(persons[0]["patients"]) == 5
+        assert len(persons[99]["patients"]) == 14
+        assert sum(len(p["patients"]) for p in persons) == 1397
         assert client.session.query(models.Person).count() == 100
-        assert client.session.query(models.Patient).count() == 1285
-        assert client.session.query(models.BlockingValue).count() == 10280
+        assert client.session.query(models.Patient).count() == 1397
+        assert client.session.query(models.BlockingValue).count() == 12603
 
     @mock.patch("recordlinker.database.algorithm_service.default_algorithm")
     def test_seed_and_link(self, mock_algorithm, basic_algorithm, client):
