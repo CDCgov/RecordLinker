@@ -83,8 +83,6 @@ def delete_patient(
     
     return service.delete_patient(session, patient)
 
-
-# TODO: Could add the person reference id to the payload instead of the path
 @router.post(
     "/person/{person_reference_id}",
     summary="Create a patient record and link to an existing person",
