@@ -40,8 +40,11 @@ def are_types_equivalent(db_type, orm_type) -> bool:
     db_type_str = str(db_type).lower()
     orm_type_str = str(orm_type).lower()
 
-    # Treat INTEGER and BIGINT as equivalent
+    # Treat these cases as equivalent
     if {db_type_str, orm_type_str} <= {"integer", "bigint"}:
+        return True
+    
+    if {db_type_str, orm_type_str} <= {"double precision", "float"}:
         return True
 
     return db_type_str == orm_type_str
