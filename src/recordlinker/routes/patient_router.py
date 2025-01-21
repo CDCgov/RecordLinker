@@ -82,3 +82,45 @@ def delete_patient(
         raise fastapi.HTTPException(status_code=fastapi.status.HTTP_404_NOT_FOUND)
     
     return service.delete_patient(session, patient)
+
+
+# TODO: Could add the person reference id to the payload instead of the path
+@router.post(
+    "/person/{person_reference_id}",
+    summary="Create a patient record and link to an existing person",
+    status_code=fastapi.status.HTTP_201_CREATED,
+)
+def create_patient(
+    person_reference_id: uuid.UUID, record: schemas.PIIRecord, session: orm.Session = fastapi.Depends(get_session)
+) -> schemas.PatientRef:
+    """
+    Create a new patient record in the mpi
+    """
+    person = service.get_person_by_reference_id(session, person_reference_id)
+
+    if person is None:
+        raise fastapi.HTTPException(status_code=fastapi.status.HTTP_404_NOT_FOUND)
+    
+    print("made it here")
+    patient = service.insert_patient(session, record, person)
+    return schemas.PatientRef(reference_id=patient.reference_id)
+
+
+@router.patch(
+    "/{patient_reference_id}",
+    summary="Update a patient record",
+    status_code=fastapi.status.HTTP_200_OK,
+)
+def update_patient(
+    patient_reference_id: uuid.UUID, record: schemas.PIIRecord, session: orm.Session = fastapi.Depends(get_session)
+) -> schemas.PatientRef:
+    """
+    Update an existing patient record in the mpi
+    """
+    patient = service.get_patient_by_reference_id(session, patient_reference_id)
+    if patient is None:
+        raise fastapi.HTTPException(status_code=fastapi.status.HTTP_404_NOT_FOUND)
+    
+    #update the patient record with the new data
+
+    #return a reference object to the updated patient
