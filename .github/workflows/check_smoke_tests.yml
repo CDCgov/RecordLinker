@@ -53,7 +53,8 @@ jobs:
           sleep 5
           COUNT=$((COUNT+1))
           if [ "$COUNT" -ge "$TRIES" ]; then
-            echo "RL Service did not become healthy in time."
+            echo "RL Service did not become healthy in time. Fetching container logs..."
+            docker logs rl-service
             exit 1
           fi
         done
