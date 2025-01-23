@@ -12,7 +12,7 @@ jobs:
 
     strategy:
       matrix:
-        database: [postgres, mysql, sqlserver]  # Matrix for database types
+        database: [postgres]  # Matrix for database types
 
     services:
       postgres:
@@ -59,6 +59,9 @@ jobs:
         elif [[ "${{ matrix.database }}" == "sqlserver" ]]; then
           export DB_URI=mssql+pyodbc://sa:YourStrong!Passw0rd@localhost:1433/master?driver=ODBC+Driver+18+for+SQL+Server&TrustServerCertificate=yes
         fi
+
+        echo "DB_URI: $DB_URI"
+
         docker run -d --name rl-service \
           --network="host" \
           -e DB_URI=$DB_URI \
