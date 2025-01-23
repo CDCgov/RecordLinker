@@ -10,14 +10,32 @@ jobs:
   smoke_tests:
     runs-on: ubuntu-latest
 
+    strategy:
+      matrix:
+        database: [postgres, sqlite, mysql, sqlserver]  # Matrix for database types
+
     services:
-      db:
+      postgres:
         image: postgres:17
-        env:
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: pw
         ports:
           - 5432:5432
+        env:
+          POSTGRES_PASSWORD: pw
+
+      mysql:
+        image: mysql:8
+        ports:
+          - 3306:3306
+        env:
+          MYSQL_ROOT_PASSWORD: pw
+
+      sqlserver:
+        image: mcr.microsoft.com/mssql/server:2022-latest
+        ports:
+          - 1433:1433
+        env:
+          ACCEPT_EULA: Y
+          SA_PASSWORD: "YourStrong!Passw0rd"
 
     steps:
     - name: Check out repository
@@ -32,11 +50,20 @@ jobs:
 
     - name: Start RecordLinker Service and Run Smoke Tests
       run: |
+        if [[ "${{ matrix.database }}" == "postgres" ]]; then
+          export DB_URI="postgresql+psycopg2://postgres:pw@localhost:5432/postgres"
+        elif [[ "${{ matrix.database }}" == "sqlite" ]]; then
+          export DB_URI="sqlite:///testdb.sqlite3"
+        elif [[ "${{ matrix.database }}" == "mysql" ]]; then
+          export DB_URI="mysql+pymysql://root:pw@localhost:3306/mysql"
+        elif [[ "${{ matrix.database }}" == "sqlserver" ]]; then
+          export DB_URI="mssql+pyodbc://sa:YourStrong!Passw0rd@localhost:1433/master?driver=ODBC+Driver+18+for+SQL+Server&TrustServerCertificate=yes"
+        fi
+
         # Start Record Linker Service
         docker run -d --name rl-service \
           --network="host" \
-          -e DB_URI="postgresql+psycopg2://postgres:pw@localhost:5432/postgres" \
-          -p 8080:8080 \
+          -e DB_URI=$DB_URI \
           rl-service-image
 
         # Wait for the RL Service to be healthy
