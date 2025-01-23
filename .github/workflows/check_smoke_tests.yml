@@ -53,4 +53,4 @@ jobs:
           fi
         done
       
-      ./scripts/smoke_tests.sh http://localhost:8080
+        ./scripts/smoke_tests.sh http://localhost:8080
