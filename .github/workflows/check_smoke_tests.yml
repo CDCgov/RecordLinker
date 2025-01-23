@@ -60,7 +60,9 @@ jobs:
           export DB_URI=mssql+pyodbc://sa:YourStrong!Passw0rd@localhost:1433/master?driver=ODBC+Driver+18+for+SQL+Server&TrustServerCertificate=yes
         fi
 
-        docker run -d --name rl-service --network="host" -e DB_URI=$DB_URI rl-service-image
+        echo "DB_URI: $DB_URI"
+
+        docker run -d --name rl-service --network="host" -e DB_URI="$DB_URI" rl-service-image
 
         TRIES=3
         while ! curl -s http://localhost:8080/ | grep "OK"; do
