@@ -51,19 +51,17 @@ jobs:
     - name: Start RecordLinker Service and Run Smoke Tests
       run: |
         if [[ "${{ matrix.database }}" == "postgres" ]]; then
-          export DB_URI=postgresql+psycopg2://postgres:pw@localhost:5432/postgres
+          export DB_URI="postgresql+psycopg2://postgres:pw@localhost:5432/postgres"
         elif [[ "${{ matrix.database }}" == "sqlite" ]]; then
-          export DB_URI=sqlite:///testdb.sqlite3
+          export DB_URI="sqlite:///testdb.sqlite3"
         elif [[ "${{ matrix.database }}" == "mysql" ]]; then
-          export DB_URI=mysql+pymysql://root:pw@localhost:3306/mysql
+          export DB_URI="mysql+pymysql://root:pw@localhost:3306/mysql"
         elif [[ "${{ matrix.database }}" == "sqlserver" ]]; then
           export DB_URI="mssql+pyodbc://sa:YourStrong!Passw0rd@localhost:1433/master?driver=ODBC+Driver+18+for+SQL+Server&TrustServerCertificate=yes"
         fi
 
         echo "DB_URI: $DB_URI"
-
         docker run -d --name rl-service --network="host" -e DB_URI="$DB_URI" rl-service-image
-
         TRIES=3
         while ! curl -s http://localhost:8080/ | grep "OK"; do
           echo "Waiting for RL Service to become healthy..."

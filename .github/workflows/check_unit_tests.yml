@@ -70,15 +70,16 @@ jobs:
       - name: Run Pytest with the matrix database
         run: |
           if [[ "${{ matrix.database }}" == "postgres" ]]; then
-            export TEST_DB_URI=postgresql+psycopg2://postgres:pw@localhost:5432/postgres
+            export TEST_DB_URI="postgresql+psycopg2://postgres:pw@localhost:5432/postgres"
           elif [[ "${{ matrix.database }}" == "sqlite" ]]; then
-            export TEST_DB_URI=sqlite:///testdb.sqlite3
+            export TEST_DB_URI="sqlite:///testdb.sqlite3"
           elif [[ "${{ matrix.database }}" == "mysql" ]]; then
-            export TEST_DB_URI=mysql+pymysql://root:pw@localhost:3306/mysql
+            export TEST_DB_URI="mysql+pymysql://root:pw@localhost:3306/mysql"
           elif [[ "${{ matrix.database }}" == "sqlserver" ]]; then
-            export TEST_DB_URI=mssql+pyodbc://sa:YourStrong!Passw0rd@localhost:1433/master?driver=ODBC+Driver+18+for+SQL+Server&TrustServerCertificate=yes
+            export TEST_DB_URI="mssql+pyodbc://sa:YourStrong!Passw0rd@localhost:1433/master?driver=ODBC+Driver+18+for+SQL+Server&TrustServerCertificate=yes"
           fi
 
+          echo "TEST_DB_URI: $TEST_DB_URI"
           pytest --cov=recordlinker tests/unit
           mv .coverage coverage-${{ matrix.database }}.dat
 
