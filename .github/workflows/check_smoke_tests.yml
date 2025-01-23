@@ -27,24 +27,19 @@ jobs:
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v3
 
-    # - name: Prepare SQLite Database
-    #   run: |
-    #     # Ensure the SQLite database file exists
-    #     touch test.db
-
     - name: Build RecordLinker Docker Image
       run: |
         docker build -t rl-service-image . 
 
     - name: Start RecordLinker Service and Run Smoke Tests
       run: |
-        # Start Record Linker Service with SQLite
+        # Start Record Linker Service
         docker run -d --name rl-service \
           --network="host" \
           -e DB_URI="postgresql+psycopg2://postgres:pw@localhost:5432/postgres" \
           -p 8080:8080 \
           rl-service-image
-        
+
         # Wait for the RL Service to be healthy
         TRIES=5
         COUNT=0
@@ -53,8 +48,7 @@ jobs:
           sleep 5
           COUNT=$((COUNT+1))
           if [ "$COUNT" -ge "$TRIES" ]; then
-            echo "RL Service did not become healthy in time. Fetching container logs..."
-            docker logs rl-service
+            echo "RL Service did not become healthy in time."
             exit 1
           fi
         done
