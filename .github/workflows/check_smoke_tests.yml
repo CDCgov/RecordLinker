@@ -67,7 +67,7 @@ jobs:
           echo "Waiting for RL Service to become healthy..."
           sleep 3
           ((TRIES--))
-          if [ "$TRIES" -lt 0 ]; then
+          if [ "$TRIES" -eq 0 ]; then
             echo "RL Service did not become healthy in time."
             docker logs rl-service  # Fetch and print the logs
             exit 1
