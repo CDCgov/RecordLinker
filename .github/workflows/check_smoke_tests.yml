@@ -66,9 +66,8 @@ jobs:
           --network="host" \
           -e DB_URI=$DB_URI \
           -p 8080:8080 \
-          --health-cmd="curl --fail http://localhost:8080/ || exit 1" \
-          --health-interval=5s \
-          --health-retries=3 \
           rl-service-image
+
+        sleep 10
 
         ./scripts/smoke_tests.sh http://localhost:8080
