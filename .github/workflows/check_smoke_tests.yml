@@ -67,7 +67,11 @@ jobs:
           echo "Waiting for RL Service to become healthy..."
           sleep 3
           ((TRIES--))
-          [ "$TRIES" -lt 0 ] && { echo "RL Service did not become healthy in time."; exit 1; }
+          if [ "$TRIES" -lt 0 ]; then
+            echo "RL Service did not become healthy in time."
+            docker logs rl-service  # Fetch and print the logs
+            exit 1
+          fi
         done
 
         ./scripts/smoke_tests.sh http://localhost:8080
