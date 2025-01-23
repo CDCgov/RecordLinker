@@ -12,7 +12,7 @@ jobs:
 
     strategy:
       matrix:
-        database: [postgres]  # Matrix for database types
+        database: [postgres, mysql, sqlserver]  # Matrix for database types
 
     services:
       postgres:
@@ -60,14 +60,12 @@ jobs:
           export DB_URI=mssql+pyodbc://sa:YourStrong!Passw0rd@localhost:1433/master?driver=ODBC+Driver+18+for+SQL+Server&TrustServerCertificate=yes
         fi
 
-        echo "DB_URI: $DB_URI"
-
         docker run -d --name rl-service --network="host" -e DB_URI=$DB_URI rl-service-image
 
         TRIES=3
         while ! curl -s http://localhost:8080/ | grep "OK"; do
           echo "Waiting for RL Service to become healthy..."
-          sleep 5
+          sleep 3
           ((TRIES--))
           [ "$TRIES" -lt 0 ] && { echo "RL Service did not become healthy in time."; exit 1; }
         done
