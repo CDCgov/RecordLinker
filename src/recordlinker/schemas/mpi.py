@@ -35,6 +35,6 @@ class PatientUpdatePayload(pydantic.BaseModel):
         """
         Ensure that either person_reference_id or record is not None.
         """
-        if self.person_reference_id is None and not self.record:
+        if self.person_reference_id is None and self.record is None:
             raise ValueError("at least one of person_reference_id or record must be provided")
         return self

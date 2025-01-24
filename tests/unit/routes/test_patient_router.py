@@ -74,7 +74,7 @@ class TestCreatePatient:
         assert response.status_code == 422
 
     def test_invalid_person(self, client):
-        data = {"person_reference_id": str(uuid.uuid4())}, {"record": {}}
+        data = {"person_reference_id": str(uuid.uuid4()), "record": {}}
         response = client.post("/patient", json=data)
         assert response.status_code == 422
 
@@ -115,6 +115,14 @@ class TestUpdatePatient:
         response = client.patch(f"/patient/{patient.reference_id}", json=data)
         assert response.status_code == 422
 
+    def test_no_data_to_update(self, client):
+        patient = models.Patient()
+        client.session.add(patient)
+        client.session.flush()
+
+        response = client.patch(f"/patient/{patient.reference_id}", json={})
+        assert response.status_code == 422
+
     def test_update_patient(self, client):
         person = models.Person()
         client.session.add(person)
@@ -129,7 +137,7 @@ class TestUpdatePatient:
         response = client.patch(f"/patient/{patient.reference_id}", json=data)
         assert response.status_code == 200
         assert response.json() == {"patient_reference_id": str(patient.reference_id), "external_patient_id": "123"}
-        patient = client.session.query(models.Patient).get(patient.id)
+        patient = client.session.get(models.Patient, patient.id)
         assert len(patient.blocking_values) == 2
         assert patient.person == person
         assert patient.data == data["record"]
