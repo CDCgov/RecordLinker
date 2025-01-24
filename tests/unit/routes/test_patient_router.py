@@ -12,7 +12,6 @@ from recordlinker import models
 
 class TestCreatePerson:
     def test_invalid_reference_id(self, client):
-        print("testing")
         response = client.post("/patient/123/person")
         assert response.status_code == 422
 
