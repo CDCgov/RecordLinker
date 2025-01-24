@@ -28,6 +28,22 @@ Each setting can be configured as follows:
 
     **Development Default**: `""`
 
+`DB_CREATE_TABLES (Optional)`
+
+:   Whether to create the database tables on startup, if they do not already exist.
+
+    **Docker Default**: `true`
+
+    **Development Default**: `true`
+
+`DB_VERIFY_TABLES (Optional)`
+
+:   Whether to verify that the database tables match the ORM definitions on startup.
+
+    **Docker Default**: `true`
+
+    **Development Default**: `true`
+
 `TEST_DB_URI (Optional)`
 
 :   The URI for the application database used when running tests.

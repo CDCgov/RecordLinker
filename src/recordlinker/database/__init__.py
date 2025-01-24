@@ -17,7 +17,7 @@ from recordlinker import models
 from recordlinker.config import settings
 
 
-def create_sessionmaker(init_tables: bool = True, verify_tables: bool = False) -> orm.sessionmaker:
+def create_sessionmaker(init_tables: bool = True, verify_tables: bool = True) -> orm.sessionmaker:
     """
     Create a new sessionmaker for the database connection.
     """
@@ -100,4 +100,4 @@ def get_test_session() -> typing.Iterator[orm.Session]:
         models.Base.metadata.drop_all(engine)
 
 
-SessionMaker = create_sessionmaker()
+SessionMaker = create_sessionmaker(settings.db_create_tables, settings.db_verify_tables)
