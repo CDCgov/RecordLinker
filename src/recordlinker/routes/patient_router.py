@@ -85,7 +85,11 @@ def create_patient(
         raise fastapi.HTTPException(status_code=fastapi.status.HTTP_422_UNPROCESSABLE_ENTITY)
 
     patient = service.insert_patient(
-        session, payload.record, person=person, external_patient_id=payload.record.external_id
+        session,
+        payload.record,
+        person=person,
+        external_patient_id=payload.record.external_id,
+        commit=False,
     )
     return schemas.PatientRef(
         patient_reference_id=patient.reference_id, external_patient_id=patient.external_patient_id
@@ -122,6 +126,7 @@ def update_patient(
         person=person,
         record=payload.record,
         external_patient_id=external_patient_id,
+        commit=False,
     )
     return schemas.PatientRef(
         patient_reference_id=patient.reference_id, external_patient_id=patient.external_patient_id
