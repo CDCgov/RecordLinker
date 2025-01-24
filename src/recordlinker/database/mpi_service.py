@@ -160,7 +160,7 @@ def update_patient(
     commit: bool = True,
 ) -> models.Patient:
     """
-    Insert a new patient record into the database.
+    Updates an existing patient record in the database.
 
     :param session: The database session
     :param patient: The Patient to update
