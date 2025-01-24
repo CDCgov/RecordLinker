@@ -29,3 +29,18 @@ jobs:
       - name: Run lint checks
         run: |
           ruff check
+
+      - name: Next tag test
+        run: |
+          next_tag=$(scripts/version_name.sh)
+          echo "Next tag: $next_tag"
+          echo "NEXT_TAG=$next_tag" >> $GITHUB_ENV
+          # If the tag ends in -rc.*, then its a draft release
+          draft=$([[ "$next_tag" =~ -rc\.[0-9]+$ ]] && echo true || echo false)
+          echo "Draft release: $draft"
+          next_tag="v25.2.0"
+          draft=$([[ "$next_tag" =~ -rc\.[0-9]+$ ]] && echo true || echo false)
+          echo "Draft release: $draft"
+          next_tag="v25.2.0-rc.8"
+          draft=$([[ "$next_tag" =~ -rc\.[0-9]+$ ]] && echo true || echo false)
+          echo "Draft release: $draft"
