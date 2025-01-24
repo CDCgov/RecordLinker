@@ -151,6 +151,46 @@ def bulk_insert_patients(
     return patients
 
 
+def update_patient(
+    session: orm.Session,
+    patient: models.Patient,
+    record: typing.Optional[schemas.PIIRecord] = None,
+    person: typing.Optional[models.Person] = None,
+    external_patient_id: typing.Optional[str] = None,
+    commit: bool = True,
+) -> models.Patient:
+    """
+    Insert a new patient record into the database.
+
+    :param session: The database session
+    :param patient: The Patient to update
+    :param record: Optional PIIRecord to update
+    :param person: Optional Person to associate with the Patient
+    :param external_patient_id: Optional external patient ID
+    :param commit: Whether to commit the transaction
+
+    :returns: The updated Patient record
+    """
+    if patient.id is None:
+        raise ValueError("Patient has not yet been inserted into the database")
+
+    if record:
+        patient.record = record
+        delete_blocking_values_for_patient(session, patient, commit=False)
+        insert_blocking_values(session, [patient], commit=False)
+
+    if person:
+        patient.person = person
+
+    if external_patient_id is not None:
+        patient.external_patient_id = external_patient_id
+
+    session.flush()
+    if commit:
+        session.commit()
+    return patient
+
+
 def insert_blocking_values(
     session: orm.Session,
     patients: typing.Sequence[models.Patient],
@@ -186,6 +226,23 @@ def insert_blocking_values(
     else:
         # For all other dialects, we can use a bulk insert to improve performance
         session.execute(insert(models.BlockingValue), data)
+    if commit:
+        session.commit()
+
+
+def delete_blocking_values_for_patient(
+    session: orm.Session, patient: models.Patient, commit: bool = True
+) -> None:
+    """
+    Delete all BlockingValues for a given Patient.
+
+    :param session: The database session
+    :param patient: The Patient to delete BlockingValues for
+    :param commit: Whether to commit the transaction
+
+    :returns: None
+    """
+    session.query(models.BlockingValue).filter(models.BlockingValue.patient_id == patient.id).delete()
     if commit:
         session.commit()
 
