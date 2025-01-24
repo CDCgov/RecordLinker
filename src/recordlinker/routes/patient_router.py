@@ -6,6 +6,7 @@ This module implements the patient router for the RecordLinker API. Exposing
 the patient API endpoints.
 """
 
+import typing
 import uuid
 
 import fastapi
@@ -65,6 +66,68 @@ def update_person(
         patient_reference_id=patient.reference_id, person_reference_id=person.reference_id
     )
 
+
+@router.post(
+    "/",
+    summary="Create a patient record and link to an existing person",
+    status_code=fastapi.status.HTTP_201_CREATED,
+)
+def create_patient(
+    payload: typing.Annotated[schemas.PatientCreatePayload, fastapi.Body],
+    session: orm.Session = fastapi.Depends(get_session),
+) -> schemas.PatientRef:
+    """
+    Create a new patient record in the MPI
+    """
+    person = service.get_person_by_reference_id(session, payload.person_reference_id)
+
+    if person is None:
+        raise fastapi.HTTPException(status_code=fastapi.status.HTTP_422_UNPROCESSABLE_ENTITY)
+
+    patient = service.insert_patient(
+        session, payload.record, person=person, external_patient_id=payload.record.external_id
+    )
+    return schemas.PatientRef(
+        patient_reference_id=patient.reference_id, external_patient_id=patient.external_patient_id
+    )
+
+
+@router.patch(
+    "/{patient_reference_id}",
+    summary="Update a patient record",
+    status_code=fastapi.status.HTTP_200_OK,
+)
+def update_patient(
+    patient_reference_id: uuid.UUID,
+    payload: typing.Annotated[schemas.PatientUpdatePayload, fastapi.Body],
+    session: orm.Session = fastapi.Depends(get_session),
+) -> schemas.PatientRef:
+    """
+    Update an existing patient record in the MPI
+    """
+    patient = service.get_patient_by_reference_id(session, patient_reference_id)
+    if patient is None:
+        raise fastapi.HTTPException(status_code=fastapi.status.HTTP_404_NOT_FOUND)
+
+    person = None
+    if payload.person_reference_id:
+        person = service.get_person_by_reference_id(session, payload.person_reference_id)
+        if person is None:
+            raise fastapi.HTTPException(status_code=fastapi.status.HTTP_422_UNPROCESSABLE_ENTITY)
+
+    external_patient_id = getattr(payload.record, "external_id", None)
+    patient = service.update_patient(
+        session,
+        patient,
+        person=person,
+        record=payload.record,
+        external_patient_id=external_patient_id,
+    )
+    return schemas.PatientRef(
+        patient_reference_id=patient.reference_id, external_patient_id=patient.external_patient_id
+    )
+
+
 @router.delete(
     "/{patient_reference_id}",
     summary="Delete a Patient",
@@ -80,45 +143,5 @@ def delete_patient(
 
     if patient is None:
         raise fastapi.HTTPException(status_code=fastapi.status.HTTP_404_NOT_FOUND)
-    
+
     return service.delete_patient(session, patient)
-
-@router.post(
-    "/person/{person_reference_id}",
-    summary="Create a patient record and link to an existing person",
-    status_code=fastapi.status.HTTP_201_CREATED,
-)
-def create_patient(
-    person_reference_id: uuid.UUID, record: schemas.PIIRecord, session: orm.Session = fastapi.Depends(get_session)
-) -> schemas.PatientRef:
-    """
-    Create a new patient record in the mpi
-    """
-    person = service.get_person_by_reference_id(session, person_reference_id)
-
-    if person is None:
-        raise fastapi.HTTPException(status_code=fastapi.status.HTTP_404_NOT_FOUND)
-    
-    print("made it here")
-    patient = service.insert_patient(session, record, person)
-    return schemas.PatientRef(reference_id=patient.reference_id)
-
-
-@router.patch(
-    "/{patient_reference_id}",
-    summary="Update a patient record",
-    status_code=fastapi.status.HTTP_200_OK,
-)
-def update_patient(
-    patient_reference_id: uuid.UUID, record: schemas.PIIRecord, session: orm.Session = fastapi.Depends(get_session)
-) -> schemas.PatientRef:
-    """
-    Update an existing patient record in the mpi
-    """
-    patient = service.get_patient_by_reference_id(session, patient_reference_id)
-    if patient is None:
-        raise fastapi.HTTPException(status_code=fastapi.status.HTTP_404_NOT_FOUND)
-    
-    #update the patient record with the new data
-
-    #return a reference object to the updated patient
