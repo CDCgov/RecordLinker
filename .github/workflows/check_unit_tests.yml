@@ -57,13 +57,13 @@ jobs:
         run: |
           # Add Microsoft repository keys
           curl https://packages.microsoft.com/keys/microsoft.asc | sudo apt-key add -
-          
+
           # Add the Microsoft SQL Server repository for Ubuntu
           curl https://packages.microsoft.com/config/ubuntu/$(lsb_release -rs)/prod.list | sudo tee /etc/apt/sources.list.d/mssql-release.list
-          
+
           # Update package lists
           sudo apt-get update
-          
+
           # Accept the EULA and install msodbcsql18
           sudo ACCEPT_EULA=Y apt-get install -y msodbcsql18 unixodbc-dev
 
@@ -79,7 +79,6 @@ jobs:
             export TEST_DB_URI="mssql+pyodbc://sa:YourStrong!Passw0rd@localhost:1433/master?driver=ODBC+Driver+18+for+SQL+Server&TrustServerCertificate=yes"
           fi
 
-          echo "TEST_DB_URI: $TEST_DB_URI"
           pytest --cov=recordlinker tests/unit
           mv .coverage coverage-${{ matrix.database }}.dat
 

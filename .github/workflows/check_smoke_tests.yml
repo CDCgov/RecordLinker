@@ -67,14 +67,14 @@ jobs:
           rl-service-image
 
         # Wait for the RL Service to be healthy
-        TRIES=5
-        COUNT=0
+        TRIES=3
         until curl -s http://localhost:8080/ | grep "OK"; do
-          echo "Waiting for RL Service to become healthy... Attempt $((COUNT+1)) of $TRIES"
+          echo "Waiting for RL Service to become healthy..."
           sleep 5
-          COUNT=$((COUNT+1))
-          if [ "$COUNT" -ge "$TRIES" ]; then
+          TRIES=$((TRIES-1))
+          if [ "$TRIES" -ge "0" ]; then
             echo "RL Service did not become healthy in time."
+            docker logs rl-service
             exit 1
           fi
         done
