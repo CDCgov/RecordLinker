@@ -27,6 +27,14 @@ class Settings(pydantic_settings.BaseSettings):
         description="The prefix for all database tables",
         default="",
     )
+    db_create_tables: bool = pydantic.Field(
+        description="Whether to create the database tables on startup, if they are missing",
+        default=True,
+    )
+    db_verify_tables: bool = pydantic.Field(
+        description="Whether to verify that the database tables match the ORM definitions on startup",
+        default=True,
+    )
     test_db_uri: str = pydantic.Field(
         description="The URI for the MPI database to run tests against",
         default="sqlite:///testdb.sqlite3",
