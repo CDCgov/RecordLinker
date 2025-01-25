@@ -11,6 +11,7 @@ from .link import MatchResponse
 from .link import Prediction
 from .mpi import PatientPersonRef
 from .mpi import PatientRef
+from .mpi import PatientRefs
 from .mpi import PersonRef
 from .pii import Feature
 from .pii import FeatureAttribute
@@ -38,6 +39,7 @@ __all__ = [
     "PersonRef",
     "PatientRef",
     "PatientPersonRef",
+    "PatientRefs",
     "Cluster",
     "ClusterGroup",
     "PersonCluster",
