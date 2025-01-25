@@ -39,6 +39,8 @@ services:
       TEST_DB_URI: "sqlite:///:memory:"
       OTEL_TRACES_EXPORTER: "otlp"
       OTEL_EXPORTER_OTLP_ENDPOINT: "http://jaeger:4317"
+    volumes:
+      - ./src:/code/src
     command: >
       opentelemetry-instrument --service_name recordlinker
       uvicorn recordlinker.main:app --app-dir src

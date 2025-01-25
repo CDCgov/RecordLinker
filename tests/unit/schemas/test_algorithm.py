@@ -70,6 +70,16 @@ class TestAlgorithmPass:
             rule="func:recordlinker.linking.matchers.rule_match",
         )
 
+        evaluators = [
+            {"feature": "FIRST_NAME:DL", "func": "func:recordlinker.linking.matchers.compare_match_any"}
+        ]
+        with pytest.raises(pydantic.ValidationError):
+            AlgorithmPass(
+                blocking_keys=[],
+                evaluators=evaluators,
+                rule="func:recordlinker.linking.matchers.rule_match",
+            )
+
     def test_validate_rule(self):
         rule = "invalid.func"
         with pytest.raises(pydantic.ValidationError):

@@ -14,6 +14,7 @@ from .mpi import PatientRef
 from .mpi import PatientRefs
 from .mpi import PersonRef
 from .pii import Feature
+from .pii import FeatureAttribute
 from .pii import PIIRecord
 from .seed import Cluster
 from .seed import ClusterGroup
@@ -25,6 +26,7 @@ __all__ = [
     "AlgorithmPass",
     "AlgorithmSummary",
     "Feature",
+    "FeatureAttribute",
     "PIIRecord",
     "Prediction",
     "LinkInput",
