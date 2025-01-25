@@ -125,7 +125,7 @@ jobs:
           echo "Next tag: $next_tag"
           echo "NEXT_TAG=$next_tag" >> $GITHUB_ENV
           # If the tag ends in -rc.*, then its a draft release
-          draft=$([[ "${{ env.NEXT_TAG }}" =~ -rc\.[0-9]+$ ]] && echo false || echo true)
+          draft=$([[ "$next_tag" =~ -rc\.[0-9]+$ ]] && echo true || echo false)
           echo "Draft release: $draft"
           echo "DRAFT=$draft" >> $GITHUB_ENV
 
