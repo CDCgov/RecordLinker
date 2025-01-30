@@ -18,7 +18,6 @@ from faker import Faker
 from recordlinker import schemas
 from recordlinker.schemas.identifier import Identifier
 from recordlinker.schemas.pii import Address
-from recordlinker.schemas.pii import Gender
 from recordlinker.schemas.pii import Name
 from recordlinker.schemas.pii import Race
 from recordlinker.schemas.pii import Sex
@@ -77,7 +76,6 @@ def _generate_random_pii_record(faker):
             )
         ],
         race=random.choice(list(Race)),
-        gender=random.choice(list(Gender)),
         identifiers=list(_generate_random_identifiers(random.randint(1, 3), faker)),
     )
 
