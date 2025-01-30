@@ -181,51 +181,12 @@ class TestPIIRecord:
         record = pii.PIIRecord()
         assert record.race is None
 
-    def test_parse_gender(self):
-        # testing verbose genders
-        record = pii.PIIRecord(gender="identifies as female gender (finding)")
-        assert record.gender == pii.Gender.FEMALE
-        record = pii.PIIRecord(gender="identifies as male gender (finding)")
-        assert record.gender == pii.Gender.MALE
-        record = pii.PIIRecord(gender="identifies as gender nonbinary")
-        assert record.gender == pii.Gender.NON_BINARY
-        record = pii.PIIRecord(gender="asked but declined")
-        assert record.gender == pii.Gender.ASKED_DECLINED
-        record = pii.PIIRecord(gender="unknown")
-        assert record.gender == pii.Gender.UNKNOWN
-
-        # testing less verbose genders
-        record = pii.PIIRecord(gender="Female")
-        assert record.gender == pii.Gender.FEMALE
-        record = pii.PIIRecord(gender="identifies female")
-        assert record.gender == pii.Gender.FEMALE
-        record = pii.PIIRecord(gender="Male")
-        assert record.gender == pii.Gender.MALE
-        record = pii.PIIRecord(gender="identifies male")
-        assert record.gender == pii.Gender.MALE
-        record = pii.PIIRecord(gender="nonbinary")
-        assert record.gender == pii.Gender.NON_BINARY
-        record = pii.PIIRecord(gender="declined")
-        assert record.gender == pii.Gender.ASKED_DECLINED
-
-        # testing capitalization and leading/trailing spaces
-        record = pii.PIIRecord(gender=" Unknown ")
-        assert record.gender == pii.Gender.UNKNOWN
-
-        # testing none result
-        record = pii.PIIRecord(gender="invalid gender")
-        assert record.gender is pii.Gender.UNKNOWN
-
-        record = pii.PIIRecord()
-        assert record.gender is None
-
     def test_feature_iter(self):
         record = pii.PIIRecord(
             external_id="99",
             birth_date="1980-2-1",
             sex="male",
             race="unknown",
-            gender="unknown",
             address=[
                 pii.Address(
                     line=["123 Main St"],
@@ -282,7 +243,6 @@ class TestPIIRecord:
         assert list(record.feature_iter(pii.Feature(attribute=pii.FeatureAttribute.FIRST_NAME))) == ["John", "Jane"]
         assert list(record.feature_iter(pii.Feature(attribute=pii.FeatureAttribute.LAST_NAME))) == ["Doe", "Smith"]
         assert list(record.feature_iter(pii.Feature(attribute=pii.FeatureAttribute.RACE))) == ["UNKNOWN"]
-        assert list(record.feature_iter(pii.Feature(attribute=pii.FeatureAttribute.GENDER))) == ["UNKNOWN"]
         assert list(record.feature_iter(pii.Feature(attribute=pii.FeatureAttribute.TELECOM))) == [
             "555-123-4567",
             "(555) 987-6543",

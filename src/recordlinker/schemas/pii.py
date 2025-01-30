@@ -27,7 +27,6 @@ class FeatureAttribute(enum.Enum):
     STATE = "STATE"
     ZIP = "ZIP"
     RACE = "RACE"
-    GENDER = "GENDER"
     TELECOM = "TELECOM"
     PHONE = "PHONE"
     EMAIL = "EMAIL"
@@ -126,24 +125,6 @@ class Race(enum.Enum):
         return self.value
 
 
-class Gender(enum.Enum):
-    """
-    Enum for the Gender field.
-    """
-
-    FEMALE = "FEMALE"
-    MALE = "MALE"
-    NON_BINARY = "NON_BINARY"
-    ASKED_DECLINED = "ASKED_DECLINED"
-    UNKNOWN = "UNKNOWN"
-
-    def __str__(self):
-        """
-        Return the value of the enum as a string.
-        """
-        return self.value
-
-
 class Name(pydantic.BaseModel):
     """
     The schema for a name record.
@@ -224,7 +205,6 @@ class PIIRecord(pydantic.BaseModel):
     name: typing.List[Name] = []
     telecom: typing.List[Telecom] = []
     race: typing.Optional[Race] = None
-    gender: typing.Optional[Gender] = None
     identifiers: typing.List[Identifier] = []
 
     @classmethod
@@ -298,26 +278,6 @@ class PIIRecord(pydantic.BaseModel):
                     return race
             return Race.OTHER
 
-    @pydantic.field_validator("gender", mode="before")
-    def parse_gender(cls, value):
-        """
-        Prase the gender string into a gender enum
-        """
-        if value:
-            val = str(value).lower().strip()
-            try:
-                return Gender(val)
-            except ValueError:
-                if "female" in val:
-                    return Gender.FEMALE
-                elif "male" in val:
-                    return Gender.MALE
-                elif "nonbinary" in val:
-                    return Gender.NON_BINARY
-                elif "declined" in val or "asked" in val:
-                    return Gender.ASKED_DECLINED
-                return Gender.UNKNOWN
-
     def to_json(self, prune_empty: bool = False) -> str:
         """
         Convert the PIIRecord object to a JSON string.
@@ -388,9 +348,6 @@ class PIIRecord(pydantic.BaseModel):
         elif attribute == FeatureAttribute.RACE:
             if self.race:
                 yield str(self.race)
-        elif attribute == FeatureAttribute.GENDER:
-            if self.gender:
-                yield str(self.gender)
         elif attribute == FeatureAttribute.TELECOM:
             for telecom in self.telecom:
                 if telecom.value:
