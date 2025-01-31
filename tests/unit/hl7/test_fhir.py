@@ -122,7 +122,6 @@ def test_fhir_record_to_pii_record():
     assert pii_record.telecom[0].value == "123-456-7890"
     assert pii_record.telecom[0].system == "phone"
     assert str(pii_record.race) == "WHITE"
-    assert str(pii_record.gender) == "FEMALE"
 
     # identifiers
     assert pii_record.identifiers[0].value == "1234567890"

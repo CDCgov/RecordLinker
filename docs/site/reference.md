@@ -19,10 +19,6 @@ linkage evaluation phase. The following features are supported:
 
 :   The patient's sex (normalized to `M`, `F`, or `U` for unknown).
 
-`GENDER`
-
-:   The gender the patient identifies with in the format of "FEMALE", "MALE", "NON_BINARY", "ASKED_DECLINED" or "UNKNOWN".
-
 `RACE`
 
 :   The patient's race in the format of "AMERICAN_INDIAN", "ASIAN", "BLACK", "HAWAIIAN", "WHITE", "OTHER", "ASKED_UNKNOWN" or "UNKNOWN".
