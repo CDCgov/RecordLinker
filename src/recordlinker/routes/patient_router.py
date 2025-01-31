@@ -30,7 +30,7 @@ def create_person(
     """
     **NOTE**: This endpoint is deprecated. Use the POST `/person` endpoint instead.
 
-    **NOTE**: This endpoint will be removed in v25.2.0.
+    **NOTE**: This endpoint will be removed in v25.3.0.
 
     Create a new Person in the MPI database and link the Patient to them.
     """
@@ -58,7 +58,7 @@ def update_person(
     """
     **NOTE**: This endpoint is deprecated. Use the PATCH `/person/{person_reference_id}` endpoint instead.
 
-    **NOTE**: This endpoint will be removed in v25.2.0.
+    **NOTE**: This endpoint will be removed in v25.3.0.
 
     Update the Person linked on the Patient.
     """
