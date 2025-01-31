@@ -26,6 +26,7 @@ class FeatureAttribute(enum.Enum):
     CITY = "CITY"
     STATE = "STATE"
     ZIP = "ZIP"
+    # GENDER removed to be in compliance with Executive Order 14168
     RACE = "RACE"
     TELECOM = "TELECOM"
     PHONE = "PHONE"
@@ -95,7 +96,7 @@ class Sex(enum.Enum):
 
     MALE = "M"
     FEMALE = "F"
-    UNKNOWN = "U"
+    # UNKNOWN Sex removed to be in compliance with Executive Order 14168
 
     def __str__(self):
         """
@@ -253,7 +254,7 @@ class PIIRecord(pydantic.BaseModel):
                 return Sex.MALE
             elif val in ["f", "female"]:
                 return Sex.FEMALE
-            return Sex.UNKNOWN
+            return None
 
     @pydantic.field_validator("race", mode="before")
     def parse_race(cls, value):

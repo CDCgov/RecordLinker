@@ -17,7 +17,7 @@ linkage evaluation phase. The following features are supported:
 
 `SEX`
 
-:   The patient's sex (normalized to `M`, `F`, or `U` for unknown).
+:   The patient's sex (normalized to `M` or `F`).
 
 `RACE`
 
@@ -91,7 +91,7 @@ patient data and used during query retrieval. The following blocking key types a
 
 `SEX` (ID: **3**)
 
-:   The patient's sex in the format of `M`, `F`, or `U` for unknown.
+:   The patient's sex in the format of `M` or `F`.
 
 `ZIP` (ID: **4**)
 
