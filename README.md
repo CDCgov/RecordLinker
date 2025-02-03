@@ -27,7 +27,7 @@ the virtual environment to stay active in your shell.
 source scripts/bootstrap.sh
 ```
 
-Note: If you are running in WSL on a Windows machine, will need to run the bootstrap file directly with `./scripts/bootstrap.sh` and then activate the virtual environment by running `.venv/bin/activate`.
+Note: If you are running in WSL on a Windows machine, will need to run the bootstrap file directly with `./scripts/bootstrap.sh` and then activate the virtual environment by running `source .venv/bin/activate`.
 
 ### Running the API
 
@@ -37,7 +37,7 @@ To run the API locally, use the following command:
 ./scripts/local_server.sh
 ```
 
-The API will be available at `http://localhost:8000`. Visit `http://localhost:8000/redocs` to view the API documentation.
+The API will be available at `http://localhost:8000`. Visit `http://localhost:8000/redoc` to view the API documentation.
 
 ### Running unit tests
 
