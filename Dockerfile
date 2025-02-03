@@ -27,12 +27,12 @@ RUN pip install --upgrade pip
 # Conditionally install ODBC driver for SQL Server.
 # There is no ODBC driver for linux/arm64 architecture, so SQL Server support
 # is limited to linux/amd64 architecture
-RUN if [ "$USE_MSSQL" = "true" ] && [ "$(dpkg --print-architecture)" = "amd64" ]; then \
-        apt-get install -y gnupg2 apt-transport-https && \
-        curl https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor -o /etc/apt/trusted.gpg.d/microsoft.gpg && \
-        curl https://packages.microsoft.com/config/debian/11/prod.list | tee /etc/apt/sources.list.d/mssql-release.list && \
-        apt-get update && \
-        ACCEPT_EULA=Y apt-get install -y msodbcsql18 unixodbc-dev; \
+RUN if [ "$USE_MSSQL" = "true" ]; then \
+    apt-get install -y gnupg2 apt-transport-https && \
+    curl https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor -o /etc/apt/trusted.gpg.d/microsoft.gpg && \
+    curl https://packages.microsoft.com/config/debian/11/prod.list | tee /etc/apt/sources.list.d/mssql-release.list && \
+    apt-get update && \
+    ACCEPT_EULA=Y apt-get install -y msodbcsql18 unixodbc-dev; \
     fi
 
 WORKDIR /code
@@ -46,8 +46,8 @@ RUN pip install "$(printf '%s' ".[${ENVIRONMENT}]")"
 
 # Conditionally install OpenTelemetry packages if USE_OTEL is true
 RUN if [ "$USE_OTEL" = "true" ]; then \
-        pip install opentelemetry-distro opentelemetry-exporter-otlp && \
-        opentelemetry-bootstrap -a install; \
+    pip install opentelemetry-distro opentelemetry-exporter-otlp && \
+    opentelemetry-bootstrap -a install; \
     fi
 
 # Copy over the rest of the code
