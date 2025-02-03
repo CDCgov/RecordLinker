@@ -77,7 +77,7 @@ def create_patient(
     session: orm.Session = fastapi.Depends(get_session),
 ) -> schemas.PatientRef:
     """
-    Create a new patient record in the MPI
+    Create a new patient record in the MPI and link to an existing person.
     """
     person = service.get_person_by_reference_id(session, payload.person_reference_id)
 
