@@ -77,7 +77,7 @@ linkage evaluation phase. The following features are supported:
 
 `IDENTIFIER:<type>`
 
-:   The patient's specific identifier type. For example, `IDENTIFIER:MR` would be the patient's medical record number.  Unlike `IDENTIFIER`, this will ONLY compare values of a specific type.  Valid type codes can be found here http://hl7.org/fhir/R4/v2/0203/index.html.
+:   The patient's specific identifier type. For example, `IDENTIFIER:MR` would be the patient's medical record number.  Unlike `IDENTIFIER`, this will ONLY compare values of a specific type.  Valid type codes can be found on [the FHIR v2 Identifier Type page](http://hl7.org/fhir/R4/v2/0203/index.html).
 
 
 ### Blocking Key Types
