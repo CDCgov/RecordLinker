@@ -44,7 +44,12 @@ class AlgorithmPass(pydantic.BaseModel):
 
     model_config = pydantic.ConfigDict(from_attributes=True, use_enum_values=True)
 
-    blocking_keys: list[BlockingKey]
+    blocking_keys: list[BlockingKey] = pydantic.Field(
+        ...,
+        json_schema_extra={
+            "enum": [{"value": k.value, "description": k.description} for k in BlockingKey],
+        },
+    )
     evaluators: list[Evaluator]
     rule: matchers.RuleFunc
     kwargs: dict[str, typing.Any] = {}
