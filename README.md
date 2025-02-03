@@ -4,7 +4,7 @@
 
 [ADD TABLE OF CONTENTS HERE]
 
-**General disclaimer** This repository was created for use by CDC programs to collaborate on public health related projects in support of the [CDC mission](https://www.cdc.gov/about/organization/mission.htm).  GitHub is not hosted by the CDC, but is a third party website used by CDC and its partners to share information and collaborate on software. CDC use of GitHub does not imply an endorsement of any one particular service, product, or enterprise. 
+**General disclaimer** This repository was created for use by CDC programs to collaborate on public health related projects in support of the [CDC mission](https://www.cdc.gov/about/organization/mission.htm). GitHub is not hosted by the CDC, but is a third party website used by CDC and its partners to share information and collaborate on software. CDC use of GitHub does not imply an endorsement of any one particular service, product, or enterprise.
 
 ## Overview
 
@@ -22,27 +22,33 @@ The RecordLinker is a service that links records from two datasets based on a se
 Set up a Python virtual environment and install the required development dependencies:
 NOTE: Sourcing the script is recommended over simply executing the script. This allows
 the virtual environment to stay active in your shell.
+
 ```bash
 source scripts/bootstrap.sh
 ```
 
+Note: If you are running in WSL on a Windows machine, will need to run the bootstrap file directly with `./scripts/bootstrap.sh` and then activate the virtual environment by running `source .venv/bin/activate`.
+
 ### Running the API
 
 To run the API locally, use the following command:
+
 ```bash
 ./scripts/local_server.sh
 ```
 
-The API will be available at `http://localhost:8000`. Visit `http://localhost:8000/redocs` to view the API documentation.
+The API will be available at `http://localhost:8000`. Visit `http://localhost:8000/redoc` to view the API documentation.
 
 ### Running unit tests
 
 To run all the unit tests, use the following command:
+
 ```bash
 pytest
 ```
 
 To run a single unit test, use the following command:
+
 ```bash
 pytest tests/unit/test_utils.py::test_bind_functions
 ```
@@ -50,6 +56,7 @@ pytest tests/unit/test_utils.py::test_bind_functions
 ### Running type checks
 
 To run type checks, use the following command:
+
 ```bash
 mypy
 ```
@@ -57,6 +64,7 @@ mypy
 ### Running code formatting checks
 
 To run code formatting checks, use the following command:
+
 ```bash
 ruff check
 ```
@@ -66,6 +74,7 @@ For more information on developer workflows, see the [Developer Guide](docs/deve
 ## Standard Notices
 
 ### Public Domain Standard Notice
+
 This repository constitutes a work of the United States Government and is not
 subject to domestic copyright protection under 17 USC § 105. This repository is in
 the public domain within the United States, and copyright and related rights in
@@ -75,6 +84,7 @@ submitting a pull request you are agreeing to comply with this waiver of
 copyright interest.
 
 ### License Standard Notice
+
 The repository utilizes code licensed under the terms of the Apache Software
 License and therefore is licensed under ASL v2 or later.
 
@@ -92,6 +102,7 @@ program. If not, see http://www.apache.org/licenses/LICENSE-2.0.html
 The source code forked from other open source projects will inherit its license.
 
 ### Privacy Standard Notice
+
 This repository contains only non-sensitive, publicly available data and
 information. All material and community participation is covered by the
 [Disclaimer](DISCLAIMER.md)
@@ -99,6 +110,7 @@ and [Code of Conduct](CODE_OF_CONDUCT.md).
 For more information about CDC's privacy policy, please visit [http://www.cdc.gov/other/privacy.html](https://www.cdc.gov/other/privacy.html).
 
 ### Contributing Standard Notice
+
 Anyone is encouraged to contribute to the repository by [forking](https://help.github.com/articles/fork-a-repo)
 and submitting a pull request. (If you are new to GitHub, you might start with a
 [basic tutorial](https://help.github.com/articles/set-up-git).) By contributing
@@ -111,18 +123,20 @@ All comments, messages, pull requests, and other submissions received through
 CDC including this GitHub page may be subject to applicable federal law, including but not limited to the Federal Records Act, and may be archived. Learn more at [http://www.cdc.gov/other/privacy.html](http://www.cdc.gov/other/privacy.html).
 
 ### Records Management Standard Notice
+
 This repository is not a source of government records, but is a copy to increase
 collaboration and collaborative potential. All government records will be
 published through the [CDC web site](http://www.cdc.gov).
 
 ### Related documents
 
-* [Open Practices](docs/policies/open_practices.md)
-* [Rules of Behavior](docs/policies/rules_of_behavior.md)
-* [Thanks and Acknowledgements](doc/policies/thanks.md)
-* [Disclaimer](DISCLAIMER.md)
-* [Contribution Notice](CONTRIBUTING.md)
-* [Code of Conduct](CODE_OF_CONDUCT.md)
+- [Open Practices](docs/policies/open_practices.md)
+- [Rules of Behavior](docs/policies/rules_of_behavior.md)
+- [Thanks and Acknowledgements](doc/policies/thanks.md)
+- [Disclaimer](DISCLAIMER.md)
+- [Contribution Notice](CONTRIBUTING.md)
+- [Code of Conduct](CODE_OF_CONDUCT.md)
 
 ### Additional Standard Notices
+
 Please refer to [CDC's Template Repository](https://github.com/CDCgov/template) for more information about [contributing to this repository](https://github.com/CDCgov/template/blob/main/CONTRIBUTING.md), [public domain notices and disclaimers](https://github.com/CDCgov/template/blob/main/DISCLAIMER.md), and [code of conduct](https://github.com/CDCgov/template/blob/main/code-of-conduct.md).

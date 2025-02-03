@@ -26,8 +26,8 @@ class FeatureAttribute(enum.Enum):
     CITY = "CITY"
     STATE = "STATE"
     ZIP = "ZIP"
+    # GENDER removed to be in compliance with Executive Order 14168
     RACE = "RACE"
-    GENDER = "GENDER"
     TELECOM = "TELECOM"
     PHONE = "PHONE"
     EMAIL = "EMAIL"
@@ -96,7 +96,7 @@ class Sex(enum.Enum):
 
     MALE = "M"
     FEMALE = "F"
-    UNKNOWN = "U"
+    # UNKNOWN Sex removed to be in compliance with Executive Order 14168
 
     def __str__(self):
         """
@@ -117,24 +117,6 @@ class Race(enum.Enum):
     WHITE = "WHITE"
     OTHER = "OTHER"
     ASKED_UNKNOWN = "ASKED_UNKNOWN"
-    UNKNOWN = "UNKNOWN"
-
-    def __str__(self):
-        """
-        Return the value of the enum as a string.
-        """
-        return self.value
-
-
-class Gender(enum.Enum):
-    """
-    Enum for the Gender field.
-    """
-
-    FEMALE = "FEMALE"
-    MALE = "MALE"
-    NON_BINARY = "NON_BINARY"
-    ASKED_DECLINED = "ASKED_DECLINED"
     UNKNOWN = "UNKNOWN"
 
     def __str__(self):
@@ -224,7 +206,6 @@ class PIIRecord(pydantic.BaseModel):
     name: typing.List[Name] = []
     telecom: typing.List[Telecom] = []
     race: typing.Optional[Race] = None
-    gender: typing.Optional[Gender] = None
     identifiers: typing.List[Identifier] = []
 
     @classmethod
@@ -273,7 +254,7 @@ class PIIRecord(pydantic.BaseModel):
                 return Sex.MALE
             elif val in ["f", "female"]:
                 return Sex.FEMALE
-            return Sex.UNKNOWN
+            return None
 
     @pydantic.field_validator("race", mode="before")
     def parse_race(cls, value):
@@ -297,26 +278,6 @@ class PIIRecord(pydantic.BaseModel):
                 if any(substring in val for substring in substrings):
                     return race
             return Race.OTHER
-
-    @pydantic.field_validator("gender", mode="before")
-    def parse_gender(cls, value):
-        """
-        Prase the gender string into a gender enum
-        """
-        if value:
-            val = str(value).lower().strip()
-            try:
-                return Gender(val)
-            except ValueError:
-                if "female" in val:
-                    return Gender.FEMALE
-                elif "male" in val:
-                    return Gender.MALE
-                elif "nonbinary" in val:
-                    return Gender.NON_BINARY
-                elif "declined" in val or "asked" in val:
-                    return Gender.ASKED_DECLINED
-                return Gender.UNKNOWN
 
     def to_json(self, prune_empty: bool = False) -> str:
         """
@@ -388,9 +349,6 @@ class PIIRecord(pydantic.BaseModel):
         elif attribute == FeatureAttribute.RACE:
             if self.race:
                 yield str(self.race)
-        elif attribute == FeatureAttribute.GENDER:
-            if self.gender:
-                yield str(self.gender)
         elif attribute == FeatureAttribute.TELECOM:
             for telecom in self.telecom:
                 if telecom.value:

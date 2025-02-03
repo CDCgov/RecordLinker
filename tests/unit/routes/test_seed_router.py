@@ -40,7 +40,7 @@ class TestBatch:
         assert sum(len(p["patients"]) for p in persons) == 1397
         assert client.session.query(models.Person).count() == 100
         assert client.session.query(models.Patient).count() == 1397
-        assert client.session.query(models.BlockingValue).count() == 12603
+        assert client.session.query(models.BlockingValue).count() == 12139
 
     @mock.patch("recordlinker.database.algorithm_service.default_algorithm")
     def test_seed_and_link(self, mock_algorithm, basic_algorithm, client):

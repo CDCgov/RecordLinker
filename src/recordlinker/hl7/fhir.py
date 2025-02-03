@@ -34,7 +34,6 @@ def fhir_record_to_pii_record(fhir_record: dict) -> schemas.PIIRecord:
         "sex": fhir_record.get("gender"),
         "address": fhir_record.get("address", []),
         "race": None,
-        "gender": None,
         "telecom": fhir_record.get("telecom", []),
         "identifiers": [],
     }
@@ -59,11 +58,6 @@ def fhir_record_to_pii_record(fhir_record: dict) -> schemas.PIIRecord:
             for ext in extension.get("extension", []):
                 if ext.get("url") == "ombCategory":
                     val["race"] = ext.get("valueCoding", {}).get("display")
-        if extension.get("url") == "http://hl7.org/fhir/StructureDefinition/individual-genderIdentity":
-            for ext in extension.get("extension", []):
-                if ext.get("url") == "value":
-                    for coding in ext.get("valueCodeableConcept", {}).get("coding", []):
-                        val["gender"] = coding.get("display")
     
     return schemas.PIIRecord(**val)
 
