@@ -82,7 +82,10 @@ def create_patient(
     person = service.get_person_by_reference_id(session, payload.person_reference_id)
 
     if person is None:
-        raise fastapi.HTTPException(status_code=fastapi.status.HTTP_422_UNPROCESSABLE_ENTITY, detail="Person not found. Must include a person_reference_id that already exists in the MPI.")
+        raise fastapi.HTTPException(
+            status_code=fastapi.status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail="Person not found. Must include a person_reference_id that already exists in the MPI.",
+        )
 
     patient = service.insert_patient(
         session,
@@ -117,7 +120,10 @@ def update_patient(
     if payload.person_reference_id:
         person = service.get_person_by_reference_id(session, payload.person_reference_id)
         if person is None:
-            raise fastapi.HTTPException(status_code=fastapi.status.HTTP_422_UNPROCESSABLE_ENTITY)
+            raise fastapi.HTTPException(
+                status_code=fastapi.status.HTTP_422_UNPROCESSABLE_ENTITY,
+                detail="Person not found. Must include a person_reference_id that already exists in the MPI.",
+            )
 
     external_patient_id = getattr(payload.record, "external_id", None)
     patient = service.update_patient(
