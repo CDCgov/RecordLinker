@@ -23,18 +23,23 @@ router = fastapi.APIRouter()
     "/{patient_reference_id}/person",
     summary="Assign Patient to new Person",
     status_code=fastapi.status.HTTP_201_CREATED,
+    deprecated=True,
 )
 def create_person(
     patient_reference_id: uuid.UUID, session: orm.Session = fastapi.Depends(get_session)
 ) -> schemas.PatientPersonRef:
     """
+    **NOTE**: This endpoint is deprecated. Use the POST `/person` endpoint instead.
+
+    **NOTE**: This endpoint will be removed in v25.3.0.
+
     Create a new Person in the MPI database and link the Patient to them.
     """
-    patient = service.get_patient_by_reference_id(session, patient_reference_id)
+    patient = service.get_patients_by_reference_ids(session, patient_reference_id)[0]
     if patient is None:
         raise fastapi.HTTPException(status_code=fastapi.status.HTTP_404_NOT_FOUND)
 
-    person = service.update_person_cluster(session, patient, commit=False)
+    person = service.update_person_cluster(session, [patient], commit=False)
     return schemas.PatientPersonRef(
         patient_reference_id=patient.reference_id, person_reference_id=person.reference_id
     )
@@ -44,6 +49,7 @@ def create_person(
     "/{patient_reference_id}/person",
     summary="Assign Patient to existing Person",
     status_code=fastapi.status.HTTP_200_OK,
+    deprecated=True,
 )
 def update_person(
     patient_reference_id: uuid.UUID,
@@ -51,9 +57,13 @@ def update_person(
     session: orm.Session = fastapi.Depends(get_session),
 ) -> schemas.PatientPersonRef:
     """
+    **NOTE**: This endpoint is deprecated. Use the PATCH `/person/{person_reference_id}` endpoint instead.
+
+    **NOTE**: This endpoint will be removed in v25.3.0.
+
     Update the Person linked on the Patient.
     """
-    patient = service.get_patient_by_reference_id(session, patient_reference_id)
+    patient = service.get_patients_by_reference_ids(session, patient_reference_id)[0]
     if patient is None:
         raise fastapi.HTTPException(status_code=fastapi.status.HTTP_404_NOT_FOUND)
 
@@ -61,7 +71,7 @@ def update_person(
     if person is None:
         raise fastapi.HTTPException(status_code=fastapi.status.HTTP_422_UNPROCESSABLE_ENTITY)
 
-    person = service.update_person_cluster(session, patient, person, commit=False)
+    person = service.update_person_cluster(session, [patient], person, commit=False)
     return schemas.PatientPersonRef(
         patient_reference_id=patient.reference_id, person_reference_id=person.reference_id
     )
@@ -118,7 +128,7 @@ def update_patient(
     """
     Update an existing patient record in the MPI
     """
-    patient = service.get_patient_by_reference_id(session, patient_reference_id)
+    patient = service.get_patients_by_reference_ids(session, patient_reference_id)[0]
     if patient is None:
         raise fastapi.HTTPException(status_code=fastapi.status.HTTP_404_NOT_FOUND)
 
@@ -162,7 +172,7 @@ def delete_patient(
     """
     Delete a Patient from the mpi database.
     """
-    patient = service.get_patient_by_reference_id(session, patient_reference_id)
+    patient = service.get_patients_by_reference_ids(session, patient_reference_id)[0]
 
     if patient is None:
         raise fastapi.HTTPException(status_code=fastapi.status.HTTP_404_NOT_FOUND)
