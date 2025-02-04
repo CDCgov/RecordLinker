@@ -76,6 +76,15 @@ class TestCreatePatient:
         data = {"person_reference_id": str(uuid.uuid4()), "record": {}}
         response = client.post("/patient", json=data)
         assert response.status_code == 422
+        assert response.json() == {
+            "detail": [
+                {
+                    "loc": ["body", "person_reference_id"],
+                    "msg": "Person not found",
+                    "type": "value_error",
+                }
+            ]
+        }
 
     def test_create_patient(self, client):
         person = models.Person()
@@ -89,7 +98,10 @@ class TestCreatePatient:
         response = client.post("/patient", json=data)
         assert response.status_code == 201
         patient = client.session.query(models.Patient).first()
-        assert response.json() == {"patient_reference_id": str(patient.reference_id), "external_patient_id": "123"}
+        assert response.json() == {
+            "patient_reference_id": str(patient.reference_id),
+            "external_patient_id": "123",
+        }
         assert len(patient.blocking_values) == 2
         assert patient.person == person
         assert patient.data == data["record"]
@@ -113,6 +125,15 @@ class TestUpdatePatient:
         data = {"person_reference_id": str(uuid.uuid4())}
         response = client.patch(f"/patient/{patient.reference_id}", json=data)
         assert response.status_code == 422
+        assert response.json() == {
+            "detail": [
+                {
+                    "loc": ["body", "person_reference_id"],
+                    "msg": "Person not found",
+                    "type": "value_error",
+                }
+            ]
+        }
 
     def test_no_data_to_update(self, client):
         patient = models.Patient()
@@ -135,7 +156,10 @@ class TestUpdatePatient:
         }
         response = client.patch(f"/patient/{patient.reference_id}", json=data)
         assert response.status_code == 200
-        assert response.json() == {"patient_reference_id": str(patient.reference_id), "external_patient_id": "123"}
+        assert response.json() == {
+            "patient_reference_id": str(patient.reference_id),
+            "external_patient_id": "123",
+        }
         patient = client.session.get(models.Patient, patient.id)
         assert len(patient.blocking_values) == 2
         assert patient.person == person
