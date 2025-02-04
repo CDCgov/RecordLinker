@@ -308,6 +308,65 @@ class TestBulkInsertPatientsMySQL:
             assert mpi_service.bulk_insert_patients(session, [])
 
 
+class TestUpdatePatient:
+    def test_no_patient(self, session):
+        with pytest.raises(ValueError):
+            mpi_service.update_patient(session, models.Patient(), schemas.PIIRecord())
+
+    def test_update_record(self, session):
+        patient = models.Patient(person=models.Person(), data={"sex": "M"})
+        session.add(patient)
+        session.flush()
+        session.add(models.BlockingValue(patient_id=patient.id, blockingkey=models.BlockingKey.SEX.id, value="M"))
+        record = schemas.PIIRecord(**{"name": [{"given": ["John"], "family": "Doe"}], "birthdate": "1980-01-01"})
+        patient = mpi_service.update_patient(session, patient, record=record)
+        assert patient.data == {"name": [{"given": ["John"], "family": "Doe"}], "birth_date": "1980-01-01"}
+        assert len(patient.blocking_values) == 3
+
+    def test_update_person(self, session):
+        person = models.Person()
+        session.add(person)
+        patient = models.Patient()
+        session.add(patient)
+        session.flush()
+        patient = mpi_service.update_patient(session, patient, person=person)
+        assert patient.person_id == person.id
+
+    def test_update_external_patient_id(self, session):
+        patient = models.Patient()
+        session.add(patient)
+        session.flush()
+
+        patient = mpi_service.update_patient(session, patient, external_patient_id="123")
+        assert patient.external_patient_id == "123"
+
+
+class TestDeleteBlockingValuesForPatient:
+    def test_no_values(self, session):
+        other_patient = models.Patient()
+        session.add(other_patient)
+        session.flush()
+        session.add(models.BlockingValue(patient_id=other_patient.id, blockingkey=models.BlockingKey.FIRST_NAME.id, value="John"))
+        session.flush()
+        patient = models.Patient()
+        session.add(patient)
+        session.flush()
+        assert len(patient.blocking_values) == 0
+        mpi_service.delete_blocking_values_for_patient(session, patient)
+        assert len(patient.blocking_values) == 0
+
+    def test_with_values(self, session):
+        patient = models.Patient()
+        session.add(patient)
+        session.flush()
+        session.add(models.BlockingValue(patient_id=patient.id, blockingkey=models.BlockingKey.FIRST_NAME.id, value="John"))
+        session.add(models.BlockingValue(patient_id=patient.id, blockingkey=models.BlockingKey.LAST_NAME.id, value="Smith"))
+        session.flush()
+        assert len(patient.blocking_values) == 2
+        mpi_service.delete_blocking_values_for_patient(session, patient)
+        assert len(patient.blocking_values) == 0
+
+
 class TestGetBlockData:
     @pytest.fixture
     def prime_index(self, session):

@@ -120,9 +120,9 @@ class TestPIIRecord:
         record = pii.PIIRecord(sex="FEMALE")
         assert record.sex == pii.Sex.FEMALE
         record = pii.PIIRecord(sex="U")
-        assert record.sex == pii.Sex.UNKNOWN
+        assert record.sex is None
         record = pii.PIIRecord(sex="Unknown")
-        assert record.sex == pii.Sex.UNKNOWN
+        assert record.sex is None
         record = pii.PIIRecord()
         assert record.sex is None
 
@@ -313,11 +313,11 @@ class TestPIIRecord:
         rec = pii.PIIRecord(**{"sex": "FEMALE"})
         assert rec.blocking_keys(BlockingKey.SEX) == {"F"}
         rec = pii.PIIRecord(**{"sex": "other"})
-        assert rec.blocking_keys(BlockingKey.SEX) == {"U"}
+        assert rec.blocking_keys(BlockingKey.SEX) == set()
         rec = pii.PIIRecord(**{"sex": "unknown"})
-        assert rec.blocking_keys(BlockingKey.SEX) == {"U"}
+        assert rec.blocking_keys(BlockingKey.SEX) == set()
         rec = pii.PIIRecord(**{"sex": "?"})
-        assert rec.blocking_keys(BlockingKey.SEX) == {"U"}
+        assert rec.blocking_keys(BlockingKey.SEX) == set()
 
     def test_blocking_keys_zipcode(self):
         rec = pii.PIIRecord(**{"zip_code": "12345"})
