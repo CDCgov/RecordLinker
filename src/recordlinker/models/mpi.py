@@ -40,7 +40,9 @@ class Patient(Base):
     __tablename__ = "mpi_patient"
 
     id: orm.Mapped[int] = orm.mapped_column(get_bigint_pk(), autoincrement=True, primary_key=True)
-    person_id: orm.Mapped[int] = orm.mapped_column(schema.ForeignKey(f"{Person.__tablename__}.id"), nullable=True)
+    person_id: orm.Mapped[int] = orm.mapped_column(
+        schema.ForeignKey(f"{Person.__tablename__}.id"), nullable=True
+    )
     person: orm.Mapped["Person"] = orm.relationship(back_populates="patients")
     # NOTE: We're using a protected attribute here to store the data string, as we
     # want getter/setter access to the data dictionary to trigger updating the
@@ -121,14 +123,18 @@ class BlockingKey(enum.Enum):
     """
 
     BIRTHDATE = ("BIRTHDATE", 1, "Date of birth as YYYY-MM-DD")
-    SEX = ("SEX", 3, "Sex at birth; M, F or U")
+    SEX = ("SEX", 3, "Sex at birth; M or F")
     ZIP = ("ZIP", 4, "5 digital US Postal Code")
     FIRST_NAME = ("FIRST_NAME", 5, "First 4 characters of the first name")
     LAST_NAME = ("LAST_NAME", 6, "First 4 characters of the last name")
     ADDRESS = ("ADDRESS", 7, "First 4 characters of the address")
     PHONE = ("PHONE", 8, "Last 4 characters of the phone number")
     EMAIL = ("EMAIL", 9, "First 4 characters of the email address")
-    IDENTIFIER = ("IDENTIFIER", 10, "Identifier triplet with only last 4 character of the value. Format \"type:authority:value\"")
+    IDENTIFIER = (
+        "IDENTIFIER",
+        10,
+        "A colon separated string of the identifier type, first 2 characters of the authority and last 4 characters of the value",
+    )
 
     def __init__(self, value: str, _id: int, description: str):
         self._value = value
