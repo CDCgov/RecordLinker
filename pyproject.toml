@@ -73,7 +73,7 @@ namespaces = false
 [tool.setuptools_scm]
 write_to = "src/recordlinker/_version.py"
 version_scheme = "post-release"
-local_scheme = "node-and-timestamp"
+local_scheme = "dirty-tag"
 fallback_version = "0.0.0"
 
 [tool.ruff]
