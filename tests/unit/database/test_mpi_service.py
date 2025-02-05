@@ -317,10 +317,19 @@ class TestUpdatePatient:
         patient = models.Patient(person=models.Person(), data={"sex": "M"})
         session.add(patient)
         session.flush()
-        session.add(models.BlockingValue(patient_id=patient.id, blockingkey=models.BlockingKey.SEX.id, value="M"))
-        record = schemas.PIIRecord(**{"name": [{"given": ["John"], "family": "Doe"}], "birthdate": "1980-01-01"})
+        session.add(
+            models.BlockingValue(
+                patient_id=patient.id, blockingkey=models.BlockingKey.SEX.id, value="M"
+            )
+        )
+        record = schemas.PIIRecord(
+            **{"name": [{"given": ["John"], "family": "Doe"}], "birthdate": "1980-01-01"}
+        )
         patient = mpi_service.update_patient(session, patient, record=record)
-        assert patient.data == {"name": [{"given": ["John"], "family": "Doe"}], "birth_date": "1980-01-01"}
+        assert patient.data == {
+            "name": [{"given": ["John"], "family": "Doe"}],
+            "birth_date": "1980-01-01",
+        }
         assert len(patient.blocking_values) == 3
 
     def test_update_person(self, session):
@@ -346,7 +355,13 @@ class TestDeleteBlockingValuesForPatient:
         other_patient = models.Patient()
         session.add(other_patient)
         session.flush()
-        session.add(models.BlockingValue(patient_id=other_patient.id, blockingkey=models.BlockingKey.FIRST_NAME.id, value="John"))
+        session.add(
+            models.BlockingValue(
+                patient_id=other_patient.id,
+                blockingkey=models.BlockingKey.FIRST_NAME.id,
+                value="John",
+            )
+        )
         session.flush()
         patient = models.Patient()
         session.add(patient)
@@ -359,8 +374,16 @@ class TestDeleteBlockingValuesForPatient:
         patient = models.Patient()
         session.add(patient)
         session.flush()
-        session.add(models.BlockingValue(patient_id=patient.id, blockingkey=models.BlockingKey.FIRST_NAME.id, value="John"))
-        session.add(models.BlockingValue(patient_id=patient.id, blockingkey=models.BlockingKey.LAST_NAME.id, value="Smith"))
+        session.add(
+            models.BlockingValue(
+                patient_id=patient.id, blockingkey=models.BlockingKey.FIRST_NAME.id, value="John"
+            )
+        )
+        session.add(
+            models.BlockingValue(
+                patient_id=patient.id, blockingkey=models.BlockingKey.LAST_NAME.id, value="Smith"
+            )
+        )
         session.flush()
         assert len(patient.blocking_values) == 2
         mpi_service.delete_blocking_values_for_patient(session, patient)
@@ -791,3 +814,29 @@ class TestResetMPI:
         assert session.query(models.Patient).count() == 0
         assert session.query(models.Person).count() == 0
         assert session.query(models.BlockingValue).count() == 0
+
+
+class TestGetPatientsByPersonIds:
+    def test_invalid_person_id(self, session):
+        with pytest.raises(sqlalchemy.exc.SQLAlchemyError):
+            mpi_service.get_patients_by_person_ids(session, "123")
+
+    def test_invalid_person_id_value(self, session):
+        with pytest.raises(sqlalchemy.exc.SQLAlchemyError):
+            mpi_service.get_patients_by_person_ids(session, ["123"])
+
+    def test_get_patients_by_person_ids(self, session):
+        # Tests that we can get patient(s) by their person_id(s)
+        patient = models.Patient(person=models.Person(), data={})
+        patient2 = models.Patient(person=models.Person(), data={})
+
+        session.add_all([patient, patient2])
+        session.flush()
+        assert mpi_service.get_patients_by_person_ids(session, [patient.person_id]) == [patient]
+        assert mpi_service.get_patients_by_person_ids(
+            session, [patient.person_id, patient2.person_id]
+        ) == [patient, patient2]
+
+    def test_get_patients_by_person_ids_no_patients(self, session):
+        # Test that we do not get any patients when the person_id(s) do not exist
+        assert mpi_service.get_patients_by_person_ids(session, [1]) == []
