@@ -347,7 +347,7 @@ class PIIRecord(pydantic.BaseModel):
                 if name.family:
                     yield name.family
         elif attribute == FeatureAttribute.RACE:
-            if self.race:
+            if self.race and self.race not in [Race.UNKNOWN, Race.ASKED_UNKNOWN]:
                 yield str(self.race)
         elif attribute == FeatureAttribute.TELECOM:
             for telecom in self.telecom:
