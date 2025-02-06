@@ -19,14 +19,14 @@ This guide provides two installation paths:
 
     Pull the pre-built image from the GitHub Container Registry
 
-    ```bash
+    ```
     docker pull ghcr.io/cdcgov/recordlinker:latest
     ```
     
 1. **Run the Docker Container**
     Launch the container with any necessary environment variables.  Only the `DB_URI` environment variable is required.
 
-    ```bash
+    ```
     docker run -d -e DB_URI=postgresql+psycopg2://postgres:pw@localhost:5432/postgres -p 8000:8000 ghcr.io/cdcgov/recordlinker:latest
     ```
 
@@ -48,7 +48,7 @@ This guide provides two installation paths:
 1. **Clone the Repository**
     Clone the repository to your local machine:
 
-    ```bash
+    ```
     git clone https://github.com/CDCgov/RecordLinker.git
     cd RecordLinker
     ```
@@ -56,7 +56,7 @@ This guide provides two installation paths:
 1. **Set up a Virtual Environment**
     Create and activate a virtual environment (recommended for isolating dependencies):
 
-    ```bash
+    ```
     python -m venv venv
     source venv/bin/activate  # On Windows, use `venv\Scripts\activate`
     ```
@@ -64,14 +64,14 @@ This guide provides two installation paths:
 1. **Install Dependencies**
     Install the necessary dependencies from requirements.txt:
 
-    ```bash
+    ```
     pip install '.[dev]' # For production dependencies, use `pip install .[prod]`
     ```
 
 1. **Optional: Set Environment Variables**
     Configure environment variables by editing the default .env file in the project root or exporting them directly in your terminal:
 
-    ```bash
+    ```
     export DB_URI=sqlite:///db.sqlite3
     export CONNECTION_POOL_SIZE=20
     ```
@@ -81,7 +81,7 @@ This guide provides two installation paths:
 1. **Run the Application**
 Start the application with the following command:
 
-    ```bash
+    ```
     uvicorn recordlinker.main:app
     ```
 

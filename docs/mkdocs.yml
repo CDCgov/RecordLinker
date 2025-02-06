@@ -3,9 +3,10 @@ theme:
   name: "material"
   icon:
     repo: fontawesome/brands/github
+extra_css:
+  - stylesheets/custom.css
 plugins:
   - mermaid2
-  - offline
 markdown_extensions:
   - def_list
   - pymdownx.highlight:
