@@ -252,9 +252,7 @@ class TestBulkInsertPatients:
         patients = mpi_service.bulk_insert_patients(session, [rec], external_person_id="123456")
         assert len(patients) == 1
         assert patients[0].person_id is None
-        assert patients[0].data == {
-            "name": [{"given": ["Johnathon"], "family": "Smith"}]
-        }
+        assert patients[0].data == {"name": [{"given": ["Johnathon"], "family": "Smith"}]}
         assert patients[0].external_person_id == "123456"
         values = patients[0].blocking_values
         assert len(values) == 2
@@ -377,85 +375,106 @@ class TestGetBlockData:
         session.flush()
 
         data = [
-            ({
-                "name": [
-                    {
-                        "given": [
-                            "Johnathon",
-                            "Bill",
-                        ],
-                        "family": "Smith",
-                    }
-                ],
-                "birthdate": "01/01/1980",
-            }, person_1),
-            ({
-                "name": [
-                    {
-                        "given": [
-                            "George",
-                        ],
-                        "family": "Harrison",
-                    }
-                ],
-                "birthdate": "1943-2-25",
-            }, models.Person()),
-            ({
-                "name": [
-                    {
-                        "given": [
-                            "John",
-                        ],
-                        "family": "Doe",
-                    },
-                    {"given": ["John"], "family": "Lewis"},
-                ],
-                "birthdate": "1980-01-01",
-            }, models.Person()),
-            ({
-                "name": [
-                    {
-                        "given": [
-                            "Bill",
-                        ],
-                        "family": "Smith",
-                    }
-                ],
-                "birthdate": "1980-01-01",
-            }, person_1),
-            ({
-                "name": [
-                    {
-                        "given": [
-                            "John",
-                        ],
-                        "family": "Smith",
-                    }
-                ],
-                "birthdate": "1980-01-01",
-            }, person_1),
-            ({
-                "name": [
-                    {
-                        "given": [
-                            "John",
-                        ],
-                        "family": "Smith",
-                    }
-                ],
-                "birthdate": "1985-11-12",
-            }, models.Person()),
-            ({
-                "name": [
-                    {
-                        "given": [
-                            "Ferris",
-                        ],
-                        "family": "Bueller",
-                    }
-                ],
-                "birthdate": "",
-            }, models.Person())
+            (
+                {
+                    "name": [
+                        {
+                            "given": [
+                                "Johnathon",
+                                "Bill",
+                            ],
+                            "family": "Smith",
+                        }
+                    ],
+                    "birthdate": "01/01/1980",
+                },
+                person_1,
+            ),
+            (
+                {
+                    "name": [
+                        {
+                            "given": [
+                                "George",
+                            ],
+                            "family": "Harrison",
+                        }
+                    ],
+                    "birthdate": "1943-2-25",
+                },
+                models.Person(),
+            ),
+            (
+                {
+                    "name": [
+                        {
+                            "given": [
+                                "John",
+                            ],
+                            "family": "Doe",
+                        },
+                        {"given": ["John"], "family": "Lewis"},
+                    ],
+                    "birthdate": "1980-01-01",
+                },
+                models.Person(),
+            ),
+            (
+                {
+                    "name": [
+                        {
+                            "given": [
+                                "Bill",
+                            ],
+                            "family": "Smith",
+                        }
+                    ],
+                    "birthdate": "1980-01-01",
+                },
+                person_1,
+            ),
+            (
+                {
+                    "name": [
+                        {
+                            "given": [
+                                "John",
+                            ],
+                            "family": "Smith",
+                        }
+                    ],
+                    "birthdate": "1980-01-01",
+                },
+                person_1,
+            ),
+            (
+                {
+                    "name": [
+                        {
+                            "given": [
+                                "John",
+                            ],
+                            "family": "Smith",
+                        }
+                    ],
+                    "birthdate": "1985-11-12",
+                },
+                models.Person(),
+            ),
+            (
+                {
+                    "name": [
+                        {
+                            "given": [
+                                "Ferris",
+                            ],
+                            "family": "Bueller",
+                        }
+                    ],
+                    "birthdate": "",
+                },
+                models.Person(),
+            ),
         ]
         for datum, person in data:
             mpi_service.insert_patient(session, schemas.PIIRecord(**datum), person=person)
@@ -692,19 +711,18 @@ class TestGetBlockData:
         assert len(matches) == 3
 
 
-class TestGetPatientByReferenceId:
+class TestGetPatientsByReferenceIds:
     def test_invalid_reference_id(self, session):
         with pytest.raises(sqlalchemy.exc.SQLAlchemyError):
-            mpi_service.get_patient_by_reference_id(session, "123")
+            mpi_service.get_patients_by_reference_ids(session, "123")
 
-    def test_no_reference_id(self, session):
-        assert mpi_service.get_patient_by_reference_id(session, uuid.uuid4()) is None
-
-    def test_reference_id(self, session):
+    def test_reference_ids(self, session):
         patient = models.Patient(person=models.Person(), data={})
         session.add(patient)
         session.flush()
-        assert mpi_service.get_patient_by_reference_id(session, patient.reference_id) == patient
+        assert mpi_service.get_patients_by_reference_ids(
+            session, uuid.uuid4(), patient.reference_id
+        ) == [None, patient]
 
 
 class TestGetPersonByReferenceId:
@@ -729,7 +747,7 @@ class TestUpdatePersonCluster:
         session.add(patient)
         session.flush()
         original_person_id = patient.person.id
-        person = mpi_service.update_person_cluster(session, patient)
+        person = mpi_service.update_person_cluster(session, [patient])
         assert person.id != original_person_id
 
     def test_with_person(self, session):
@@ -738,8 +756,17 @@ class TestUpdatePersonCluster:
         new_person = models.Person()
         session.add(new_person)
         session.flush()
-        person = mpi_service.update_person_cluster(session, patient, person=new_person)
+        person = mpi_service.update_person_cluster(session, [patient], person=new_person)
         assert person.id == new_person.id
+
+    def test_multiple_patients(self, session):
+        patient1 = models.Patient(person=models.Person(), data={})
+        patient2 = models.Patient(person=models.Person(), data={})
+        session.add_all([patient1, patient2])
+        session.flush()
+        person = mpi_service.update_person_cluster(session, [patient1, patient2])
+        assert person.id == patient1.person.id
+        assert person.id == patient2.person.id
 
 
 class TestResetMPI:
