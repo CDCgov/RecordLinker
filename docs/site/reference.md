@@ -77,7 +77,7 @@ linkage evaluation phase. The following features are supported:
 
 `IDENTIFIER:<type>`
 
-:   The patient's specific identifier type. For example, `IDENTIFIER:MR` would be the patient's medical record number.  Unlike `IDENTIFIER`, this will ONLY compare values of a specific type.  Valid type codes can be found here http://hl7.org/fhir/R4/v2/0203/index.html.
+:   The patient's specific identifier type. For example, `IDENTIFIER:MR` would be the patient's medical record number.  Unlike `IDENTIFIER`, this will ONLY compare values of a specific type.  Valid type codes can be found on [the R4 FHIR Identifier Type v2 page](http://hl7.org/fhir/R4/v2/0203/index.html).
 
 
 ### Blocking Key Types
@@ -119,7 +119,7 @@ patient data and used during query retrieval. The following blocking key types a
 
 `IDENTIFIER` (ID: **10**)
 
-:  The identifier triplet containing only the type, authority, and last 4 digits of the value
+:  A colon separated string of the identifier type, first 2 characters of the authority and last 4 characters of the value.
 
 
 ### Evaluation Functions
