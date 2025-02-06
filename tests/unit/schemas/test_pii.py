@@ -242,7 +242,7 @@ class TestPIIRecord:
         assert list(record.feature_iter(pii.Feature(attribute=pii.FeatureAttribute.GIVEN_NAME))) == ["John", "L", "Jane"]
         assert list(record.feature_iter(pii.Feature(attribute=pii.FeatureAttribute.FIRST_NAME))) == ["John", "Jane"]
         assert list(record.feature_iter(pii.Feature(attribute=pii.FeatureAttribute.LAST_NAME))) == ["Doe", "Smith"]
-        assert list(record.feature_iter(pii.Feature(attribute=pii.FeatureAttribute.RACE))) == ["UNKNOWN"]
+        assert list(record.feature_iter(pii.Feature(attribute=pii.FeatureAttribute.RACE))) is None
         assert list(record.feature_iter(pii.Feature(attribute=pii.FeatureAttribute.TELECOM))) == [
             "555-123-4567",
             "(555) 987-6543",
