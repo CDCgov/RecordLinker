@@ -288,13 +288,25 @@ def get_patients_by_person_ids(
 
 
 def get_person_by_reference_id(
-    session: orm.Session, reference_id: uuid.UUID
+    session: orm.Session, person_reference_id: uuid.UUID
 ) -> models.Person | None:
     """
-    Retrieve the Person by their reference id
+    Retrieve a single Person by their person reference ID.
     """
-    query = select(models.Person).where(models.Person.reference_id == reference_id)
+    query = select(models.Person).where(models.Person.reference_id == person_reference_id)
     return session.scalar(query)
+
+
+def get_persons_by_reference_ids(
+    session: orm.Session, person_reference_ids: typing.Sequence[uuid.UUID]
+) -> list[models.Person] | None:
+    """
+    Retrieve multiple Persons by their person reference IDs.
+    """
+    if not person_reference_ids:
+        return None
+    query = select(models.Person).where(models.Person.reference_id.in_(person_reference_ids))
+    return session.scalars(query).all()
 
 
 def update_person_cluster(
