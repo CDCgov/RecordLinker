@@ -148,6 +148,8 @@ class TestPIIRecord:
         assert record.race == pii.Race.BLACK
         record = pii.PIIRecord(race="native hawaiian or other pacific islander")
         assert record.race == pii.Race.HAWAIIAN
+        record = pii.PIIRecord(race="asked unknown")
+        assert record.race == pii.Race.ASKED_UNKNOWN
         record = pii.PIIRecord(race="asked but unknown")
         assert record.race == pii.Race.ASKED_UNKNOWN
         record = pii.PIIRecord(race="unknown")
@@ -242,7 +244,7 @@ class TestPIIRecord:
         assert list(record.feature_iter(pii.Feature(attribute=pii.FeatureAttribute.GIVEN_NAME))) == ["John", "L", "Jane"]
         assert list(record.feature_iter(pii.Feature(attribute=pii.FeatureAttribute.FIRST_NAME))) == ["John", "Jane"]
         assert list(record.feature_iter(pii.Feature(attribute=pii.FeatureAttribute.LAST_NAME))) == ["Doe", "Smith"]
-        assert list(record.feature_iter(pii.Feature(attribute=pii.FeatureAttribute.RACE))) == ["UNKNOWN"]
+        assert list(record.feature_iter(pii.Feature(attribute=pii.FeatureAttribute.RACE))) == []
         assert list(record.feature_iter(pii.Feature(attribute=pii.FeatureAttribute.TELECOM))) == [
             "555-123-4567",
             "(555) 987-6543",
@@ -257,6 +259,18 @@ class TestPIIRecord:
         # IDENTIFIER with suffix
         assert list(record.feature_iter(pii.Feature(attribute=pii.FeatureAttribute.IDENTIFIER, suffix="MR"))) == ["MR::123456"]
         assert list(record.feature_iter(pii.Feature(attribute=pii.FeatureAttribute.IDENTIFIER, suffix="SS"))) == ["SS::123-45-6789"]
+
+        # Other fields work okay, few more checks on difference race yield values
+        record = pii.PIIRecord(race="asked unknown")
+        assert list(record.feature_iter(pii.Feature(attribute=pii.FeatureAttribute.RACE))) == []
+        record = pii.PIIRecord(race="asked but unknown")
+        assert list(record.feature_iter(pii.Feature(attribute=pii.FeatureAttribute.RACE))) == []
+        record = pii.PIIRecord(race="asian")
+        assert list(record.feature_iter(pii.Feature(attribute=pii.FeatureAttribute.RACE))) == ["ASIAN"]
+        record = pii.PIIRecord(race="african american")
+        assert list(record.feature_iter(pii.Feature(attribute=pii.FeatureAttribute.RACE))) == ["BLACK"]
+        record = pii.PIIRecord(race="white")
+        assert list(record.feature_iter(pii.Feature(attribute=pii.FeatureAttribute.RACE))) == ["WHITE"]
         
 
     def test_blocking_keys_invalid(self):
