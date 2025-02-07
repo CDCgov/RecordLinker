@@ -254,11 +254,9 @@ def delete_blocking_values_for_patient(
 
 
 def get_patients_by_reference_ids(
-    session: orm.Session, *reference_ids: typing.Sequence[models.Patient]
+    session: orm.Session, *reference_ids: uuid.UUID
 ) -> list[models.Patient | None]:
     """
-    Retrieve all the Patients by their reference ids. If a Patient is not found,
-    a None value will be returned in the list for that reference id.
     Retrieve all the Patients by their reference ids. If a Patient is not found,
     a None value will be returned in the list for that reference id.
     """
