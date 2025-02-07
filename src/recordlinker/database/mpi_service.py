@@ -265,7 +265,7 @@ def get_patients_by_reference_ids(
 
 
 def get_patients_by_person_ids(
-    session: orm.Session, person_ids: list[int]
+    session: orm.Session, person_ids: typing.Sequence[int]
 ) -> list[models.Patient | None]:
     """
     Retrieve all the Patients by their person ids. If no Patient is found for a
