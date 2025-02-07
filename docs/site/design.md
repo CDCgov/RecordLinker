@@ -50,6 +50,17 @@ erDiagram
     Patient ||--o{ BlockingValue : "has"
 ```
 
+**Note**: Both the Person and Patient models include an `INT id` and a `UUID reference_id`
+column. While either could serve as the primary key, using both provides optimization
+benefits at the  cost of additional storage.
+The `INT id` column is designated as the primary key due to its smaller size, making it
+more efficient for indexing and joining operations. However, using integers as user-facing
+keys poses a security risk by potentially revealing the number of records in the database.
+To address this, the `UUID reference_id` is used as a reference key, offering a secure way
+to reference records without exposing the total record count.
+In summary, `INT id` optimizes indexing and joins, while `UUID reference_id` is used
+externally for secure record references.
+
 ---
 
 ## How These Models Work in the Algorithm
