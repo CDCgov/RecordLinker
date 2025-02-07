@@ -246,9 +246,6 @@ def delete_blocking_values_for_patient(
     session.query(models.BlockingValue).filter(
         models.BlockingValue.patient_id == patient.id
     ).delete()
-    session.query(models.BlockingValue).filter(
-        models.BlockingValue.patient_id == patient.id
-    ).delete()
     if commit:
         session.commit()
 
