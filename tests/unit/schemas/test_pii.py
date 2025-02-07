@@ -266,11 +266,11 @@ class TestPIIRecord:
         record = pii.PIIRecord(race="asked but unknown")
         assert list(record.feature_iter(pii.Feature(attribute=pii.FeatureAttribute.RACE))) == []
         record = pii.PIIRecord(race="asian")
-        assert list(record.feature_iter(pii.Feature(attribute=pii.FeatureAttribute.RACE))) == [pii.Race.ASIAN]
+        assert list(record.feature_iter(pii.Feature(attribute=pii.FeatureAttribute.RACE))) == ["ASIAN"]
         record = pii.PIIRecord(race="african american")
-        assert list(record.feature_iter(pii.Feature(attribute=pii.FeatureAttribute.RACE))) == [pii.Race.BLACK]
+        assert list(record.feature_iter(pii.Feature(attribute=pii.FeatureAttribute.RACE))) == ["BLACK"]
         record = pii.PIIRecord(race="white")
-        assert list(record.feature_iter(pii.Feature(attribute=pii.FeatureAttribute.RACE))) == [pii.Race.WHITE]
+        assert list(record.feature_iter(pii.Feature(attribute=pii.FeatureAttribute.RACE))) == ["WHITE"]
         
 
     def test_blocking_keys_invalid(self):
