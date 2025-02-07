@@ -1,0 +1,8 @@
+/* 508: Underline all hyperlinks */
+a {
+    text-decoration: underline;
+}
+/* 508: Change the color of footer text for contrast */
+.md-copyright {
+    color:var(--md-footer-fg-color);
+}
