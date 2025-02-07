@@ -302,7 +302,7 @@ def get_person_by_reference_id(
 
 def get_persons_by_reference_ids(
     session: orm.Session, person_reference_ids: typing.Sequence[uuid.UUID]
-) -> list[models.Person] | None:
+) -> typing.Sequence[models.Person] | None:
     """
     Retrieve multiple Persons by their person reference IDs.
     """
