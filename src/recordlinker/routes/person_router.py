@@ -41,27 +41,6 @@ def patients_by_id_or_422(
     return patients  # type: ignore
 
 
-def patients_by_person_id_or_422(
-    session: orm.Session, person_ids: typing.Sequence[int]
-) -> typing.Sequence[models.Patient]:
-    """
-    Retrieve the Patients by their person id(s) or raise a 422 error response.
-    """
-    patients = service.get_patients_by_person_ids(session, person_ids)
-    if not patients:
-        raise fastapi.HTTPException(
-            status_code=fastapi.status.HTTP_422_UNPROCESSABLE_ENTITY,
-            detail=[
-                {
-                    "loc": ["body", "patients"],
-                    "msg": "Invalid person_id(s). No patients found for any of the provided person_id(s)",
-                    "type": "value_error",
-                }
-            ],
-        )
-    return patients  # type: ignore
-
-
 @router.post(
     "",
     summary="Create a new Person cluster",
@@ -137,20 +116,17 @@ def merge_person_clusters(
     Merges Person cluster(s) into the Person cluster referenced by `person_reference_id`.
     """
     # Get the person_reference_id the person clusters will be merged into
-    person = service.get_person_by_reference_id(session, person_reference_id)
+    per = service.get_person_by_reference_id(session, person_reference_id)
 
-    if person is None:
+    if per is None:
         raise fastapi.HTTPException(status_code=fastapi.status.HTTP_404_NOT_FOUND)
 
     # Get all persons by person_reference_id that will be merged
     persons = persons_by_reference_ids_or_422(session, data.person_reference_ids)
     person_ids = [person.id for person in persons]
 
-    # Get all of the patients from the person clusters to be merged
-    patients = patients_by_person_id_or_422(session, person_ids)
-
-    # Merge the person clusters
-    person = service.update_person_cluster(session, patients, person, commit=False)
+    # Update all of the patients from the person clusters to be merged
+    person = service.update_patient_person_ids(session, per, person_ids, commit=False)
 
     # Should we clean up orphaned person clusters after merging?
 

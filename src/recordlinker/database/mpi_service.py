@@ -328,6 +328,27 @@ def update_person_cluster(
     return person
 
 
+def update_patient_person_ids(
+    session: orm.Session,
+    person: models.Person,
+    person_ids: typing.Sequence[int],
+    commit: bool = True,
+) -> models.Person:
+    """
+    Update the person_id for all Patients associated with a Person.
+    """
+    # Check that the person_ids are valid integers
+    if not all(isinstance(pid, int) for pid in person_ids):
+        raise SQLAlchemyError("All person_ids must be integers.")
+
+    session.query(models.Patient).filter(models.Patient.person_id.in_(person_ids)).update(
+        {models.Patient.person_id: person.id}
+    )
+    if commit:
+        session.commit()
+    return person
+
+
 def reset_mpi(session: orm.Session, commit: bool = True):
     """
     Reset the MPI database by deleting all Person and Patient records.

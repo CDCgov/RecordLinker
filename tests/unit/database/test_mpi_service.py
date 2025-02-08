@@ -840,3 +840,25 @@ class TestGetPatientsByPersonIds:
     def test_get_patients_by_person_ids_no_patients(self, session):
         # Test that we do not get any patients when the person_id(s) do not exist
         assert mpi_service.get_patients_by_person_ids(session, [1]) == []
+
+
+class TestUpdatePatientPersonIds:
+    def test_invalid_person_id(self, session):
+        with pytest.raises(sqlalchemy.exc.SQLAlchemyError):
+            mpi_service.update_patient_person_ids(session, models.Person(), "123")
+
+    def test_invalid_person_id_value(self, session):
+        with pytest.raises(sqlalchemy.exc.SQLAlchemyError):
+            mpi_service.update_patient_person_ids(session, models.Person(), ["123"])
+
+    def test_update_patient_person_ids(self, session):
+        # Tests that we can update the person_id of a patient
+        person1 = models.Person()
+        patient1 = models.Patient(person=person1, data={})
+        person2 = models.Person()
+        patient2 = models.Patient(person=person2, data={})
+        session.add_all([patient1, patient2])
+        session.flush()
+        assert patient1.person_id != patient2.person_id
+        mpi_service.update_patient_person_ids(session, person1, [patient2.person_id])
+        assert patient1.person_id == patient2.person_id
