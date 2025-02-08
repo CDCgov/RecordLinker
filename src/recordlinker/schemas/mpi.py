@@ -50,3 +50,8 @@ class PatientInfo(pydantic.BaseModel):
     record: PIIRecord
     external_patient_id: str | None = None
     external_person_id: str | None = None
+
+
+class PersonInfo(pydantic.BaseModel):
+    person_reference_id: uuid.UUID
+    patient_reference_ids: list[uuid.UUID]

@@ -15,6 +15,7 @@ from .mpi import PatientPersonRef
 from .mpi import PatientRef
 from .mpi import PatientRefs
 from .mpi import PatientUpdatePayload
+from .mpi import PersonInfo
 from .mpi import PersonRef
 from .pii import Feature
 from .pii import FeatureAttribute
@@ -46,6 +47,7 @@ __all__ = [
     "PatientCreatePayload",
     "PatientUpdatePayload",
     "PatientInfo",
+    "PersonInfo",
     "Cluster",
     "ClusterGroup",
     "PersonCluster",
