@@ -10,6 +10,7 @@ from .link import MatchFhirResponse
 from .link import MatchResponse
 from .link import Prediction
 from .mpi import PatientCreatePayload
+from .mpi import PatientInfo
 from .mpi import PatientPersonRef
 from .mpi import PatientRef
 from .mpi import PatientRefs
@@ -44,6 +45,7 @@ __all__ = [
     "PatientRefs",
     "PatientCreatePayload",
     "PatientUpdatePayload",
+    "PatientInfo",
     "Cluster",
     "ClusterGroup",
     "PersonCluster",
