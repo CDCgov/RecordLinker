@@ -9,7 +9,7 @@ import uuid
 
 import pytest
 import sqlalchemy.exc
-from conftest import db_dialect
+from conftest import db_dialect, count_queries
 
 from recordlinker import models
 from recordlinker import schemas
@@ -723,6 +723,22 @@ class TestGetPatientsByReferenceIds:
         assert mpi_service.get_patients_by_reference_ids(
             session, uuid.uuid4(), patient.reference_id
         ) == [None, patient]
+
+    def test_eager_load_of_person(self, session):
+        pat_ref = uuid.uuid4()
+        per_ref = uuid.uuid4()
+        person = models.Person(reference_id=per_ref)
+        patient = models.Patient(person=person, reference_id=pat_ref, data={})
+        session.add(patient)
+        session.flush()
+        session.expire(person)  # expiring the cache to fully test the query
+        session.expire(patient)  # expiring the cache to fully test the query
+        with count_queries(session) as qcount:
+            pats = mpi_service.get_patients_by_reference_ids(session, pat_ref)
+            assert patient == pats[0]
+            assert per_ref == pats[0].person.reference_id
+        # assert only one query was made
+        assert qcount() == 1
 
 
 class TestGetPersonByReferenceId:
