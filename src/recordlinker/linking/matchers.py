@@ -189,11 +189,47 @@ def compare_fuzzy_match(
     return 0
 
 
+def compare_probabilistic_exact_match(
+    record: PIIRecord, patient: Patient, key: Feature, **kwargs: typing.Any
+) -> float:
+    """
+    Compare the same Feature Field in two patient records, one incoming and one
+    previously seen, to determine whether the fields fully agree.
+    If they do, the full log-odds weight-points for this field are added to the
+    record pair's match strength. Otherwise, no points are added.
+
+    :param record: The incoming record to evaluate.
+    :param patient: The patient record to compare against.
+    :param key: The name of the column being evaluated (e.g. "city").
+    :param **kwargs: Optionally, a dictionary including specifications for
+      the string comparison metric to use, as well as the cutoff score
+      beyond which to classify the strings as a partial match.
+    :return: A float of the score the feature comparison earned.
+    """
+    log_odds = kwargs.get("log_odds", {}).get(str(key.attribute))
+    if log_odds is None:
+        raise ValueError(f"Log odds not found for feature {key}")
+
+    agree = 0.0
+    for x in patient.record.feature_iter(key):
+        for y in record.feature_iter(key):
+            # for each permutation of values, check whether the values agree
+            if (x == y):
+                agree = 1.0
+                break
+    return agree * log_odds
+
+
 def compare_probabilistic_fuzzy_match(
     record: PIIRecord, patient: Patient, key: Feature, **kwargs: typing.Any
 ) -> float:
     """
-    ...
+    Compare the same Feature Field in two patient records, one incoming and one
+    previously seen, to determine the extent to which the fields agree.
+    If their string similarity score (agreement) is above a minimum threshold
+    specified as a kwarg, that proportion of the Field's maximum log-odds
+    weight points are added to the record match strength. Otherwise, no points
+    are added.
 
     :param record: The incoming record to evaluate.
     :param patient: The patient record to compare against.
