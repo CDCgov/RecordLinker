@@ -847,10 +847,6 @@ class TestUpdatePatientPersonIds:
         with pytest.raises(sqlalchemy.exc.SQLAlchemyError):
             mpi_service.update_patient_person_ids(session, models.Person(), "123")
 
-    def test_invalid_person_id_value(self, session):
-        with pytest.raises(sqlalchemy.exc.SQLAlchemyError):
-            mpi_service.update_patient_person_ids(session, models.Person(), ["123"])
-
     def test_update_patient_person_ids(self, session):
         # Tests that we can update the person_id of a patient
         person1 = models.Person()

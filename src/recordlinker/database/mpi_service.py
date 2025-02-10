@@ -337,10 +337,6 @@ def update_patient_person_ids(
     """
     Update the person_id for all Patients associated with a Person.
     """
-    # Check that the person_ids are valid integers
-    if not all(isinstance(pid, int) for pid in person_ids):
-        raise SQLAlchemyError("All person_ids must be integers.")
-
     session.query(models.Patient).filter(models.Patient.person_id.in_(person_ids)).update(
         {models.Patient.person_id: person.id}
     )
