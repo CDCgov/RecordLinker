@@ -72,7 +72,7 @@ def test_compare_match_any():
     assert matchers.compare_match_any(record, pat1, schemas.Feature(attribute=schemas.FeatureAttribute.BIRTHDATE))
     assert not matchers.compare_match_any(record, pat1, schemas.Feature(attribute=schemas.FeatureAttribute.ZIP))
 
-    assert matchers.compare_match_any(record, pat2, schemas.Feature(attribute=schemas.FeatureAttribute.GIVEN_NAME))
+    assert not matchers.compare_match_any(record, pat2, schemas.Feature(attribute=schemas.FeatureAttribute.GIVEN_NAME))
     assert not matchers.compare_match_any(record, pat2, schemas.Feature(attribute=schemas.FeatureAttribute.FIRST_NAME))
     assert matchers.compare_match_any(record, pat2, schemas.Feature(attribute=schemas.FeatureAttribute.LAST_NAME))
     assert not matchers.compare_match_any(record, pat2, schemas.Feature(attribute=schemas.FeatureAttribute.SEX))

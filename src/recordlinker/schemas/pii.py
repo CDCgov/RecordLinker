@@ -333,9 +333,8 @@ class PIIRecord(pydantic.BaseModel):
                     yield address.postal_code[:5]
         elif attribute == FeatureAttribute.GIVEN_NAME:
             for name in self.name:
-                for given in name.given:
-                    if given:
-                        yield given
+                if name.given:
+                    yield " ".join(name.given)
         elif attribute == FeatureAttribute.FIRST_NAME:
             for name in self.name:
                 # We only want the first given name for comparison
