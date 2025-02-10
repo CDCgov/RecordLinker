@@ -166,6 +166,16 @@ existing Patient with the GIVEN_NAME of ["John", "D"].
     Use the `kwargs` parameter to specify the desired algorithm and thresholds.
     Example: `{"kwargs": {"similarity_measure": "levenshtein", "thresholds": {"FIRST_NAME": 0.8}}}`
 
+`func:recordlinker.linking.matchers.compare_probabilistic_exact_match`
+
+:   Determines if a Feature Field has the same value in two different patient records. If the two fields agree
+    exactly (i.e. are exactly the same), then the function returns the full extent of the log-odds weights for 
+    the particular field with which it was called. If the two fields do not exactly agree, the function returns
+    0.0. This is useful when performing probabilistic comparisons (which score a possible match's strength by
+    accumulating a sum of link weights) on fields for which fuzzy similarity doesn't make sense, such as fields
+    defined by an enum (e.g. Sex). Use the kwargs parameter to specify the log-odds ratios based on training.
+    Example: `{"kwargs": {"thresholds": {"FIRST_NAME": 0.8}, "log_odds": {"FIRST_NAME": 6.8}}}`
+
 `func:recordlinker.linking.matchers.compare_probabilistic_fuzzy_match`
 
 :   Similar to the above function, but uses a log-odds ratio to determine if the features are a match 
