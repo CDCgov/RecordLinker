@@ -287,7 +287,6 @@ class TestPIIRecord:
         assert list(
             record.feature_iter(pii.Feature(attribute=pii.FeatureAttribute.IDENTIFIER))
         ) == ["123456::MR", "123-45-6789::SS", "D1234567:VA:DL"]
-        # assert list(record.feature_iter(pii.Feature(attribute=pii.FeatureAttribute.IDENTIFIER))) == ["MR::123456", "SS::123-45-6789", "DL:VA:D1234567"]
 
         # IDENTIFIER with suffix
         assert list(
