@@ -67,15 +67,15 @@ The proposal is to use a 3-tuple of type, authority and value to specify patient
     example: `IDENTIFIER:DL`, `IDENTIFIER:SS`
 - Blocking: The blocking key will be `IDENTIFIER` and values will be inserted for every identifier specified in
     the document using the type and the last four of the value.
-    example: `DL:CA:3456`, `SS::6789`
+    example: `3456:CA:DL`, `6789:SS`
 - Evaluation: The evaluation function will accept a list of identifier strings, containing all 3 parts of the
     tuple, and compare them using the specified evaluation function.
-    example: `['DL:CA:A123456', 'SS::123-45-6789']`
+    example: `['A123456:CA:DL', '123-45-6789:SS']`
 
 ### Input
 
-The input to the Record Linker process will be a list of identifier objects, each with a type, authority and value.
-The type and value attributes are required, while authority is optional.
+The input to the Record Linker process will be a list of identifier objects, each with a value, authority and type.
+The value and type attributes are required, while authority is optional.
 
 ```json
 {
@@ -94,20 +94,20 @@ The type and value attributes are required, while authority is optional.
 }
 ```
 
-The type attribute will be limited to a codes defined by the
-[HL7 identifierType code system](https://terminology.hl7.org/6.0.2/CodeSystem-v2-0203.html). This 
-includes roughly 100 different types of identifiers that are all coded using a 2-7 character value.
-For example, `DL` is the code for Driver's License, `SS` is the code for Social Security Number, `MR`
-is the code for Medical Record Number.
+The value attribute will be a free-form string that contains the actual value of the identifier.  For
+example, `A123456` could be the value of a Driver's License, `123-45-6789` could be the value of a
+Social Security Number.
 
 The authority attribute will be a free-form string that can be used to specify the issuing authority
 of the identifier.  For example, `CA` could be used to specify that the Driver's License was issued
 by the state of California.  There is no standard code system for this attribute, so it will be up to
 the user to specify a value that makes sense for their data.
 
-The value attribute will be a free-form string that contains the actual value of the identifier.  For
-example, `A123456` could be the value of a Driver's License, `123-45-6789` could be the value of a
-Social Security Number.
+The type attribute will be limited to a codes defined by the
+[HL7 identifierType code system](https://terminology.hl7.org/6.0.2/CodeSystem-v2-0203.html). This 
+includes roughly 100 different types of identifiers that are all coded using a 2-7 character value.
+For example, `DL` is the code for Driver's License, `SS` is the code for Social Security Number, `MR`
+is the code for Medical Record Number.
 
 
 ### Business Rules
@@ -159,8 +159,8 @@ and the **first 2 characters of the authority** (which is free-form).
 
 | patient_id | blocking_key | value      |
 |------------|--------------|------------|
-| 1          | IDENTIFIER   | DL:CA:3456 |
-| 1          | IDENTIFIER   | SS::6789   |
+| 1          | IDENTIFIER   | 3456:CA:DL |
+| 1          | IDENTIFIER   | 6789::SS   |
 
 ### Evaluation
 
@@ -170,16 +170,16 @@ match if any two identifiers between the documents are a match.  The second way 
 a specific type of identifier, meaning that the evaluation step will result in a match if the 
 specified type of identifier between the documents is a match.
 
-The evaluation functions will be comparing all 3 parts of the identifier tuple (type, authority,
-value) when determining if two identifiers are a match.  The difference is just between what types
+The evaluation functions will be comparing all 3 parts of the identifier tuple (value, authority,
+type) when determining if two identifiers are a match.  The difference is just between what types
 of identifiers are we going to compare.
 
 ```python
 
 if feature == 'IDENTIFIER':
-    assert values == ['DL:CA:A123456', 'SS::123-45-6789']
+    assert values == ['A123456:CA:DL', '123-45-6789::SS']
 if feature == 'IDENTIFIER:SS':
-    assert values == ['SS::123-45-6789']
+    assert values == ['123-45-6789:SS']
 ```
 
 ## Alternatives Considered
@@ -199,3 +199,8 @@ field has slightly different behavior, but does allow for maximum flexibility.
 - Variations in authority values could lead to false negatives in comparisons (eg `CA` vs `California`).
 - Variations in value formats could lead to false negatives in comparisons (eg `123-45-6789` vs `123456789`).
 - Blocking values can't be specified per type, so if we want to block on identifiers we need to block on all.
+
+## Updates
+In the original RFC, identifier triplets were formatted as `type:authority:value`. To account for the default
+similarity measure (Jaro-Winkler), which gives more weight to differences at the start of strings, identifiers
+are formatted as `value:authority:type` as of 02/2025. The RFC has been updated to reflect this change. 
