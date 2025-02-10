@@ -47,6 +47,9 @@ class FeatureFunc(enum.Enum):
     COMPARE_MATCH_ANY = "func:recordlinker.linking.matchers.compare_match_any"
     COMPARE_MATCH_ALL = "func:recordlinker.linking.matchers.compare_match_all"
     COMPARE_FUZZY_MATCH = "func:recordlinker.linking.matchers.compare_fuzzy_match"
+    COMPARE_PROBABILISTIC_EXACT_MATCH = (
+        "func:recordlinker.linking.matchers.compare_probabilistic_exact_match"
+    )
     COMPARE_PROBABILISTIC_FUZZY_MATCH = (
         "func:recordlinker.linking.matchers.compare_probabilistic_fuzzy_match"
     )
