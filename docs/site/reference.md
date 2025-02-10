@@ -174,7 +174,7 @@ existing Patient with the GIVEN_NAME of ["John", "D"].
     0.0. This is useful when performing probabilistic comparisons (which score a possible match's strength by
     accumulating a sum of link weights) on fields for which fuzzy similarity doesn't make sense, such as fields
     defined by an enum (e.g. Sex). Use the kwargs parameter to specify the log-odds ratios based on training.
-    Example: `{"kwargs": {"thresholds": {"FIRST_NAME": 0.8}, "log_odds": {"FIRST_NAME": 6.8}}}`
+    Example: `{"kwargs": {"log_odds": {"SEX": 6.8}}}`
 
 `func:recordlinker.linking.matchers.compare_probabilistic_fuzzy_match`
 
