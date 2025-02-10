@@ -101,8 +101,9 @@ def merge_person_clusters(
         raise fastapi.HTTPException(status_code=fastapi.status.HTTP_404_NOT_FOUND)
 
     # Get all persons by person_reference_id that will be merged
-    # persons = persons_by_reference_ids_or_422(session, data.person_reference_ids)
     persons = service.get_persons_by_reference_ids(session, data.person_reference_ids)
+    if persons is None:
+        raise fastapi.HTTPException(status_code=fastapi.status.HTTP_422_UNPROCESSABLE_ENTITY)
     person_ids = [person.id for person in persons]
 
     # Update all of the patients from the person clusters to be merged
