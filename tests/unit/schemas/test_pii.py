@@ -482,11 +482,11 @@ class TestPIIRecord:
         )
         assert rec.blocking_keys(BlockingKey.IDENTIFIER) == {"6789:NY:MR"}
 
-        # # test only get first 2 characters of authority for blocking
-        # rec = pii.PIIRecord(
-        #     **{"identifiers": [{"type": "MR", "value": "123456789", "authority": "DMV"}]}
-        # )
-        # assert rec.blocking_keys(BlockingKey.IDENTIFIER) == {"MR:DM:6789"}
+        # test only get first 2 characters of authority for blocking
+        rec = pii.PIIRecord(
+            **{"identifiers": [{"type": "MR", "value": "123456789", "authority": "DMV"}]}
+        )
+        assert rec.blocking_keys(BlockingKey.IDENTIFIER) == {"6789:DM:MR"}
 
     def test_blocking_values(self):
         rec = pii.PIIRecord(
