@@ -11,7 +11,6 @@ import uuid
 from sqlalchemy import insert
 from sqlalchemy import orm
 from sqlalchemy import select
-from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.sql import expression
 
 from recordlinker import models
@@ -262,29 +261,6 @@ def get_patients_by_reference_ids(
         patient.reference_id: patient for patient in session.execute(query).scalars().all()
     }
     return [patients_by_id.get(ref_id) for ref_id in reference_ids]
-
-
-def get_patients_by_person_ids(
-    session: orm.Session, person_ids: typing.Sequence[int]
-) -> list[models.Patient | None]:
-    """
-    Retrieve all the Patients by their person ids. If no Patient is found for a
-    person_id, no data will be returned.
-    """
-    # Check that the person_ids are valid
-    if not all(isinstance(pid, int) for pid in person_ids):
-        raise SQLAlchemyError("All person_ids must be integers.")
-
-    # Get the Patients by person_id
-    query = select(models.Patient).where(models.Patient.person_id.in_(person_ids))
-    patients_by_person_id = {
-        patient.person_id: patient for patient in session.execute(query).scalars().all()
-    }
-    return [
-        patient
-        for patient in (patients_by_person_id.get(person_id) for person_id in person_ids)
-        if patient is not None
-    ]
 
 
 def get_person_by_reference_id(

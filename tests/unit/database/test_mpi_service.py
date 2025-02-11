@@ -816,32 +816,6 @@ class TestResetMPI:
         assert session.query(models.BlockingValue).count() == 0
 
 
-class TestGetPatientsByPersonIds:
-    def test_invalid_person_id(self, session):
-        with pytest.raises(sqlalchemy.exc.SQLAlchemyError):
-            mpi_service.get_patients_by_person_ids(session, "123")
-
-    def test_invalid_person_id_value(self, session):
-        with pytest.raises(sqlalchemy.exc.SQLAlchemyError):
-            mpi_service.get_patients_by_person_ids(session, ["123"])
-
-    def test_get_patients_by_person_ids(self, session):
-        # Tests that we can get patient(s) by their person_id(s)
-        patient = models.Patient(person=models.Person(), data={})
-        patient2 = models.Patient(person=models.Person(), data={})
-
-        session.add_all([patient, patient2])
-        session.flush()
-        assert mpi_service.get_patients_by_person_ids(session, [patient.person_id]) == [patient]
-        assert mpi_service.get_patients_by_person_ids(
-            session, [patient.person_id, patient2.person_id]
-        ) == [patient, patient2]
-
-    def test_get_patients_by_person_ids_no_patients(self, session):
-        # Test that we do not get any patients when the person_id(s) do not exist
-        assert mpi_service.get_patients_by_person_ids(session, [1]) == []
-
-
 class TestUpdatePatientPersonIds:
     def test_invalid_person_id(self, session):
         with pytest.raises(sqlalchemy.exc.SQLAlchemyError):
