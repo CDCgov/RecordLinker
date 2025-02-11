@@ -6,8 +6,8 @@ from recordlinker.utils import functools as utils
 
 def test_bind_functions():
     funcs = {
-        "first_name": "func:recordlinker.linking.matchers.compare_fuzzy_match",
-        "last_name": "func:recordlinker.linking.matchers.compare_match_all",
+        "first_name": "func:recordlinker.linking.matchers.compare_probabilistic_fuzzy_match",
+        "last_name": "func:recordlinker.linking.matchers.compare_probabilistic_exact_match",
     }
     assert utils.bind_functions(funcs) == {
         "first_name": matchers.compare_fuzzy_match,

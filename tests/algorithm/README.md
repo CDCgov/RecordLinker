@@ -92,7 +92,7 @@ The following environment variables can be tuned in the `algo-test.env` file:
 - `SEED_FILE`: The file containing person data to seed the mpi with
 - `TEST_FILE`: The file containing patient data to test the algorithm with
 - `ALGORITHM_CONFIGURATION`: The file containing the algorithm configuration json
-- `ALGORITHM_NAME`: The name of the algorithm to use (either the name of your `ALGORITHM_CONFIGURATION` or can be the built in `dibbs-basic` or `dibbs-enhanced` algorithms)
+- `ALGORITHM_NAME`: The name of the algorithm to use (either the name of your `ALGORITHM_CONFIGURATION` or can be the built in `dibbs-default` algorithms)
 
 
 ## Cleanup

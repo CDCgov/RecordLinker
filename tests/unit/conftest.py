@@ -70,15 +70,7 @@ def clean_test_database():
 
 @functools.lru_cache
 @pytest.fixture
-def basic_algorithm():
+def default_algorithm():
     for algo in utils.read_json("assets/initial_algorithms.json"):
-        if algo["label"] == "dibbs-basic":
-            return models.Algorithm.from_dict(**algo)
-
-
-@functools.lru_cache
-@pytest.fixture
-def enhanced_algorithm():
-    for algo in utils.read_json("assets/initial_algorithms.json"):
-        if algo["label"] == "dibbs-enhanced":
+        if algo["label"] == "dibbs-default":
             return models.Algorithm.from_dict(**algo)

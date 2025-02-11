@@ -10,27 +10,17 @@ from recordlinker import models
 
 class TestListAlgorithms:
     def test_list(self, client):
-        algo1 = models.Algorithm(label="basic", is_default=True, description="First algorithm")
-        algo2 = models.Algorithm(label="enhanced", description="Second algorithm")
+        algo1 = models.Algorithm(label="default", is_default=True, description="First algorithm")
         client.session.add(algo1)
-        client.session.add(algo2)
         client.session.commit()
 
         response = client.get("/algorithm")
         assert response.status_code == 200
         assert response.json() == [
             {
-                "label": "basic",
+                "label": "default",
                 "is_default": True,
                 "description": "First algorithm",
-                "include_multiple_matches": True,
-                "belongingness_ratio": [1.0, 1.0],
-                "pass_count": 0,
-            },
-            {
-                "label": "enhanced",
-                "is_default": False,
-                "description": "Second algorithm",
                 "include_multiple_matches": True,
                 "belongingness_ratio": [1.0, 1.0],
                 "pass_count": 0,
@@ -45,7 +35,8 @@ class TestGetAlgorithm:
 
     def test_get(self, client):
         algo = models.Algorithm(
-            label="basic",
+            label="default",
+            is_default=True,
             description="First algorithm",
             belongingness_ratio=(0.25, 0.5),
             passes=[
@@ -56,11 +47,11 @@ class TestGetAlgorithm:
                     evaluators=[
                         {
                             "feature": "FIRST_NAME",
-                            "func": "func:recordlinker.linking.matchers.compare_fuzzy_match",
+                            "func": "func:recordlinker.linking.matchers.compare_probabilistic_fuzzy_match",
                         },
                     ],
-                    rule="func:recordlinker.linking.matchers.rule_match",
-                    kwargs={"similarity_measure": "JaroWinkler"},
+                    rule="func:recordlinker.linking.matchers.rule_probabilistic_match",
+                    kwargs={"similarity_measure": "JaroWinkler", "log_odds": {"FIRST_NAME": 6.8}},
                 )
             ],
         )
@@ -70,8 +61,8 @@ class TestGetAlgorithm:
         response = client.get(f"/algorithm/{algo.label}")
         assert response.status_code == 200
         assert response.json() == {
-            "label": "basic",
-            "is_default": False,
+            "label": "default",
+            "is_default": True,
             "description": "First algorithm",
             "include_multiple_matches": True,
             "belongingness_ratio": [0.25, 0.5],
@@ -81,12 +72,13 @@ class TestGetAlgorithm:
                     "evaluators": [
                         {
                             "feature": "FIRST_NAME",
-                            "func": "func:recordlinker.linking.matchers.compare_fuzzy_match",
+                            "func": "func:recordlinker.linking.matchers.compare_probabilistic_fuzzy_match",
                         }
                     ],
-                    "rule": "func:recordlinker.linking.matchers.rule_match",
+                    "rule": "func:recordlinker.linking.matchers.rule_probabilistic_match",
                     "kwargs": {
                         "similarity_measure": "JaroWinkler",
+                        "log_odds": {"FIRST_NAME": 6.8}
                     },
                 }
             ],
@@ -99,7 +91,7 @@ class TestCreateAlgorithm:
         assert response.status_code == 422
 
     def test_exsiting_default(self, client):
-        algo = models.Algorithm(label="basic", is_default=True, description="First algorithm")
+        algo = models.Algorithm(label="default", is_default=True, description="First algorithm")
         client.session.add(algo)
         client.session.commit()
 
@@ -114,8 +106,8 @@ class TestCreateAlgorithm:
 
     def test_create(self, client):
         payload = {
-            "label": "basic",
-            "description": "First algorithm",
+            "label": "created",
+            "description": "Created algorithm",
             "belongingness_ratio": (0.25, 0.5),
             "passes": [
                 {
@@ -125,10 +117,10 @@ class TestCreateAlgorithm:
                     "evaluators": [
                         {
                             "feature": "FIRST_NAME",
-                            "func": "func:recordlinker.linking.matchers.compare_fuzzy_match",
+                            "func": "func:recordlinker.linking.matchers.compare_probabilistic_fuzzy_match",
                         }
                     ],
-                    "rule": "func:recordlinker.linking.matchers.rule_match",
+                    "rule": "func:recordlinker.linking.matchers.rule_probabilistic_match",
                 }
             ],
         }
@@ -136,28 +128,28 @@ class TestCreateAlgorithm:
         assert response.status_code == 201
 
         algo = (
-            client.session.query(models.Algorithm).filter(models.Algorithm.label == "basic").first()
+            client.session.query(models.Algorithm).filter(models.Algorithm.label == "created").first()
         )
-        assert algo.label == "basic"
+        assert algo.label == "created"
         assert algo.is_default is False
-        assert algo.description == "First algorithm"
+        assert algo.description == "Created algorithm"
         assert algo.belongingness_ratio == (0.25, 0.5)
         assert len(algo.passes) == 1
         assert algo.passes[0].blocking_keys == ["BIRTHDATE"]
         assert algo.passes[0].evaluators == [
             {
                 "feature": "FIRST_NAME",
-                "func": "func:recordlinker.linking.matchers.compare_fuzzy_match",
+                "func": "func:recordlinker.linking.matchers.compare_probabilistic_fuzzy_match",
             }
         ]
-        assert algo.passes[0].rule == "func:recordlinker.linking.matchers.rule_match"
+        assert algo.passes[0].rule == "func:recordlinker.linking.matchers.rule_probabilistic_match"
         assert algo.passes[0].kwargs == {}
 
 
 class TestUpdateAlgorithm:
     def test_404(self, client):
         payload = {
-            "label": "basic",
+            "label": "bad",
             "description": "First algorithm",
             "belongingness_ratio": (1.0, 1.0),
             "passes": [],
@@ -166,22 +158,22 @@ class TestUpdateAlgorithm:
         assert response.status_code == 404
 
     def test_invalid_data(self, client):
-        algo = models.Algorithm(label="basic", description="First algorithm")
+        algo = models.Algorithm(label="default", description="First algorithm")
         client.session.add(algo)
         client.session.commit()
 
-        response = client.put("/algorithm/basic", json={})
+        response = client.put("/algorithm/default", json={})
         assert response.status_code == 422
 
     def test_exsiting_default(self, client):
-        algo1 = models.Algorithm(label="default", is_default=True, description="algorithm")
-        algo2 = models.Algorithm(label="basic", is_default=False, description="First algorithm")
+        algo1 = models.Algorithm(label="default", is_default=True, description="Default algorithm")
+        algo2 = models.Algorithm(label="bonus", is_default=False, description="Extra algorithm")
         client.session.add(algo1)
         client.session.add(algo2)
         client.session.commit()
 
         payload = {
-            "label": "basic",
+            "label": "bonus",
             "is_default": True,
             "description": "new default algorithm",
             "passes": [],
@@ -190,12 +182,13 @@ class TestUpdateAlgorithm:
         assert response.status_code == 422
 
     def test_update(self, client):
-        algo = models.Algorithm(label="basic", description="First algorithm", passes=[])
+        algo = models.Algorithm(label="default", description="First algorithm", passes=[])
         client.session.add(algo)
         client.session.commit()
 
         payload = {
-            "label": "basic",
+            "label": "default",
+            "is_default": True,
             "description": "Updated algorithm",
             "belongingness_ratio": (0.25, 0.5),
             "passes": [
@@ -206,21 +199,21 @@ class TestUpdateAlgorithm:
                     "evaluators": [
                         {
                             "feature": "FIRST_NAME",
-                            "func": "func:recordlinker.linking.matchers.compare_fuzzy_match",
+                            "func": "func:recordlinker.linking.matchers.compare_probabilistic_fuzzy_match",
                         }
                     ],
-                    "rule": "func:recordlinker.linking.matchers.rule_match",
+                    "rule": "func:recordlinker.linking.matchers.rule_probabilistic_match",
                 }
             ],
         }
-        response = client.put("/algorithm/basic", json=payload)
+        response = client.put("/algorithm/default", json=payload)
         assert response.status_code == 200
 
         algo = (
-            client.session.query(models.Algorithm).filter(models.Algorithm.label == "basic").first()
+            client.session.query(models.Algorithm).filter(models.Algorithm.label == "default").first()
         )
-        assert algo.label == "basic"
-        assert algo.is_default is False
+        assert algo.label == "default"
+        assert algo.is_default is True
         assert algo.description == "Updated algorithm"
         assert algo.belongingness_ratio == (0.25, 0.5)
         assert len(algo.passes) == 1
@@ -228,10 +221,10 @@ class TestUpdateAlgorithm:
         assert algo.passes[0].evaluators == [
             {
                 "feature": "FIRST_NAME",
-                "func": "func:recordlinker.linking.matchers.compare_fuzzy_match",
+                "func": "func:recordlinker.linking.matchers.compare_probabilistic_fuzzy_match",
             }
         ]
-        assert algo.passes[0].rule == "func:recordlinker.linking.matchers.rule_match"
+        assert algo.passes[0].rule == "func:recordlinker.linking.matchers.rule_probabilistic_match"
         assert algo.passes[0].kwargs == {}
 
 
@@ -241,14 +234,14 @@ class TestDeleteAlgorithm:
         assert response.status_code == 404
 
     def test_delete(self, client):
-        algo = models.Algorithm(label="basic", description="First algorithm")
+        algo = models.Algorithm(label="default", description="First algorithm")
         client.session.add(algo)
         client.session.commit()
 
-        response = client.delete("/algorithm/basic")
+        response = client.delete("/algorithm/default")
         assert response.status_code == 204
 
         algo = (
-            client.session.query(models.Algorithm).filter(models.Algorithm.label == "basic").first()
+            client.session.query(models.Algorithm).filter(models.Algorithm.label == "default").first()
         )
         assert algo is None

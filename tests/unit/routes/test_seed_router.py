@@ -43,8 +43,8 @@ class TestBatch:
         assert client.session.query(models.BlockingValue).count() == 12139
 
     @mock.patch("recordlinker.database.algorithm_service.default_algorithm")
-    def test_seed_and_link(self, mock_algorithm, basic_algorithm, client):
-        mock_algorithm.return_value = basic_algorithm
+    def test_seed_and_link(self, mock_algorithm, default_algorithm, client):
+        mock_algorithm.return_value = default_algorithm
         record = {
             "birth_date": "1956-09-06",
             "sex": "F",
