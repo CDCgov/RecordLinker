@@ -313,7 +313,7 @@ def update_patient_person_ids(
     commit: bool = True,
 ) -> models.Person:
     """
-    Update the person_id for all Patients associated with a Person.
+    Update the person_id for all Patients by current person_id.
     """
     session.query(models.Patient).filter(models.Patient.person_id.in_(person_ids)).update(
         {models.Patient.person_id: person.id}

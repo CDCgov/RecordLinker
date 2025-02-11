@@ -103,20 +103,20 @@ def update_person(
 
 
 @router.post(
-    "/{person_reference_id}/merge",
+    "/{merge_into_id}/merge",
     summary="Merge Person clusters",
     status_code=fastapi.status.HTTP_200_OK,
 )
 def merge_person_clusters(
-    person_reference_id: uuid.UUID,
+    merge_into_id: uuid.UUID,
     data: typing.Annotated[schemas.PersonRefs, fastapi.Body()],
     session: orm.Session = fastapi.Depends(get_session),
 ) -> schemas.PersonRef:
     """
-    Merges Person cluster(s) into the Person cluster referenced by `person_reference_id`.
+    Merges Person cluster(s) into the Person cluster referenced by `merge_into_id`.
     """
-    # Get the person_reference_id the person clusters will be merged into
-    per = service.get_person_by_reference_id(session, person_reference_id)
+    # Get the person that the person clusters will be merged into
+    per = service.get_person_by_reference_id(session, merge_into_id)
 
     if per is None:
         raise fastapi.HTTPException(status_code=fastapi.status.HTTP_404_NOT_FOUND)
