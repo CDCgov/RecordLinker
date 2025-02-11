@@ -102,6 +102,28 @@ def update_person(
     return schemas.PersonRef(person_reference_id=person.reference_id)
 
 
+@router.get(
+    "/{person_reference_id}",
+    summary="Retrieve a person cluster",
+    status_code=fastapi.status.HTTP_200_OK,
+)
+def get_person(
+    person_reference_id: uuid.UUID,
+    session: orm.Session = fastapi.Depends(get_session),
+) -> schemas.PersonInfo:
+    """
+    Retrieve an existing person cluster in the MPI
+    """
+    person = service.get_person_by_reference_id(session, person_reference_id)
+    if person is None:
+        raise fastapi.HTTPException(status_code=fastapi.status.HTTP_404_NOT_FOUND)
+
+    return schemas.PersonInfo(
+        person_reference_id=person.reference_id,
+        patient_reference_ids=[patient.reference_id for patient in person.patients],
+    )
+
+
 @router.post(
     "/{merge_into_id}/merge",
     summary="Merge Person clusters",

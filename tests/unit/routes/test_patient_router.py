@@ -185,3 +185,39 @@ class TestDeletePatient:
             .first()
         )
         assert patient is None
+
+
+class TestGetPatient:
+    def test_invalid_reference_id(self, client):
+        response = client.get("/patient/123")
+        assert response.status_code == 422
+
+    def test_invalid_patient(self, client):
+        response = client.get(f"/patient/{uuid.uuid4()}")
+        assert response.status_code == 404
+
+    def test_get_patient(self, client):
+        patient = models.Patient(person=models.Person(), data={
+            "name": [{"given": ["John"], "family": "Doe"}],
+        }, external_patient_id="123", external_person_id="456")
+        client.session.add(patient)
+        client.session.flush()
+        response = client.get(f"/patient/{patient.reference_id}")
+        assert response.status_code == 200
+        assert response.json() == {
+            "patient_reference_id": str(patient.reference_id),
+            "person_reference_id": str(patient.person.reference_id),
+            "record": {
+                "external_id": None,
+                "birth_date": None,
+                "sex": None,
+                "address": [],
+                "name": [{"family": "Doe", "given": ["John"], "use": None, "prefix": [], "suffix": []}],
+                "telecom": [],
+                "race": None,
+                "identifiers": [],
+            },
+            "external_patient_id": "123",
+            "external_person_id": "456",
+        }
+

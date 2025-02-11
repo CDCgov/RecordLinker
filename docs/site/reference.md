@@ -146,10 +146,13 @@ These are the functions that can be used to compare the values of two features t
 if they are a match or not.
 
 **Note**: When most features are compared, we are doing a 1 to 1 comparison (e.g. "M" == "M").
-However, some features have the ability to have multiple values (e.g. `GIVEN_NAME`), thus feature
+However, some features have the ability to have multiple values (e.g. `ADDRESS`), thus feature
 matching is designed to compare one list of values to another list of values.  For example, an
-incoming record could have a GIVEN_NAME of ["John", "Dean"] and we could be comparing them to an
-existing Patient with the GIVEN_NAME of ["John", "D"].
+incoming record could have a ADDRESS of
+[{"address": ["123 Main St", "apt 2"], "city": "Springfield", "state": "IL"}] and want to compare
+that to an existing Patient with the ADDRESS of
+[{"address": ["123 Main Street"], "city": "Springfield", "state": "IL"}, {"address": ["456 Elm St"], "state": "IL"}].
+In that case we'd want to evaluate "123 Main St" against both "123 Main Street" and "456 Elm St".
 
 `func:recordlinker.linking.matchers.compare_match_any`
 
@@ -165,6 +168,16 @@ existing Patient with the GIVEN_NAME of ["John", "D"].
     JaroWinkler, Levenshtein and Damerau-Levenshtein are supported, with JaroWinkler as the default.
     Use the `kwargs` parameter to specify the desired algorithm and thresholds.
     Example: `{"kwargs": {"similarity_measure": "levenshtein", "thresholds": {"FIRST_NAME": 0.8}}}`
+
+`func:recordlinker.linking.matchers.compare_probabilistic_exact_match`
+
+:   Determines if a Feature Field has the same value in two different patient records. If the two fields agree
+    exactly (i.e. are exactly the same), then the function returns the full extent of the log-odds weights for 
+    the particular field with which it was called. If the two fields do not exactly agree, the function returns
+    0.0. This is useful when performing probabilistic comparisons (which score a possible match's strength by
+    accumulating a sum of link weights) on fields for which fuzzy similarity doesn't make sense, such as fields
+    defined by an enum (e.g. Sex). Use the kwargs parameter to specify the log-odds ratios based on training.
+    Example: `{"kwargs": {"log_odds": {"SEX": 6.8}}}`
 
 `func:recordlinker.linking.matchers.compare_probabilistic_fuzzy_match`
 

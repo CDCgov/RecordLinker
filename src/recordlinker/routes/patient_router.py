@@ -115,6 +115,30 @@ def create_patient(
     )
 
 
+@router.get(
+    "/{patient_reference_id}",
+    summary="Retrieve a patient record",
+    status_code=fastapi.status.HTTP_200_OK,
+)
+def get_patient(
+    patient_reference_id: uuid.UUID,
+    session: orm.Session = fastapi.Depends(get_session),
+) -> schemas.PatientInfo:
+    """
+    Retrieve an existing patient record in the MPI
+    """
+    patient = service.get_patients_by_reference_ids(session, patient_reference_id)[0]
+    if patient is None:
+        raise fastapi.HTTPException(status_code=fastapi.status.HTTP_404_NOT_FOUND)
+
+    return schemas.PatientInfo(
+        patient_reference_id=patient.reference_id,
+        person_reference_id=patient.person.reference_id,
+        record=patient.record,
+        external_patient_id=patient.external_patient_id,
+        external_person_id=patient.external_person_id)
+
+
 @router.patch(
     "/{patient_reference_id}",
     summary="Update a patient record",

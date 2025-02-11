@@ -72,7 +72,7 @@ def test_compare_match_any():
     assert matchers.compare_match_any(record, pat1, schemas.Feature(attribute=schemas.FeatureAttribute.BIRTHDATE))
     assert not matchers.compare_match_any(record, pat1, schemas.Feature(attribute=schemas.FeatureAttribute.ZIP))
 
-    assert matchers.compare_match_any(record, pat2, schemas.Feature(attribute=schemas.FeatureAttribute.GIVEN_NAME))
+    assert not matchers.compare_match_any(record, pat2, schemas.Feature(attribute=schemas.FeatureAttribute.GIVEN_NAME))
     assert not matchers.compare_match_any(record, pat2, schemas.Feature(attribute=schemas.FeatureAttribute.FIRST_NAME))
     assert matchers.compare_match_any(record, pat2, schemas.Feature(attribute=schemas.FeatureAttribute.LAST_NAME))
     assert not matchers.compare_match_any(record, pat2, schemas.Feature(attribute=schemas.FeatureAttribute.SEX))
@@ -146,6 +146,53 @@ def test_compare_fuzzy_match():
 
     with pytest.raises(ValueError):
         matchers.compare_fuzzy_match(record, pat1, schemas.Feature(attribute="first_name"))
+
+
+def test_compare_probabilistic_exact_match():
+    with pytest.raises(ValueError):
+        matchers.compare_probabilistic_exact_match(
+            schemas.PIIRecord(),
+            models.Patient(),
+            schemas.Feature(attribute=schemas.FeatureAttribute.SEX),
+        )
+    
+    rec = schemas.PIIRecord(
+        name=[{"given": ["John", "T"], "family": "Shepard"}],
+        birthDate="1980-11-7",
+    )
+    pat = models.Patient(
+        data={
+            "name": [{"given": ["John"], "family": "Shepard"}],
+            "birthDate": "1970-06-07",
+        }
+    )
+    log_odds = {
+        schemas.FeatureAttribute.FIRST_NAME.value: 4.0,
+        schemas.FeatureAttribute.LAST_NAME.value: 6.5,
+        schemas.FeatureAttribute.BIRTHDATE.value: 9.8,
+        schemas.FeatureAttribute.ADDRESS.value: 3.7,
+    }
+
+    assert (
+        matchers.compare_probabilistic_exact_match(
+            rec, pat, schemas.Feature(attribute=schemas.FeatureAttribute.FIRST_NAME), log_odds=log_odds
+        )
+        == 4.0
+    )
+
+    assert (
+        matchers.compare_probabilistic_exact_match(
+            rec, pat, schemas.Feature(attribute=schemas.FeatureAttribute.LAST_NAME), log_odds=log_odds
+        )
+        == 6.5
+    )
+
+    assert (
+        matchers.compare_probabilistic_exact_match(
+            rec, pat, schemas.Feature(attribute=schemas.FeatureAttribute.BIRTHDATE), log_odds=log_odds
+        )
+        == 0.0
+    )
 
 
 def test_compare_probabilistic_fuzzy_match():

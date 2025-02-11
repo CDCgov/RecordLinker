@@ -1,3 +1,4 @@
+import contextlib
 import functools
 import gzip
 import json
@@ -5,6 +6,8 @@ import os
 import pathlib
 
 import pytest
+import sqlalchemy
+import sqlalchemy.event
 from fastapi.testclient import TestClient
 
 from recordlinker import database
@@ -82,3 +85,31 @@ def enhanced_algorithm():
     for algo in utils.read_json("assets/initial_algorithms.json"):
         if algo["label"] == "dibbs-enhanced":
             return models.Algorithm.from_dict(**algo)
+
+
+@contextlib.contextmanager
+def count_queries(session):
+    """
+    Context manager that counts the number of queries executed within the scope.
+
+    Usage:
+    ```
+    with count_queries(session) as count:
+      session.query(...).all()
+    assert count() == 1
+    ```
+    """
+    query_count = 0
+
+    def _count(conn, cursor, statement, parameters, context, executemany):
+        nonlocal query_count
+        query_count += 1
+
+    # Attach the event listener
+    sqlalchemy.event.listen(sqlalchemy.Engine, "before_cursor_execute", _count)
+
+    try:
+        yield lambda: query_count
+    finally:
+        # Remove the event listener
+        sqlalchemy.event.remove(sqlalchemy.Engine, "before_cursor_execute", _count)

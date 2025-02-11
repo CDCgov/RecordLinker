@@ -39,8 +39,9 @@ class FeatureAttribute(enum.Enum):
         """
         Return the value of the enum as a string.
         """
-        return self.value    
-    
+        return self.value
+
+
 class Feature(pydantic.BaseModel):
     """
     The schema for a feature.
@@ -88,6 +89,7 @@ class Feature(pydantic.BaseModel):
                 for identifier in IdentifierType:
                     options.append(f"{feature}:{identifier}")
         return options
+
 
 class Sex(enum.Enum):
     """
@@ -190,6 +192,7 @@ class Telecom(pydantic.BaseModel):
             return None
         return self.value
 
+
 class PIIRecord(pydantic.BaseModel):
     """
     The schema for a PII record.
@@ -224,7 +227,7 @@ class PIIRecord(pydantic.BaseModel):
         obj.name = [Name.model_construct(**n) for n in values.get("name", [])]
         obj.telecom = [Telecom.model_construct(**t) for t in values.get("telecom", [])]
         obj.identifiers = [Identifier.model_construct(**i) for i in values.get("identifiers", [])]
-        
+
         return obj
 
     @pydantic.field_validator("external_id", mode="before")
@@ -302,7 +305,7 @@ class PIIRecord(pydantic.BaseModel):
 
         if not isinstance(feature, Feature):
             raise ValueError(f"Invalid feature: {feature}")
-        
+
         attribute = feature.attribute
         identifier_suffix = feature.suffix
 
@@ -333,9 +336,8 @@ class PIIRecord(pydantic.BaseModel):
                     yield address.postal_code[:5]
         elif attribute == FeatureAttribute.GIVEN_NAME:
             for name in self.name:
-                for given in name.given:
-                    if given:
-                        yield given
+                if name.given:
+                    yield " ".join(name.given)
         elif attribute == FeatureAttribute.FIRST_NAME:
             for name in self.name:
                 # We only want the first given name for comparison
@@ -375,7 +377,7 @@ class PIIRecord(pydantic.BaseModel):
         elif attribute == FeatureAttribute.IDENTIFIER:
             for identifier in self.identifiers:
                 if identifier_suffix is None or identifier_suffix == identifier.type:
-                    yield f"{identifier.type}:{identifier.authority or ''}:{identifier.value}"
+                    yield f"{identifier.value}:{identifier.authority or ''}:{identifier.type}"
 
     def blocking_keys(self, key: models.BlockingKey) -> set[str]:
         """
@@ -392,25 +394,37 @@ class PIIRecord(pydantic.BaseModel):
             # NOTE: we could optimize here and remove the dashes from the date
             vals.update(self.feature_iter(Feature(attribute=FeatureAttribute.BIRTHDATE)))
         elif key == models.BlockingKey.IDENTIFIER:
-            vals.update({
-                f"{type_part}:{authority_part[:2]}:{value_part[-4:]}"
-                for x in self.feature_iter(Feature(attribute=FeatureAttribute.IDENTIFIER))
-                for type_part, authority_part, value_part in [x.split(":", 2)]
-            })
+            vals.update(
+                {
+                    f"{value_part[-4:]}:{authority_part[:2]}:{type_part}"
+                    for x in self.feature_iter(Feature(attribute=FeatureAttribute.IDENTIFIER))
+                    for value_part, authority_part, type_part in [x.split(":", 2)]
+                }
+            )
         elif key == models.BlockingKey.SEX:
             vals.update(self.feature_iter(Feature(attribute=FeatureAttribute.SEX)))
         elif key == models.BlockingKey.ZIP:
             vals.update(self.feature_iter(Feature(attribute=FeatureAttribute.ZIP)))
         elif key == models.BlockingKey.FIRST_NAME:
-            vals.update({x[:4] for x in self.feature_iter(Feature(attribute=FeatureAttribute.FIRST_NAME))})
+            vals.update(
+                {x[:4] for x in self.feature_iter(Feature(attribute=FeatureAttribute.FIRST_NAME))}
+            )
         elif key == models.BlockingKey.LAST_NAME:
-            vals.update({x[:4] for x in self.feature_iter(Feature(attribute=FeatureAttribute.LAST_NAME))})
+            vals.update(
+                {x[:4] for x in self.feature_iter(Feature(attribute=FeatureAttribute.LAST_NAME))}
+            )
         elif key == models.BlockingKey.ADDRESS:
-            vals.update({x[:4] for x in self.feature_iter(Feature(attribute=FeatureAttribute.ADDRESS))})
+            vals.update(
+                {x[:4] for x in self.feature_iter(Feature(attribute=FeatureAttribute.ADDRESS))}
+            )
         elif key == models.BlockingKey.PHONE:
-            vals.update({x[-4:] for x in self.feature_iter(Feature(attribute=FeatureAttribute.PHONE))})
+            vals.update(
+                {x[-4:] for x in self.feature_iter(Feature(attribute=FeatureAttribute.PHONE))}
+            )
         elif key == models.BlockingKey.EMAIL:
-            vals.update({x[:4] for x in self.feature_iter(Feature(attribute=FeatureAttribute.EMAIL))})
+            vals.update(
+                {x[:4] for x in self.feature_iter(Feature(attribute=FeatureAttribute.EMAIL))}
+            )
 
         # if any vals are longer than the BLOCKING_KEY_MAX_LENGTH, raise an error
         if any(len(x) > models.BLOCKING_VALUE_MAX_LENGTH for x in vals):

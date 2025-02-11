@@ -254,9 +254,15 @@ def get_patients_by_reference_ids(
 ) -> list[models.Patient | None]:
     """
     Retrieve all the Patients by their reference ids. If a Patient is not found,
-    a None value will be returned in the list for that reference id.
+    a None value will be returned in the list for that reference id. Eagerly load
+    the Person associated with the Patient.
     """
-    query = select(models.Patient).where(models.Patient.reference_id.in_(reference_ids))
+    query = (
+        select(models.Patient)
+        .where(models.Patient.reference_id.in_(reference_ids))
+        .options(orm.joinedload(models.Patient.person))
+    )
+
     patients_by_id: dict[uuid.UUID, models.Patient] = {
         patient.reference_id: patient for patient in session.execute(query).scalars().all()
     }
