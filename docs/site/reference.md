@@ -146,10 +146,13 @@ These are the functions that can be used to compare the values of two features t
 if they are a match or not.
 
 **Note**: When most features are compared, we are doing a 1 to 1 comparison (e.g. "M" == "M").
-However, some features have the ability to have multiple values (e.g. `GIVEN_NAME`), thus feature
+However, some features have the ability to have multiple values (e.g. `ADDRESS`), thus feature
 matching is designed to compare one list of values to another list of values.  For example, an
-incoming record could have a GIVEN_NAME of ["John", "Dean"] and we could be comparing them to an
-existing Patient with the GIVEN_NAME of ["John", "D"].
+incoming record could have a ADDRESS of
+[{"address": ["123 Main St", "apt 2"], "city": "Springfield", "state": "IL"}] and want to compare
+that to an existing Patient with the ADDRESS of
+[{"address": ["123 Main Street"], "city": "Springfield", "state": "IL"}, {"address": ["456 Elm St"], "state": "IL"}].
+In that case we'd want to evaluate "123 Main St" against both "123 Main Street" and "456 Elm St".
 
 `func:recordlinker.linking.matchers.compare_match_any`
 

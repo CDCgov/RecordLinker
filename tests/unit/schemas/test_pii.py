@@ -257,7 +257,7 @@ class TestPIIRecord:
         ]
         assert list(
             record.feature_iter(pii.Feature(attribute=pii.FeatureAttribute.GIVEN_NAME))
-        ) == ["John", "L", "Jane"]
+        ) == ["John L", "Jane"]
         assert list(
             record.feature_iter(pii.Feature(attribute=pii.FeatureAttribute.FIRST_NAME))
         ) == ["John", "Jane"]
@@ -313,6 +313,21 @@ class TestPIIRecord:
         assert list(record.feature_iter(pii.Feature(attribute=pii.FeatureAttribute.RACE))) == [
             "WHITE"
         ]
+
+    def test_feature_iter_given_name(self):
+        record = pii.PIIRecord(
+            name=[
+                pii.Name(family="Doe", given=["John", "L"], suffix=["suffix"]),
+                pii.Name(family="Smith", given=["Jon", "Lewis", "Doe"], suffix=["suffix2"]),
+            ],
+        )
+
+        assert list(
+            record.feature_iter(pii.Feature(attribute=pii.FeatureAttribute.GIVEN_NAME))
+        ) == ["John L", "Jon Lewis Doe"]
+        assert list(
+            record.feature_iter(pii.Feature(attribute=pii.FeatureAttribute.FIRST_NAME))
+        ) == ["John", "Jon"]
 
     def test_blocking_keys_invalid(self):
         rec = pii.PIIRecord()
