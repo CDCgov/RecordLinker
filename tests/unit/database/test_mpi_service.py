@@ -863,3 +863,16 @@ class TestGetPersonsbyReferenceIds:
         assert mpi_service.get_persons_by_reference_ids(
             session, uuid.uuid4(), person.reference_id
         ) == [None, person]
+
+
+class TestDeletePersons:
+    def test_delete_persons(self, session):
+        person1 = models.Person()
+        person2 = models.Person()
+        session.add_all([person1, person2])
+        session.flush()
+        assert session.query(models.Person).count() == 2
+        mpi_service.delete_persons(session, [person1])
+        assert session.query(models.Person).count() == 1
+        assert mpi_service.get_person_by_reference_id(session, person1.reference_id) is None
+        assert mpi_service.get_person_by_reference_id(session, person2.reference_id) == person2

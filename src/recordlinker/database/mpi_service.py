@@ -351,3 +351,19 @@ def delete_patient(session: orm.Session, obj: models.Patient, commit: bool = Fal
     session.delete(obj)
     if commit:
         session.commit()
+
+
+def delete_persons(
+    session: orm.Session, obj: typing.Sequence[models.Person], commit: bool = False
+) -> None:
+    """
+    Deletes 1 or more Person from the database
+
+    :param session: The database session
+    :param obj: The Person(s) to delete
+    :param commit: Commit the transaction
+    """
+    for person in obj:
+        session.delete(person)
+    if commit:
+        session.commit()
