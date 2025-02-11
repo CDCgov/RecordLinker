@@ -108,6 +108,23 @@ class TestMergePersonClusters:
         )
         assert response.status_code == 422
 
+    def test1InvalidPersonId(self, client):
+        # Tests that a 422 will be raised if a single invalid person id is passed
+        person1 = models.Person()
+        patient1 = models.Patient(person=person1, data={})
+
+        person2 = models.Person()
+        patient2 = models.Patient(person=person2, data={})
+
+        client.session.add_all([patient1, patient2])
+        client.session.flush()
+
+        response = client.post(
+            f"/person/{person1.reference_id}/merge/",
+            json={"person_reference_ids": [str(person2.reference_id), str(uuid.uuid4())]},
+        )
+        assert response.status_code == 422
+
     def testNoPersontoMergeInto(self, client):
         response = client.post(
             f"/person/{uuid.uuid4()}/merge/",

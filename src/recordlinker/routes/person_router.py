@@ -41,6 +41,27 @@ def patients_by_id_or_422(
     return patients  # type: ignore
 
 
+def persons_by_reference_id_or_422(
+    session: orm.Session, person_reference_ids: typing.Sequence[uuid.UUID]
+) -> typing.Sequence[models.Patient]:
+    """
+    Retrieve the Patients by their reference ids or raise a 422 error response.
+    """
+    persons = service.get_persons_by_reference_ids(session, *person_reference_ids)
+    if None in persons:
+        raise fastapi.HTTPException(
+            status_code=fastapi.status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail=[
+                {
+                    "loc": ["body", "patients"],
+                    "msg": "Invalid person reference id",
+                    "type": "value_error",
+                }
+            ],
+        )
+    return persons  # type: ignore
+
+
 @router.post(
     "",
     summary="Create a new Person cluster",
@@ -101,9 +122,7 @@ def merge_person_clusters(
         raise fastapi.HTTPException(status_code=fastapi.status.HTTP_404_NOT_FOUND)
 
     # Get all persons by person_reference_id that will be merged
-    persons = service.get_persons_by_reference_ids(session, data.person_reference_ids)
-    if persons is None:
-        raise fastapi.HTTPException(status_code=fastapi.status.HTTP_422_UNPROCESSABLE_ENTITY)
+    persons = persons_by_reference_id_or_422(session, data.person_reference_ids)
     person_ids = [person.id for person in persons]
 
     # Update all of the patients from the person clusters to be merged

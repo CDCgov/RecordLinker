@@ -274,15 +274,17 @@ def get_person_by_reference_id(
 
 
 def get_persons_by_reference_ids(
-    session: orm.Session, person_reference_ids: typing.Sequence[uuid.UUID]
-) -> typing.Sequence[models.Person] | None:
+    session: orm.Session, *person_reference_ids: uuid.UUID
+) -> list[models.Person | None]:
     """
-    Retrieve multiple Persons by their person reference IDs.
+    Retrieve multiple Persons by their person reference IDs. If a Person is not found,
+    a None value will be returned in the list for that reference id.
     """
-    if not person_reference_ids:
-        return None
     query = select(models.Person).where(models.Person.reference_id.in_(person_reference_ids))
-    return session.scalars(query).all()
+    persons_by_reference_ids: dict[uuid.UUID, models.Person] = {
+        person.reference_id: person for person in session.execute(query).scalars().all()
+    }
+    return [persons_by_reference_ids.get(ref_id) for ref_id in person_reference_ids]
 
 
 def update_person_cluster(

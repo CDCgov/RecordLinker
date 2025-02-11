@@ -832,3 +832,17 @@ class TestUpdatePatientPersonIds:
         assert patient1.person_id != patient2.person_id
         mpi_service.update_patient_person_ids(session, person1, [patient2.person_id])
         assert patient1.person_id == patient2.person_id
+
+
+class TestGetPersonsbyReferenceIds:
+    def test_invalid_reference_id(self, session):
+        with pytest.raises(sqlalchemy.exc.SQLAlchemyError):
+            mpi_service.get_persons_by_reference_ids(session, "123")
+
+    def test_reference_ids(self, session):
+        person = models.Person()
+        session.add(person)
+        session.flush()
+        assert mpi_service.get_persons_by_reference_ids(
+            session, uuid.uuid4(), person.reference_id
+        ) == [None, person]
