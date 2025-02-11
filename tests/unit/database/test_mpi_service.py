@@ -9,6 +9,7 @@ import uuid
 
 import pytest
 import sqlalchemy.exc
+from conftest import count_queries
 from conftest import db_dialect
 
 from recordlinker import models
@@ -317,10 +318,19 @@ class TestUpdatePatient:
         patient = models.Patient(person=models.Person(), data={"sex": "M"})
         session.add(patient)
         session.flush()
-        session.add(models.BlockingValue(patient_id=patient.id, blockingkey=models.BlockingKey.SEX.id, value="M"))
-        record = schemas.PIIRecord(**{"name": [{"given": ["John"], "family": "Doe"}], "birthdate": "1980-01-01"})
+        session.add(
+            models.BlockingValue(
+                patient_id=patient.id, blockingkey=models.BlockingKey.SEX.id, value="M"
+            )
+        )
+        record = schemas.PIIRecord(
+            **{"name": [{"given": ["John"], "family": "Doe"}], "birthdate": "1980-01-01"}
+        )
         patient = mpi_service.update_patient(session, patient, record=record)
-        assert patient.data == {"name": [{"given": ["John"], "family": "Doe"}], "birth_date": "1980-01-01"}
+        assert patient.data == {
+            "name": [{"given": ["John"], "family": "Doe"}],
+            "birth_date": "1980-01-01",
+        }
         assert len(patient.blocking_values) == 3
 
     def test_update_person(self, session):
@@ -346,7 +356,13 @@ class TestDeleteBlockingValuesForPatient:
         other_patient = models.Patient()
         session.add(other_patient)
         session.flush()
-        session.add(models.BlockingValue(patient_id=other_patient.id, blockingkey=models.BlockingKey.FIRST_NAME.id, value="John"))
+        session.add(
+            models.BlockingValue(
+                patient_id=other_patient.id,
+                blockingkey=models.BlockingKey.FIRST_NAME.id,
+                value="John",
+            )
+        )
         session.flush()
         patient = models.Patient()
         session.add(patient)
@@ -359,8 +375,16 @@ class TestDeleteBlockingValuesForPatient:
         patient = models.Patient()
         session.add(patient)
         session.flush()
-        session.add(models.BlockingValue(patient_id=patient.id, blockingkey=models.BlockingKey.FIRST_NAME.id, value="John"))
-        session.add(models.BlockingValue(patient_id=patient.id, blockingkey=models.BlockingKey.LAST_NAME.id, value="Smith"))
+        session.add(
+            models.BlockingValue(
+                patient_id=patient.id, blockingkey=models.BlockingKey.FIRST_NAME.id, value="John"
+            )
+        )
+        session.add(
+            models.BlockingValue(
+                patient_id=patient.id, blockingkey=models.BlockingKey.LAST_NAME.id, value="Smith"
+            )
+        )
         session.flush()
         assert len(patient.blocking_values) == 2
         mpi_service.delete_blocking_values_for_patient(session, patient)
@@ -723,6 +747,22 @@ class TestGetPatientsByReferenceIds:
         assert mpi_service.get_patients_by_reference_ids(
             session, uuid.uuid4(), patient.reference_id
         ) == [None, patient]
+
+    def test_eager_load_of_person(self, session):
+        pat_ref = uuid.uuid4()
+        per_ref = uuid.uuid4()
+        person = models.Person(reference_id=per_ref)
+        patient = models.Patient(person=person, reference_id=pat_ref, data={})
+        session.add(patient)
+        session.flush()
+        session.expire(person)  # expiring the cache to fully test the query
+        session.expire(patient)  # expiring the cache to fully test the query
+        with count_queries(session) as qcount:
+            pats = mpi_service.get_patients_by_reference_ids(session, pat_ref)
+            assert patient == pats[0]
+            assert per_ref == pats[0].person.reference_id
+        # assert only one query was made
+        assert qcount() == 1
 
 
 class TestGetPersonByReferenceId:
