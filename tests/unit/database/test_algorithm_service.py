@@ -16,12 +16,14 @@ from recordlinker.database import algorithm_service
 
 def test_list_algorithms(session):
     algo1 = models.Algorithm(label="default", description="First algorithm")
+    algo2 = models.Algorithm(label="user", description="User uploaded algorithm")
     session.add(algo1)
+    session.add(algo2)
     session.commit()
 
     algorithms = algorithm_service.list_algorithms(session)
-    assert len(algorithms) == 1
-    assert [a.label for a in algorithms] == ["default"]
+    assert len(algorithms) == 2
+    assert [a.label for a in algorithms] == ["default", "user"]
 
 
 def test_default_algorithm(session):
