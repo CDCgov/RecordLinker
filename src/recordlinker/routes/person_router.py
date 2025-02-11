@@ -53,7 +53,7 @@ def persons_by_reference_id_or_422(
             status_code=fastapi.status.HTTP_422_UNPROCESSABLE_ENTITY,
             detail=[
                 {
-                    "loc": ["body", "patients"],
+                    "loc": ["body", "person_reference_ids"],
                     "msg": "Invalid person reference id",
                     "type": "value_error",
                 }
