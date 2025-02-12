@@ -39,6 +39,14 @@ To run the API locally, use the following command:
 
 The API will be available at `http://localhost:8000`. Visit `http://localhost:8000/redoc` to view the API documentation.
 
+## Testing
+
+The RecordLinker system comes with a number of built-in tests spread across several different types. Some of these tests are run automatically (e.g. by Github), while others must be manually executed by a developer.
+
+- `tests/unit`: These comprise basic unit (and in some cases integration) tests providing code coverage to RecordLinker. These tests demonstrate the functionality of different parts of the code base under different logical conditions and with different inputs and outputs. They are automataically executed by a Github Actions workflow as part of a PR.
+- `tests/algorithm`: This is a set of scripts developed to test an algorithm configuration with a known set of particular edge cases. In response to frequent questions of how the DIBBs algorithm handles case X, this mini-project was created to help answer those questions by giving developers some persistent evaluation tools. These tests are _not_ automated, and developers will need to go through the steps in the README in the relevant directory in order to run them.
+- `tests/performance`: Another set of scripts developed to see how fast the API can process linkage requests using synthetic data. This is useful for verifying refactors are still performant and helping developers identify bottlenecks along the way. These tests are _not_ automated, and developers need to go through the steps in the README of the relevant directory in order to run them.
+
 ### Running unit tests
 
 To run all the unit tests, use the following command:
