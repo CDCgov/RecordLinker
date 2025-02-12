@@ -162,6 +162,17 @@ class TestMergePersonClusters:
         )
         assert response.status_code == 422
 
+    def testPersonIdsNottheSame(self, client):
+        # Test that a 422 will be raised if the merge_into_id is in the person_reference_ids
+        person1 = models.Person()
+
+        response = client.post(
+            f"/person/{person1.reference_id}/merge/",
+            json={"person_reference_ids": [str(person1.reference_id)]},
+        )
+
+        assert response.status_code == 422
+
     def testNoPersontoMergeInto(self, client):
         response = client.post(
             f"/person/{uuid.uuid4()}/merge/",

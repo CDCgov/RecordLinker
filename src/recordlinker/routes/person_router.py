@@ -139,6 +139,19 @@ def merge_person_clusters(
     Merges Person cluster(s) into the Person cluster referenced by `merge_into_id`. Optionally
     delete the merged Person clusters.
     """
+    # Check that the merge_into_id is not in the list of person_reference_ids
+    if merge_into_id in data.person_reference_ids:
+        raise fastapi.HTTPException(
+            status_code=fastapi.status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail=[
+                {
+                    "loc": ["body", "person_reference_ids"],
+                    "msg": "The merge_into_id cannot be in the person_reference_ids.",
+                    "type": "value_error",
+                }
+            ],
+        )
+
     # Get the person that the person clusters will be merged into
     per = service.get_person_by_reference_id(session, merge_into_id)
 
