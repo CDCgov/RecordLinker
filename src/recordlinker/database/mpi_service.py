@@ -270,13 +270,27 @@ def get_patients_by_reference_ids(
 
 
 def get_person_by_reference_id(
-    session: orm.Session, reference_id: uuid.UUID
+    session: orm.Session, person_reference_id: uuid.UUID
 ) -> models.Person | None:
     """
-    Retrieve the Person by their reference id
+    Retrieve a single Person by their person reference ID.
     """
-    query = select(models.Person).where(models.Person.reference_id == reference_id)
+    query = select(models.Person).where(models.Person.reference_id == person_reference_id)
     return session.scalar(query)
+
+
+def get_persons_by_reference_ids(
+    session: orm.Session, *person_reference_ids: uuid.UUID
+) -> list[models.Person | None]:
+    """
+    Retrieve multiple Persons by their person reference IDs. If a Person is not found,
+    a None value will be returned in the list for that reference id.
+    """
+    query = select(models.Person).where(models.Person.reference_id.in_(person_reference_ids))
+    persons_by_reference_ids: dict[uuid.UUID, models.Person] = {
+        person.reference_id: person for person in session.execute(query).scalars().all()
+    }
+    return [persons_by_reference_ids.get(ref_id) for ref_id in person_reference_ids]
 
 
 def update_person_cluster(
@@ -293,6 +307,23 @@ def update_person_cluster(
         patient.person = person
     session.flush()
 
+    if commit:
+        session.commit()
+    return person
+
+
+def update_patient_person_ids(
+    session: orm.Session,
+    person: models.Person,
+    person_ids: typing.Sequence[int],
+    commit: bool = True,
+) -> models.Person:
+    """
+    Update the person_id for all Patients by current person_id.
+    """
+    session.query(models.Patient).filter(models.Patient.person_id.in_(person_ids)).update(
+        {models.Patient.person_id: person.id}
+    )
     if commit:
         session.commit()
     return person
@@ -318,5 +349,21 @@ def delete_patient(session: orm.Session, obj: models.Patient, commit: bool = Fal
     :param commit: Commit the transaction
     """
     session.delete(obj)
+    if commit:
+        session.commit()
+
+
+def delete_persons(
+    session: orm.Session, obj: typing.Sequence[models.Person], commit: bool = False
+) -> None:
+    """
+    Deletes 1 or more Person from the database
+
+    :param session: The database session
+    :param obj: The Person(s) to delete
+    :param commit: Commit the transaction
+    """
+    for person in obj:
+        session.delete(person)
     if commit:
         session.commit()

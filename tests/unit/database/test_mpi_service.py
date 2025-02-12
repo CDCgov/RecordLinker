@@ -831,3 +831,48 @@ class TestResetMPI:
         assert session.query(models.Patient).count() == 0
         assert session.query(models.Person).count() == 0
         assert session.query(models.BlockingValue).count() == 0
+
+
+class TestUpdatePatientPersonIds:
+    def test_invalid_person_id(self, session):
+        with pytest.raises(sqlalchemy.exc.SQLAlchemyError):
+            mpi_service.update_patient_person_ids(session, models.Person(), "123")
+
+    def test_update_patient_person_ids(self, session):
+        # Tests that we can update the person_id of a patient
+        person1 = models.Person()
+        patient1 = models.Patient(person=person1, data={})
+        person2 = models.Person()
+        patient2 = models.Patient(person=person2, data={})
+        session.add_all([patient1, patient2])
+        session.flush()
+        assert patient1.person_id != patient2.person_id
+        mpi_service.update_patient_person_ids(session, person1, [patient2.person_id])
+        assert patient1.person_id == patient2.person_id
+
+
+class TestGetPersonsbyReferenceIds:
+    def test_invalid_reference_id(self, session):
+        with pytest.raises(sqlalchemy.exc.SQLAlchemyError):
+            mpi_service.get_persons_by_reference_ids(session, "123")
+
+    def test_reference_ids(self, session):
+        person = models.Person()
+        session.add(person)
+        session.flush()
+        assert mpi_service.get_persons_by_reference_ids(
+            session, uuid.uuid4(), person.reference_id
+        ) == [None, person]
+
+
+class TestDeletePersons:
+    def test_delete_persons(self, session):
+        person1 = models.Person()
+        person2 = models.Person()
+        session.add_all([person1, person2])
+        session.flush()
+        assert session.query(models.Person).count() == 2
+        mpi_service.delete_persons(session, [person1])
+        assert session.query(models.Person).count() == 1
+        assert mpi_service.get_person_by_reference_id(session, person1.reference_id) is None
+        assert mpi_service.get_person_by_reference_id(session, person2.reference_id) == person2

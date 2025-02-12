@@ -17,6 +17,7 @@ from .mpi import PatientRefs
 from .mpi import PatientUpdatePayload
 from .mpi import PersonInfo
 from .mpi import PersonRef
+from .mpi import PersonRefs
 from .pii import Feature
 from .pii import FeatureAttribute
 from .pii import PIIRecord
@@ -52,4 +53,5 @@ __all__ = [
     "ClusterGroup",
     "PersonCluster",
     "PersonGroup",
+    "PersonRefs",
 ]

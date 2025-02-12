@@ -31,10 +31,35 @@ def patients_by_id_or_422(
         raise fastapi.HTTPException(
             status_code=fastapi.status.HTTP_422_UNPROCESSABLE_ENTITY,
             detail=[
-                {"loc": ["body", "patients"], "msg": "Invalid patient reference id", "type": "value_error"}
+                {
+                    "loc": ["body", "patients"],
+                    "msg": "Invalid patient reference id",
+                    "type": "value_error",
+                }
             ],
         )
-    return patients # type: ignore
+    return patients  # type: ignore
+
+
+def persons_by_reference_id_or_422(
+    session: orm.Session, person_reference_ids: typing.Sequence[uuid.UUID]
+) -> typing.Sequence[models.Patient]:
+    """
+    Retrieve the Patients by their reference ids or raise a 422 error response.
+    """
+    persons = service.get_persons_by_reference_ids(session, *person_reference_ids)
+    if None in persons:
+        raise fastapi.HTTPException(
+            status_code=fastapi.status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail=[
+                {
+                    "loc": ["body", "person_reference_ids"],
+                    "msg": "Invalid person reference id",
+                    "type": "value_error",
+                }
+            ],
+        )
+    return persons  # type: ignore
 
 
 @router.post(
@@ -97,3 +122,51 @@ def get_person(
         person_reference_id=person.reference_id,
         patient_reference_ids=[patient.reference_id for patient in person.patients],
     )
+
+
+@router.post(
+    "/{merge_into_id}/merge",
+    summary="Merge Person clusters",
+    status_code=fastapi.status.HTTP_200_OK,
+)
+def merge_person_clusters(
+    merge_into_id: uuid.UUID,
+    data: typing.Annotated[schemas.PersonRefs, fastapi.Body()],
+    delete_person_clusters: bool = False,
+    session: orm.Session = fastapi.Depends(get_session),
+) -> schemas.PersonRef:
+    """
+    Merges Person cluster(s) into the Person cluster referenced by `merge_into_id`. Optionally
+    delete the merged Person clusters.
+    """
+    # Check that the merge_into_id is not in the list of person_reference_ids
+    if merge_into_id in data.person_reference_ids:
+        raise fastapi.HTTPException(
+            status_code=fastapi.status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail=[
+                {
+                    "loc": ["body", "person_reference_ids"],
+                    "msg": "The merge_into_id cannot be in the person_reference_ids.",
+                    "type": "value_error",
+                }
+            ],
+        )
+
+    # Get the person that the person clusters will be merged into
+    per = service.get_person_by_reference_id(session, merge_into_id)
+
+    if per is None:
+        raise fastapi.HTTPException(status_code=fastapi.status.HTTP_404_NOT_FOUND)
+
+    # Get all persons by person_reference_id that will be merged
+    persons = persons_by_reference_id_or_422(session, data.person_reference_ids)
+    person_ids = [person.id for person in persons]
+
+    # Update all of the patients from the person clusters to be merged
+    person = service.update_patient_person_ids(session, per, person_ids, commit=False)
+
+    # Clean up orphaned person clusters
+    if delete_person_clusters:
+        service.delete_persons(session, persons, commit=False)
+
+    return schemas.PersonRef(person_reference_id=person.reference_id)

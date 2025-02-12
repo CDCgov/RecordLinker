@@ -11,6 +11,10 @@ class PersonRef(pydantic.BaseModel):
     external_person_id: str | None = None
 
 
+class PersonRefs(pydantic.BaseModel):
+    person_reference_ids: list[uuid.UUID] = pydantic.Field(..., min_length=1)
+
+
 class PatientRef(pydantic.BaseModel):
     patient_reference_id: uuid.UUID
     external_patient_id: str | None = None

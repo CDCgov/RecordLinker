@@ -73,7 +73,7 @@ linkage evaluation phase. The following features are supported:
 
 `IDENTIFIER`
 
-:   An identifier for the patient.  Matching on this will check if any identifier type/authority/value combination matches.
+:   An identifier for the patient.  Matching on this will check if any identifier value/authority/type combination matches.
 
 `IDENTIFIER:<type>`
 
