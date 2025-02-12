@@ -132,10 +132,12 @@ def get_person(
 def merge_person_clusters(
     merge_into_id: uuid.UUID,
     data: typing.Annotated[schemas.PersonRefs, fastapi.Body()],
+    delete_person_clusters: bool = False,
     session: orm.Session = fastapi.Depends(get_session),
 ) -> schemas.PersonRef:
     """
-    Merges Person cluster(s) into the Person cluster referenced by `merge_into_id`.
+    Merges Person cluster(s) into the Person cluster referenced by `merge_into_id`. Optionally
+    delete the merged Person clusters.
     """
     # Get the person that the person clusters will be merged into
     per = service.get_person_by_reference_id(session, merge_into_id)
@@ -150,6 +152,8 @@ def merge_person_clusters(
     # Update all of the patients from the person clusters to be merged
     person = service.update_patient_person_ids(session, per, person_ids, commit=False)
 
-    # Should we clean up orphaned person clusters after merging?
+    # Clean up orphaned person clusters
+    if delete_person_clusters:
+        service.delete_persons(session, persons, commit=False)
 
     return schemas.PersonRef(person_reference_id=person.reference_id)

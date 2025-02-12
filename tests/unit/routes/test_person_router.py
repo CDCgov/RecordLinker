@@ -170,3 +170,21 @@ class TestMergePersonClusters:
             },
         )
         assert response.status_code == 404
+
+    def testdeletePersons(self, client):
+        person1 = models.Person()
+        patient1 = models.Patient(person=person1, data={})
+
+        person2 = models.Person()
+        patient2 = models.Patient(person=person2, data={})
+
+        client.session.add_all([patient1, patient2])
+        client.session.flush()
+
+        response = client.post(
+            f"/person/{person1.reference_id}/merge?delete_person_clusters=true",
+            json={"person_reference_ids": [str(person2.reference_id)]},
+        )
+
+        assert response.status_code == 200
+        assert response.json()["person_reference_id"] == str(person1.reference_id)
