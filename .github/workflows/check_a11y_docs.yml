@@ -52,5 +52,5 @@ jobs:
             path=${file#_site/}
             echo "path to check: ${path}"
             echo "driver path: ${{ env.CHROMEDRIVER-PATH }}"
-            npx @axe-core/cli --exit --tags wcag2aa --chromedriver-path ${{ env.CHROMEDRIVER-PATH }} http://localhost:3000/$path
+            npx @axe-core/cli --exit --tags wcag2aa --load-delay 1500 --chromedriver-path ${{ env.CHROMEDRIVER-PATH }} http://localhost:3000/$path
           done
