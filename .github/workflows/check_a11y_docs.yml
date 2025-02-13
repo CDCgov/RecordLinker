@@ -21,9 +21,13 @@ jobs:
           cache: 'pip'
 
       - name: Set up Chrome
+        id: setup-chrome
         uses: browser-actions/setup-chrome@v1
         with:
           install-chromedriver: true
+        run: |
+          # copy chromedriver path to ENV variable
+          echo "CHROMEDRIVER-PATH=${{ steps.setup-chrome.outputs.chromedriver-path }}" >> $GITHUB_ENV
 
       - name: Install dependencies
         run: |
@@ -46,8 +50,8 @@ jobs:
           sleep 3
           # for every recursively nested *.html file in _site, run a11y checks
           for file in $(find _site -name '*.html'); do
-            echo "raw file: ${file}"
             path=${file#_site/}
             echo "path to check: ${path}"
-            npx @axe-core/cli --exit --tags wcag2aa http://localhost:3000/$path
+            echo "driver path: ${{ env.CHROMEDRIVER-PATH }}"
+            npx @axe-core/cli --exit --tags wcag2aa --chromedriver-path ${{ env.CHROMEDRIVER-PATH }} http://localhost:3000/$path
           done
