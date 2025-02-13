@@ -25,9 +25,6 @@ jobs:
         uses: browser-actions/setup-chrome@v1
         with:
           install-chromedriver: true
-        run: |
-          # copy chromedriver path to ENV variable
-          echo "CHROMEDRIVER-PATH=${{ steps.setup-chrome.outputs.chromedriver-path }}" >> $GITHUB_ENV
 
       - name: Install dependencies
         run: |
@@ -35,6 +32,8 @@ jobs:
           pip install '.[dev]'
           # install ChromeDriver
           npx browser-driver-manager install chrome
+          # copy chromedriver path to ENV variable
+          echo "CHROMEDRIVER-PATH=${{ steps.setup-chrome.outputs.chromedriver-path }}" >> $GITHUB_ENV
 
       - name: Build public documentation
         run: |
