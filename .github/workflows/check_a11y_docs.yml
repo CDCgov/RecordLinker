@@ -1,0 +1,44 @@
+name: check a11y docs
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  a11y:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install '.[dev]'
+          # install ChromeDriver
+          npx browser-driver-manager install chrome
+
+      - name: Build public documentation
+        run: |
+          export DB_URI="sqlite:///:memory:"
+          export INITIAL_ALGORITHMS=""
+          export VERSION=${{ env.NEXT_TAG }}
+          ./scripts/build_docs.sh _site
+
+      - name: Run accessibility checks
+        run: |
+          # run npx serve in the background to serve the _site directory
+          npx serve _site &
+          # for every recursively nested *.html file in _site, run a11y checks
+          for file in $(find _site -name '*.html'); do
+            npx @axe-core/cli --exit --tags wcag2aa http://localhost/$file
+          done
