@@ -41,6 +41,7 @@ jobs:
           sleep 3
           # for every recursively nested *.html file in _site, run a11y checks
           for file in $(find _site -name '*.html'); do
-            echo "Checking $file"
-            npx @axe-core/cli --exit --tags wcag2aa http://localhost/$file
+            path=$(echo "${f#_site/}")
+            echo "Checking $path"
+            npx @axe-core/cli --exit --tags wcag2aa http://localhost/$path
           done
