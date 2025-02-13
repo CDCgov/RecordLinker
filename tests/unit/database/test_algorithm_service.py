@@ -15,34 +15,32 @@ from recordlinker.database import algorithm_service
 
 
 def test_list_algorithms(session):
-    algo1 = models.Algorithm(label="basic", is_default=True, description="First algorithm")
-    algo2 = models.Algorithm(label="enhanced", description="Second algorithm")
+    algo1 = models.Algorithm(label="default", description="First algorithm")
+    algo2 = models.Algorithm(label="user", description="User uploaded algorithm")
     session.add(algo1)
     session.add(algo2)
     session.commit()
 
     algorithms = algorithm_service.list_algorithms(session)
     assert len(algorithms) == 2
-    assert [a.label for a in algorithms] == ["basic", "enhanced"]
+    assert [a.label for a in algorithms] == ["default", "user"]
 
 
 def test_default_algorithm(session):
     assert algorithm_service.default_algorithm(session) is None
 
-    algo1 = models.Algorithm(label="basic", is_default=False, description="First algorithm")
-    algo2 = models.Algorithm(label="enhanced", is_default=True, description="Second algorithm")
+    algo1 = models.Algorithm(label="default", is_default=True, description="First algorithm")
     session.add(algo1)
-    session.add(algo2)
     session.commit()
 
     default = algorithm_service.default_algorithm(session)
-    assert default == algo2
+    assert default == algo1
 
 
 class TestGetAlgorithm:
     def test_get_algorithm_match(self, session):
-        testLabel = "dibss_basic"
-        algo1 = models.Algorithm(label=testLabel, is_default=True, description="First algorithm")
+        testLabel = "dibbs-default"
+        algo1 = models.Algorithm(label="dibbs-default", description="First algorithm")
         session.add(algo1)
         session.commit()
 
@@ -51,9 +49,7 @@ class TestGetAlgorithm:
 
     def test_get_algorithm_no_match(self, session):
         # inserting the default algorithm
-        algo1 = models.Algorithm(
-            label="dibss_basic", is_default=True, description="First algorithm"
-        )
+        algo1 = models.Algorithm(label="default", description="First algorithm")
         session.add(algo1)
         session.commit()
 
@@ -64,7 +60,7 @@ class TestGetAlgorithm:
 class TestLoadAlgorithm:
     def test_load_algorithm_created(self, session):
         data = schemas.Algorithm(
-            label="dibss-basic",
+            label="dibbs-test",
             description="First algorithm",
             belongingness_ratio=(0.75, 0.8),
             passes=[
@@ -73,31 +69,32 @@ class TestLoadAlgorithm:
                     evaluators=[
                         {
                             "feature": "ZIP",
-                            "func": "func:recordlinker.linking.matchers.compare_match_any",
+                            "func": "func:recordlinker.linking.matchers.compare_probabilistic_fuzzy_match",
                         }
                     ],
-                    rule="func:recordlinker.linking.matchers.rule_match",
+                    rule="func:recordlinker.linking.matchers.rule_probabilistic_match",
                 )
             ],
+            
         )
         obj, created = algorithm_service.load_algorithm(session, data)
         session.flush()
         assert created is True
         assert obj.id == 1
-        assert obj.label == "dibss-basic"
+        assert obj.label == "dibbs-test"
         assert obj.description == "First algorithm"
         assert obj.belongingness_ratio == (0.75, 0.8)
         assert len(obj.passes) == 1
         assert obj.passes[0].algorithm_id == 1
         assert obj.passes[0].blocking_keys == ["FIRST_NAME"]
         assert obj.passes[0].evaluators == [
-            {"feature": "ZIP", "func": "func:recordlinker.linking.matchers.compare_match_any"}
+            {"feature": "ZIP", "func": "func:recordlinker.linking.matchers.compare_probabilistic_fuzzy_match"}
         ]
-        assert obj.passes[0].rule == "func:recordlinker.linking.matchers.rule_match"
+        assert obj.passes[0].rule == "func:recordlinker.linking.matchers.rule_probabilistic_match"
 
     def test_load_algorithm_updated(self, session):
         data = schemas.Algorithm(
-            label="dibss-basic",
+            label="dibbs-test",
             description="First algorithm",
             belongingness_ratio=(0.75, 0.8),
             passes=[
@@ -106,10 +103,10 @@ class TestLoadAlgorithm:
                     evaluators=[
                         {
                             "feature": "ZIP",
-                            "func": "func:recordlinker.linking.matchers.compare_match_any",
+                            "func": "func:recordlinker.linking.matchers.compare_probabilistic_fuzzy_match",
                         }
                     ],
-                    rule="func:recordlinker.linking.matchers.rule_match",
+                    rule="func:recordlinker.linking.matchers.rule_probabilistic_match",
                 )
             ],
         )
@@ -121,30 +118,30 @@ class TestLoadAlgorithm:
         session.flush()
         assert created is False
         assert obj.id == 1
-        assert obj.label == "dibss-basic"
+        assert obj.label == "dibbs-test"
         assert obj.description == "Updated description"
         assert obj.belongingness_ratio == (0.75, 0.8)
         assert len(obj.passes) == 1
         assert obj.passes[0].algorithm_id == 1
         assert obj.passes[0].blocking_keys == ["LAST_NAME"]
         assert obj.passes[0].evaluators == [
-            {"feature": "ZIP", "func": "func:recordlinker.linking.matchers.compare_match_any"}
+            {"feature": "ZIP", "func": "func:recordlinker.linking.matchers.compare_probabilistic_fuzzy_match"}
         ]
-        assert obj.passes[0].rule == "func:recordlinker.linking.matchers.rule_match"
+        assert obj.passes[0].rule == "func:recordlinker.linking.matchers.rule_probabilistic_match"
 
 
 def test_delete_algorithm(session):
     with pytest.raises(sqlalchemy.exc.SQLAlchemyError):
         algorithm_service.delete_algorithm(session, models.Algorithm())
-    algo1 = models.Algorithm(label="basic", is_default=True, description="First algorithm")
+    algo1 = models.Algorithm(label="default", is_default=True, description="First algorithm")
     session.add(algo1)
     pass1 = models.AlgorithmPass(
         algorithm=algo1,
         blocking_keys=["FIRST_NAME"],
         evaluators=[
-            {"feature": "ZIP", "func": "func:recordlinker.linking.matchers.compare_match_any"}
+            {"feature": "ZIP", "func": "func:recordlinker.linking.matchers.compare_probabilistic_fuzzy_match"}
         ],
-        rule="func:recordlinker.linking.matchers.rule_match",
+        rule="func:recordlinker.linking.matchers.rule_probabilistic_match",
     )
     session.add(pass1)
     session.commit()
@@ -155,17 +152,15 @@ def test_delete_algorithm(session):
 
 
 def test_clear_algorithms(session):
-    algo1 = models.Algorithm(label="basic", is_default=True, description="First algorithm")
-    algo2 = models.Algorithm(label="enhanced", description="Second algorithm")
+    algo1 = models.Algorithm(label="default", is_default=True, description="First algorithm")
     session.add(algo1)
-    session.add(algo2)
     pass1 = models.AlgorithmPass(
         algorithm=algo1,
         blocking_keys=["FIRST_NAME"],
         evaluators=[
-            {"feature": "ZIP", "func": "func:recordlinker.linking.matchers.compare_match_any"}
+            {"feature": "ZIP", "func": "func:recordlinker.linking.matchers.compare_probabilistic_match"}
         ],
-        rule="func:recordlinker.linking.matchers.rule_match",
+        rule="func:recordlinker.linking.matchers.rule_probabilistic_match",
     )
     session.add(pass1)
     session.commit()

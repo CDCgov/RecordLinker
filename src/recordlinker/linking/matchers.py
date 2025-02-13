@@ -30,7 +30,6 @@ class RuleFunc(enum.Enum):
     the algorithm.
     """
 
-    RULE_MATCH = "func:recordlinker.linking.matchers.rule_match"
     RULE_PROBABILISTIC_MATCH = "func:recordlinker.linking.matchers.rule_probabilistic_match"
 
 
@@ -44,9 +43,6 @@ class FeatureFunc(enum.Enum):
     matching, based on the configuration of the algorithm.
     """
 
-    COMPARE_MATCH_ANY = "func:recordlinker.linking.matchers.compare_match_any"
-    COMPARE_MATCH_ALL = "func:recordlinker.linking.matchers.compare_match_all"
-    COMPARE_FUZZY_MATCH = "func:recordlinker.linking.matchers.compare_fuzzy_match"
     COMPARE_PROBABILISTIC_EXACT_MATCH = (
         "func:recordlinker.linking.matchers.compare_probabilistic_exact_match"
     )
@@ -102,19 +98,6 @@ def _get_fuzzy_params(col: str, **kwargs) -> tuple[SIMILARITY_MEASURES, float]:
     return (similarity_measure, threshold)
 
 
-def rule_match(feature_comparisons: list[float], **kwargs: typing.Any) -> bool:
-    """
-    Determines whether a given set of feature comparisons represent a
-    'perfect' match (i.e. whether all features that were compared match
-    in whatever criteria was specified for them).
-
-    :param feature_comparisons: A list of 1s and 0s, one for each feature
-      that was compared during the match algorithm.
-    :return: The evaluation of whether the given features all match.
-    """
-    return sum(feature_comparisons) == len(feature_comparisons)
-
-
 def rule_probabilistic_match(feature_comparisons: list[float], **kwargs: typing.Any) -> bool:
     """
     Determines whether a given set of feature comparisons matches enough
@@ -130,66 +113,6 @@ def rule_probabilistic_match(feature_comparisons: list[float], **kwargs: typing.
     if threshold is None:
         raise KeyError("Cutoff threshold for true matches must be passed.")
     return sum(feature_comparisons) >= float(threshold)
-
-
-def compare_match_any(
-    record: PIIRecord, patient: Patient, key: Feature, **kwargs: typing.Any
-) -> float:
-    """
-    ...
-
-    :param record: The incoming record to evaluate.
-    :param patient: The patient record to compare against.
-    :param key: The name of the column being evaluated (e.g. "city").
-    :return: A float indicating whether any of the features are an exact match.
-    """
-    rec_values = set(record.feature_iter(key))
-    if not rec_values:
-        return 0
-    pat_values = set(patient.record.feature_iter(key))
-    return float(bool(rec_values & pat_values))
-
-
-def compare_match_all(
-    record: PIIRecord, patient: Patient, key: Feature, **kwargs: typing.Any
-) -> float:
-    """
-    ...
-
-    :param record: The incoming record to evaluate.
-    :param patient: The patient record to compare against.
-    :param key: The name of the column being evaluated (e.g. "city").
-    :return: A float indicating whether all of the features are an exact match.
-    """
-    rec_values = set(record.feature_iter(key))
-    if not rec_values:
-        return 0
-    pat_values = set(patient.record.feature_iter(key))
-    return float(rec_values == pat_values)
-
-
-def compare_fuzzy_match(
-    record: PIIRecord, patient: Patient, key: Feature, **kwargs: typing.Any
-) -> float:
-    """
-    ...
-
-    :param record: The incoming record to evaluate.
-    :param patient: The patient record to compare against.
-    :param key: The name of the column being evaluated (e.g. "city").
-    :param **kwargs: Optionally, a dictionary including specifications for
-      the string comparison metric to use, as well as the cutoff score
-      beyond which to classify the strings as a partial match.
-    :return: A float indicating whether the features are a fuzzy match.
-    """
-    similarity_measure, threshold = _get_fuzzy_params(str(key.attribute), **kwargs)
-    comp_func = getattr(rapidfuzz.distance, similarity_measure).normalized_similarity
-    for x in record.feature_iter(key):
-        for y in patient.record.feature_iter(key):
-            score = comp_func(x, y)
-            if score >= threshold:
-                return 1
-    return 0
 
 
 def compare_probabilistic_exact_match(

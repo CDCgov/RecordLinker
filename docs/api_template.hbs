@@ -1,0 +1,56 @@
+{{!-- This is the default template for the ReDoc API documentation. --}}
+{{!-- You can customize it be following the instructions at https://redocly.com/docs/cli/commands/build-docs --}}
+{{!-- The template uses Handlebars.js syntax: https://handlebarsjs.com/ --}}
+{{!-- Styling and attribute changes have been made to account for a11y issues --}}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf8" />
+  <title>{{title}}</title>
+  <!-- needed for adaptive design -->
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    body {
+      padding: 0;
+      margin: 0;
+    }
+    /* unselected status code tabs with dark backgrounds should have a lighter color */
+    .cJteCP > ul > li.tab-success:not(.react-tabs__tab--selected),
+    .cJteCP > ul > li.tab-error:not(.react-tabs__tab--selected) {
+        color: rgb(204, 204, 204) !important;
+    }
+    /* body/parameter titles should have dark font color */
+    .hNlDMA {
+        color: rgb(51, 51, 51) !important;
+    }
+    /* deprecated warnings should have dark font color */
+    .cMhXxZ {
+        color: rgb(51, 51, 51) !important;
+    }
+    /* description code blocks should have dark dark color */
+    .hzUya code {
+        color: rgb(51, 51, 51) !important;
+    }
+  </style>
+  {{{redocHead}}}
+  {{#unless disableGoogleFont}}<link href="https://fonts.googleapis.com/css?family=Montserrat:300,400,700|Roboto:300,400,700" rel="stylesheet">{{/unless}}
+</head>
+
+<body>
+  {{{redocHTML}}}
+</body>
+
+<script>
+    window.onload = () => {
+        document.querySelectorAll('.sc-eeDRCY.gvJSKt.sc-fXSgeo.jJRLaa').forEach(element => {
+            /* Add a tabindex to scrollable divs */
+            element.setAttribute('tabindex', '0');
+        });
+        document.querySelectorAll('.sc-kYxDKI.eoKbCJ').forEach(element => {
+            /* Add role="menu" to the ul element with child menuitems */
+            element.setAttribute('role', 'menu');
+        });
+    };
+</script>
+</html>
