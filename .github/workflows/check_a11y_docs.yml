@@ -33,7 +33,7 @@ jobs:
           # install ChromeDriver
           npx browser-driver-manager install chrome
           # copy chromedriver path to ENV variable
-          echo "CHROMEDRIVER-PATH=${{ steps.setup-chrome.outputs.chromedriver-path }}" >> $GITHUB_ENV
+          echo "CHROMEDRIVER-PATH=$CHROMEDRIVER_TEST_PATH" >> $GITHUB_ENV
 
       - name: Build public documentation
         run: |
