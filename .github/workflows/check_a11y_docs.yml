@@ -46,7 +46,7 @@ jobs:
         run: |
           # run npx serve in the background to serve the _site directory
           npx serve _site &
-          sleep 3
+          sleep 10
           # for every recursively nested *.html file in _site, run a11y checks
           for file in $(find _site -name '*.html'); do
             path=${file#_site/}
