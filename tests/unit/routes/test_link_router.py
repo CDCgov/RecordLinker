@@ -22,16 +22,14 @@ from recordlinker.routes import link_router
 
 
 def test_algorithm_or_422(session):
-    algo1 = models.Algorithm(label="basic", is_default=True, description="First algorithm")
-    algo2 = models.Algorithm(label="enhanced", description="Second algorithm")
+    algo1 = models.Algorithm(label="default", is_default=True, description="First algorithm")
     session.add(algo1)
-    session.add(algo2)
     session.commit()
 
-    alg = link_router.algorithm_or_422(session, "enhanced")
-    assert alg.label == "enhanced"
+    alg = link_router.algorithm_or_422(session, "default")
+    assert alg.label == "default"
     alg = link_router.algorithm_or_422(session, None)
-    assert alg.label == "basic"
+    assert alg.label == "default"
     with pytest.raises(HTTPException) as exc:
         link_router.algorithm_or_422(session, "invalid")
         assert exc.value.status_code == 422
@@ -67,8 +65,8 @@ class TestLink:
         return patients
 
     @mock.patch("recordlinker.database.algorithm_service.default_algorithm")
-    def test_link_success(self, patched_subprocess, basic_algorithm, patients, client):
-        patched_subprocess.return_value = basic_algorithm
+    def test_link_success(self, patched_subprocess, default_algorithm, patients, client):
+        patched_subprocess.return_value = default_algorithm
         response_1 = client.post(
             "/link", json={"record": json.loads(patients[0].model_dump_json(exclude_none=True))}
         )
@@ -137,103 +135,6 @@ class TestLink:
         assert not response_6.json()["results"]
 
     @mock.patch("recordlinker.database.algorithm_service.get_algorithm")
-    def test_link_enhanced_algorithm(
-        self, patched_subprocess, enhanced_algorithm, patients, client
-    ):
-        patched_subprocess.return_value = enhanced_algorithm
-
-        response_1 = client.post(
-            "/link",
-            json={
-                "record": json.loads(patients[0].model_dump_json(exclude_none=True)),
-                "algorithm": "dibbs-enhanced",
-            },
-        )
-        person_1 = response_1.json()["person_reference_id"]
-        assert response_1.json()["patient_reference_id"] and uuid.UUID(
-            response_1.json()["patient_reference_id"]
-        )
-        assert person_1
-        assert response_1.json()["prediction"] == "no_match"
-        assert not response_1.json()["results"]
-
-        response_2 = client.post(
-            "/link",
-            json={
-                "record": json.loads(patients[1].model_dump_json(exclude_none=True)),
-                "algorithm": "dibbs-enhanced",
-            },
-        )
-        person_2 = response_2.json()["person_reference_id"]
-        assert response_2.json()["patient_reference_id"] and uuid.UUID(
-            response_2.json()["patient_reference_id"]
-        )
-        assert person_2 == person_1
-        assert response_2.json()["prediction"] == "match"
-        assert len(response_2.json()["results"]) == 1
-
-        response_3 = client.post(
-            "/link",
-            json={
-                "record": json.loads(patients[2].model_dump_json(exclude_none=True)),
-                "algorithm": "dibbs-enhanced",
-            },
-        )
-        person_3 = response_3.json()["person_reference_id"]
-        assert response_3.json()["patient_reference_id"] and uuid.UUID(
-            response_3.json()["patient_reference_id"]
-        )
-        assert person_3
-        assert response_3.json()["prediction"] == "no_match"
-        assert not response_3.json()["results"]
-
-        # Cluster membership success--justified match
-        response_4 = client.post(
-            "/link",
-            json={
-                "record": json.loads(patients[3].model_dump_json(exclude_none=True)),
-                "algorithm": "dibbs-enhanced",
-            },
-        )
-        person_4 = response_4.json()["person_reference_id"]
-        assert response_4.json()["patient_reference_id"] and uuid.UUID(
-            response_4.json()["patient_reference_id"]
-        )
-        assert person_4 == person_1
-        assert response_4.json()["prediction"] == "match"
-        assert len(response_4.json()["results"]) == 1
-
-        response_5 = client.post(
-            "/link",
-            json={
-                "record": json.loads(patients[4].model_dump_json(exclude_none=True)),
-                "algorithm": "dibbs-enhanced",
-            },
-        )
-        person_5 = response_5.json()["person_reference_id"]
-        assert response_5.json()["patient_reference_id"] and uuid.UUID(
-            response_5.json()["patient_reference_id"]
-        )
-        assert person_5
-        assert response_5.json()["prediction"] == "no_match"
-        assert not response_5.json()["results"]
-
-        response_6 = client.post(
-            "/link",
-            json={
-                "record": json.loads(patients[5].model_dump_json(exclude_none=True)),
-                "algorithm": "dibbs-enhanced",
-            },
-        )
-        person_6 = response_6.json()["person_reference_id"]
-        assert response_6.json()["patient_reference_id"] and uuid.UUID(
-            response_6.json()["patient_reference_id"]
-        )
-        assert person_6
-        assert response_6.json()["prediction"] == "no_match"
-        assert not response_6.json()["results"]
-
-    @mock.patch("recordlinker.database.algorithm_service.get_algorithm")
     def test_link_invalid_algorithm_param(self, patched_subprocess, patients, client):
         patched_subprocess.return_value = None
         actual_response = client.post(
@@ -264,8 +165,8 @@ class TestLink:
 
 class TestLinkFHIR:
     @mock.patch("recordlinker.database.algorithm_service.default_algorithm")
-    def test_bundle_with_no_patient(self, patched_subprocess, basic_algorithm, client):
-        patched_subprocess.return_value = basic_algorithm
+    def test_bundle_with_no_patient(self, patched_subprocess, default_algorithm, client):
+        patched_subprocess.return_value = default_algorithm
         bad_bundle = {"entry": []}
         expected_response = {
             "detail": "Supplied bundle contains no Patient resource",
@@ -278,8 +179,8 @@ class TestLinkFHIR:
         assert actual_response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
 
     @mock.patch("recordlinker.database.algorithm_service.default_algorithm")
-    def test_invalid_bundle(self, patched_subprocess, basic_algorithm, client):
-        patched_subprocess.return_value = basic_algorithm
+    def test_invalid_bundle(self, patched_subprocess, default_algorithm, client):
+        patched_subprocess.return_value = default_algorithm
         bad_bundle = {"entry": [{"resource": {"resourceType": "Patient", "name": "John Doe"}}]}
         expected_response = {
             "detail": "Invalid Patient resource",
@@ -292,8 +193,8 @@ class TestLinkFHIR:
         assert actual_response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
 
     @mock.patch("recordlinker.database.algorithm_service.default_algorithm")
-    def test_success(self, patched_subprocess, basic_algorithm, client):
-        patched_subprocess.return_value = basic_algorithm
+    def test_success(self, patched_subprocess, default_algorithm, client):
+        patched_subprocess.return_value = default_algorithm
         test_bundle = load_test_json_asset("patient_bundle_to_link_with_mpi.json")
         entry_list = copy.deepcopy(test_bundle["entry"])
 
@@ -397,110 +298,6 @@ class TestLinkFHIR:
         assert not resp_6.json()["results"]
 
     @mock.patch("recordlinker.database.algorithm_service.get_algorithm")
-    def test_enhanced_algo(self, patched_subprocess, enhanced_algorithm, client):
-        patched_subprocess.return_value = enhanced_algorithm
-        test_bundle = load_test_json_asset("patient_bundle_to_link_with_mpi.json")
-        entry_list = copy.deepcopy(test_bundle["entry"])
-
-        bundle_1 = test_bundle
-        bundle_1["entry"] = [entry_list[0]]
-        resp_1 = client.post("/link/fhir", json={"bundle": bundle_1, "algorithm": "dibbs-enhanced"})
-        new_bundle = resp_1.json()["updated_bundle"]
-        person_1 = [
-            r.get("resource")
-            for r in new_bundle["entry"]
-            if r.get("resource").get("resourceType") == "Person"
-        ][0]
-        assert resp_1.json()["patient_reference_id"] and uuid.UUID(
-            resp_1.json()["patient_reference_id"]
-        )
-        assert resp_1.json()["person_reference_id"] == person_1.get("id")
-        assert resp_1.json()["prediction"] == "no_match"
-        assert not resp_1.json()["results"]
-
-        bundle_2 = test_bundle
-        bundle_2["entry"] = [entry_list[1]]
-        resp_2 = client.post("/link/fhir", json={"bundle": bundle_2, "algorithm": "dibbs-enhanced"})
-        new_bundle = resp_2.json()["updated_bundle"]
-        person_2 = [
-            r.get("resource")
-            for r in new_bundle["entry"]
-            if r.get("resource").get("resourceType") == "Person"
-        ][0]
-        assert resp_2.json()["patient_reference_id"] and uuid.UUID(
-            resp_2.json()["patient_reference_id"]
-        )
-        assert resp_2.json()["person_reference_id"] == person_2.get("id")
-        assert person_2.get("id") == person_1.get("id")
-        assert resp_2.json()["prediction"] == "match"
-        assert len(resp_2.json()["results"]) == 1
-
-        bundle_3 = test_bundle
-        bundle_3["entry"] = [entry_list[2]]
-        resp_3 = client.post("/link/fhir", json={"bundle": bundle_3, "algorithm": "dibbs-enhanced"})
-        new_bundle = resp_3.json()["updated_bundle"]
-        person_3 = [
-            r.get("resource")
-            for r in new_bundle["entry"]
-            if r.get("resource").get("resourceType") == "Person"
-        ][0]
-        assert resp_3.json()["patient_reference_id"] and uuid.UUID(
-            resp_3.json()["patient_reference_id"]
-        )
-        assert resp_3.json()["person_reference_id"] == person_3.get("id")
-        assert resp_3.json()["prediction"] == "no_match"
-        assert not resp_3.json()["results"]
-
-        bundle_4 = test_bundle
-        bundle_4["entry"] = [entry_list[3]]
-        resp_4 = client.post("/link/fhir", json={"bundle": bundle_4, "algorithm": "dibbs-enhanced"})
-        new_bundle = resp_4.json()["updated_bundle"]
-        person_4 = [
-            r.get("resource")
-            for r in new_bundle["entry"]
-            if r.get("resource").get("resourceType") == "Person"
-        ][0]
-        assert resp_4.json()["patient_reference_id"] and uuid.UUID(
-            resp_4.json()["patient_reference_id"]
-        )
-        assert resp_4.json()["person_reference_id"] == person_1.get("id")
-        assert person_4.get("id") == person_1.get("id")
-        assert resp_4.json()["prediction"] == "match"
-        assert len(resp_4.json()["results"]) == 1
-
-        bundle_5 = test_bundle
-        bundle_5["entry"] = [entry_list[4]]
-        resp_5 = client.post("/link/fhir", json={"bundle": bundle_5, "algorithm": "dibbs-enhanced"})
-        new_bundle = resp_5.json()["updated_bundle"]
-        person_5 = [
-            r.get("resource")
-            for r in new_bundle["entry"]
-            if r.get("resource").get("resourceType") == "Person"
-        ][0]
-        assert resp_5.json()["patient_reference_id"] and uuid.UUID(
-            resp_5.json()["patient_reference_id"]
-        )
-        assert resp_5.json()["person_reference_id"] == person_5.get("id")
-        assert resp_5.json()["prediction"] == "no_match"
-        assert not resp_5.json()["results"]
-
-        bundle_6 = test_bundle
-        bundle_6["entry"] = [entry_list[5]]
-        resp_6 = client.post("/link/fhir", json={"bundle": bundle_6, "algorithm": "dibbs-enhanced"})
-        new_bundle = resp_6.json()["updated_bundle"]
-        person_6 = [
-            r.get("resource")
-            for r in new_bundle["entry"]
-            if r.get("resource").get("resourceType") == "Person"
-        ][0]
-        assert resp_6.json()["patient_reference_id"] and uuid.UUID(
-            resp_6.json()["patient_reference_id"]
-        )
-        assert resp_6.json()["person_reference_id"] == person_6.get("id")
-        assert resp_6.json()["prediction"] == "no_match"
-        assert not resp_6.json()["results"]
-
-    @mock.patch("recordlinker.database.algorithm_service.get_algorithm")
     def test_invalid_algorithm_param(self, patched_subprocess, client):
         patched_subprocess.return_value = None
         test_bundle = load_test_json_asset("patient_bundle_to_link_with_mpi.json")
@@ -531,8 +328,8 @@ class TestMatch:
         assert resp.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
         assert resp.json()["detail"] == "No algorithm found"
 
-    def test_no_match(self, client, basic_algorithm, patients):
-        client.session.add(basic_algorithm)
+    def test_no_match(self, client, default_algorithm, patients):
+        client.session.add(default_algorithm)
         client.session.commit()
         resp = client.post("/match", json={"record": patients[0].to_dict(True)})
         assert resp.status_code == status.HTTP_200_OK
@@ -543,8 +340,8 @@ class TestMatch:
         assert payload.get("patient_reference_id") is None
         assert len(client.session.query(models.Patient).all()) == 0
 
-    def test_match(self, client, basic_algorithm, patients):
-        client.session.add(basic_algorithm)
+    def test_match(self, client, default_algorithm, patients):
+        client.session.add(default_algorithm)
         client.session.commit()
         per1 = client.post("/link", json={"record": patients[0].to_dict(True)}).json()["person_reference_id"]
 
@@ -573,8 +370,8 @@ class TestMatchFHIR:
         assert resp.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
         assert resp.json()["detail"] == "No algorithm found"
 
-    def test_no_match(self, client, basic_algorithm, patient_bundles):
-        client.session.add(basic_algorithm)
+    def test_no_match(self, client, default_algorithm, patient_bundles):
+        client.session.add(default_algorithm)
         client.session.commit()
         resp = client.post("/match/fhir", json={"bundle": patient_bundles[0]})
         assert resp.status_code == status.HTTP_200_OK
@@ -586,8 +383,8 @@ class TestMatchFHIR:
         assert payload["updated_bundle"] is None
         assert len(client.session.query(models.Patient).all()) == 0
 
-    def test_match(self, client, basic_algorithm, patient_bundles):
-        client.session.add(basic_algorithm)
+    def test_match(self, client, default_algorithm, patient_bundles):
+        client.session.add(default_algorithm)
         client.session.commit()
         per1 = client.post("/link/fhir", json={"bundle": patient_bundles[0]}).json()["person_reference_id"]
 
