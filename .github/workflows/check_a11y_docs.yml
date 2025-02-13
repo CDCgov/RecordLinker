@@ -44,5 +44,5 @@ jobs:
             echo "raw file: ${file}"
             path=${file#_site/}
             echo "path to check: ${path}"
-            npx @axe-core/cli --exit --tags wcag2aa http://localhost:3000/$path
+            npx @axe-core/cli --exit --tags wcag2aa --chrome-options="--user-data-dir=$(mktemp -d)" http://localhost:3000/$path
           done
