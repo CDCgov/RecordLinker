@@ -3,7 +3,7 @@
 - **Status**: Draft
 - **Author(s)**: @ericbuckley
 - **Creation Date**: 2025-02-13
-- **Last Updated**: [YYYY-MM-DD]
+- **Last Updated**: 2025-02-14
 - **RFC ID**: RFC-003
 
 ---
