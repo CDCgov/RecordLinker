@@ -31,15 +31,17 @@ values for common scenarios.
 
 ## Prior Art
 
-- A study from the
+A study from the
 [Journal of American Medical Informatics Association (JAMIA)](https://academic.oup.com/jamia/article/31/11/2651/7762307)
 found that using placeholder values in healthcare data can lead to incorrect patient
 matching and using a system with data pre-processing capabilities can help mitigate this issue.
 > Linkability measures not only guide the selection of data pre-processing methods such as data cleansing and normalization, but also inform selection or configuration of matching algorithms, all aimed at improving the quality of RL outcomes. For example, LVs exhibiting low missingness (high completeness) generally support more accurate linkage results. However, high completeness may be misleading due to “placeholder” or “default” values (eg, 999-99-9999 for social security number [SSN]), a phenomenon called disguised missingness.
-- The [University of Waterloo](https://uwaterloo.ca/networks-lab/blog/pre-processing-recordlinkage)
+
+The [University of Waterloo](https://uwaterloo.ca/networks-lab/blog/pre-processing-recordlinkage)
 hypothesized that data pre-processing is a crucial step into making data more suitable for
 record linkage tasks.
-- A study from the [NIH](https://pmc.ncbi.nlm.nih.gov/articles/PMC10448229/) agreed that data
+
+A study from the [NIH](https://pmc.ncbi.nlm.nih.gov/articles/PMC10448229/) agreed that data
 quality and completeness affect the ability to make correct linkages.
 > However, not all the information entered is valid or is of good quality, for example, placeholder values such as “baby of”, and “unknown”, are observed in the first name field.
 
