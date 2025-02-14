@@ -1,4 +1,4 @@
-# RFC: [Title of Proposal]
+# RFC: Skip Values
 
 - **Status**: Draft
 - **Author(s)**: @ericbuckley
