@@ -42,16 +42,18 @@ jobs:
           export VERSION=${{ env.NEXT_TAG }}
           ./scripts/build_docs.sh _site
 
-      - name: Run accessibility checks
+      - name: Serve documentation
         run: |
           # run npx serve in the background to serve the _site directory
-          npx serve _site &
-          sleep 10
-          curl -I http://127.0.0.1:3000
+          npx serve _site & npx wait-on http://localhost:3000
+
+      - name: Run accessibility checks
+        run: |
+          npm install -g @axe-core/cli
           # for every recursively nested *.html file in _site, run a11y checks
           for file in $(find _site -name '*.html'); do
             path=${file#_site/}
             echo "path to check: ${path}"
             echo "driver path: ${{ env.CHROMEDRIVER-PATH }}"
-            npx @axe-core/cli --exit --tags wcag2aa --load-delay 1500 --chromedriver-path ${{ env.CHROMEDRIVER-PATH }} http://127.0.0.1:3000/$path
+            axe --exit --tags wcag2aa --load-delay 1500 http://127.0.0.1:3000/$path
           done
