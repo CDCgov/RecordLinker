@@ -50,10 +50,10 @@ quality and completeness affect the ability to make correct linkages.
 This proposal aims to enhance the Record Linker Algorithm configuration by introducing a
 new `skip_values` section, allowing users to specify conditions under which certain field
 values should be excluded from comparisons. This approach is beneficial because:
-    - Algorithm configuration is already user-defined, making the addition of a
-        `skip_values` section a natural extension.
-    - Organizations may need to manage skip conditions over time as their data evolves,
-        and this system provides the flexibility to accommodate those changes.
+- Algorithm configuration is already user-defined, making the addition of a
+    `skip_values` section a natural extension.
+- Organizations may need to manage skip conditions over time as their data evolves,
+    and this system provides the flexibility to accommodate those changes.
 
 The `skip_values` section will be defined at the algorithm level (not per pass) and will
 contain a list of conditions. Each condition will have two elements: `feature` and `value`.
@@ -80,9 +80,9 @@ the condition to all fields. Example:
 ```
 
 In this example, the algorithm will exclude fields from comparison if they match:
-    - `John Doe` in the patient's name
-    - `999-99-9999` in the patient's social security number
-    - `unknown` in any patient field
+- `John Doe` in the patient's name
+- `999-99-9999` in the patient's social security number
+- `unknown` in any patient field
 
 ### Pre-Processing Details
 
@@ -111,10 +111,10 @@ ensuring that additional context is considered.
 
 The primary drawback of this approach is the added complexity, as it introduces an
 additional step to the process. Previously, the core steps for running linkage were:
-    1. Data normalization
-    2. Blocking
-    3. Comparisons (also known as evaluation)
-    4. Aggregation and prediction
+1. Data normalization
+2. Blocking
+3. Comparisons (also known as evaluation)
+4. Aggregation and prediction
 
 With the new approach, a "cleaning" step is added between steps 1 and 2. While the
 computational overhead of this additional step is minimal, the increased complexity is a
@@ -125,16 +125,16 @@ users and developers to understand.
 
 For the purposes of this RFC, we will not be overly prescriptive about the implementation
 details. However, the work can be broadly divided into three tasks:
-    1. A new `NAME` feature will be created, that will allow us to specify skip conditions
-        for the entirety of the name specified. (This likely won't be used for evaluation,
-        as its still preferable to compare the first and last names separately, but users
-        will have that option)
-    2. Modify the existing Algorithm schema to include the new `skip_values`attribute,
-        along with parsing these values and storing the specified conditions.
-    3. Implement a new cleaning step that takes the incoming data payload and a list of skip
-        conditions, then returns a copy of the data payload with placeholder values removed.
-        This cleaned copy will be used for blocking, evaluation, and aggregation, while the
-        original incoming payload will be retained for persistence.
+1. A new `NAME` feature will be created, that will allow us to specify skip conditions
+    for the entirety of the name specified. (This likely won't be used for evaluation,
+    as its still preferable to compare the first and last names separately, but users
+    will have that option)
+2. Modify the existing Algorithm schema to include the new `skip_values`attribute,
+    along with parsing these values and storing the specified conditions.
+3. Implement a new cleaning step that takes the incoming data payload and a list of skip
+    conditions, then returns a copy of the data payload with placeholder values removed.
+    This cleaned copy will be used for blocking, evaluation, and aggregation, while the
+    original incoming payload will be retained for persistence.
 
 ## Unresolved Questions
 
