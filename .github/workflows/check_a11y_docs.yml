@@ -49,7 +49,7 @@ jobs:
 
       - name: Run accessibility checks
         run: |
-          npm install @axe-core/cli
+          npm install -g @axe-core/cli
           # for every recursively nested *.html file in _site, run a11y checks
           for file in $(find _site -name '*.html'); do
             path=${file#_site/}
