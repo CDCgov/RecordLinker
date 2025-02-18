@@ -10,63 +10,6 @@ import uuid
 from recordlinker import models
 
 
-class TestCreatePerson:
-    def test_invalid_reference_id(self, client):
-        response = client.post("/patient/123/person")
-        assert response.status_code == 422
-
-    def test_invalid_patient(self, client):
-        response = client.post(f"/patient/{uuid.uuid4()}/person")
-        assert response.status_code == 404
-
-    def test_create_person(self, client):
-        original_person = models.Person()
-        patient = models.Patient(person=original_person, data={})
-        client.session.add(patient)
-        client.session.flush()
-
-        resp = client.post(f"/patient/{patient.reference_id}/person")
-        assert resp.status_code == 201
-        assert resp.json()["patient_reference_id"] == str(patient.reference_id)
-        assert resp.json()["person_reference_id"] != str(original_person.reference_id)
-
-
-class TestUpdatePerson:
-    def test_invalid_reference_id(self, client):
-        response = client.patch("/patient/123/person")
-        assert response.status_code == 422
-
-    def test_invalid_patient(self, client):
-        data = {"person_reference_id": str(uuid.uuid4())}
-        response = client.patch(f"/patient/{uuid.uuid4()}/person", json=data)
-        assert response.status_code == 404
-
-    def test_invalid_person(self, client):
-        patient = models.Patient(person=models.Person(), data={})
-        client.session.add(patient)
-        client.session.flush()
-
-        data = {"person_reference_id": str(uuid.uuid4())}
-        response = client.patch(f"/patient/{patient.reference_id}/person", json=data)
-        assert response.status_code == 422
-
-    def test_update_person(self, client):
-        original_person = models.Person()
-        patient = models.Patient(person=original_person, data={})
-        client.session.add(patient)
-        client.session.flush()
-
-        new_person = models.Person()
-        client.session.add(new_person)
-        client.session.flush()
-
-        data = {"person_reference_id": str(new_person.reference_id)}
-        resp = client.patch(f"/patient/{patient.reference_id}/person", json=data)
-        assert resp.status_code == 200
-        assert resp.json()["patient_reference_id"] == str(patient.reference_id)
-        assert resp.json()["person_reference_id"] == str(new_person.reference_id)
-
-
 class TestCreatePatient:
     def test_missing_data(self, client):
         response = client.post("/patient")
@@ -197,9 +140,14 @@ class TestGetPatient:
         assert response.status_code == 404
 
     def test_get_patient(self, client):
-        patient = models.Patient(person=models.Person(), data={
-            "name": [{"given": ["John"], "family": "Doe"}],
-        }, external_patient_id="123", external_person_id="456")
+        patient = models.Patient(
+            person=models.Person(),
+            data={
+                "name": [{"given": ["John"], "family": "Doe"}],
+            },
+            external_patient_id="123",
+            external_person_id="456",
+        )
         client.session.add(patient)
         client.session.flush()
         response = client.get(f"/patient/{patient.reference_id}")
@@ -212,7 +160,9 @@ class TestGetPatient:
                 "birth_date": None,
                 "sex": None,
                 "address": [],
-                "name": [{"family": "Doe", "given": ["John"], "use": None, "prefix": [], "suffix": []}],
+                "name": [
+                    {"family": "Doe", "given": ["John"], "use": None, "prefix": [], "suffix": []}
+                ],
                 "telecom": [],
                 "race": None,
                 "identifiers": [],
@@ -220,4 +170,3 @@ class TestGetPatient:
             "external_patient_id": "123",
             "external_person_id": "456",
         }
-
