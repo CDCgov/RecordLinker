@@ -180,7 +180,7 @@ def merge_person_clusters(
 def delete_empty_person(
     person_reference_id: uuid.UUID,
     session: orm.Session = fastapi.Depends(get_session),
-) -> None:
+):
     """
     Delete an empty Person from the MPI database.
     """
