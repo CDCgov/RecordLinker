@@ -199,3 +199,30 @@ class TestMergePersonClusters:
 
         assert response.status_code == 200
         assert response.json()["person_reference_id"] == str(person1.reference_id)
+
+
+class TestDeleteEmptyPerson:
+    def testDeleteEmptyPerson(self, client):
+        person = models.Person()
+        client.session.add(person)
+        client.session.flush()
+
+        response = client.delete(f"/person/{person.reference_id}")
+        assert response.status_code == 204
+
+    def testDeletePersonWithPatients(self, client):
+        person = models.Person()
+        patient = models.Patient(person=person, data={})
+        client.session.add(patient)
+        client.session.flush()
+
+        response = client.delete(f"/person/{person.reference_id}")
+        assert response.status_code == 403
+
+    def testInvalidPersonId(self, client):
+        response = client.delete("/person/123")
+        assert response.status_code == 422
+
+    def testInvalidPerson(self, client):
+        response = client.delete(f"/person/{uuid.uuid4()}")
+        assert response.status_code == 404

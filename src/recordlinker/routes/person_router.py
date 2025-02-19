@@ -170,3 +170,39 @@ def merge_person_clusters(
         service.delete_persons(session, persons, commit=False)
 
     return schemas.PersonRef(person_reference_id=person.reference_id)
+
+
+@router.delete(
+    "/{person_reference_id}",
+    summary="Delete an empty Person",
+    status_code=fastapi.status.HTTP_204_NO_CONTENT,
+)
+def delete_empty_person(
+    person_reference_id: uuid.UUID,
+    session: orm.Session = fastapi.Depends(get_session),
+) -> None:
+    """
+    Delete an empty Person from the MPI database.
+    """
+    # Check that person_reference_id is valid
+    person = service.get_person_by_reference_id(session, person_reference_id)
+
+    if person is None:
+        raise fastapi.HTTPException(status_code=fastapi.status.HTTP_404_NOT_FOUND)
+
+    # Check if the person has associated patients
+    if person.patients:
+        raise fastapi.HTTPException(
+            status_code=fastapi.status.HTTP_403_FORBIDDEN,
+            detail=[
+                {
+                    "loc": ["path", "person_reference_id"],
+                    "msg": "Cannot delete Person because the id has associated Patients.",
+                    "type": "value_error",
+                }
+            ],
+        )
+
+    # Delete the person
+    service.delete_persons(session, [person])
+    return fastapi.Response(status_code=fastapi.status.HTTP_204_NO_CONTENT)
