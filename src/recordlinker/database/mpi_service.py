@@ -371,7 +371,7 @@ def delete_persons(
 
 def get_orphaned_patients(
     session: orm.Session,
-) -> typing.Sequence[schemas.PatientRefs]:
+) -> typing.Sequence[models.Patient]:
     """
     Retrieve all the orphaned Patients in the MPI database.
     """
