@@ -170,3 +170,22 @@ class TestGetPatient:
             "external_patient_id": "123",
             "external_person_id": "456",
         }
+
+
+class TestGetOrphanedPatients:
+    def test_get_orphaned_patients(self, client):
+        patient1 = models.Patient()
+        person2 = models.Person()
+        patient2 = models.Patient(person=person2)
+        client.session.add_all([patient1, person2, patient2])
+        client.session.flush()
+        response = client.get("/patient/orphaned")
+        assert response.status_code == 200
+        assert response.json() == {
+            "patients": [str(patient1.reference_id)],
+        }
+
+    def test_no_orphaned_patients(self, client):
+        response = client.get("/patient/orphaned")
+        assert response.status_code == 200
+        assert response.json() is None
