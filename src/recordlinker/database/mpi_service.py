@@ -367,3 +367,12 @@ def delete_persons(
         session.delete(person)
     if commit:
         session.commit()
+
+
+def get_orphaned_patients(
+    session: orm.Session,
+) -> typing.Sequence[schemas.PatientRefs]:
+    """
+    Retrieve all the orphaned Patients in the MPI database.
+    """
+    return session.scalars(select(models.Patient).where(models.Patient.person_id.is_(None))).all()

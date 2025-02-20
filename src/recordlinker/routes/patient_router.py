@@ -58,6 +58,23 @@ def create_patient(
 
 
 @router.get(
+    "/orphaned", summary="Retrieve orphaned patients", status_code=fastapi.status.HTTP_200_OK
+)
+def get_orphaned_patients(
+    session: orm.Session = fastapi.Depends(get_session),
+) -> schemas.PatientRefs | None:
+    """
+    Retrieve patient_reference_id(s) for all Patients that are not linked to a Person.
+    """
+    patients = service.get_orphaned_patients(session)
+    if not patients:
+        return None
+    return schemas.PatientRefs(
+        patients=[p.reference_id for p in patients if p.reference_id is not None]
+    )
+
+
+@router.get(
     "/{patient_reference_id}",
     summary="Retrieve a patient record",
     status_code=fastapi.status.HTTP_200_OK,
