@@ -876,3 +876,21 @@ class TestDeletePersons:
         assert session.query(models.Person).count() == 1
         assert mpi_service.get_person_by_reference_id(session, person1.reference_id) is None
         assert mpi_service.get_person_by_reference_id(session, person2.reference_id) == person2
+
+
+class TestGetOrphanedPatients:
+    def test_get_orphaned_patients_success(self, session):
+        patient = models.Patient(person=None, data={"reference_id": str(uuid.uuid4())})
+        patient2 = models.Patient(person=models.Person(), data={})
+        session.add_all([patient, patient2])
+        session.flush()
+        assert session.query(models.Patient).count() == 2
+        assert session.query(models.Person).count() == 1
+        assert mpi_service.get_orphaned_patients(session) == [patient]
+
+    def test_get_orphaned_patients_no_patients(self, session):
+        person = models.Person()
+        patient = models.Patient(person=person, data={})
+        session.add(patient)
+        session.flush()
+        assert mpi_service.get_orphaned_patients(session) == []
