@@ -121,6 +121,10 @@ computational overhead of this additional step is minimal, the increased complex
 concern. Each added step makes the system more challenging to evolve and harder for both
 users and developers to understand.
 
+Another concern is the impact on explainability. Users now face an extra step in the
+process where a match prediction occurs, potentially making it harder to clarify why
+certain matches were made.
+
 ## Implementation Plan
 
 For the purposes of this RFC, we will not be overly prescriptive about the implementation
