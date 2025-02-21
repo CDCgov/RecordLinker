@@ -59,3 +59,22 @@ class PatientInfo(pydantic.BaseModel):
 class PersonInfo(pydantic.BaseModel):
     person_reference_id: uuid.UUID
     patient_reference_ids: list[uuid.UUID]
+
+
+class ErrorDetail(pydantic.BaseModel):
+    """
+    Error detail information.
+    """
+
+    loc: list[str]
+    msg: str
+    type: str
+
+
+class ErrorResponse(pydantic.BaseModel):
+    """
+
+    Error response for MPI operations.
+    """
+
+    detail: list[ErrorDetail]
