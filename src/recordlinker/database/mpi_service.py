@@ -370,9 +370,9 @@ def delete_persons(
         session.commit()
 
 
-def check_person_for_patients(session: orm.Session, person: models.Person) -> int | None:
+def check_person_for_patients(session: orm.Session, person: models.Person) -> bool:
     """
     Check if a Person has at least 1 associated Patient.
     """
     query = select(literal(1)).filter(models.Patient.person_id == person.id).limit(1)
-    return session.execute(query).scalar()
+    return True if session.execute(query).scalar() is not None else False
