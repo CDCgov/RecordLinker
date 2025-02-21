@@ -59,3 +59,13 @@ class PatientInfo(pydantic.BaseModel):
 class PersonInfo(pydantic.BaseModel):
     person_reference_id: uuid.UUID
     patient_reference_ids: list[uuid.UUID]
+
+
+class PaginatedMetaData(pydantic.BaseModel):
+    next_cursor: str | None = None
+    next: str | None = None
+
+
+class PaginatedPatientRefs(pydantic.BaseModel):
+    patients: PatientRefs
+    meta: dict[PaginatedMetaData | None]
