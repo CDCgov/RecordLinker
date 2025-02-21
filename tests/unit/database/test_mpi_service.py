@@ -910,3 +910,41 @@ class TestGetOrphanedPatients:
         session.add(patient)
         session.flush()
         assert mpi_service.get_orphaned_patients(session) == []
+
+    def test_get_orphaned_patients_limit(self, session):
+        # Checks that limit is correctly applied
+        patient1 = models.Patient(person=None, data={"id": 1, "reference_id": str(uuid.uuid4())})
+        patient2 = models.Patient(person=None, data={"id": 2, "reference_id": str(uuid.uuid4())})
+        patient3 = models.Patient(person=models.Person(), data={})
+        session.add_all([patient1, patient2, patient3])
+        session.flush()
+
+        assert len(mpi_service.get_orphaned_patients(session, limit=1)) == 1
+        assert len(mpi_service.get_orphaned_patients(session, limit=2)) == 2
+        assert len(mpi_service.get_orphaned_patients(session, limit=3)) == 2
+
+    def test_get_orphaned_patients_cursor(self, session):
+        ordered_uuids = [uuid.uuid4() for _ in range(4)]
+        ordered_uuids.sort()
+
+        patient1 = models.Patient(person=None, reference_id=ordered_uuids[0])
+        patient2 = models.Patient(person=None, reference_id=ordered_uuids[1])
+        patient3 = models.Patient(person=None, reference_id=ordered_uuids[2])
+        patient4 = models.Patient(person=models.Person(), reference_id=ordered_uuids[3])
+        session.add_all([patient1, patient2, patient3, patient4])
+        session.flush()
+
+        # Checks that cursor is correctly applied
+        assert mpi_service.get_orphaned_patients(
+            session, limit=1, cursor=patient1.reference_id
+        ) == [patient2]
+
+        assert mpi_service.get_orphaned_patients(
+            session, limit=1, cursor=patient2.reference_id
+        ) == [patient3]
+        assert mpi_service.get_orphaned_patients(
+            session, limit=2, cursor=patient2.reference_id
+        ) == [patient3]
+        assert mpi_service.get_orphaned_patients(
+            session, limit=2, cursor=patient1.reference_id
+        ) == [patient2, patient3]

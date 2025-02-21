@@ -388,13 +388,15 @@ def get_orphaned_patients(
     cursor (in the form of a patient reference_id) is provided, only retrieve Patients
     with a reference_id greater than the cursor.
     """
-    cursor_uuid = uuid.UUID(cursor) if cursor else None
     query = (
         select(models.Patient)
         .where(models.Patient.person_id.is_(None))
-        .where(models.Patient.reference_id > cursor_uuid if cursor_uuid else True)
         .order_by(models.Patient.reference_id)
         .limit(limit)
     )
+
+    # Apply cursor if provided
+    if cursor:
+        query = query.where(models.Patient.reference_id > cursor)
 
     return session.execute(query).scalars().all()
