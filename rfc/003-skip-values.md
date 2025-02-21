@@ -56,33 +56,33 @@ values should be excluded from comparisons. This approach is beneficial because:
     and this system provides the flexibility to accommodate those changes.
 
 The `skip_values` section will be defined at the algorithm level (not per pass) and will
-contain a list of conditions. Each condition will have two elements: `feature` and `value`.
-The `feature` specifies the field to which the condition applies, while `value` indicates
-the case-insensitive value to skip. A wildcard value `*` can be used for feature to apply
-the condition to all fields. Example:
+contain a list of conditions. Each condition will have two elements: `feature` and `values`.
+The `feature` specifies the field to which the condition applies, while `values` indicates
+the case-insensitive list of values to skip. The `*` wildcard can be used to apply in the
+`feature` field to apply the condition to all fields. Example:
 
 ```json
 ...
 "skip_values": [
   {
     "feature": "NAME",
-    "value": "John Doe"
+    "values": ["John Doe", "Jane Doe"]
   },
   {
     "feature": "IDENTIFIER:SS",
-    "value": "999-99-9999"
+    "values": ["999-99-9999"]
   },
   {
     "feature": "*",
-    "value": "unknown"
+    "values": ["unknown", "not specified"]
   }
 ]
 ```
 
 In this example, the algorithm will exclude fields from comparison if they match:
-- `John Doe` in the patient's name
+- `John Doe` or `Jane Doe` in the patient's name
 - `999-99-9999` in the patient's social security number
-- `unknown` in any patient field
+- `unknown` or `not specified` in any patient field
 
 ### Pre-Processing Details
 
