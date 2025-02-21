@@ -207,7 +207,8 @@ def delete_empty_person(
         )
 
     # Check if the person has associated patients
-    if person.patients:
+    has_patients = service.check_person_for_patients(session, person)
+    if has_patients:
         raise fastapi.HTTPException(
             status_code=fastapi.status.HTTP_403_FORBIDDEN,
             detail=[
