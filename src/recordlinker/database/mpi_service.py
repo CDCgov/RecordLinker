@@ -370,7 +370,7 @@ def delete_persons(
         session.commit()
 
 
-def check_person_for_patients(session: orm.Session, person: models.Person) -> bool:
+def check_person_for_patients(session: orm.Session, person: models.Person) -> int | None:
     """
     Check if a Person has at least 1 associated Patient.
     """
