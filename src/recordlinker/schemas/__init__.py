@@ -56,7 +56,6 @@ __all__ = [
     "PersonCluster",
     "PersonGroup",
     "PersonRefs",
-    "ErrorRespone",
     "ErrorDetail",
     "ErrorResponse",
 ]
