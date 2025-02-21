@@ -87,4 +87,4 @@ class PaginatedMetaData(pydantic.BaseModel):
 
 class PaginatedPatientRefs(pydantic.BaseModel):
     patients: PatientRefs
-    meta: dict[PaginatedMetaData | None]
+    meta: PaginatedMetaData | None
