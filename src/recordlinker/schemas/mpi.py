@@ -61,6 +61,25 @@ class PersonInfo(pydantic.BaseModel):
     patient_reference_ids: list[uuid.UUID]
 
 
+class ErrorDetail(pydantic.BaseModel):
+    """
+    Error detail information.
+    """
+
+    loc: list[str]
+    msg: str
+    type: str
+
+
+class ErrorResponse(pydantic.BaseModel):
+    """
+
+    Error response for MPI operations.
+    """
+
+    detail: list[ErrorDetail]
+
+
 class PaginatedMetaData(pydantic.BaseModel):
     next_cursor: str | None = None
     next: str | None = None

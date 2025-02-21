@@ -9,6 +9,8 @@ from .link import LinkResult
 from .link import MatchFhirResponse
 from .link import MatchResponse
 from .link import Prediction
+from .mpi import ErrorDetail
+from .mpi import ErrorResponse
 from .mpi import PaginatedMetaData
 from .mpi import PaginatedPatientRefs
 from .mpi import PatientCreatePayload
@@ -56,6 +58,8 @@ __all__ = [
     "PersonCluster",
     "PersonGroup",
     "PersonRefs",
+    "ErrorDetail",
+    "ErrorResponse",
     "PaginatedMetaData",
     "PaginatedPatientRefs",
 ]

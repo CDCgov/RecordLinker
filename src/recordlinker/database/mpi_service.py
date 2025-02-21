@@ -9,6 +9,7 @@ import typing
 import uuid
 
 from sqlalchemy import insert
+from sqlalchemy import literal
 from sqlalchemy import orm
 from sqlalchemy import select
 from sqlalchemy.sql import expression
@@ -367,6 +368,14 @@ def delete_persons(
         session.delete(person)
     if commit:
         session.commit()
+
+
+def check_person_for_patients(session: orm.Session, person: models.Person) -> bool:
+    """
+    Check if a Person has at least 1 associated Patient.
+    """
+    query = select(literal(1)).filter(models.Patient.person_id == person.id).limit(1)
+    return True if session.execute(query).scalar() is not None else False
 
 
 def get_orphaned_patients(
