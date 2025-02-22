@@ -83,7 +83,7 @@ def get_orphaned_patients(
         patients=schemas.PatientRefs(
             patients=[p.reference_id for p in patients if p.reference_id is not None]
         ),
-        meta=schemas.PaginatedMetaData(next_cursor=next_cursor, next=next_url),
+        meta=schemas.PaginatedMetaData(next_cursor=str(next_cursor), next=next_url),
     )
 
 
