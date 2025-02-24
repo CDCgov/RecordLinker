@@ -381,7 +381,7 @@ def check_person_for_patients(session: orm.Session, person: models.Person) -> bo
 def get_orphaned_patients(
     session: orm.Session,
     limit: int | None = 50,
-    cursor: str | None = None,
+    cursor: uuid.UUID | None = None,
 ) -> typing.Sequence[models.Patient]:
     """
     Retrieve orphaned Patients in the MPI database, up to the provided limit. If a
