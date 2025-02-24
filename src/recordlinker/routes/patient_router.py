@@ -63,7 +63,7 @@ def create_patient(
 def get_orphaned_patients(
     request: fastapi.Request,
     session: orm.Session = fastapi.Depends(get_session),
-    limit: int | None = fastapi.Query(50, alias="limit", ge=1, le=100),
+    limit: int | None = fastapi.Query(50, alias="limit", ge=1, le=1000),
     cursor: uuid.UUID | None = fastapi.Query(None, alias="cursor"),
 ) -> schemas.PaginatedPatientRefs:
     """
