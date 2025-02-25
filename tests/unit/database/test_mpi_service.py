@@ -925,7 +925,6 @@ class TestGetOrphanedPatients:
         assert len(mpi_service.get_orphaned_patients(session, limit=3)) == 2
 
     def test_get_orphaned_patients_cursor(self, session: Session):
-        # ordered_uuids = [uuid.uuid4() for _ in range(4)]
         # ordered_uuids.sort()
 
         patient1 = models.Patient(person=None, data={"id": 1})
