@@ -207,11 +207,6 @@ class TestGetOrphanedPatients:
         # Retrieve 1 patient after patient1, return cursor for patient2
         response = client.get(f"/patient/orphaned?limit=1&cursor={patient1.reference_id}")
         assert response.status_code == 200
-        print()
-        print(ordered_uuids[0])
-        print(ordered_uuids[1])
-        print(ordered_uuids[2])
-        print(response.json())
 
         assert response.json() == {
             "patients": [str(patient2.reference_id)],
