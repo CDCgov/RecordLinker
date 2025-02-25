@@ -384,9 +384,7 @@ def get_orphaned_patients(
     cursor: int | None = None,
 ) -> typing.Sequence[models.Patient]:
     """
-    Retrieve orphaned Patients in the MPI database, up to the provided limit. If a
-    cursor (in the form of a patient reference_id) is provided, only retrieve Patients
-    with a reference_id greater than the cursor.
+    Retrieve orphaned Patients in the MPI database, up to the provided limit.
     """
     query = select(models.Patient).where(models.Patient.person_id.is_(None)).limit(limit)
 
