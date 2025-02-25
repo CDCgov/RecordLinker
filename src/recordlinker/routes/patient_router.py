@@ -10,6 +10,7 @@ import typing
 import uuid
 
 import fastapi
+import pydantic
 import sqlalchemy.orm as orm
 
 from recordlinker import schemas
@@ -103,7 +104,10 @@ def get_orphaned_patients(
 
     return schemas.PaginatedPatientRefs(
         patients=[p.reference_id for p in patients if p.reference_id],
-        meta=schemas.PaginatedMetaData(next_cursor=next_cursor, next=next_url),
+        meta=schemas.PaginatedMetaData(
+            next_cursor=next_cursor,
+            next=pydantic.HttpUrl(next_url) if next_url else None,
+        ),
     )
 
 
