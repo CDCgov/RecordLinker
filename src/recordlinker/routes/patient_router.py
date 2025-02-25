@@ -69,7 +69,26 @@ def get_orphaned_patients(
     """
     Retrieve patient_reference_id(s) for all Patients that are not linked to a Person.
     """
-    patients = service.get_orphaned_patients(session, limit, cursor)
+    # Check if the cursor is a valid Patient reference_id
+    if cursor:
+        patient = service.get_patients_by_reference_ids(session, cursor)
+        if not patient or patient[0] is None:
+            raise fastapi.HTTPException(
+                status_code=fastapi.status.HTTP_422_UNPROCESSABLE_ENTITY,
+                detail=[
+                    {
+                        "loc": ["query", "cursor"],
+                        "msg": "Cursor is an invalid Patient reference_id",
+                        "type": "value_error",
+                    }
+                ],
+            )
+        # Replace the cursor with the Patient id instead of reference_id
+        cur = patient[0].id
+    else:
+        cur = None
+
+    patients = service.get_orphaned_patients(session, limit, cur)
     if not patients:
         return schemas.PaginatedPatientRefs(
             patients=[], meta=schemas.PaginatedMetaData(next_cursor=None, next=None)

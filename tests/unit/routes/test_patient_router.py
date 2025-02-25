@@ -235,3 +235,16 @@ class TestGetOrphanedPatients:
             ],
             "meta": {"next_cursor": None, "next": None},
         }
+
+        # Return 422 if bad patient reference_id is provided as cursor
+        response = client.get(f"/patient/orphaned?limit=1&cursor={uuid.uuid4()}")
+        assert response.status_code == 422
+        assert response.json() == {
+            "detail": [
+                {
+                    "loc": ["query", "cursor"],
+                    "msg": "Cursor is an invalid Patient reference_id",
+                    "type": "value_error",
+                }
+            ]
+        }
