@@ -82,9 +82,9 @@ class ErrorResponse(pydantic.BaseModel):
 
 class PaginatedMetaData(pydantic.BaseModel):
     next_cursor: uuid.UUID | None = None
-    next: str | None = None
+    next: pydantic.HttpUrl | None = None
 
 
-class PaginatedRefs(pydantic.BaseModel):
-    data: list[uuid.UUID] = pydantic.Field(...)
+class PaginatedPatientRefs(pydantic.BaseModel):
+    patients: list[uuid.UUID] = pydantic.Field(...)
     meta: PaginatedMetaData | None
