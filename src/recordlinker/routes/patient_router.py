@@ -10,6 +10,7 @@ import typing
 import uuid
 
 import fastapi
+import pydantic
 import sqlalchemy.orm as orm
 
 from recordlinker import schemas
@@ -54,6 +55,59 @@ def create_patient(
     )
     return schemas.PatientRef(
         patient_reference_id=patient.reference_id, external_patient_id=patient.external_patient_id
+    )
+
+
+@router.get(
+    "/orphaned", summary="Retrieve orphaned patients", status_code=fastapi.status.HTTP_200_OK
+)
+def get_orphaned_patients(
+    request: fastapi.Request,
+    session: orm.Session = fastapi.Depends(get_session),
+    limit: int | None = fastapi.Query(50, alias="limit", ge=1, le=1000),
+    cursor: uuid.UUID | None = fastapi.Query(None, alias="cursor"),
+) -> schemas.PaginatedPatientRefs:
+    """
+    Retrieve patient_reference_id(s) for all Patients that are not linked to a Person.
+    """
+    # Check if the cursor is a valid Patient reference_id
+    if cursor:
+        patient = service.get_patients_by_reference_ids(session, cursor)
+        if not patient or patient[0] is None:
+            raise fastapi.HTTPException(
+                status_code=fastapi.status.HTTP_422_UNPROCESSABLE_ENTITY,
+                detail=[
+                    {
+                        "loc": ["query", "cursor"],
+                        "msg": "Cursor is an invalid Patient reference_id",
+                        "type": "value_error",
+                    }
+                ],
+            )
+        # Replace the cursor with the Patient id instead of reference_id
+        cur = patient[0].id
+    else:
+        cur = None
+
+    patients = service.get_orphaned_patients(session, limit, cur)
+    if not patients:
+        return schemas.PaginatedPatientRefs(
+            patients=[], meta=schemas.PaginatedMetaData(next_cursor=None, next=None)
+        )
+    # Prepare the meta data
+    next_cursor = patients[-1].reference_id if len(patients) == limit else None
+    next_url = (
+        f"{request.base_url}patient/orphaned?limit={limit}&cursor={next_cursor}"
+        if next_cursor
+        else None
+    )
+
+    return schemas.PaginatedPatientRefs(
+        patients=[p.reference_id for p in patients if p.reference_id],
+        meta=schemas.PaginatedMetaData(
+            next_cursor=next_cursor,
+            next=pydantic.HttpUrl(next_url) if next_url else None,
+        ),
     )
 
 

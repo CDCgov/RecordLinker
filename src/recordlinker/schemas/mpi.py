@@ -78,3 +78,13 @@ class ErrorResponse(pydantic.BaseModel):
     """
 
     detail: list[ErrorDetail]
+
+
+class PaginatedMetaData(pydantic.BaseModel):
+    next_cursor: uuid.UUID | None = None
+    next: pydantic.HttpUrl | None = None
+
+
+class PaginatedPatientRefs(pydantic.BaseModel):
+    patients: list[uuid.UUID] = pydantic.Field(...)
+    meta: PaginatedMetaData | None

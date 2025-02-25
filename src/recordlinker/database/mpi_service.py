@@ -376,3 +376,20 @@ def check_person_for_patients(session: orm.Session, person: models.Person) -> bo
     """
     query = select(literal(1)).filter(models.Patient.person_id == person.id).limit(1)
     return True if session.execute(query).scalar() is not None else False
+
+
+def get_orphaned_patients(
+    session: orm.Session,
+    limit: int | None = 50,
+    cursor: int | None = None,
+) -> typing.Sequence[models.Patient]:
+    """
+    Retrieve orphaned Patients in the MPI database, up to the provided limit.
+    """
+    query = select(models.Patient).where(models.Patient.person_id.is_(None)).limit(limit)
+
+    # Apply cursor if provided
+    if cursor:
+        query = query.where(models.Patient.id > cursor)
+
+    return session.execute(query).scalars().all()
