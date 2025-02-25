@@ -381,23 +381,18 @@ def check_person_for_patients(session: orm.Session, person: models.Person) -> bo
 def get_orphaned_patients(
     session: orm.Session,
     limit: int | None = 50,
-    cursor: uuid.UUID | None = None,
+    cursor: int | None = None,
 ) -> typing.Sequence[models.Patient]:
     """
     Retrieve orphaned Patients in the MPI database, up to the provided limit. If a
     cursor (in the form of a patient reference_id) is provided, only retrieve Patients
     with a reference_id greater than the cursor.
     """
-    query = (
-        select(models.Patient)
-        .where(models.Patient.person_id.is_(None))
-        .order_by(models.Patient.reference_id)
-        .limit(limit)
-    )
+    query = select(models.Patient).where(models.Patient.person_id.is_(None)).limit(limit)
 
     # Apply cursor if provided
     if cursor:
-        query = query.where(models.Patient.reference_id > cursor)
+        query = query.where(models.Patient.id > cursor)
 
     return session.execute(query).scalars().all()
 

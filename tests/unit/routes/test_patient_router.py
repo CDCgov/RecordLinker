@@ -207,11 +207,6 @@ class TestGetOrphanedPatients:
         # Retrieve 1 patient after patient1, return cursor for patient2
         response = client.get(f"/patient/orphaned?limit=1&cursor={patient1.reference_id}")
         assert response.status_code == 200
-        print()
-        print(ordered_uuids[0])
-        print(ordered_uuids[1])
-        print(ordered_uuids[2])
-        print(response.json())
 
         assert response.json() == {
             "data": [str(patient2.reference_id)],
@@ -239,4 +234,17 @@ class TestGetOrphanedPatients:
                 str(patient3.reference_id),
             ],
             "meta": {"next_cursor": None, "next": None},
+        }
+
+        # Return 422 if bad patient reference_id is provided as cursor
+        response = client.get(f"/patient/orphaned?limit=1&cursor={uuid.uuid4()}")
+        assert response.status_code == 422
+        assert response.json() == {
+            "detail": [
+                {
+                    "loc": ["query", "cursor"],
+                    "msg": "Cursor is an invalid Patient reference_id",
+                    "type": "value_error",
+                }
+            ]
         }

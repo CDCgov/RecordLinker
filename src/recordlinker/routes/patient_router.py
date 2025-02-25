@@ -69,19 +69,40 @@ def get_orphaned_patients(
     """
     Retrieve patient_reference_id(s) for all Patients that are not linked to a Person.
     """
-    patients = service.get_orphaned_patients(session, limit, cursor)
+    # Check if the cursor is a valid Patient reference_id
+    if cursor:
+        patient = service.get_patients_by_reference_ids(session, cursor)
+        if not patient or patient[0] is None:
+            raise fastapi.HTTPException(
+                status_code=fastapi.status.HTTP_422_UNPROCESSABLE_ENTITY,
+                detail=[
+                    {
+                        "loc": ["query", "cursor"],
+                        "msg": "Cursor is an invalid Patient reference_id",
+                        "type": "value_error",
+                    }
+                ],
+            )
+        # Replace the cursor with the Patient id instead of reference_id
+        cur = patient[0].id
+    else:
+        cur = None
+
+    patients = service.get_orphaned_patients(session, limit, cur)
     if not patients:
         return schemas.PaginatedRefs(
             data=[], meta=schemas.PaginatedMetaData(next_cursor=None, next=None)
         )
-
     # Prepare the meta data
     next_cursor = patients[-1].reference_id if len(patients) == limit else None
-    base_url = str(request.url).split("?")[0]
-    next_url = f"{base_url}?limit={limit}&cursor={next_cursor}" if next_cursor else None
+    next_url = (
+        f"{request.base_url}patient/orphaned?limit={limit}&cursor={next_cursor}"
+        if next_cursor
+        else None
+    )
 
-    return schemas.PaginatedRefs(
-        data=[p.reference_id for p in patients if p.reference_id is not None],
+    return schemas.PaginatedPatientRefs(
+        data=[p.reference_id for p in patients if p.reference_id],
         meta=schemas.PaginatedMetaData(next_cursor=next_cursor, next=next_url),
     )
 
