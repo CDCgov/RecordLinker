@@ -103,6 +103,35 @@ def update_person(
 
 
 @router.get(
+    "/orphaned", summary="Retrieve orphaned persons", status_code=fastapi.status.HTTP_200_OK
+)
+def get_orphaned_persons(
+    request: fastapi.Request,
+    session: orm.Session = fastapi.Depends(get_session),
+    limit: int | None = fastapi.Query(50, alias="limit", ge=1, le=1000),
+    cursor: uuid.UUID | None = fastapi.Query(None, alias="cursor"),
+) -> schemas.PaginatedRefs:
+    """
+    Retrieve person_reference_id(s) for all Persons that are not linked to any Patients.
+    """
+    persons = service.get_orphaned_persons(session, limit, cursor)
+    if not persons:
+        return schemas.PaginatedRefs(
+            persons=[], meta=schemas.PaginatedMetaData(next_cursor=None, next=None)
+        )
+
+    # Prepare the meta data
+    next_cursor = persons[-1].reference_id if len(persons) == limit else None
+    base_url = str(request.url).split("?")[0]
+    next_url = f"{base_url}?limit={limit}&cursor={next_cursor}" if next_cursor else None
+
+    return schemas.PaginatedRefs(
+        data=[p.reference_id for p in persons if p.reference_id is not None],
+        meta=schemas.PaginatedMetaData(next_cursor=next_cursor, next=next_url),
+    )
+
+
+@router.get(
     "/{person_reference_id}",
     summary="Retrieve a person cluster",
     status_code=fastapi.status.HTTP_200_OK,
