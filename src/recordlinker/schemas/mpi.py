@@ -86,5 +86,5 @@ class PaginatedMetaData(pydantic.BaseModel):
 
 
 class PaginatedRefs(pydantic.BaseModel):
-    patients: list[uuid.UUID] = pydantic.Field(...)
+    data: list[uuid.UUID] = pydantic.Field(...)
     meta: PaginatedMetaData | None

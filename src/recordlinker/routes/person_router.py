@@ -10,6 +10,7 @@ import typing
 import uuid
 
 import fastapi
+import pydantic
 import sqlalchemy.orm as orm
 
 from recordlinker import models
@@ -117,17 +118,23 @@ def get_orphaned_persons(
     persons = service.get_orphaned_persons(session, limit, cursor)
     if not persons:
         return schemas.PaginatedRefs(
-            persons=[], meta=schemas.PaginatedMetaData(next_cursor=None, next=None)
+            data=[], meta=schemas.PaginatedMetaData(next_cursor=None, next=None)
         )
 
     # Prepare the meta data
     next_cursor = persons[-1].reference_id if len(persons) == limit else None
-    base_url = str(request.url).split("?")[0]
-    next_url = f"{base_url}?limit={limit}&cursor={next_cursor}" if next_cursor else None
+    next_url = (
+        f"{request.base_url}person/orphaned?limit={limit}&cursor={next_cursor}"
+        if next_cursor
+        else None
+    )
 
     return schemas.PaginatedRefs(
-        data=[p.reference_id for p in persons if p.reference_id is not None],
-        meta=schemas.PaginatedMetaData(next_cursor=next_cursor, next=next_url),
+        data=[p.reference_id for p in persons if p.reference_id],
+        meta=schemas.PaginatedMetaData(
+            next_cursor=next_cursor,
+            next=pydantic.HttpUrl(next_url) if next_url else None,
+        ),
     )
 
 

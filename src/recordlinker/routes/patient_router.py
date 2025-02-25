@@ -92,7 +92,7 @@ def get_orphaned_patients(
     patients = service.get_orphaned_patients(session, limit, cur)
     if not patients:
         return schemas.PaginatedRefs(
-            patients=[], meta=schemas.PaginatedMetaData(next_cursor=None, next=None)
+            data=[], meta=schemas.PaginatedMetaData(next_cursor=None, next=None)
         )
     # Prepare the meta data
     next_cursor = patients[-1].reference_id if len(patients) == limit else None
@@ -103,7 +103,7 @@ def get_orphaned_patients(
     )
 
     return schemas.PaginatedRefs(
-        patients=[p.reference_id for p in patients if p.reference_id],
+        data=[p.reference_id for p in patients if p.reference_id],
         meta=schemas.PaginatedMetaData(
             next_cursor=next_cursor,
             next=pydantic.HttpUrl(next_url) if next_url else None,
