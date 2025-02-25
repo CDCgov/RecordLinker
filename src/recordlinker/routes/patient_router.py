@@ -65,14 +65,14 @@ def get_orphaned_patients(
     session: orm.Session = fastapi.Depends(get_session),
     limit: int | None = fastapi.Query(50, alias="limit", ge=1, le=1000),
     cursor: uuid.UUID | None = fastapi.Query(None, alias="cursor"),
-) -> schemas.PaginatedPatientRefs:
+) -> schemas.PaginatedRefs:
     """
     Retrieve patient_reference_id(s) for all Patients that are not linked to a Person.
     """
     patients = service.get_orphaned_patients(session, limit, cursor)
     if not patients:
-        return schemas.PaginatedPatientRefs(
-            patients=[], meta=schemas.PaginatedMetaData(next_cursor=None, next=None)
+        return schemas.PaginatedRefs(
+            data=[], meta=schemas.PaginatedMetaData(next_cursor=None, next=None)
         )
 
     # Prepare the meta data
@@ -80,8 +80,8 @@ def get_orphaned_patients(
     base_url = str(request.url).split("?")[0]
     next_url = f"{base_url}?limit={limit}&cursor={next_cursor}" if next_cursor else None
 
-    return schemas.PaginatedPatientRefs(
-        patients=[p.reference_id for p in patients if p.reference_id is not None],
+    return schemas.PaginatedRefs(
+        data=[p.reference_id for p in patients if p.reference_id is not None],
         meta=schemas.PaginatedMetaData(next_cursor=next_cursor, next=next_url),
     )
 
