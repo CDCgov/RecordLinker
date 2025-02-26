@@ -252,38 +252,38 @@ class TestGetOrphanedPersons:
             "meta": {"next_cursor": None, "next": None},
         }
 
-    # def test_get_orphaned_persons_with_limit(self, client):
-    #     person1 = models.Person(id=1)
-    #     person2 = models.Person(id=2)
-    #     person3 = models.Person(id=3)
-    #     person4 = models.Person(id=4)
-    #     client.session.add_all([person1, person2, person3, person4])
-    #     client.session.flush()
+    def test_get_orphaned_persons_with_limit(self, client):
+        person1 = models.Person(id=1)
+        person2 = models.Person(id=2)
+        person3 = models.Person(id=3)
+        person4 = models.Person(id=4)
+        client.session.add_all([person1, person2, person3, person4])
+        client.session.flush()
 
-    #     response = client.get("/person/orphaned?limit=2")
-    #     assert response.status_code == 200
-    #     assert response.json() == {
-    #         "data": [str(person1.reference_id), str(person2.reference_id)],
-    #         "meta": {
-    #             "next_cursor": str(person2.reference_id),
-    #             "next": f"http://testserver/person/orphaned?limit=2&cursor={str(person2.reference_id)}",
-    #         },
-    #     }
+        # response = client.get("/person/orphaned?limit=2")
+        # assert response.status_code == 200
+        # assert response.json() == {
+        #     "data": [str(person1.reference_id), str(person2.reference_id)],
+        #     "meta": {
+        #         "next_cursor": str(person2.reference_id),
+        #         "next": f"http://testserver/person/orphaned?limit=2&cursor={str(person2.reference_id)}",
+        #     },
+        # }
 
-    #     response = client.get(f"/person/orphaned?limit=2&cursor={person2.reference_id}")
-    #     assert response.json() == {
-    #         "data": [str(person3.reference_id), str(person4.reference_id)],
-    #         "meta": {
-    #             "next_cursor": str(person4.reference_id),
-    #             "next": f"http://testserver/person/orphaned?limit=2&cursor={str(person4.reference_id)}",
-    #         },
-    #     }
+        response = client.get(f"/person/orphaned?limit=2&cursor={person2.reference_id}")
+        assert response.json() == {
+            "data": [str(person3.reference_id), str(person4.reference_id)],
+            "meta": {
+                "next_cursor": str(person4.reference_id),
+                "next": f"http://testserver/person/orphaned?limit=2&cursor={str(person4.reference_id)}",
+            },
+        }
 
-    #     response = client.get(f"/person/orphaned?limit=5&cursor={person2.reference_id}")
-    #     assert response.json() == {
-    #         "data": [str(person3.reference_id), str(person4.reference_id)],
-    #         "meta": {"next_cursor": None, "next": None},
-    #     }
+        response = client.get(f"/person/orphaned?limit=5&cursor={person2.reference_id}")
+        assert response.json() == {
+            "data": [str(person3.reference_id), str(person4.reference_id)],
+            "meta": {"next_cursor": None, "next": None},
+        }
 
     def test_get_orphaned_persons_with_cursor(self, client):
         person1 = models.Person(reference_id=uuid.uuid4(), id=1)
