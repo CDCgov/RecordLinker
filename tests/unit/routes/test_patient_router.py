@@ -182,7 +182,7 @@ class TestGetOrphanedPatients:
         response = client.get("/patient/orphaned")
         assert response.status_code == 200
         assert response.json() == {
-            "patients": [str(patient1.reference_id)],
+            "data": [str(patient1.reference_id)],
             "meta": {"next_cursor": None, "next": None},
         }
 
@@ -190,7 +190,7 @@ class TestGetOrphanedPatients:
         response = client.get("/patient/orphaned")
         assert response.status_code == 200
         assert response.json() == {
-            "patients": [],
+            "data": [],
             "meta": {"next_cursor": None, "next": None},
         }
 
@@ -209,7 +209,7 @@ class TestGetOrphanedPatients:
         assert response.status_code == 200
 
         assert response.json() == {
-            "patients": [str(patient2.reference_id)],
+            "data": [str(patient2.reference_id)],
             "meta": {
                 "next_cursor": str(ordered_uuids[1]),
                 "next": f"http://testserver/patient/orphaned?limit=1&cursor={str(ordered_uuids[1])}",
@@ -219,7 +219,7 @@ class TestGetOrphanedPatients:
         # Retrieve 2 patients after patient1, return cursor for patient3
         response = client.get(f"/patient/orphaned?limit=2&cursor={patient1.reference_id}")
         assert response.json() == {
-            "patients": [str(patient2.reference_id), str(patient3.reference_id)],
+            "data": [str(patient2.reference_id), str(patient3.reference_id)],
             "meta": {
                 "next_cursor": str(ordered_uuids[2]),
                 "next": f"http://testserver/patient/orphaned?limit=2&cursor={ordered_uuids[2]}",
@@ -229,7 +229,7 @@ class TestGetOrphanedPatients:
         # Retrieve the 2 orphaned patients after patient1, return no cursor
         response = client.get(f"/patient/orphaned?limit=5&cursor={patient1.reference_id}")
         assert response.json() == {
-            "patients": [
+            "data": [
                 str(patient2.reference_id),
                 str(patient3.reference_id),
             ],
