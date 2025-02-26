@@ -117,7 +117,7 @@ additional step to the process. Previously, the core steps for running linkage w
 3. Comparisons (also known as evaluation)
 4. Aggregation and prediction
 
-With the new approach, a "cleaning" step is added between steps 1 and 2. While the
+With the new approach, a "cleaning" steps are added between steps 1-2 and 3-4. While the
 computational overhead of this additional step is minimal, the increased complexity is a
 concern. Each added step makes the system more challenging to evolve and harder for both
 users and developers to understand.
@@ -129,17 +129,20 @@ certain matches were made.
 ## Implementation Plan
 
 For the purposes of this RFC, we will not be overly prescriptive about the implementation
-details. However, the work can be broadly divided into three tasks:
+details. However, the work can be broadly divided into four tasks:
 1. A new `NAME` feature will be created, that will allow us to specify skip conditions
     for the entirety of the name specified. (This likely won't be used for evaluation,
     as its still preferable to compare the first and last names separately, but users
     will have that option)
-2. Modify the existing Algorithm schema to include the new `skip_values`attribute,
+2. Modify the existing Algorithm schema to include the new `skip_values` attribute,
     along with parsing these values and storing the specified conditions.
 3. Implement a new cleaning step that takes the incoming data payload and a list of skip
     conditions, then returns a copy of the data payload with placeholder values removed.
     This cleaned copy will be used for blocking, evaluation, and aggregation, while the
     original incoming payload will be retained for persistence.
+4. Update the linking algorithm to clean the incoming data payload before blocking, **and**
+    clean the MPI patient records after blocking. It’s crucial to sanitize both incoming
+    and existing data, as unclean values on either side could result in invalid comparisons.
 
 ## Unresolved Questions
 
