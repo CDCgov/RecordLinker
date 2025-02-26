@@ -260,15 +260,15 @@ class TestGetOrphanedPersons:
         client.session.add_all([person1, person2, person3, person4])
         client.session.flush()
 
-        # response = client.get("/person/orphaned?limit=2")
-        # assert response.status_code == 200
-        # assert response.json() == {
-        #     "data": [str(person1.reference_id), str(person2.reference_id)],
-        #     "meta": {
-        #         "next_cursor": str(person2.reference_id),
-        #         "next": f"http://testserver/person/orphaned?limit=2&cursor={str(person2.reference_id)}",
-        #     },
-        # }
+        response = client.get("/person/orphaned?limit=2")
+        assert response.status_code == 200
+        assert response.json() == {
+            "data": [str(person1.reference_id), str(person2.reference_id)],
+            "meta": {
+                "next_cursor": str(person2.reference_id),
+                "next": f"http://testserver/person/orphaned?limit=2&cursor={str(person2.reference_id)}",
+            },
+        }
 
         response = client.get(f"/person/orphaned?limit=2&cursor={person2.reference_id}")
         assert response.json() == {
