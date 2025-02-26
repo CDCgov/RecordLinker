@@ -194,6 +194,28 @@ class TestGetOrphanedPatients:
             "meta": {"next_cursor": None, "next": None},
         }
 
+    def test_get_orphaned_patients_with_limit(self, client):
+        patient1 = models.Patient(person=None, data={"id": 1})
+        patient2 = models.Patient(person=None, data={"id": 2})
+        client.session.add_all([patient1, patient2])
+        client.session.flush()
+
+        response = client.get("/patient/orphaned?limit=1")
+        assert response.status_code == 200
+        assert response.json() == {
+            "data": [str(patient1.reference_id)],
+            "meta": {
+                "next_cursor": str(patient1.reference_id),
+                "next": f"http://testserver/patient/orphaned?limit=1&cursor={str(patient1.reference_id)}",
+            },
+        }
+
+        response = client.get("/patient/orphaned?limit=2")
+        assert response.json() == {
+            "data": [str(patient1.reference_id), str(patient2.reference_id)],
+            "meta": {"next_cursor": None, "next": None},
+        }
+
     def test_get_orphaned_patients_with_cursor(self, client):
         patient1 = models.Patient(person=None, data={"id": 1})
         patient2 = models.Patient(person=None, data={"id": 2})
