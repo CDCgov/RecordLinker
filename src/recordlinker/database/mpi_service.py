@@ -398,7 +398,7 @@ def get_orphaned_patients(
 def get_orphaned_persons(
     session: orm.Session,
     limit: int | None = 50,
-    cursor: uuid.UUID | None = None,
+    cursor: int | None = None,
 ) -> typing.Sequence[models.Person]:
     """
     Retrieve orphaned Persons in the MPI database, up to the provided limit. If a

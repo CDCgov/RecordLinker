@@ -195,12 +195,9 @@ class TestGetOrphanedPatients:
         }
 
     def test_get_orphaned_patients_with_cursor(self, client):
-        ordered_uuids = [uuid.uuid4() for _ in range(3)]
-        ordered_uuids.sort()
-
-        patient1 = models.Patient(person=None, reference_id=ordered_uuids[0])
-        patient2 = models.Patient(person=None, reference_id=ordered_uuids[1])
-        patient3 = models.Patient(person=None, reference_id=ordered_uuids[2])
+        patient1 = models.Patient(person=None, data={"id": 1})
+        patient2 = models.Patient(person=None, data={"id": 2})
+        patient3 = models.Patient(person=None, data={"id": 3})
         client.session.add_all([patient1, patient2, patient3])
         client.session.flush()
 
@@ -211,8 +208,8 @@ class TestGetOrphanedPatients:
         assert response.json() == {
             "data": [str(patient2.reference_id)],
             "meta": {
-                "next_cursor": str(ordered_uuids[1]),
-                "next": f"http://testserver/patient/orphaned?limit=1&cursor={str(ordered_uuids[1])}",
+                "next_cursor": str(patient2.reference_id),
+                "next": f"http://testserver/patient/orphaned?limit=1&cursor={str(patient2.reference_id)}",
             },
         }
 
@@ -221,8 +218,8 @@ class TestGetOrphanedPatients:
         assert response.json() == {
             "data": [str(patient2.reference_id), str(patient3.reference_id)],
             "meta": {
-                "next_cursor": str(ordered_uuids[2]),
-                "next": f"http://testserver/patient/orphaned?limit=2&cursor={ordered_uuids[2]}",
+                "next_cursor": str(patient3.reference_id),
+                "next": f"http://testserver/patient/orphaned?limit=2&cursor={str(patient3.reference_id)}",
             },
         }
 
