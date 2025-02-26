@@ -947,3 +947,52 @@ class TestGetOrphanedPatients:
             patient2,
             patient3,
         ]
+
+
+class TestGetOrphanedPersons:
+    def test_get_orphaned_persons_success(self, session: Session):
+        person1 = models.Person()
+        person2 = models.Person()
+        patient1 = models.Patient(person=person1, data={})
+        session.add_all([patient1, person2])
+        session.flush()
+        assert session.query(models.Patient).count() == 1
+        assert session.query(models.Person).count() == 2
+        assert mpi_service.get_orphaned_persons(session) == [person2]
+
+    def test_get_orphaned_persons_no_persons(self, session: Session):
+        patient = models.Patient(person=models.Person(), data={})
+        session.add(patient)
+        session.flush()
+        assert mpi_service.get_orphaned_persons(session) == []
+
+    def test_get_orphaned_persons_limit(self, session: Session):
+        # Checks that limit is correctly applied
+        person1 = models.Person()
+        person2 = models.Person()
+        person3 = models.Person()
+        patient = models.Patient(person=person1, data={})
+        session.add_all([patient, person2, person3])
+        session.flush()
+
+        assert len(mpi_service.get_orphaned_persons(session, limit=1)) == 1
+        assert len(mpi_service.get_orphaned_persons(session, limit=2)) == 2
+        assert len(mpi_service.get_orphaned_persons(session, limit=3)) == 2
+
+    def test_get_orphaned_persons_cursor(self, session: Session):
+        # Checks that cursor is correctly applied
+        person1 = models.Person(id=1)
+        person2 = models.Person(id=2)
+        person3 = models.Person(id=3)
+        person4 = models.Person(id=4)
+        patient = models.Patient(person=person1, data={})
+        session.add_all([patient, person2, person3, person4])
+        session.flush()
+
+        assert mpi_service.get_orphaned_persons(session, limit=1, cursor=person1.id) == [person2]
+        assert mpi_service.get_orphaned_persons(session, limit=1, cursor=person2.id) == [person3]
+        assert mpi_service.get_orphaned_persons(session, limit=2, cursor=person2.id) == [person3]
+        assert mpi_service.get_orphaned_persons(session, limit=2, cursor=person1.id) == [
+            person2,
+            person3,
+        ]
