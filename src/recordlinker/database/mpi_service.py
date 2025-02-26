@@ -410,9 +410,6 @@ def get_orphaned_persons(
         .outerjoin(models.Patient, models.Patient.person_id == models.Person.id)
         .filter(models.Patient.id.is_(None))
     )
-    # query = select(models.Person).filter(
-    #     ~exists().where(models.Patient.person_id == models.Person.id)
-    # )
     if cursor:
         query = query.filter(models.Person.id > cursor)
 
