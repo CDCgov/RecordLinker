@@ -386,7 +386,12 @@ def get_orphaned_patients(
     """
     Retrieve orphaned Patients in the MPI database, up to the provided limit.
     """
-    query = select(models.Patient).where(models.Patient.person_id.is_(None)).limit(limit)
+    query = (
+        select(models.Patient)
+        .where(models.Patient.person_id.is_(None))
+        .order_by(models.Patient.id)
+        .limit(limit)
+    )
 
     # Apply cursor if provided
     if cursor:
