@@ -285,56 +285,56 @@ class TestGetOrphanedPersons:
     #         "meta": {"next_cursor": None, "next": None},
     #     }
 
-    # def test_get_orphaned_persons_with_cursor(self, client):
-    #     person1 = models.Person(reference_id=uuid.uuid4(), id=1)
-    #     patient1 = models.Patient(person=person1)
-    #     patient2 = models.Patient(person=None)
-    #     person3 = models.Person(id=3)
-    #     person4 = models.Person(id=4)
-    #     client.session.add_all([patient1, patient2, person3, person4])
-    #     client.session.flush()
+    def test_get_orphaned_persons_with_cursor(self, client):
+        person1 = models.Person(reference_id=uuid.uuid4(), id=1)
+        patient1 = models.Patient(person=person1)
+        patient2 = models.Patient(person=None)
+        person3 = models.Person(id=3)
+        person4 = models.Person(id=4)
+        client.session.add_all([patient1, patient2, person3, person4])
+        client.session.flush()
 
-    #     # Retrieve 1 person after person 1, return no cursor
-    #     response = client.get(f"/person/orphaned?&cursor={person3.reference_id}")
-    #     assert response.status_code == 200
-    #     assert response.json() == {
-    #         "data": [str(person4.reference_id)],
-    #         "meta": {
-    #             "next_cursor": None,
-    #             "next": None,
-    #         },
-    #     }
+        # Retrieve 1 person after person 1, return no cursor
+        response = client.get(f"/person/orphaned?&cursor={person3.reference_id}")
+        assert response.status_code == 200
+        assert response.json() == {
+            "data": [str(person4.reference_id)],
+            "meta": {
+                "next_cursor": None,
+                "next": None,
+            },
+        }
 
-    #     # Retrieve 1 person after person 1, return cursor for person 3
-    #     response = client.get(f"/person/orphaned?limit=1&cursor={person1.reference_id}")
-    #     assert response.json() == {
-    #         "data": [str(person3.reference_id)],
-    #         "meta": {
-    #             "next_cursor": str(person3.reference_id),
-    #             "next": f"http://testserver/person/orphaned?limit=1&cursor={str(person3.reference_id)}",
-    #         },
-    #     }
+        # Retrieve 1 person after person 1, return cursor for person 3
+        response = client.get(f"/person/orphaned?limit=1&cursor={person1.reference_id}")
+        assert response.json() == {
+            "data": [str(person3.reference_id)],
+            "meta": {
+                "next_cursor": str(person3.reference_id),
+                "next": f"http://testserver/person/orphaned?limit=1&cursor={str(person3.reference_id)}",
+            },
+        }
 
-    #     # Retrieve 2 persons after person 2, return cursor for person 4
-    #     response = client.get(f"/person/orphaned?limit=2&cursor={person1.reference_id}")
-    #     assert response.json() == {
-    #         "data": [str(person3.reference_id), str(person4.reference_id)],
-    #         "meta": {
-    #             "next_cursor": str(person4.reference_id),
-    #             "next": f"http://testserver/person/orphaned?limit=2&cursor={str(person4.reference_id)}",
-    #         },
-    #     }
+        # Retrieve 2 persons after person 2, return cursor for person 4
+        response = client.get(f"/person/orphaned?limit=2&cursor={person1.reference_id}")
+        assert response.json() == {
+            "data": [str(person3.reference_id), str(person4.reference_id)],
+            "meta": {
+                "next_cursor": str(person4.reference_id),
+                "next": f"http://testserver/person/orphaned?limit=2&cursor={str(person4.reference_id)}",
+            },
+        }
 
-    # def test_invalid_cursor(self, client):
-    #     # Return 422 if bad patient reference_id is provided as cursor
-    #     response = client.get(f"/person/orphaned?limit=1&cursor={uuid.uuid4()}")
-    #     assert response.status_code == 422
-    #     assert response.json() == {
-    #         "detail": [
-    #             {
-    #                 "loc": ["query", "cursor"],
-    #                 "msg": "Cursor is an invalid Person reference_id",
-    #                 "type": "value_error",
-    #             }
-    #         ]
-    #     }
+    def test_invalid_cursor(self, client):
+        # Return 422 if bad patient reference_id is provided as cursor
+        response = client.get(f"/person/orphaned?limit=1&cursor={uuid.uuid4()}")
+        assert response.status_code == 422
+        assert response.json() == {
+            "detail": [
+                {
+                    "loc": ["query", "cursor"],
+                    "msg": "Cursor is an invalid Person reference_id",
+                    "type": "value_error",
+                }
+            ]
+        }
