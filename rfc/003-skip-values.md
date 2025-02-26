@@ -59,18 +59,19 @@ The `skip_values` section will be defined at the algorithm level (not per pass) 
 contain a list of conditions. Each condition will have two elements: `feature` and `values`.
 The `feature` specifies the field to which the condition applies, while `values` indicates
 the case-insensitive list of values to skip. The `*` wildcard can be used to apply in the
-`feature` field to apply the condition to all fields. Example:
+`feature` field to apply the condition to all fields. Standard [fnmatch](https://docs.python.org/3/library/fnmatch.html)
+syntax can be used in the values to indicate wildcard matches. Example:
 
 ```json
 ...
 "skip_values": [
   {
     "feature": "NAME",
-    "values": ["John Doe", "Jane Doe"]
+    "values": ["John * Doe", "Jane * Doe"]
   },
   {
     "feature": "IDENTIFIER:SS",
-    "values": ["999-99-9999"]
+    "values": ["999-??-9999"]
   },
   {
     "feature": "*",
@@ -80,8 +81,8 @@ the case-insensitive list of values to skip. The `*` wildcard can be used to app
 ```
 
 In this example, the algorithm will exclude fields from comparison if they match:
-- `John Doe` or `Jane Doe` in the patient's name
-- `999-99-9999` in the patient's social security number
+- `John Doe` or `Jane Doe` in the patient's name, with any characters in between
+- `999-XX-9999` in the patient's social security number, where XX can be any two digits
 - `unknown` or `not specified` in any patient field
 
 ### Pre-Processing Details
