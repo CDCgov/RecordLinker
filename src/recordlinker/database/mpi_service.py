@@ -12,6 +12,7 @@ from sqlalchemy import insert
 from sqlalchemy import literal
 from sqlalchemy import orm
 from sqlalchemy import select
+from sqlalchemy.sql import exists
 from sqlalchemy.sql import expression
 
 from recordlinker import models
@@ -405,10 +406,13 @@ def get_orphaned_persons(
     cursor (in the form of a person reference_id) is provided, only retrieve Persons
     with a reference_id greater than the cursor.
     """
-    query = (
-        select(models.Person)
-        .outerjoin(models.Patient, models.Patient.person_id == models.Person.id)
-        .filter(models.Patient.id.is_(None))
+    # query = (
+    #     select(models.Person)
+    #     .outerjoin(models.Patient, models.Patient.person_id == models.Person.id)
+    #     .filter(models.Patient.id.is_(None))
+    # )
+    query = select(models.Person).filter(
+        ~exists().where(models.Patient.person_id == models.Person.id)
     )
     if cursor:
         query = query.filter(models.Person.id > cursor)
