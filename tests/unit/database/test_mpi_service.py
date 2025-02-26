@@ -986,17 +986,17 @@ class TestGetOrphanedPersons:
         person3 = models.Person(id=3)
         person4 = models.Person(id=4)
         patient = models.Patient(person=person4, data={})
-        session.add_all([patient, person2, person3, person4])
+        session.add_all([patient, person1, person2, person3])
         session.flush()
 
         assert mpi_service.get_orphaned_persons(session, limit=1, cursor=person1.id) == [person2]
-        # assert mpi_service.get_orphaned_persons(session, limit=1, cursor=person2.id) == [person3]
-        # assert mpi_service.get_orphaned_persons(session, limit=2, cursor=person2.id) == [person3]
-        # assert mpi_service.get_orphaned_persons(session, limit=2, cursor=person1.id) == [
-        #     person2,
-        #     person3,
-        # ]
-        # assert mpi_service.get_orphaned_persons(session, limit=5, cursor=person1.id) == [
-        #     person2,
-        #     person3,
-        # ]
+        assert mpi_service.get_orphaned_persons(session, limit=1, cursor=person2.id) == [person3]
+        assert mpi_service.get_orphaned_persons(session, limit=2, cursor=person2.id) == [person3]
+        assert mpi_service.get_orphaned_persons(session, limit=2, cursor=person1.id) == [
+            person2,
+            person3,
+        ]
+        assert mpi_service.get_orphaned_persons(session, limit=5, cursor=person1.id) == [
+            person2,
+            person3,
+        ]
