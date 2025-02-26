@@ -405,9 +405,14 @@ def get_orphaned_persons(
     cursor (in the form of a person reference_id) is provided, only retrieve Persons
     with a reference_id greater than the cursor.
     """
-    subquery = (
-        select(models.Patient.id).where(models.Patient.person_id == models.Person.id).exists()
+    query = (
+        select(models.Person)
+        .outerjoin(models.Patient, models.Patient.person_id == models.Person.id)
+        .filter(models.Patient.id.is_(None))
     )
-    query = session.query(models.Person).filter(~subquery)
+    if cursor:
+        query = query.filter(models.Person.id > cursor)
+
+    query = query.limit(limit)
 
     return session.execute(query).scalars().all()
