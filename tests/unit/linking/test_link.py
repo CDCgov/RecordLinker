@@ -19,7 +19,7 @@ from recordlinker.linking import link
 
 
 class TestCompare:
-    def test_compare_match(self):
+    def test_compare_match_worthy_score(self):
         rec = schemas.PIIRecord(
             **{
                 "name": [
@@ -54,12 +54,13 @@ class TestCompare:
                 {"feature": "LAST_NAME", "func": "func:recordlinker.linking.matchers.compare_probabilistic_fuzzy_match"},
             ],
             rule="func:recordlinker.linking.matchers.rule_probabilistic_sum",
+            possible_match_window=(0.8, 0.925),
             kwargs={"log_odds": {"FIRST_NAME": 6.85, "LAST_NAME": 6.35}},
         )
 
-        assert link.compare(rec, pat, algorithm_pass) is True
+        assert round(link.compare(rec, pat, algorithm_pass), 3) == 12.830
 
-    def test_compare_no_match(self):
+    def test_compare_non_match_worthy_score(self):
         rec = schemas.PIIRecord(
             **{
                 "name": [
@@ -77,9 +78,9 @@ class TestCompare:
                 "name": [
                     {
                         "given": [
-                            "John",
+                            "Jan",
                         ],
-                        "family": "Doey",
+                        "family": "Dortmunder",
                     }
                 ]
             }
@@ -93,10 +94,11 @@ class TestCompare:
                 {"feature": "LAST_NAME", "func": "func:recordlinker.linking.matchers.compare_probabilistic_fuzzy_match"},
             ],
             rule="func:recordlinker.linking.matchers.rule_probabilistic_sum",
-            kwargs={"log_odds": {"FIRST_NAME": 6.85, "LAST_NAME": 6.35}, "true_match_threshold": 12.95},
+            possible_match_window=(0.8, 0.925),
+            kwargs={"log_odds": {"FIRST_NAME": 6.85, "LAST_NAME": 6.35}},
         )
 
-        assert link.compare(rec, pat, algorithm_pass) is False
+        assert round(link.compare(rec, pat, algorithm_pass), 3) == 5.137
 
     def test_compare_identifier_match(self):
         rec = schemas.PIIRecord(
@@ -140,10 +142,11 @@ class TestCompare:
                 {"feature": "IDENTIFIER", "func": "func:recordlinker.linking.matchers.compare_probabilistic_fuzzy_match"},
             ],
             rule="func:recordlinker.linking.matchers.rule_probabilistic_sum",
-            kwargs={"log_odds": {"IDENTIFIER": 0.35}, "true_match_threshold": 0.3},
+            possible_match_window=(0.8, 0.925),
+            kwargs={"log_odds": {"IDENTIFIER": 0.35}},
         )
 
-        assert link.compare(rec, pat, algorithm_pass) is True
+        assert link.compare(rec, pat, algorithm_pass) == 0.35
 
     def test_compare_identifier_with_suffix(self):
         rec = schemas.PIIRecord(
@@ -187,15 +190,16 @@ class TestCompare:
                 {"feature": "IDENTIFIER:MR", "func": "func:recordlinker.linking.matchers.compare_probabilistic_fuzzy_match"},
             ],
             rule="func:recordlinker.linking.matchers.rule_probabilistic_sum",
-            kwargs={"log_odds": {"IDENTIFIER": 0.35}, "true_match_threshold": 0.3},
+            possible_match_window=(0.8, 0.925),
+            kwargs={"log_odds": {"IDENTIFIER": 0.35}},
         )
 
         #should pass as MR is the same for both
-        assert link.compare(rec, pat, algorithm_pass) is True
+        assert link.compare(rec, pat, algorithm_pass) == 0.35
 
         algorithm_pass.evaluators = [{"feature": "IDENTIFIER:SS", "func": "func:recordlinker.linking.matchers.compare_probabilistic_fuzzy_match"}]
         #should fail as SS is different for both
-        assert link.compare(rec, pat, algorithm_pass) is False
+        assert link.compare(rec, pat, algorithm_pass) == 0.0
 
     def test_compare_invalid_feature(self):
         rec = schemas.PIIRecord(

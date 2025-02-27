@@ -100,9 +100,10 @@ class LinkResult:
 
 def compare(
     record: schemas.PIIRecord, patient: models.Patient, algorithm_pass: models.AlgorithmPass
-) -> typing.Union[bool, float]:
+) -> float:
     """
-    Compare the incoming record to the linked patient
+    Compare the incoming record to the linked patient and return the calculated
+    evaluation score.
     """
     # all the functions used for comparison
     evals: list[models.BoundEvaluator] = algorithm_pass.bound_evaluators()
@@ -123,8 +124,6 @@ def compare(
         results.append(result)
         details[f"evaluator.{e.feature}.{e.func.__name__}.result"] = result
     
-    # Might be a boolean, if comparing against a threshold, or a float, if
-    # propagating log-odds sums
     rule_result = matching_rule(results, **kwargs)
     details[f"rule.{matching_rule.__name__}.results"] = rule_result
     # TODO: this may add a lot of noise, consider moving to debug
@@ -250,9 +249,7 @@ def link_record_against_mpi(
                             cluster_median, rms, minimum_match_threshold, certain_match_threshold, match_grade
                         )
     
-    results: list[LinkResult] = [
-        sorted(scores.values(), reverse=True, key=lambda x: x.rms)
-    ]
+    results: list[LinkResult] = sorted(scores.values(), reverse=True, key=lambda x: x.rms)
     certain_results = [x for x in results if x.grade == 'certain']
     # re-assign the results array since we already have the higher-priority
     # 'certain' grades if we need them
