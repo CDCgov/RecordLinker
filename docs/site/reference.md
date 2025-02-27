@@ -119,7 +119,7 @@ patient data and used during query retrieval. The following blocking key types a
 
 `IDENTIFIER` (ID: **10**)
 
-:  A colon separated string of the identifier type, first 2 characters of the authority and last 4 characters of the value.
+:  A colon separated string of the last 4 characters of the value and identifier type.
 
 
 ### Evaluation Functions
