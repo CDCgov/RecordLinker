@@ -25,7 +25,12 @@
                         "func": "func:recordlinker.linking.matchers.compare_probabilistic_fuzzy_match"
                     }
                 ],
-                "rule": "func:recordlinker.linking.matchers.rule_probabilistic_match",
+                "rule": "func:recordlinker.linking.matchers.rule_probabilistic_sum",
+                "possible_match_window": [
+                    0.8,
+                    0.925
+                ],
+                "maximum_points": 13.2001963043,
                 "kwargs": {
                     "similarity_measure": "JaroWinkler",
                     "thresholds": {
@@ -67,7 +72,12 @@
                         "func": "func:recordlinker.linking.matchers.compare_probabilistic_fuzzy_match"
                     }
                 ],
-                "rule": "func:recordlinker.linking.matchers.rule_probabilistic_match",
+                "rule": "func:recordlinker.linking.matchers.rule_probabilistic_sum",
+                "possible_match_window": [
+                    0.815,
+                    0.915
+                ],
+                "maximum_points": 18.5649260327,
                 "kwargs": {
                     "similarity_measure": "JaroWinkler",
                     "thresholds": {

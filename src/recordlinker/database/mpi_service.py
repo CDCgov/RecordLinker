@@ -25,7 +25,8 @@ def get_block_data(
     Get all of the matching Patients for the given data using the provided
     blocking keys defined in the algorithm_pass. Also, get all the
     remaining Patient records in the Person clusters identified in
-    blocking to calculate Belongingness Ratio.
+    blocking who otherwise have missing or unknown values in the fields 
+    used for blocking.
     """
     # Create the base query
     base = expression.select(models.Patient.person_id).distinct()
@@ -33,7 +34,9 @@ def get_block_data(
     # Build the join criteria, we are joining the Blocking Value table
     # multiple times, once for each Blocking Key.  If a Patient record
     # has a matching Blocking Value for all the Blocking Keys, then it
-    # is considered a match.
+    # is considered a match. 
+    # NOTE: We don't currently have a solution in place to handle if the
+    # incoming record has missing fields in the blocking variables.
     for idx, key_id in enumerate(algorithm_pass.blocking_keys):
         # get the BlockingKey obj from the id
         if not hasattr(models.BlockingKey, key_id):
@@ -59,6 +62,8 @@ def get_block_data(
         )
 
     # Using the subquery of unique Patient IDs, select all the Patients
+    # NOTE: We probably apply the filter here to throw away patients with
+    # non-empty but wrong blocking fields?
     expr = expression.select(models.Patient).where(models.Patient.person_id.in_(base))
     return session.execute(expr).scalars().all()
 

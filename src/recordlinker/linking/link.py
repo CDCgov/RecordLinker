@@ -8,6 +8,7 @@ This module is used to run the linkage algorithm using the MPI service
 import collections
 import dataclasses
 import logging
+import statistics
 import typing
 
 from sqlalchemy import orm
@@ -30,13 +31,76 @@ except ImportError:
 
 @dataclasses.dataclass
 class LinkResult:
+    """
+    A data class designed to represent a single row of the "score tracking" table
+    construct, as well as to capture the result of a single linkage to a Person
+    cluster. Instance variables help define the scoring parameters used to 
+    evaluate match strength. Result rows handle their own updates (e.g. when
+    to update relative match score strengths as well as prioritizing certain
+    matches over possible matches).
+    """
     person: models.Person
-    belongingness_ratio: float
+    accumulated_points: float
+    rms: float
+    mmt: float
+    cmt: float
+    grade: str
+
+    def _do_update(self, earned_points, rms, mmt, cmt, grade):
+        """
+        Helper function to abstract variable update setting to leave
+        case-based logic clearer.
+        """
+        self.accumulated_points = earned_points
+        self.rms = rms
+        self.grade = grade
+        self.cmt = cmt
+        self.mmt = mmt
+    
+    def handle_update(self, earned_points, rms, mmt, cmt, grade):
+        """
+        Dynamically perform and handle any updates that should be tracked for
+        the results of this Person cluster in linking. Updates must consider
+        both match grade and RMS.
+
+        1. If both grades (previously seen and newly processed) are equal,
+        updating is easy: just take the result with the higher RMS.
+        2. If the existing grade is certain but the new grade is not, we
+        *don't* update: being above the Certain Match Threshold is a stricter
+        inequality than being within the Possible Match Window, so we don't 
+        want to overwrite with less information (Example: suppose the DIBBs
+        algorithm passes were switched. Suppose Cluster A had an RMS of 0.918.
+        This would be a match grade of 'certain'. If Pass 1 ran after Pass 2,
+        and Cluster A scored an RMS of 0.922, that would grade as 'possible'.
+        But despite the higher RMS, Cluster A actually accumualted more points
+        and stronger separation already, so we don't want to downgrade.)
+        3. If the new grade is certain but the existing grade is not, we
+        *always* update. Being a 'certain' match is a stronger statement and
+        thus more worth saving. Consider the example above with the passes
+        as normal. It would be better to save the Pass 2 RMS of 0.918 that 
+        graded as 'Certain' than it would be to keep the Pass 1 RMS of 0.922
+        that only graded 'Possible,' since the user's previous profiling found
+        these matches higher quality.        
+        """
+        # Start with the easy case: both grades are the same, so use the RMS
+        if grade == self.grade:
+            if earned_points > self.rms:
+                self._do_update(earned_points, rms, mmt, cmt, grade)
+        
+        # Case 2: existing grade is certain, and since grades didn't enter
+        # the equality if, new grade is only possible
+        elif self.grade == 'certain':
+            pass
+
+        # Case 3: new grade is certain, and since grades didn't enter the 
+        # equality if, existing grade is only possible
+        elif grade == 'certain':
+            self._do_update(earned_points, rms, mmt, cmt, grade)
 
 
 def compare(
     record: schemas.PIIRecord, patient: models.Patient, algorithm_pass: models.AlgorithmPass
-) -> bool:
+) -> typing.Union[bool, float]:
     """
     Compare the incoming record to the linked patient
     """
@@ -58,11 +122,27 @@ def compare(
         result: float = e.func(record, patient, feature, **kwargs)  # type: ignore
         results.append(result)
         details[f"evaluator.{e.feature}.{e.func.__name__}.result"] = result
-    is_match = matching_rule(results, **kwargs)
-    details[f"rule.{matching_rule.__name__}.results"] = is_match
+    
+    # Might be a boolean, if comparing against a threshold, or a float, if
+    # propagating log-odds sums
+    rule_result = matching_rule(results, **kwargs)
+    details[f"rule.{matching_rule.__name__}.results"] = rule_result
     # TODO: this may add a lot of noise, consider moving to debug
     LOGGER.info("patient comparison", extra=details)
-    return is_match
+    return rule_result
+
+
+def grade_result(rms: float, mmt: float, cmt: float) -> str:
+    """
+    Helper function to assign a match-grade (derived from FHIR spec terminology)
+    to a linkage result based on whether the result's match strength falls in 
+    relation to the reference window (minimum_threshold, certain_threshold).
+    """
+    if rms < mmt:
+        return "certainly-not"
+    elif rms < cmt:
+        return "possible"
+    return "certain"
 
 
 def link_record_against_mpi(
@@ -95,18 +175,15 @@ def link_record_against_mpi(
     """
     # Membership scores need to persist across linkage passes so that we can
     # find the highest scoring match across all passes
-    scores: dict[models.Person, float] = collections.defaultdict(float)
-    # the minimum ratio of matches needed to be considered a cluster member
-    belongingness_ratio_lower_bound, belongingness_ratio_upper_bound = algorithm.belongingness_ratio
+    scores: dict[models.Person, LinkResult] = collections.defaultdict(LinkResult)
     # initialize counters to track evaluation results to log
     result_counts: dict[str, int] = {
         "persons_compared": 0,
         "patients_compared": 0,
-        "above_lower_bound": 0,
-        "above_upper_bound": 0,
     }
     for algorithm_pass in algorithm.passes:
         with TRACER.start_as_current_span("link.pass"):
+            minimum_match_threshold, certain_match_threshold = algorithm_pass.possible_match_window
             # initialize a dictionary to hold the clusters of patients for each person
             clusters: dict[models.Person, list[models.Patient]] = collections.defaultdict(list)
             # block on the pii_record and the algorithm's blocking criteria, then
@@ -114,6 +191,7 @@ def link_record_against_mpi(
             with TRACER.start_as_current_span("link.block"):
                 # get all candidate Patient records identified in blocking
                 # and the remaining Patient records in their Person clusters
+                # NOTE: need to remove patients with non-empty wrong blocking fields
                 pats = mpi_service.get_block_data(session, record, algorithm_pass)
                 for pat in pats:
                     clusters[pat.person].append(pat)
@@ -122,54 +200,71 @@ def link_record_against_mpi(
             with TRACER.start_as_current_span("link.evaluate"):
                 for person, pats in clusters.items():
                     assert pats, "Patient cluster should not be empty"
-                    matched_count = 0
+                    log_odds_sums = []
                     for pat in pats:
-                        # increment our match count if the pii_record matches the patient
                         with TRACER.start_as_current_span("link.compare"):
-                            if compare(record, pat, algorithm_pass):
-                                matched_count += 1
+                            # track the accumulated points so we can eventually find
+                            # the median and normalize it
+                            rule_result = compare(record, pat, algorithm_pass)
+                            log_odds_sums.append(rule_result)
                     result_counts["persons_compared"] += 1
                     result_counts["patients_compared"] += len(pats)
-                    # calculate the match ratio for this person cluster
-                    belongingness_ratio = matched_count / len(pats)
+                    # calculate the relative match score for this person cluster
+                    cluster_median = statistics.median(log_odds_sums)
+                    rms = cluster_median / algorithm_pass.maximum_points
+                    match_grade = grade_result(rms, minimum_match_threshold, certain_match_threshold)
                     LOGGER.info(
-                        "cluster belongingness",
+                        "cluster statistics",
                         extra={
-                            "belongingness_ratio": belongingness_ratio,
+                            "median log-odds points accumulated": cluster_median,
+                            "relative match score": rms,
                             "person.reference_id": str(person.reference_id),
-                            "matched": matched_count,
-                            "total": len(pats),
-                            "algorithm.belongingness_ratio_lower": belongingness_ratio_lower_bound,
-                            "algorithm.belongingness_ratio_upper": belongingness_ratio_upper_bound,
+                            "patients compared in cluster": len(pats),
+                            "algorithm.minimum_match_threshold": minimum_match_threshold,
+                            "algorithm.certain_match_threshold": certain_match_threshold,
                         },
                     )
-                    if belongingness_ratio >= belongingness_ratio_lower_bound:
-                        # The match ratio is larger than the minimum cluster threshold,
-                        # optionally update the max score for this person
-                        scores[person] = max(scores[person], belongingness_ratio)
-
-    prediction: schemas.Prediction = "possible_match"
-    matched_person: typing.Optional[models.Person] = None
+                    # The match strength must be above the minimum user threshold in order
+                    # for this cluster to be worth remembering
+                    if rms >= minimum_match_threshold:
+                        if not person in scores:
+                            scores[person] = LinkResult(
+                                person.reference_id,
+                                cluster_median,
+                                rms,
+                                minimum_match_threshold,
+                                certain_match_threshold,
+                                match_grade
+                            )
+                        # Let the dynamic programming table track its own updates
+                        scores[person].handle_update(
+                            cluster_median, rms, minimum_match_threshold, certain_match_threshold, match_grade
+                        )
+    
     results: list[LinkResult] = [
-        LinkResult(k, v) for k, v in sorted(scores.items(), reverse=True, key=lambda i: i[1])
+        sorted(scores.values(), reverse=True, key=lambda x: x.rms)
     ]
-    result_counts["above_lower_bound"] = len(results)
-    if not results:
+    certain_results = [x for x in results if x.grade == 'certain']
+    # re-assign the results array since we already have the higher-priority
+    # 'certain' grades if we need them
+    results = [x for x in results if x.grade == 'possible']
+    prediction: schemas.Prediction = "possible"
+    matched_person: typing.Optional[models.Person] = None
+
+    if not results and not certain_results:
         # No match
-        prediction = "no_match"
+        prediction = "certainly-not"
         if persist:
             # Only create a new person cluster if we are persisting data
             matched_person = models.Person()
-    elif results[0].belongingness_ratio >= belongingness_ratio_upper_bound:
+
+    elif certain_results and len(certain_results) > 0:
         # Match (1 or many)
-        prediction = "match"
-        matched_person = results[0].person
-        # reduce results to only those that meet the upper bound threshold
-        results = [x for x in results if x.belongingness_ratio >= belongingness_ratio_upper_bound]
-        result_counts["above_upper_bound"] = len(results)
+        prediction = "certain"
+        matched_person = certain_results[0].person
         if not algorithm.include_multiple_matches:
             # reduce results to only the highest match
-            results = [results[0]]
+            results = [certain_results[0]]
 
     patient: typing.Optional[models.Patient] = None
     if persist:
@@ -183,15 +278,25 @@ def link_record_against_mpi(
                 commit=False,
             )
 
+    # Put together some strings to report the result, window, and interpretation
+    # to the user; we don't save certainly-not grades in the dynamic table
+    best_score_str: str = "n/a"
+    reference_range: str = "n/a"
+    if prediction == "certain":
+        best_score_str = str(certain_results[0].rms)
+        reference_range = "(" + certain_results[0].mmt + ", " + certain_results[0].cmt + ")"
+    elif prediction == "possible":
+        best_score_str = str(results[0].rms)
+        reference_range = "(" + results[0].mmt + ", " + results[0].cmt + ")"
     LOGGER.info(
-        "link results",
+        "final linkage results",
         extra={
             "person.reference_id": matched_person and str(matched_person.reference_id),
             "patient.reference_id": patient and str(patient.reference_id),
             "result.prediction": prediction,
+            "result.best_match_score": best_score_str,
+            "result.best_match_reference_window": reference_range,
             "result.count_patients_compared": result_counts["patients_compared"],
-            "result.count_persons_above_lower": result_counts["above_lower_bound"],
-            "result.count_persons_above_upper": result_counts["above_upper_bound"],
         },
     )
 
