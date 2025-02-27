@@ -51,9 +51,23 @@ class AlgorithmPass(pydantic.BaseModel):
         },
     )
     evaluators: list[Evaluator]
+    possible_match_window: tuple[
+        Annotated[float, pydantic.Field(ge=0, le=1)], Annotated[float, pydantic.Field(ge=0, le=1)]
+    ]
+    maximum_points: float
     rule: matchers.RuleFunc
     kwargs: dict[str, typing.Any] = {}
 
+    @pydantic.field_validator("possible_match_window", mode="before")
+    def validate_possible_match_window(cls, value):
+        """
+        Validate the Belongingness Ratio Threshold Range.
+        """
+        minimum_match_threshold, certain_match_threshold = value
+        if minimum_match_threshold > certain_match_threshold:
+            raise ValueError(f"Invalid range. Lower bound must be less than upper bound: {value}")
+        return (minimum_match_threshold, certain_match_threshold)
+    
     @pydantic.field_validator("kwargs", mode="before")
     def validate_kwargs(cls, value):
         """

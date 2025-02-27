@@ -108,9 +108,42 @@ class AlgorithmPass(Base):
     )
     algorithm: orm.Mapped["Algorithm"] = orm.relationship(back_populates="passes")
     blocking_keys: orm.Mapped[list[str]] = orm.mapped_column(sqltypes.JSON)
+    minimum_match_threshold: orm.Mapped[float] = orm.mapped_column(sqltypes.Float, default=1.0)
+    certain_match_threshold: orm.Mapped[float] = orm.mapped_column(sqltypes.Float, default=1.0)
+    maximum_points: orm.Mapped[float] = orm.mapped_colum(sqltypes.Float, defualt=1.0)
     _evaluators: orm.Mapped[list[dict]] = orm.mapped_column("evaluators", sqltypes.JSON)
     _rule: orm.Mapped[str] = orm.mapped_column("rule", sqltypes.String(255))
     kwargs: orm.Mapped[dict] = orm.mapped_column(sqltypes.JSON, default=dict)
+
+    @property
+    def possible_match_window(self) -> tuple[float, float]:
+        """
+        Get the Possible Match Window for this algorithm pass.
+        """
+        return (self.minimum_match_threshold, self.certain_match_threshold)
+
+    @possible_match_window.setter  # type: ignore
+    def possible_match_window(self, value: tuple[float, float]):
+        """
+        Set the Possible Match Window for this algorithm pass. The Possible Match Window
+        is made up of the interval between the Minimum Match Threshold and the Certain
+        Match Threshold.
+        """
+        self.minimum_match_threshold, self.certain_match_threshold = value
+
+    @property
+    def maximum_points(self) -> float:
+        """
+        Get the maximum possible log odds points achievable for this algorithm pass.
+        """
+        return self.maximum_points
+
+    @maximum_points.setter  # type: ignore
+    def maximum_points(self, value: float):
+        """
+        Set the maximum possible log odds points achievable in this algorithm pass.
+        """
+        self.maximum_points = value
 
     @property
     def evaluators(self) -> list[dict]:
