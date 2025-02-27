@@ -419,6 +419,8 @@ def get_orphaned_persons(
     if cursor:
         query = query.filter(models.Person.id > cursor)
 
-    query = query.limit(limit)
+    query = query.limit(
+        limit
+    )  # limit applied after cursor to ensure the limit is applied after the JOIN and starts from the cursor afte rthe join
 
     return session.execute(query).scalars().all()
