@@ -62,7 +62,6 @@ class TestLoadAlgorithm:
         data = schemas.Algorithm(
             label="dibbs-test",
             description="First algorithm",
-            belongingness_ratio=(0.75, 0.8),
             passes=[
                 schemas.AlgorithmPass(
                     blocking_keys=["FIRST_NAME"],
@@ -72,7 +71,8 @@ class TestLoadAlgorithm:
                             "func": "func:recordlinker.linking.matchers.compare_probabilistic_fuzzy_match",
                         }
                     ],
-                    rule="func:recordlinker.linking.matchers.rule_probabilistic_match",
+                    rule="func:recordlinker.linking.matchers.rule_probabilistic_sum",
+                    possible_match_window=(0.75, 1.0),
                 )
             ],
             
@@ -83,20 +83,19 @@ class TestLoadAlgorithm:
         assert obj.id == 1
         assert obj.label == "dibbs-test"
         assert obj.description == "First algorithm"
-        assert obj.belongingness_ratio == (0.75, 0.8)
         assert len(obj.passes) == 1
         assert obj.passes[0].algorithm_id == 1
         assert obj.passes[0].blocking_keys == ["FIRST_NAME"]
         assert obj.passes[0].evaluators == [
             {"feature": "ZIP", "func": "func:recordlinker.linking.matchers.compare_probabilistic_fuzzy_match"}
         ]
-        assert obj.passes[0].rule == "func:recordlinker.linking.matchers.rule_probabilistic_match"
+        assert obj.passes[0].rule == "func:recordlinker.linking.matchers.rule_probabilistic_sum"
+        assert obj.passes[0].possible_match_window == (0.75, 1.0)
 
     def test_load_algorithm_updated(self, session):
         data = schemas.Algorithm(
             label="dibbs-test",
             description="First algorithm",
-            belongingness_ratio=(0.75, 0.8),
             passes=[
                 schemas.AlgorithmPass(
                     blocking_keys=["FIRST_NAME"],
@@ -106,7 +105,8 @@ class TestLoadAlgorithm:
                             "func": "func:recordlinker.linking.matchers.compare_probabilistic_fuzzy_match",
                         }
                     ],
-                    rule="func:recordlinker.linking.matchers.rule_probabilistic_match",
+                    rule="func:recordlinker.linking.matchers.rule_probabilistic_sum",
+                    possible_match_window=(0.75, 1.0),
                 )
             ],
         )
@@ -120,14 +120,14 @@ class TestLoadAlgorithm:
         assert obj.id == 1
         assert obj.label == "dibbs-test"
         assert obj.description == "Updated description"
-        assert obj.belongingness_ratio == (0.75, 0.8)
         assert len(obj.passes) == 1
         assert obj.passes[0].algorithm_id == 1
         assert obj.passes[0].blocking_keys == ["LAST_NAME"]
         assert obj.passes[0].evaluators == [
             {"feature": "ZIP", "func": "func:recordlinker.linking.matchers.compare_probabilistic_fuzzy_match"}
         ]
-        assert obj.passes[0].rule == "func:recordlinker.linking.matchers.rule_probabilistic_match"
+        assert obj.passes[0].rule == "func:recordlinker.linking.matchers.rule_probabilistic_sum"
+        assert obj.passes[0].possible_match_window == (0.75, 1.0)
 
 
 def test_delete_algorithm(session):
@@ -141,7 +141,7 @@ def test_delete_algorithm(session):
         evaluators=[
             {"feature": "ZIP", "func": "func:recordlinker.linking.matchers.compare_probabilistic_fuzzy_match"}
         ],
-        rule="func:recordlinker.linking.matchers.rule_probabilistic_match",
+        rule="func:recordlinker.linking.matchers.rule_probabilistic_sum",
     )
     session.add(pass1)
     session.commit()
@@ -160,7 +160,7 @@ def test_clear_algorithms(session):
         evaluators=[
             {"feature": "ZIP", "func": "func:recordlinker.linking.matchers.compare_probabilistic_match"}
         ],
-        rule="func:recordlinker.linking.matchers.rule_probabilistic_match",
+        rule="func:recordlinker.linking.matchers.rule_probabilistic_sum",
     )
     session.add(pass1)
     session.commit()

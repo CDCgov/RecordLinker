@@ -30,7 +30,6 @@ class RuleFunc(enum.Enum):
     the algorithm.
     """
 
-    RULE_PROBABILISTIC_MATCH = "func:recordlinker.linking.matchers.rule_probabilistic_match"
     RULE_PROBABILISTIC_SUM = "func:recordlinker.linking.matchers.rule_probabilistic_sum"
 
 
@@ -66,7 +65,6 @@ class AvailableKwarg(enum.Enum):
     THRESHOLD = "threshold"
     THRESHOLDS = "thresholds"
     LOG_ODDS = "log_odds"
-    TRUE_MATCH_THRESHOLD = "true_match_threshold"
 
 
 def _get_fuzzy_params(col: str, **kwargs) -> tuple[SIMILARITY_MEASURES, float]:
@@ -98,22 +96,6 @@ def _get_fuzzy_params(col: str, **kwargs) -> tuple[SIMILARITY_MEASURES, float]:
 
     return (similarity_measure, threshold)
 
-
-def rule_probabilistic_match(feature_comparisons: list[float], **kwargs: typing.Any) -> bool:
-    """
-    Determines whether a given set of feature comparisons matches enough
-    to be the result of a true patient link instead of just random chance.
-    This is represented using previously computed log-odds ratios.
-
-    :param feature_comparisons: A list of floats representing the log-odds
-      score of each field computed on.
-    :return: Whether the feature comparisons score well enough to be
-      considered a match.
-    """
-    threshold: typing.Any = kwargs.get("true_match_threshold")
-    if threshold is None:
-        raise KeyError("Cutoff threshold for true matches must be passed.")
-    return sum(feature_comparisons) >= float(threshold)
 
 def rule_probabilistic_sum(feature_comparisons: list[float], **kwargs: typing.Any) -> float:
     """

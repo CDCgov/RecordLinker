@@ -3,10 +3,6 @@
     "description": "test algorithm configuration",
     "is_default": false,
     "include_multiple_matches": true,
-    "belongingness_ratio": [
-        0.75,
-        0.9
-    ],
     "passes": [
         {
             "blocking_keys": [
@@ -22,8 +18,11 @@
                     "func": "func:recordlinker.linking.matchers.compare_probabilistic_fuzzy_match"
                 }
             ],
-            "rule": "func:recordlinker.linking.matchers.rule_probabilistic_match",
-            "cluster_ratio": 0.9,
+            "rule": "func:recordlinker.linking.matchers.rule_probabilistic_sum",
+            "possible_match_window": [
+                0.8,
+                0.925
+            ],
             "kwargs": {
                 "thresholds": {
                     "FIRST_NAME": 0.9,
@@ -33,7 +32,6 @@
                     "CITY": 0.92,
                     "ZIP": 0.95
                 },
-                "true_match_threshold": 12.2,
                 "log_odds": {
                     "ADDRESS": 8.438284928858774,
                     "BIRTHDATE": 10.126641103800338,
@@ -64,8 +62,11 @@
                     "func": "func:recordlinker.linking.matchers.compare_probabilistic_fuzzy_match"
                 }
             ],
-            "rule": "func:recordlinker.linking.matchers.rule_probabilistic_match",
-            "cluster_ratio": 0.9,
+            "rule": "func:recordlinker.linking.matchers.rule_probabilistic_sum",
+            "possible_match_window": [
+                0.815,
+                0.915
+            ],
             "kwargs": {
                 "thresholds": {
                     "FIRST_NAME": 0.9,
@@ -75,7 +76,6 @@
                     "CITY": 0.92,
                     "ZIP": 0.95
                 },
-                "true_match_threshold": 17.0,
                 "log_odds": {
                     "ADDRESS": 8.438284928858774,
                     "BIRTHDATE": 10.126641103800338,

@@ -53,8 +53,8 @@ class TestCompare:
                 {"feature": "FIRST_NAME", "func": "func:recordlinker.linking.matchers.compare_probabilistic_fuzzy_match"},
                 {"feature": "LAST_NAME", "func": "func:recordlinker.linking.matchers.compare_probabilistic_fuzzy_match"},
             ],
-            rule="func:recordlinker.linking.matchers.rule_probabilistic_match",
-            kwargs={"log_odds": {"FIRST_NAME": 6.85, "LAST_NAME": 6.35}, "true_match_threshold": 12},
+            rule="func:recordlinker.linking.matchers.rule_probabilistic_sum",
+            kwargs={"log_odds": {"FIRST_NAME": 6.85, "LAST_NAME": 6.35}},
         )
 
         assert link.compare(rec, pat, algorithm_pass) is True
@@ -92,7 +92,7 @@ class TestCompare:
                 {"feature": "FIRST_NAME", "func": "func:recordlinker.linking.matchers.compare_probabilistic_fuzzy_match"},
                 {"feature": "LAST_NAME", "func": "func:recordlinker.linking.matchers.compare_probabilistic_fuzzy_match"},
             ],
-            rule="func:recordlinker.linking.matchers.rule_probabilistic_match",
+            rule="func:recordlinker.linking.matchers.rule_probabilistic_sum",
             kwargs={"log_odds": {"FIRST_NAME": 6.85, "LAST_NAME": 6.35}, "true_match_threshold": 12.95},
         )
 
@@ -139,7 +139,7 @@ class TestCompare:
             evaluators=[
                 {"feature": "IDENTIFIER", "func": "func:recordlinker.linking.matchers.compare_probabilistic_fuzzy_match"},
             ],
-            rule="func:recordlinker.linking.matchers.rule_probabilistic_match",
+            rule="func:recordlinker.linking.matchers.rule_probabilistic_sum",
             kwargs={"log_odds": {"IDENTIFIER": 0.35}, "true_match_threshold": 0.3},
         )
 
@@ -186,7 +186,7 @@ class TestCompare:
             evaluators=[
                 {"feature": "IDENTIFIER:MR", "func": "func:recordlinker.linking.matchers.compare_probabilistic_fuzzy_match"},
             ],
-            rule="func:recordlinker.linking.matchers.rule_probabilistic_match",
+            rule="func:recordlinker.linking.matchers.rule_probabilistic_sum",
             kwargs={"log_odds": {"IDENTIFIER": 0.35}, "true_match_threshold": 0.3},
         )
 
@@ -230,7 +230,7 @@ class TestCompare:
             evaluators=[
                 {"feature": "FIRST_NAME:DL", "func": "func:recordlinker.linking.matchers.compare_probabilistic_fuzzy_match"},
             ],
-            rule="func:recordlinker.linking.matchers.rule_probabilistic_match",
+            rule="func:recordlinker.linking.matchers.rule_probabilistic_sum",
             kwargs={},
         )
 

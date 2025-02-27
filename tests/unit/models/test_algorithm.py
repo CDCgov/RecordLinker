@@ -83,7 +83,6 @@ class TestAlgorithm:
         data = {
             "label": "Algorithm 1",
             "description": "First algorithm",
-            "belongingness_ratio": (0.75, 1.0),
             "passes": [
                 {
                     "blocking_keys": ["ZIP"],
@@ -97,14 +96,14 @@ class TestAlgorithm:
                             "func": "func:recordlinker.linking.matchers.compare_probabilistic_fuzzy_match",
                         },
                     ],
-                    "rule": "func:recordlinker.linking.matchers.rule_probabilistic_match",
+                    "rule": "func:recordlinker.linking.matchers.rule_probabilistic_sum",
+                    "possible_match_window": (0.75, 1.0),
                 }
             ],
         }
         algo = models.Algorithm.from_dict(**data)
         assert algo.label == "Algorithm 1"
         assert algo.description == "First algorithm"
-        assert algo.belongingness_ratio == (0.75, 1.0)
         assert len(algo.passes) == 1
         assert algo.passes[0].blocking_keys == ["ZIP"]
         assert algo.passes[0].evaluators == [
@@ -117,7 +116,8 @@ class TestAlgorithm:
                 "func": "func:recordlinker.linking.matchers.compare_probabilistic_fuzzy_match",
             },
         ]
-        assert algo.passes[0].rule == "func:recordlinker.linking.matchers.rule_probabilistic_match"
+        assert algo.passes[0].rule == "func:recordlinker.linking.matchers.rule_probabilistic_sum"
+        assert algo.passes[0].possible_match_window == (0.75, 1)
 
 
 class TestAlgorithmPass:
@@ -155,8 +155,8 @@ class TestAlgorithmPass:
         """
         Tests that the bound_rule method returns the correct function
         """
-        ap = models.AlgorithmPass(rule="func:recordlinker.linking.matchers.rule_probabilistic_match")
-        assert ap.bound_rule() == matchers.rule_probabilistic_match
+        ap = models.AlgorithmPass(rule="func:recordlinker.linking.matchers.rule_probabilistic_sum")
+        assert ap.bound_rule() == matchers.rule_probabilistic_sum
         ap.rule = "func:recordlinker.linking.matchers.invalid"
         with pytest.raises(ValueError, match="Failed to convert string to callable"):
             ap.bound_rule()

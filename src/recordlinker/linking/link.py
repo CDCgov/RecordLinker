@@ -184,8 +184,15 @@ def link_record_against_mpi(
     for algorithm_pass in algorithm.passes:
         with TRACER.start_as_current_span("link.pass"):
             minimum_match_threshold, certain_match_threshold = algorithm_pass.possible_match_window
+
+            # Determine the maximum possible number of log-odds points in this pass
+            evaluators: list[str] = [e["feature"] for e in algorithm_pass.evaluators]
+            log_odds_points = algorithm_pass.kwargs["log_odds"]
+            max_points = sum([log_odds_points[e] for e in evaluators])
+
             # initialize a dictionary to hold the clusters of patients for each person
             clusters: dict[models.Person, list[models.Patient]] = collections.defaultdict(list)
+
             # block on the pii_record and the algorithm's blocking criteria, then
             # iterate over the patients, grouping them by person
             with TRACER.start_as_current_span("link.block"):
@@ -207,12 +214,14 @@ def link_record_against_mpi(
                             # the median and normalize it
                             rule_result = compare(record, pat, algorithm_pass)
                             log_odds_sums.append(rule_result)
+
                     result_counts["persons_compared"] += 1
                     result_counts["patients_compared"] += len(pats)
                     # calculate the relative match score for this person cluster
                     cluster_median = statistics.median(log_odds_sums)
-                    rms = cluster_median / algorithm_pass.maximum_points
+                    rms = cluster_median / max_points
                     match_grade = grade_result(rms, minimum_match_threshold, certain_match_threshold)
+
                     LOGGER.info(
                         "cluster statistics",
                         extra={
