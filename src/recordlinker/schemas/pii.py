@@ -394,13 +394,9 @@ class PIIRecord(pydantic.BaseModel):
             # NOTE: we could optimize here and remove the dashes from the date
             vals.update(self.feature_iter(Feature(attribute=FeatureAttribute.BIRTHDATE)))
         elif key == models.BlockingKey.IDENTIFIER:
-            vals.update(
-                {
-                    f"{value_part[-4:]}:{authority_part[:2]}:{type_part}"
-                    for x in self.feature_iter(Feature(attribute=FeatureAttribute.IDENTIFIER))
-                    for value_part, authority_part, type_part in [x.split(":", 2)]
-                }
-            )
+            for ident in self.feature_iter(Feature(attribute=FeatureAttribute.IDENTIFIER)):
+                _value, _, _type = ident.split(":", 2)
+                vals.add(f"{_value[-4:]}:{_type}")
         elif key == models.BlockingKey.SEX:
             vals.update(self.feature_iter(Feature(attribute=FeatureAttribute.SEX)))
         elif key == models.BlockingKey.ZIP:

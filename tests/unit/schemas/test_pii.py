@@ -358,9 +358,9 @@ class TestPIIRecord:
         rec = pii.PIIRecord(**{"identifiers": []})
         assert rec.blocking_keys(BlockingKey.IDENTIFIER) == set()
         rec = pii.PIIRecord(**{"identifiers": [{"type": "MR", "value": "123456789"}]})
-        assert rec.blocking_keys(BlockingKey.IDENTIFIER) == {"6789::MR"}
+        assert rec.blocking_keys(BlockingKey.IDENTIFIER) == {"6789:MR"}
         rec = pii.PIIRecord(**{"identifiers": [{"type": "MR", "value": "89"}]})
-        assert rec.blocking_keys(BlockingKey.IDENTIFIER) == {"89::MR"}
+        assert rec.blocking_keys(BlockingKey.IDENTIFIER) == {"89:MR"}
 
         # test multiple identifiers return correctly
         rec = pii.PIIRecord(
@@ -369,7 +369,7 @@ class TestPIIRecord:
                 pii.Identifier(type="SS", value="123456789"),
             ]
         )
-        assert rec.blocking_keys(BlockingKey.IDENTIFIER) == {"6789::MR", "6789::SS"}
+        assert rec.blocking_keys(BlockingKey.IDENTIFIER) == {"6789:MR", "6789:SS"}
 
     def test_blocking_keys_sex(self):
         rec = pii.PIIRecord(**{"gender": "M"})
@@ -494,13 +494,13 @@ class TestPIIRecord:
         rec = pii.PIIRecord(
             **{"identifiers": [{"type": "MR", "value": "123456789", "authority": "NY"}]}
         )
-        assert rec.blocking_keys(BlockingKey.IDENTIFIER) == {"6789:NY:MR"}
+        assert rec.blocking_keys(BlockingKey.IDENTIFIER) == {"6789:MR"}
 
         # test only get first 2 characters of authority for blocking
         rec = pii.PIIRecord(
             **{"identifiers": [{"type": "MR", "value": "123456789", "authority": "DMV"}]}
         )
-        assert rec.blocking_keys(BlockingKey.IDENTIFIER) == {"6789:DM:MR"}
+        assert rec.blocking_keys(BlockingKey.IDENTIFIER) == {"6789:MR"}
 
     def test_blocking_values(self):
         rec = pii.PIIRecord(
@@ -515,7 +515,7 @@ class TestPIIRecord:
             if key == BlockingKey.BIRTHDATE:
                 assert val == "1980-01-01"
             elif key == BlockingKey.IDENTIFIER:
-                assert val == "3456::MR"
+                assert val == "3456:MR"
             elif key == BlockingKey.FIRST_NAME:
                 assert val == "John"
             elif key == BlockingKey.LAST_NAME:
