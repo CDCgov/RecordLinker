@@ -235,9 +235,9 @@ def link_record_against_mpi(
                     # The match strength must be above the minimum user threshold in order
                     # for this cluster to be worth remembering
                     if rms >= minimum_match_threshold:
-                        if not person in scores:
+                        if person not in scores:
                             scores[person] = LinkResult(
-                                person.reference_id,
+                                person,
                                 cluster_median,
                                 rms,
                                 minimum_match_threshold,
@@ -271,6 +271,9 @@ def link_record_against_mpi(
         if not algorithm.include_multiple_matches:
             # reduce results to only the highest match
             results = [certain_results[0]]
+        else:
+            # make sure we return all the actual 'certain' matches
+            results = certain_results
 
     patient: typing.Optional[models.Patient] = None
     if persist:
@@ -290,10 +293,10 @@ def link_record_against_mpi(
     reference_range: str = "n/a"
     if prediction == "certain":
         best_score_str = str(certain_results[0].rms)
-        reference_range = "(" + certain_results[0].mmt + ", " + certain_results[0].cmt + ")"
+        reference_range = "(" + str(certain_results[0].mmt) + ", " + str(certain_results[0].cmt) + ")"
     elif prediction == "possible":
         best_score_str = str(results[0].rms)
-        reference_range = "(" + results[0].mmt + ", " + results[0].cmt + ")"
+        reference_range = "(" + str(results[0].mmt) + ", " + str(results[0].cmt) + ")"
     LOGGER.info(
         "final linkage results",
         extra={
@@ -305,6 +308,5 @@ def link_record_against_mpi(
             "result.count_patients_compared": result_counts["patients_compared"],
         },
     )
-
     # return a tuple indicating whether a match was found and the person ID
     return (patient, matched_person, results, prediction)
