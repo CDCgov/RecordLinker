@@ -386,10 +386,41 @@ def get_orphaned_patients(
     """
     Retrieve orphaned Patients in the MPI database, up to the provided limit.
     """
-    query = select(models.Patient).where(models.Patient.person_id.is_(None)).limit(limit)
+    query = (
+        select(models.Patient)
+        .where(models.Patient.person_id.is_(None))
+        .order_by(models.Patient.id)
+        .limit(limit)
+    )
 
     # Apply cursor if provided
     if cursor:
         query = query.where(models.Patient.id > cursor)
+
+    return session.execute(query).scalars().all()
+
+
+def get_orphaned_persons(
+    session: orm.Session,
+    limit: int | None = 50,
+    cursor: int | None = None,
+) -> typing.Sequence[models.Person]:
+    """
+    Retrieve orphaned Persons in the MPI database, up to the provided limit. If a
+    cursor (in the form of a person reference_id) is provided, only retrieve Persons
+    with a reference_id greater than the cursor.
+    """
+    query = (
+        select(models.Person)
+        .outerjoin(models.Patient, models.Patient.person_id == models.Person.id)
+        .filter(models.Patient.id.is_(None))
+        .order_by(models.Person.id)
+    )
+    if cursor:
+        query = query.filter(models.Person.id > cursor)
+
+    query = query.limit(
+        limit
+    )  # limit applied after cursor to ensure the limit is applied after the JOIN and starts from the cursor after the join
 
     return session.execute(query).scalars().all()
