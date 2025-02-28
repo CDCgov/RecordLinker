@@ -421,6 +421,6 @@ def get_orphaned_persons(
 
     query = query.limit(
         limit
-    )  # limit applied after cursor to ensure the limit is applied after the JOIN and starts from the cursor afte rthe join
+    )  # limit applied after cursor to ensure the limit is applied after the JOIN and starts from the cursor after the join
 
     return session.execute(query).scalars().all()
