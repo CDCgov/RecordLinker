@@ -134,16 +134,30 @@ class TestAlgorithmPass:
             ]
         )
         assert ap.bound_evaluators() == [
-            models.BoundEvaluator("BIRTHDATE", matchers.compare_probabilistic_fuzzy_match)
+            models.BoundEvaluator("BIRTHDATE", matchers.compare_probabilistic_fuzzy_match, None, None)
+        ]
+        ap = models.AlgorithmPass(
+            algorithm=models.Algorithm(fuzzy_match_threshold=0.8, fuzzy_match_measure="JaroWinkler"),
+            evaluators=[
+                {
+                    "feature": "BIRTHDATE",
+                    "func": "func:recordlinker.linking.matchers.compare_probabilistic_fuzzy_match",
+                }
+            ]
+        )
+        assert ap.bound_evaluators() == [
+            models.BoundEvaluator("BIRTHDATE", matchers.compare_probabilistic_fuzzy_match, 0.8, "JaroWinkler")
         ]
         ap.evaluators = [
             {
                 "feature": "BIRTHDATE",
                 "func": "func:recordlinker.linking.matchers.compare_probabilistic_fuzzy_match",
+                "fuzzy_match_threshold": 0.7,
+                "fuzzy_match_measure": "Levenshtein",
             }
         ]
         assert ap.bound_evaluators() == [
-            models.BoundEvaluator("BIRTHDATE", matchers.compare_probabilistic_fuzzy_match)
+            models.BoundEvaluator("BIRTHDATE", matchers.compare_probabilistic_fuzzy_match, 0.7, "Levenshtein")
         ]
         ap.evaluators = [
             {"feature": "BIRTHDATE", "func": "func:recordlinker.linking.matchers.invalid"}

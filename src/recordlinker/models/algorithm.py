@@ -25,6 +25,8 @@ class BoundEvaluator:
 
     feature: str
     func: typing.Callable
+    fuzzy_match_threshold: float
+    fuzzy_match_measure: str
 
 
 class Algorithm(Base):
@@ -35,8 +37,17 @@ class Algorithm(Base):
     label: orm.Mapped[str] = orm.mapped_column(sqltypes.String(255), unique=True)
     description: orm.Mapped[str] = orm.mapped_column(sqltypes.Text(), nullable=True)
     include_multiple_matches: orm.Mapped[bool] = orm.mapped_column(sqltypes.Boolean, default=True)
-    belongingness_ratio_lower_bound: orm.Mapped[float] = orm.mapped_column(sqltypes.Float, default=1.0)
-    belongingness_ratio_upper_bound: orm.Mapped[float] = orm.mapped_column(sqltypes.Float, default=1.0)
+    belongingness_ratio_lower_bound: orm.Mapped[float] = orm.mapped_column(
+        sqltypes.Float, default=1.0
+    )
+    belongingness_ratio_upper_bound: orm.Mapped[float] = orm.mapped_column(
+        sqltypes.Float, default=1.0
+    )
+    log_odds: orm.Mapped[list[dict]] = orm.mapped_column(sqltypes.JSON, default=dict)
+    fuzzy_match_threshold: orm.Mapped[float] = orm.mapped_column(sqltypes.Float, default=0.9)
+    fuzzy_match_measure: orm.Mapped[str] = orm.mapped_column(
+        sqltypes.String(20), default="JaroWinkler"
+    )
     passes: orm.Mapped[list["AlgorithmPass"]] = orm.relationship(
         back_populates="algorithm", cascade="all, delete-orphan"
     )
@@ -110,6 +121,7 @@ class AlgorithmPass(Base):
     blocking_keys: orm.Mapped[list[str]] = orm.mapped_column(sqltypes.JSON)
     _evaluators: orm.Mapped[list[dict]] = orm.mapped_column("evaluators", sqltypes.JSON)
     _rule: orm.Mapped[str] = orm.mapped_column("rule", sqltypes.String(255))
+    true_match_threshold: orm.Mapped[float] = orm.mapped_column(sqltypes.Float, default=0.0)
     kwargs: orm.Mapped[dict] = orm.mapped_column(sqltypes.JSON, default=dict)
 
     @property
@@ -133,10 +145,20 @@ class AlgorithmPass(Base):
         Get the evaluators for this algorithm pass, bound to the algorithm.
         """
         if not hasattr(self, "_bound_evaluators"):
-            self._bound_evaluators = [
-                BoundEvaluator(**func_utils.bind_functions(e))
-                for e in self.evaluators
-            ]
+            self._bound_evaluators = []
+            for e in self.evaluators:
+                bound = func_utils.bind_functions(e)
+                bound["fuzzy_match_threshold"] = bound.get(
+                    # default to the algorithm's fuzzy match threshold if not defined
+                    "fuzzy_match_threshold",
+                    getattr(self.algorithm, "fuzzy_match_threshold", None),
+                )
+                bound["fuzzy_match_measure"] = bound.get(
+                    # default to the algorithm's fuzzy match measure if not defined
+                    "fuzzy_match_measure",
+                    getattr(self.algorithm, "fuzzy_match_measure", None),
+                )
+                self._bound_evaluators.append(BoundEvaluator(**bound))
         return self._bound_evaluators
 
     @property
