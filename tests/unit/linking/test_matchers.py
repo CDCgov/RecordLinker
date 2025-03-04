@@ -25,7 +25,7 @@ class TestRuleFunc:
             assert len(params) == 2
             assert params[0].annotation == list[float]
             assert params[1].annotation == typing.Any
-            assert signature.return_annotation is bool
+            assert signature.return_annotation is float
 
 
 class TestFeatureFunc:
