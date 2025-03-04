@@ -1,214 +1,214 @@
 {
-  "resourceType": "Bundle",
-  "identifier": {
-    "value": "a very contrived FHIR bundle"
-  },
-  "entry": [
-    {
-      "resource": {
-        "resourceType": "Patient",
-        "id": "f6a16ff7-4a31-11eb-be7b-8344edc8f36b",
-        "identifier": [
-          {
-            "value": "123456789",
-            "type": {
-              "coding": [
-                {
-                  "code": "MR",
-                  "system": "http://terminology.hl7.org/CodeSystem/v2-0203",
-                  "display": "Medical record number"
-                }
-              ]
-            }
-          }
-        ],
-        "name": [
-          {
-            "family": "Smith",
-            "given": [
-              "John"
-            ],
-            "use": "official"
-          }
-        ],
-        "birthDate": "1980-01-01",
-        "gender": "male",
-        "address": [
-          {
-            "line": [
-              "1234 Silversun Strip"
-            ],
-            "buildingNumber": "1234",
-            "city": "Boston",
-            "state": "Massachusetts",
-            "postalCode": "99999",
-            "use": "home"
-          }
-        ],
-        "telecom": [
-          {
-            "use": "home",
-            "system": "phone",
-            "value": "123-456-7890"
-          }
-        ]
-      }
+    "resourceType": "Bundle",
+    "identifier": {
+        "value": "a very contrived FHIR bundle"
     },
-    {
-      "resource": {
-        "resourceType": "Patient",
-        "id": "2fdd0b8b-4a70-11eb-99fd-ad786a821574",
-        "identifier": [
-          {
-            "value": "123456789",
-            "type": {
-              "coding": [
-                {
-                  "code": "MR",
-                  "system": "http://terminology.hl7.org/CodeSystem/v2-0203",
-                  "display": "Medical record number"
-                }
-              ]
+    "entry": [
+        {
+            "resource": {
+                "resourceType": "Patient",
+                "id": "f6a16ff7-4a31-11eb-be7b-8344edc8f36b",
+                "identifier": [
+                    {
+                        "value": "123456789",
+                        "type": {
+                            "coding": [
+                                {
+                                    "code": "MR",
+                                    "system": "http://terminology.hl7.org/CodeSystem/v2-0203",
+                                    "display": "Medical record number"
+                                }
+                            ]
+                        }
+                    }
+                ],
+                "name": [
+                    {
+                        "family": "Smith",
+                        "given": [
+                            "John"
+                        ],
+                        "use": "official"
+                    }
+                ],
+                "birthDate": "1980-01-01",
+                "gender": "male",
+                "address": [
+                    {
+                        "line": [
+                            "1234 Silversun Strip"
+                        ],
+                        "buildingNumber": "1234",
+                        "city": "Boston",
+                        "state": "Massachusetts",
+                        "postalCode": "99999",
+                        "use": "home"
+                    }
+                ],
+                "telecom": [
+                    {
+                        "use": "home",
+                        "system": "phone",
+                        "value": "123-456-7890"
+                    }
+                ]
             }
-          }
-        ],
-        "name": [
-          {
-            "family": "Smith",
-            "given": [
-              "Jonathan"
-            ],
-            "use": "official"
-          }
-        ],
-        "birthDate": "1980-01-01",
-        "gender": "male",
-        "address": [
-          {
-            "line": [
-              "1234 Silversun Strip"
-            ],
-            "buildingNumber": "1234",
-            "city": "Boston",
-            "state": "Massachusetts",
-            "postalCode": "99999",
-            "use": "home"
-          }
-        ],
-        "telecom": [
-          {
-            "use": "home",
-            "system": "phone",
-            "value": "123-456-7890"
-          }
-        ]
-      }
-    },
-    {
-      "resource": {
-        "resourceType": "Patient",
-        "id": "2fdd0b8b-4a70-11eb-99fd-ad786a821574",
-        "identifier": [
-          {
-            "value": "123456789",
-            "type": {
-              "coding": [
-                {
-                  "code": "MR",
-                  "system": "http://terminology.hl7.org/CodeSystem/v2-0203",
-                  "display": "Medical record number"
-                }
-              ]
+        },
+        {
+            "resource": {
+                "resourceType": "Patient",
+                "id": "2fdd0b8b-4a70-11eb-99fd-ad786a821574",
+                "identifier": [
+                    {
+                        "value": "123456789",
+                        "type": {
+                            "coding": [
+                                {
+                                    "code": "MR",
+                                    "system": "http://terminology.hl7.org/CodeSystem/v2-0203",
+                                    "display": "Medical record number"
+                                }
+                            ]
+                        }
+                    }
+                ],
+                "name": [
+                    {
+                        "family": "Smith",
+                        "given": [
+                            "Jonathan"
+                        ],
+                        "use": "official"
+                    }
+                ],
+                "birthDate": "1980-01-01",
+                "gender": "male",
+                "address": [
+                    {
+                        "line": [
+                            "1234 Silversun Strip"
+                        ],
+                        "buildingNumber": "1234",
+                        "city": "Boston",
+                        "state": "Massachusetts",
+                        "postalCode": "99999",
+                        "use": "home"
+                    }
+                ],
+                "telecom": [
+                    {
+                        "use": "home",
+                        "system": "phone",
+                        "value": "123-456-7890"
+                    }
+                ]
             }
-          }
-        ],
-        "name": [
-          {
-            "family": "Smith",
-            "given": [
-              "Johna"
-            ],
-            "use": "official"
-          }
-        ],
-        "birthDate": "1980-01-01",
-        "gender": "male",
-        "address": [
-            {
-            "line": [
-              "1234 Silversun Strip"
-            ],
-            "buildingNumber": "1234",
-            "city": "Boston",
-            "state": "Massachusetts",
-            "postalCode": "99999",
-            "use": "home"
-          }
-        ],
-        "telecom": [
-          {
-            "use": "home",
-            "system": "phone",
-            "value": "123-456-7890"
-          }
-        ]
-      }
-    },
-    {
-      "resource": {
-        "resourceType": "Patient",
-        "id": "2fdd0b8b-4a70-11eb-99fd-ad786a821574",
-        "identifier": [
-          {
-            "value": "123456789",
-            "type": {
-              "coding": [
-                {
-                  "code": "MR",
-                  "system": "http://terminology.hl7.org/CodeSystem/v2-0203",
-                  "display": "Medical record number"
-                }
-              ]
+        },
+        {
+            "resource": {
+                "resourceType": "Patient",
+                "id": "2fdd0b8b-4a70-11eb-99fd-ad786a821574",
+                "identifier": [
+                    {
+                        "value": "123456789",
+                        "type": {
+                            "coding": [
+                                {
+                                    "code": "MR",
+                                    "system": "http://terminology.hl7.org/CodeSystem/v2-0203",
+                                    "display": "Medical record number"
+                                }
+                            ]
+                        }
+                    }
+                ],
+                "name": [
+                    {
+                        "family": "Smith",
+                        "given": [
+                            "Johnathan"
+                        ],
+                        "use": "official"
+                    }
+                ],
+                "birthDate": "1980-01-01",
+                "gender": "male",
+                "address": [
+                    {
+                        "line": [
+                            "1234 Silversun Strip"
+                        ],
+                        "buildingNumber": "1234",
+                        "city": "Boston",
+                        "state": "Massachusetts",
+                        "postalCode": "99999",
+                        "use": "home"
+                    }
+                ],
+                "telecom": [
+                    {
+                        "use": "home",
+                        "system": "phone",
+                        "value": "123-456-7890"
+                    }
+                ]
             }
-          }
-        ],
-        "name": [
-          {
-            "family": "Smith",
-            "given": [
-              "Jona"
-            ],
-            "use": "official"
-          }
-        ],
-        "birthDate": "1980-01-01",
-        "gender": "male",
-        "address": [
-            {
-            "line": [
-              "1234 Silversun Strip"
-            ],
-            "buildingNumber": "1234",
-            "city": "Boston",
-            "state": "Massachusetts",
-            "postalCode": "99999",
-            "use": "home"
-          }
-        ],
-        "telecom": [
-          {
-            "use": "home",
-            "system": "phone",
-            "value": "123-456-7890"
-          }
-        ]
-      }
-    },
-    {
-      "request": {
-        "method": "GET",
-        "url": "testing for entry with no resource"
-      }
-    }
-  ]
+        },
+        {
+            "resource": {
+                "resourceType": "Patient",
+                "id": "2fdd0b8b-4a70-11eb-99fd-ad786a821574",
+                "identifier": [
+                    {
+                        "value": "123456789",
+                        "type": {
+                            "coding": [
+                                {
+                                    "code": "MR",
+                                    "system": "http://terminology.hl7.org/CodeSystem/v2-0203",
+                                    "display": "Medical record number"
+                                }
+                            ]
+                        }
+                    }
+                ],
+                "name": [
+                    {
+                        "family": "Smith",
+                        "given": [
+                            "Jona"
+                        ],
+                        "use": "official"
+                    }
+                ],
+                "birthDate": "1980-01-01",
+                "gender": "male",
+                "address": [
+                    {
+                        "line": [
+                            "1234 Silversun Strip"
+                        ],
+                        "buildingNumber": "1234",
+                        "city": "Boston",
+                        "state": "Massachusetts",
+                        "postalCode": "99999",
+                        "use": "home"
+                    }
+                ],
+                "telecom": [
+                    {
+                        "use": "home",
+                        "system": "phone",
+                        "value": "123-456-7890"
+                    }
+                ]
+            }
+        },
+        {
+            "request": {
+                "method": "GET",
+                "url": "testing for entry with no resource"
+            }
+        }
+    ]
 }

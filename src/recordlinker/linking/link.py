@@ -84,7 +84,7 @@ class LinkResult:
         """
         # Start with the easy case: both grades are the same, so use the RMS
         if grade == self.grade:
-            if earned_points > self.rms:
+            if rms > self.rms:
                 self._do_update(earned_points, rms, mmt, cmt, grade)
         
         # Case 2: existing grade is certain, and since grades didn't enter

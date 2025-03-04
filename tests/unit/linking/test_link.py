@@ -333,83 +333,88 @@ class TestLinkRecordAgainstMpi:
         assert matches == [False, True, False, True, False, False, True]
         assert sorted(list(mapped_patients.values())) == [1, 1, 1, 4]
 
-    # def test_default_possible_match(
-    #         self,
-    #         session,
-    #         default_algorithm,
-    #         possible_match_default_patients: list[schemas.PIIRecord]
-    #     ):
-    #     predictions: dict[str, dict] = collections.defaultdict(dict)
-    #     # Decrease Belongingness Ratio lower bound to catch Possible Match when Belongingness Ratio = 0.5
-    #     for lower_bound in [0.5, 0.45]: # test >= lower bound
-    #         default_algorithm.belongingness_ratio_lower_bound = lower_bound
-    #         for i, data in enumerate(possible_match_default_patients):
-    #             (patient, person, results, prediction) = link.link_record_against_mpi(data, session, default_algorithm)
-    #             predictions[i] = {
-    #                 "patient": patient,
-    #                 "person": person,
-    #                 "results": results,
-    #                 "prediction": prediction
-    #             }
-    #         # 1 Possible Match
-    #         assert not predictions[2]["person"]
-    #         assert len(predictions[2]["results"]) == 1
-    #         assert predictions[2]["results"][0].person == predictions[0]["person"]
-    #         assert predictions[2]["results"][0].belongingness_ratio >= default_algorithm.belongingness_ratio_lower_bound
-    #         assert predictions[2]["results"][0].belongingness_ratio < default_algorithm.belongingness_ratio_upper_bound
-    #         assert predictions[2]["prediction"] == "possible_match"
+    def test_default_possible_match(
+            self,
+            session,
+            default_algorithm,
+            possible_match_default_patients: list[schemas.PIIRecord]
+        ):
+        predictions: dict[str, dict] = collections.defaultdict(dict)
+        # Can just set the threshold for certainty higher to catch a possible match
+        default_algorithm.passes[0].certain_match_threshold = 0.95
+        for i, data in enumerate(possible_match_default_patients):
+            (patient, person, results, prediction) = link.link_record_against_mpi(data, session, default_algorithm)
+            predictions[i] = {
+                "patient": patient,
+                "person": person,
+                "results": results,
+                "prediction": prediction
+            }
 
-    # def test_include_multiple_matches_true(
-    #         self,
-    #         session,
-    #         default_algorithm,
-    #         multiple_matches_patients: list[schemas.PIIRecord]
-    #     ):
-    #     predictions: dict[str, dict] = collections.defaultdict(dict)
-    #     # Adjust Belongingness Ratio bounds to catch Match when Belongingness Ratio = 0.5
-    #     default_algorithm.belongingness_ratio_lower_bound = 0.3
-    #     for upper_bound in [0.5, 0.45]: # test >= upper bound
-    #         default_algorithm.belongingness_ratio_upper_bound = upper_bound
-    #         for i, data in enumerate(multiple_matches_patients):
-    #             (patient, person, results, prediction) = link.link_record_against_mpi(data, session, default_algorithm)
-    #             predictions[i] = {
-    #                 "patient": patient,
-    #                 "person": person,
-    #                 "results": results,
-    #                 "prediction": prediction
-    #             }
-    #         # 2 Matches
-    #         assert len(predictions[3]["results"]) == 2
-    #         assert predictions[3]["person"] == predictions[1]["person"] # Assign to Person with highest Belongingness Ratio (1.0)
-    #         for match in predictions[2]["results"]:
-    #             assert match.belongingness_ratio >= default_algorithm.belongingness_ratio_upper_bound
-    #         assert predictions[3]["prediction"] == "match"
+        # We'll have one prediction of each type, matched in the order 
+        # certainly-not, certain, possible
+        assert predictions[0]["prediction"] == "certainly-not"
+        assert predictions[1]["prediction"] == "certain"
+        assert predictions[2]["prediction"] == "possible"
+        assert predictions[2]["results"][0].person == predictions[0]["person"]
+        assert predictions[2]["results"][0].rms >= default_algorithm.passes[0].minimum_match_threshold
+        assert predictions[2]["results"][0].rms < default_algorithm.passes[0].certain_match_threshold
 
-    # def test_include_multiple_matches_false(
-    #         self,
-    #         session,
-    #         default_algorithm,
-    #         multiple_matches_patients: list[schemas.PIIRecord]
-    #     ):
-    #     predictions: dict[str, dict] = collections.defaultdict(dict)
-    #     default_algorithm.include_multiple_matches = False
-    #     # Adjust Belongingness Ratio bounds to catch Match when Belongingness Ratio = 0.5
-    #     default_algorithm.belongingness_ratio_lower_bound = 0.3
-    #     for upper_bound in [0.5, 0.45]: # test >= upper bound
-    #         default_algorithm.belongingness_ratio_upper_bound = upper_bound
-    #         for i, data in enumerate(multiple_matches_patients):
-    #             (patient, person, results, prediction) = link.link_record_against_mpi(data, session, default_algorithm)
-    #             predictions[i] = {
-    #                 "patient": patient,
-    #                 "person": person,
-    #                 "results": results,
-    #                 "prediction": prediction
-    #             }
-    #         # 2 Matches, but only include 1
-    #         assert len(predictions[3]["results"]) == 1
-    #         assert predictions[3]["person"] == predictions[1]["person"] # Assign to Person with highest Belongingness Ratio (1.0)
-    #         assert predictions[3]["results"][0].belongingness_ratio >= default_algorithm.belongingness_ratio_upper_bound
-    #         assert predictions[3]["prediction"] == "match"
+    def test_include_multiple_matches_true(
+            self,
+            session,
+            default_algorithm,
+            multiple_matches_patients: list[schemas.PIIRecord]
+        ):
+        predictions: dict[str, dict] = collections.defaultdict(dict)
+        for i, data in enumerate(multiple_matches_patients):
+            (patient, person, results, prediction) = link.link_record_against_mpi(data, session, default_algorithm)
+            predictions[i] = {
+                "patient": patient,
+                "person": person,
+                "results": results,
+                "prediction": prediction
+            }
+
+        # We'll have four predictions: two 'certainly-not' followed by 
+        # two 'certain'
+        assert predictions[0]["prediction"] == "certainly-not"
+        assert predictions[1]["prediction"] == "certainly-not"
+        assert predictions[2]["prediction"] == "certain"
+        assert predictions[3]["prediction"] == "certain"
+
+        # The first 'certain' match is a 'Johnathan' matching to both a
+        # 'John' and a 'Jonathan' using different grades in different passes
+        assert len(predictions[2]["results"]) == 2
+        for match in predictions[2]["results"]:
+            assert match.rms >= match.cmt
+
+        # Since grades are the same, assign final match to one with higher RMS (1.0)
+        assert predictions[2]["person"] == predictions[0]["person"]
+        assert predictions[2]["results"][0].rms == 1.0
+
+    def test_include_multiple_matches_false(
+            self,
+            session,
+            default_algorithm,
+            multiple_matches_patients: list[schemas.PIIRecord]
+        ):
+        predictions: dict[str, dict] = collections.defaultdict(dict)
+        default_algorithm.include_multiple_matches = False
+        for i, data in enumerate(multiple_matches_patients):
+            (patient, person, results, prediction) = link.link_record_against_mpi(data, session, default_algorithm)
+            predictions[i] = {
+                "patient": patient,
+                "person": person,
+                "results": results,
+                "prediction": prediction
+            }
+
+        # The match cases are as above, but we only include 1 result
+        assert len(predictions[2]["results"]) == 1
+        assert predictions[2]["prediction"] == "certain"
+        assert predictions[2]["results"][0].rms >= predictions[2]["results"][0].cmt
+        assert predictions[2]["person"] == predictions[0]["person"]
 
     def test_no_persist(self, session, default_algorithm, patients):
         # First patient inserted into MPI, no match
