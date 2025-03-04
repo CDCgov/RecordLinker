@@ -174,7 +174,7 @@ def link_record_against_mpi(
     """
     # Membership scores need to persist across linkage passes so that we can
     # find the highest scoring match across all passes
-    scores: dict[models.Person, LinkResult] = collections.defaultdict(lambda: LinkResult())
+    scores: dict[models.Person, LinkResult] = {}
     # initialize counters to track evaluation results to log
     result_counts: dict[str, int] = {
         "persons_compared": 0,
