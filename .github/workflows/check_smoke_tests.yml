@@ -89,7 +89,7 @@ jobs:
         -H "Content-Type: application/json")
 
         echo "Response: $RESPONSE_1"
-        echo "$RESPONSE_1" | jq -e '.prediction == "no_match"' 
+        echo "$RESPONSE_1" | jq -e '.prediction == "certainly-not"' 
 
         PERSON_REFERENCE_ID=$(echo "$RESPONSE_1" | jq -r '.person_reference_id')
 
