@@ -36,7 +36,7 @@ class TestPIIRecord:
                 {
                     "line": ["456 Elm St", "Apt 2"],
                     "city": "Somecity",
-                    "state": "CA",
+                    "state": "California",
                     "postal_code": "98765-4321",
                     "country": "US",
                     "county": "county2",

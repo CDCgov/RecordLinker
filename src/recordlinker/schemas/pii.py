@@ -10,6 +10,7 @@ import pydantic
 from recordlinker import models
 from recordlinker.schemas.identifier import Identifier
 from recordlinker.schemas.identifier import IdentifierType
+from recordlinker.utils import normalize
 
 
 class FeatureAttribute(enum.Enum):
@@ -163,6 +164,16 @@ class Address(pydantic.BaseModel):
     latitude: typing.Optional[float] = None
     longitude: typing.Optional[float] = None
 
+    @classmethod
+    def model_construct(cls, **values: typing.Any) -> "Address":
+        """
+        Custom model_construct to inject state parsing into the Address object.
+        """
+        if "state" in values:
+            values["state"] = normalize.normalize_state(values["state"])
+
+        return cls(**values)
+
 
 class Telecom(pydantic.BaseModel):
     """
@@ -223,6 +234,7 @@ class PIIRecord(pydantic.BaseModel):
         when the data is already cleaned and validated.
         """
         obj = super(PIIRecord, cls).model_construct(_fields_set=_fields_set, **values)
+        # obj = cls(**values)
         obj.address = [Address.model_construct(**a) for a in values.get("address", [])]
         obj.name = [Name.model_construct(**n) for n in values.get("name", [])]
         obj.telecom = [Telecom.model_construct(**t) for t in values.get("telecom", [])]
@@ -249,7 +261,7 @@ class PIIRecord(pydantic.BaseModel):
     @pydantic.field_validator("sex", mode="before")
     def parse_sex(cls, value):
         """
-        Parse the
+        Parse the sex value into a sex enum.
         """
         if value:
             val = str(value).lower().strip()
