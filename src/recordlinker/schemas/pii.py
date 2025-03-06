@@ -229,7 +229,9 @@ class PIIRecord(pydantic.BaseModel):
     identifiers: typing.List[Identifier] = []
 
     @classmethod
-    def model_construct(cls, **values: typing.Any) -> typing.Self:
+    def model_construct(
+        cls, _fields_set: set[str] | None = None, **values: typing.Any
+    ) -> typing.Self:
         """
         Construct a PIIRecord object from a dictionary. This is similar to the
         `pydantic.BaseModel.models_construct` method, but allows for additional parsing
