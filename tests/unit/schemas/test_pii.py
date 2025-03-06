@@ -56,7 +56,7 @@ class TestPIIRecord:
             ],
         }
         record = pii.PIIRecord.model_construct(**data)
-        assert record.birth_date == "1980-2-1"
+        assert record.birth_date == datetime.date(1980, 2, 1)
         assert record.name[0].family == "Doe"
         assert record.name[0].given == ["John", "L"]
         assert record.name[1].family == "Smith"

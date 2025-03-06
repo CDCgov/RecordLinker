@@ -10,7 +10,6 @@ import pydantic
 from recordlinker import models
 from recordlinker.schemas.identifier import Identifier
 from recordlinker.schemas.identifier import IdentifierType
-from recordlinker.utils import normalize
 
 
 class FeatureAttribute(enum.Enum):
@@ -164,17 +163,22 @@ class Address(pydantic.BaseModel):
     latitude: typing.Optional[float] = None
     longitude: typing.Optional[float] = None
 
-    @classmethod
-    def model_construct(
-        cls, _fields_set: set[str] | None = None, **values: typing.Any
-    ) -> "Address":
+    @pydantic.field_validator("state", mode="before")
+    def normalize_state(cls, value):
         """
-        Custom model_construct to inject state parsing into the Address object.
+        Normalize the state field into 2-digit USPS code.
         """
-        if "state" in values:
-            values["state"] = normalize.normalize_state(values["state"])
+        if value is None:
+            return None
+        value = value.strip().title()
 
-        return cls(**values)
+        if len(value) == 2 and value.upper() in _STATE_CODE_TO_NAME:
+            return value.upper()
+
+        if value in _STATE_NAME_TO_CODE:
+            return _STATE_NAME_TO_CODE[value]
+
+        raise ValueError(f"Invalid state: {value}")
 
 
 class Telecom(pydantic.BaseModel):
@@ -225,9 +229,7 @@ class PIIRecord(pydantic.BaseModel):
     identifiers: typing.List[Identifier] = []
 
     @classmethod
-    def model_construct(
-        cls, _fields_set: set[str] | None = None, **values: typing.Any
-    ) -> typing.Self:
+    def model_construct(cls, **values: typing.Any) -> typing.Self:
         """
         Construct a PIIRecord object from a dictionary. This is similar to the
         `pydantic.BaseModel.models_construct` method, but allows for additional parsing
@@ -235,12 +237,7 @@ class PIIRecord(pydantic.BaseModel):
         is this method will not parse and validate the data, thus should only be used
         when the data is already cleaned and validated.
         """
-        obj = super(PIIRecord, cls).model_construct(_fields_set=_fields_set, **values)
-        obj.address = [Address.model_construct(**a) for a in values.get("address", [])]
-        obj.name = [Name.model_construct(**n) for n in values.get("name", [])]
-        obj.telecom = [Telecom.model_construct(**t) for t in values.get("telecom", [])]
-        obj.identifiers = [Identifier.model_construct(**i) for i in values.get("identifiers", [])]
-
+        obj = cls(**values)
         return obj
 
     @pydantic.field_validator("external_id", mode="before")
@@ -450,3 +447,70 @@ class PIIRecord(pydantic.BaseModel):
             # a PII data dict could have multiple given names
             for val in self.blocking_keys(key):
                 yield key, val
+
+
+_STATE_NAME_TO_CODE = {
+    "Alabama": "AL",
+    "Alaska": "AK",
+    "American Samoa": "AS",
+    "Arizona": "AZ",
+    "Arkansas": "AR",
+    "California": "CA",
+    "Colorado": "CO",
+    "Connecticut": "CT",
+    "Delaware": "DE",
+    "District Of Columbia": "DC",
+    "Federated States Of Micronesia": "FM",
+    "Florida": "FL",
+    "Georgia": "GA",
+    "Guam": "GU",
+    "Hawaii": "HI",
+    "Idaho": "ID",
+    "Illinois": "IL",
+    "Indiana": "IN",
+    "Iowa": "IA",
+    "Kansas": "KS",
+    "Kentucky": "KY",
+    "Louisiana": "LA",
+    "Maine": "ME",
+    "Marshall Islands": "MH",
+    "Maryland": "MD",
+    "Massachusetts": "MA",
+    "Michigan": "MI",
+    "Minnesota": "MN",
+    "Mississippi": "MS",
+    "Missouri": "MO",
+    "Montana": "MT",
+    "Nebraska": "NE",
+    "Nevada": "NV",
+    "New Hampshire": "NH",
+    "New Jersey": "NJ",
+    "New Mexico": "NM",
+    "New York": "NY",
+    "North Carolina": "NC",
+    "North Dakota": "ND",
+    "Northern Mariana Islands": "MP",
+    "Ohio": "OH",
+    "Oklahoma": "OK",
+    "Oregon": "OR",
+    "Palau": "PW",
+    "Pennsylvania": "PA",
+    "Puerto Rico": "PR",
+    "Rhode Island": "RI",
+    "South Carolina": "SC",
+    "South Dakota": "SD",
+    "Tennessee": "TN",
+    "Texas": "TX",
+    "Utah": "UT",
+    "Vermont": "VT",
+    "Virgin Islands": "VI",
+    "Virginia": "VA",
+    "Washington": "WA",
+    "West Virginia": "WV",
+    "Wisconsin": "WI",
+    "Wyoming": "WY",
+    "Armed Forces Europe, The Middle East, And Canada": "AE",
+    "Armed Forces Pacific": "AP",
+    "Armed Forces Americas (Except Canada)": "AA",
+}
+_STATE_CODE_TO_NAME = {v: k for k, v in _STATE_NAME_TO_CODE.items()}

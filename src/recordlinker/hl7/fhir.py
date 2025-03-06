@@ -10,7 +10,6 @@ import typing
 import pydantic
 
 from recordlinker import schemas
-from recordlinker.utils import normalize
 
 
 def get_first_patient_resource(bundle: dict) -> dict:
@@ -50,7 +49,6 @@ def fhir_record_to_pii_record(fhir_record: dict) -> schemas.PIIRecord:
                 }
             )
     for address in val["address"]:
-        address["state"] = normalize.normalize_state(address.get("state"))
         address["county"] = address.get("district", "")
         for extension in address.get("extension", []):
             if extension.get("url") == "http://hl7.org/fhir/StructureDefinition/geolocation":
