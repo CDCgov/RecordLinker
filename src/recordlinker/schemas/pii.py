@@ -165,7 +165,9 @@ class Address(pydantic.BaseModel):
     longitude: typing.Optional[float] = None
 
     @classmethod
-    def model_construct(cls, **values: typing.Any) -> "Address":
+    def model_construct(
+        cls, _fields_set: set[str] | None = None, **values: typing.Any
+    ) -> "Address":
         """
         Custom model_construct to inject state parsing into the Address object.
         """
