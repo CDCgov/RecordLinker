@@ -10,6 +10,7 @@ import typing
 import pydantic
 
 from recordlinker import schemas
+from recordlinker.utils import normalize
 
 
 def get_first_patient_resource(bundle: dict) -> dict:
@@ -39,12 +40,17 @@ def fhir_record_to_pii_record(fhir_record: dict) -> schemas.PIIRecord:
     }
     for identifier in fhir_record.get("identifier", []):
         for code in identifier.get("type", {}).get("coding", []):
-            val["identifiers"].append({
-                "value": identifier.get("value"),
-                "type": code.get("code"),
-                "authority": identifier.get("assigner", {}).get("identifier", {}).get("value", ""),
-            })
+            val["identifiers"].append(
+                {
+                    "value": identifier.get("value"),
+                    "type": code.get("code"),
+                    "authority": identifier.get("assigner", {})
+                    .get("identifier", {})
+                    .get("value", ""),
+                }
+            )
     for address in val["address"]:
+        address["state"] = normalize.normalize_state(address.get("state"))
         address["county"] = address.get("district", "")
         for extension in address.get("extension", []):
             if extension.get("url") == "http://hl7.org/fhir/StructureDefinition/geolocation":
@@ -58,8 +64,9 @@ def fhir_record_to_pii_record(fhir_record: dict) -> schemas.PIIRecord:
             for ext in extension.get("extension", []):
                 if ext.get("url") == "ombCategory":
                     val["race"] = ext.get("valueCoding", {}).get("display")
-    
+
     return schemas.PIIRecord(**val)
+
 
 def add_person_resource(
     person_id: str,
