@@ -60,6 +60,7 @@ class TestGetAlgorithm:
                         },
                     ],
                     rule="func:recordlinker.linking.matchers.rule_probabilistic_match",
+                    true_match_threshold=6,
                     kwargs={"similarity_measure": "JaroWinkler", "log_odds": {"FIRST_NAME": 6.8}},
                 )
             ],
@@ -95,6 +96,7 @@ class TestGetAlgorithm:
                         }
                     ],
                     "rule": "func:recordlinker.linking.matchers.rule_probabilistic_match",
+                    "true_match_threshold": 6,
                     "kwargs": {
                         "similarity_measure": "JaroWinkler",
                         "log_odds": {"FIRST_NAME": 6.8}
@@ -144,6 +146,7 @@ class TestCreateAlgorithm:
                         }
                     ],
                     "rule": "func:recordlinker.linking.matchers.rule_probabilistic_match",
+                    "true_match_threshold": 8,
                 }
             ],
         }
@@ -228,6 +231,7 @@ class TestUpdateAlgorithm:
                         }
                     ],
                     "rule": "func:recordlinker.linking.matchers.rule_probabilistic_match",
+                    "true_match_threshold": 5,
                 }
             ],
         }

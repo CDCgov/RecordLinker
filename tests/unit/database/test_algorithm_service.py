@@ -78,6 +78,7 @@ class TestLoadAlgorithm:
                         }
                     ],
                     rule="func:recordlinker.linking.matchers.rule_probabilistic_match",
+                    true_match_threshold=7,
                 )
             ],
         )
@@ -88,10 +89,7 @@ class TestLoadAlgorithm:
         assert obj.label == "dibbs-test"
         assert obj.description == "First algorithm"
         assert obj.belongingness_ratio == (0.75, 0.8)
-        assert obj.defaults == {
-            "fuzzy_match_threshold": 0.8,
-            "fuzzy_match_measure": "Levenshtein"
-        }
+        assert obj.defaults == {"fuzzy_match_threshold": 0.8, "fuzzy_match_measure": "Levenshtein"}
         assert len(obj.passes) == 1
         assert obj.passes[0].algorithm_id == 1
         assert obj.passes[0].blocking_keys == ["FIRST_NAME"]
@@ -114,10 +112,7 @@ class TestLoadAlgorithm:
             label="dibbs-test",
             description="First algorithm",
             belongingness_ratio=(0.75, 0.8),
-            log_odds=[
-                {"feature": "FIRST_NAME", "value": 7},
-                {"feature": "ZIP", "value": 4}
-            ],
+            log_odds=[{"feature": "FIRST_NAME", "value": 7}, {"feature": "ZIP", "value": 4}],
             passes=[
                 schemas.AlgorithmPass(
                     blocking_keys=["FIRST_NAME"],
@@ -128,6 +123,7 @@ class TestLoadAlgorithm:
                         }
                     ],
                     rule="func:recordlinker.linking.matchers.rule_probabilistic_match",
+                    true_match_threshold=7,
                 )
             ],
         )
@@ -176,6 +172,7 @@ def test_delete_algorithm(session):
             }
         ],
         rule="func:recordlinker.linking.matchers.rule_probabilistic_match",
+        true_match_threshold=7,
     )
     session.add(pass1)
     session.commit()
@@ -198,6 +195,7 @@ def test_clear_algorithms(session):
             }
         ],
         rule="func:recordlinker.linking.matchers.rule_probabilistic_match",
+        true_match_threshold=7,
     )
     session.add(pass1)
     session.commit()

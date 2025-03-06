@@ -77,6 +77,7 @@ class AlgorithmPass(pydantic.BaseModel):
     )
     evaluators: list[Evaluator]
     rule: matchers.RuleFunc
+    true_match_threshold: Annotated[float, pydantic.Field(ge=0)]
     kwargs: dict[str, typing.Any] = {}
 
     @pydantic.field_validator("kwargs", mode="before")

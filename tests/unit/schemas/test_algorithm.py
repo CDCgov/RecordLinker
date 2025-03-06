@@ -20,6 +20,7 @@ class TestAlgorithmPass:
                 blocking_keys=keys,
                 evaluators=[],
                 rule="func:recordlinker.linking.matchers.rule_probabilistic_match",
+                true_match_threshold=0,
             )
         keys = ["LAST_NAME", "BIRTHDATE", "ZIP"]
         # write an assertion that no exception is raised
@@ -27,6 +28,7 @@ class TestAlgorithmPass:
             blocking_keys=keys,
             evaluators=[],
             rule="func:recordlinker.linking.matchers.rule_probabilistic_match",
+            true_match_threshold=0,
         )
 
     def test_validate_evaluators(self):
@@ -38,6 +40,7 @@ class TestAlgorithmPass:
                 blocking_keys=[],
                 evaluators=evaluators,
                 rule="func:recordlinker.linking.matchers.rule_probabilistic_match",
+                true_match_threshold=0,
             )
         evaluators = [
             {"feature": "LAST_NAME", "func": "func:recordlinker.linking.matchers.unknown"}
@@ -47,6 +50,7 @@ class TestAlgorithmPass:
                 blocking_keys=[],
                 evaluators=evaluators,
                 rule="func:recordlinker.linking.matchers.rule_probabilistic_match",
+                true_match_threshold=0,
             )
         evaluators = [
             {
@@ -59,6 +63,7 @@ class TestAlgorithmPass:
                 blocking_keys=[],
                 evaluators=evaluators,
                 rule="func:recordlinker.linking.matchers.rule_probabilistic_match",
+                true_match_threshold=0,
             )
         evaluators = [
             {"feature": "LAST_NAME", "func": "func:recordlinker.linking.matchers.compare_probabilistic_fuzzy_match"}
@@ -68,6 +73,7 @@ class TestAlgorithmPass:
             blocking_keys=[],
             evaluators=evaluators,
             rule="func:recordlinker.linking.matchers.rule_probabilistic_match",
+            true_match_threshold=0,
         )
 
         evaluators = [
@@ -87,12 +93,14 @@ class TestAlgorithmPass:
                 blocking_keys=[],
                 evaluators=[],
                 rule=rule,
+                true_match_threshold=0,
             )
         rule = "func:recordlinker.linking.matchers.rule_probabilistic_match"
         AlgorithmPass(
             blocking_keys=[],
             evaluators=[],
             rule=rule,
+            true_match_threshold=0,
         )
 
     def test_kwargs(self):
@@ -102,12 +110,14 @@ class TestAlgorithmPass:
                 evaluators=[],
                 rule="func:recordlinker.linking.matchers.rule_probabilistic_match",
                 cluster_ratio=0.5,
+                true_match_threshold=0,
                 kwargs={"invalid": "key"},
             )
         AlgorithmPass(
             blocking_keys=[],
             evaluators=[],
             rule="func:recordlinker.linking.matchers.rule_probabilistic_match",
+            true_match_threshold=0,
             kwargs={
                 "similarity_measure": "JaroWinkler",
                 "thresholds": {"CITY": 0.95, "ADDRESS": 0.98},
@@ -130,6 +140,7 @@ class TestAlgorithm:
                         blocking_keys=[],
                         evaluators=[],
                         rule="func:recordlinker.linking.matchers.rule_probabilistic_match",
+                        true_match_threshold=0,
                     )
                 ],
             )
@@ -142,6 +153,7 @@ class TestAlgorithm:
                     blocking_keys=[],
                     evaluators=[],
                     rule="func:recordlinker.linking.matchers.rule_probabilistic_match",
+                    true_match_threshold=0,
                 )
             ],
         )
@@ -154,6 +166,7 @@ class TestAlgorithm:
                     blocking_keys=[],
                     evaluators=[],
                     rule="func:recordlinker.linking.matchers.rule_probabilistic_match",
+                    true_match_threshold=0,
                 )
             ],
         )
