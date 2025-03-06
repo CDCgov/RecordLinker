@@ -43,11 +43,8 @@ class Algorithm(Base):
     belongingness_ratio_upper_bound: orm.Mapped[float] = orm.mapped_column(
         sqltypes.Float, default=1.0
     )
-    log_odds: orm.Mapped[list[dict]] = orm.mapped_column(sqltypes.JSON, default=dict)
-    fuzzy_match_threshold: orm.Mapped[float] = orm.mapped_column(sqltypes.Float, default=0.9)
-    fuzzy_match_measure: orm.Mapped[str] = orm.mapped_column(
-        sqltypes.String(20), default="JaroWinkler"
-    )
+    log_odds: orm.Mapped[list[dict]] = orm.mapped_column(sqltypes.JSON, default=list)
+    defaults: orm.Mapped[dict] = orm.mapped_column(sqltypes.JSON, default=dict)
     passes: orm.Mapped[list["AlgorithmPass"]] = orm.relationship(
         back_populates="algorithm", cascade="all, delete-orphan"
     )
@@ -146,17 +143,18 @@ class AlgorithmPass(Base):
         """
         if not hasattr(self, "_bound_evaluators"):
             self._bound_evaluators = []
+            defaults = getattr(self.algorithm, "defaults", None) or {}
             for e in self.evaluators:
                 bound = func_utils.bind_functions(e)
                 bound["fuzzy_match_threshold"] = bound.get(
                     # default to the algorithm's fuzzy match threshold if not defined
                     "fuzzy_match_threshold",
-                    getattr(self.algorithm, "fuzzy_match_threshold", None),
+                    defaults.get("fuzzy_match_threshold", None),
                 )
                 bound["fuzzy_match_measure"] = bound.get(
                     # default to the algorithm's fuzzy match measure if not defined
                     "fuzzy_match_measure",
-                    getattr(self.algorithm, "fuzzy_match_measure", None),
+                    defaults.get("fuzzy_match_measure", None),
                 )
                 self._bound_evaluators.append(BoundEvaluator(**bound))
         return self._bound_evaluators

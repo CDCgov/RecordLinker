@@ -137,7 +137,7 @@ class TestAlgorithmPass:
             models.BoundEvaluator("BIRTHDATE", matchers.compare_probabilistic_fuzzy_match, None, None)
         ]
         ap = models.AlgorithmPass(
-            algorithm=models.Algorithm(fuzzy_match_threshold=0.8, fuzzy_match_measure="JaroWinkler"),
+            algorithm=models.Algorithm(defaults={"fuzzy_match_threshold":0.8, "fuzzy_match_measure":"JaroWinkler"}),
             evaluators=[
                 {
                     "feature": "BIRTHDATE",

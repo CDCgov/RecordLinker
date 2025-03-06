@@ -16,15 +16,15 @@ from recordlinker.models.mpi import BlockingKey
 from recordlinker.schemas.pii import Feature
 
 
-class Evaluator(pydantic.BaseModel):
+class LogOdd(pydantic.BaseModel):
     """
-    The schema for an evaluator record.
+    The schema for an LogOdd record.
     """
 
     model_config = pydantic.ConfigDict(from_attributes=True, use_enum_values=True)
 
     feature: str = pydantic.Field(json_schema_extra={"enum": Feature.all_options()})
-    func: matchers.FeatureFunc
+    value: Annotated[float, pydantic.Field(ge=0)]
 
     @pydantic.field_validator("feature", mode="before")
     def validate_feature(cls, value):
@@ -36,6 +36,31 @@ class Evaluator(pydantic.BaseModel):
         except ValueError as e:
             raise ValueError(f"Invalid feature: '{value}'. {e}")
         return value
+
+
+class Evaluator(pydantic.BaseModel):
+    """
+    The schema for an evaluator record.
+    """
+
+    model_config = pydantic.ConfigDict(from_attributes=True, use_enum_values=True)
+
+    feature: str = pydantic.Field(json_schema_extra={"enum": Feature.all_options()})
+    func: matchers.FeatureFunc
+    fuzzy_match_threshold: Annotated[float, pydantic.Field(ge=0, le=1)] | None = None
+    fuzzy_match_measure: matchers.SIMILARITY_MEASURES | None = None
+
+    @pydantic.field_validator("feature", mode="before")
+    def validate_feature(cls, value):
+        """
+        Validate the feature is a valid PII feature.
+        """
+        try:
+            Feature.parse(value)
+        except ValueError as e:
+            raise ValueError(f"Invalid feature: '{value}'. {e}")
+        return value
+
 
 class AlgorithmPass(pydantic.BaseModel):
     """
@@ -70,6 +95,15 @@ class AlgorithmPass(pydantic.BaseModel):
                     raise ValueError(f"Invalid kwargs key: '{key}'. Allowed keys are: {allowed}")
         return value
 
+class Defaults(pydantic.BaseModel):
+    """
+    Advanced values with defaults that users typically don't change.
+    """
+    model_config = pydantic.ConfigDict(from_attributes=True, use_enum_values=True)
+
+    fuzzy_match_threshold: Annotated[float, pydantic.Field(ge=0, le=1)] = 0.9
+    fuzzy_match_measure: matchers.SIMILARITY_MEASURES = "JaroWinkler"
+
 
 class Algorithm(pydantic.BaseModel):
     """
@@ -85,6 +119,8 @@ class Algorithm(pydantic.BaseModel):
     belongingness_ratio: tuple[
         Annotated[float, pydantic.Field(ge=0, le=1)], Annotated[float, pydantic.Field(ge=0, le=1)]
     ]
+    log_odds: list[LogOdd] = []
+    defaults: Defaults = Defaults()
     passes: typing.Sequence[AlgorithmPass]
 
     @pydantic.field_validator("belongingness_ratio", mode="before")

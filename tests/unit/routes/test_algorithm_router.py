@@ -23,6 +23,11 @@ class TestListAlgorithms:
                 "description": "First algorithm",
                 "include_multiple_matches": True,
                 "belongingness_ratio": [1.0, 1.0],
+                "log_odds": [],
+                "defaults": {
+                    "fuzzy_match_threshold": 0.9,
+                    "fuzzy_match_measure": "JaroWinkler",
+                },
                 "pass_count": 0,
             },
         ]
@@ -39,6 +44,10 @@ class TestGetAlgorithm:
             is_default=True,
             description="First algorithm",
             belongingness_ratio=(0.25, 0.5),
+            log_odds=[
+                {"feature": "BIRTHDATE", "value": 10.2},
+                {"feature": "FIRST_NAME", "value": 6.8}
+            ],
             passes=[
                 models.AlgorithmPass(
                     blocking_keys=[
@@ -66,6 +75,14 @@ class TestGetAlgorithm:
             "description": "First algorithm",
             "include_multiple_matches": True,
             "belongingness_ratio": [0.25, 0.5],
+            "log_odds": [
+                {"feature": "BIRTHDATE", "value": 10.2},
+                {"feature": "FIRST_NAME", "value": 6.8}
+            ],
+            "defaults": {
+                "fuzzy_match_threshold": 0.9,
+                "fuzzy_match_measure": "JaroWinkler",
+            },
             "passes": [
                 {
                     "blocking_keys": ["BIRTHDATE"],
@@ -73,6 +90,8 @@ class TestGetAlgorithm:
                         {
                             "feature": "FIRST_NAME",
                             "func": "func:recordlinker.linking.matchers.compare_probabilistic_fuzzy_match",
+                            "fuzzy_match_threshold": None,
+                            "fuzzy_match_measure": None,
                         }
                     ],
                     "rule": "func:recordlinker.linking.matchers.rule_probabilistic_match",
@@ -109,6 +128,10 @@ class TestCreateAlgorithm:
             "label": "created",
             "description": "Created algorithm",
             "belongingness_ratio": (0.25, 0.5),
+            "log_odds": [
+                {"feature": "BIRTHDATE", "value": 10},
+                {"feature": "FIRST_NAME", "value": 7},
+            ],
             "passes": [
                 {
                     "blocking_keys": [
@@ -140,6 +163,8 @@ class TestCreateAlgorithm:
             {
                 "feature": "FIRST_NAME",
                 "func": "func:recordlinker.linking.matchers.compare_probabilistic_fuzzy_match",
+                "fuzzy_match_threshold": None,
+                "fuzzy_match_measure": None,
             }
         ]
         assert algo.passes[0].rule == "func:recordlinker.linking.matchers.rule_probabilistic_match"
@@ -222,6 +247,8 @@ class TestUpdateAlgorithm:
             {
                 "feature": "FIRST_NAME",
                 "func": "func:recordlinker.linking.matchers.compare_probabilistic_fuzzy_match",
+                "fuzzy_match_threshold": None,
+                "fuzzy_match_measure": None,
             }
         ]
         assert algo.passes[0].rule == "func:recordlinker.linking.matchers.rule_probabilistic_match"
