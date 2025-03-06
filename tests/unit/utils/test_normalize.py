@@ -10,5 +10,6 @@ class TestPIINormalizeState:
         assert normalize.normalize_state("CALIFORNIA") == "CA"
         assert normalize.normalize_state("CA") == "CA"
         assert normalize.normalize_state("ca") == "CA"
+        assert normalize.normalize_state(None) is None
         with pytest.raises(ValueError):
             normalize.normalize_state("unknown")
