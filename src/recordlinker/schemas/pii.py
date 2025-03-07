@@ -168,17 +168,16 @@ class Address(pydantic.BaseModel):
         """
         Normalize the state field into 2-digit USPS code.
         """
-        if value is None:
-            return None
-        value = value.strip().title()
+        if value:
+            value = value.strip().title()
 
-        if len(value) == 2 and value.upper() in _STATE_CODE_TO_NAME:
-            return value.upper()
+            if len(value) == 2 and value.upper() in _STATE_CODE_TO_NAME:
+                return value.upper()
 
-        if value in _STATE_NAME_TO_CODE:
-            return _STATE_NAME_TO_CODE[value]
+            if value in _STATE_NAME_TO_CODE:
+                return _STATE_NAME_TO_CODE[value]
 
-        raise ValueError(f"Invalid state: {value}")
+            raise ValueError(f"Invalid state: {value}")
 
 
 class Telecom(pydantic.BaseModel):

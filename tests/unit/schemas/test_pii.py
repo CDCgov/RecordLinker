@@ -80,6 +80,67 @@ class TestPIIRecord:
         assert record.identifiers[1].value == "D1234567"
         assert record.identifiers[1].authority == "VA"
 
+    def test_normalize_state(self):
+        data = {
+            "birth_date": "1980-2-1",
+            "name": [
+                {"family": "Doe", "given": ["John", "L"]},
+                {"family": "Smith", "given": ["Jane"]},
+            ],
+            "address": [
+                {
+                    "line": ["123 Main St"],
+                    "city": "Anytown",
+                    "state": "NY",
+                    "postalCode": "12345",
+                    "country": "US",
+                    "county": "county",
+                },
+                {
+                    "line": ["456 Elm St", "Apt 2"],
+                    "city": "Somecity",
+                    "state": "California",
+                    "postal_code": "98765-4321",
+                    "country": "US",
+                    "county": "county2",
+                },
+                # testing missing state
+                {
+                    "line": ["456 Elm St", "Apt 2"],
+                    "city": "Somecity",
+                    "postal_code": "98765-4321",
+                    "country": "US",
+                    "county": "county2",
+                },
+            ],
+        }
+        record = pii.PIIRecord.model_construct(**data)
+        assert record.address[0].state == "NY"
+        assert record.address[1].state == "CA"
+        assert record.address[2].state is None
+
+    def test_normalize_invalid_state(self):
+        data = {
+            "birth_date": "1980-2-1",
+            "name": [
+                {"family": "Doe", "given": ["John", "L"]},
+                {"family": "Smith", "given": ["Jane"]},
+            ],
+            "address": [
+                {
+                    "line": ["123 Main St"],
+                    "city": "Anytown",
+                    "postalCode": "12345",
+                    "state": "blah",
+                    "country": "US",
+                    "county": "county",
+                },
+            ],
+        }
+
+        with pytest.raises(pydantic.ValidationError):
+            pii.PIIRecord.model_construct(**data)
+
     def test_parse_external_id(self):
         record = pii.PIIRecord(external_id=uuid.UUID("7ca699d9-1986-4c0c-a0fd-ac4ae0dfa297"))
         assert record.external_id == "7ca699d9-1986-4c0c-a0fd-ac4ae0dfa297"
