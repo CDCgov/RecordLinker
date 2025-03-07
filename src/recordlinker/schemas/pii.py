@@ -182,6 +182,8 @@ class Address(pydantic.BaseModel):
             if state in _STATE_NAME_TO_CODE:
                 return _STATE_NAME_TO_CODE[state]
 
+        return None
+
 
 class Telecom(pydantic.BaseModel):
     """
@@ -346,7 +348,9 @@ class PIIRecord(pydantic.BaseModel):
         elif attribute == FeatureAttribute.STATE:
             for address in self.address:
                 if address.state:
-                    yield address.normalize_state
+                    state = address.normalize_state
+                    if state:
+                        yield state
         elif attribute == FeatureAttribute.ZIP:
             for address in self.address:
                 if address.postal_code:
