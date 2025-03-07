@@ -240,7 +240,7 @@ class TestPIIRecord:
                 pii.Address(
                     line=["456 Elm St", "Apt 2"],
                     city="Somecity",
-                    state="CA",
+                    state="California",
                     postal_code="98765-4321",
                     country="US",
                 ),
@@ -367,6 +367,25 @@ class TestPIIRecord:
         assert list(
             record.feature_iter(pii.Feature(attribute=pii.FeatureAttribute.FIRST_NAME))
         ) == ["John", "Jon"]
+
+    def test_feature_iter_state(self):
+        record = pii.PIIRecord(
+            address=[
+                pii.Address(state="new york"),
+                pii.Address(state="NY"),
+                pii.Address(state="California"),
+                pii.Address(state=" california "),
+                pii.Address(state="of mind"),
+            ]
+        )
+
+        assert list(record.feature_iter(pii.Feature(attribute=pii.FeatureAttribute.STATE))) == [
+            "NY",
+            "NY",
+            "CA",
+            "CA",
+            None,
+        ]
 
     def test_blocking_keys_invalid(self):
         rec = pii.PIIRecord()
