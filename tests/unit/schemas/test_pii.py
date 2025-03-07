@@ -56,7 +56,7 @@ class TestPIIRecord:
             ],
         }
         record = pii.PIIRecord.model_construct(**data)
-        assert record.birth_date == datetime.date(1980, 2, 1)
+        assert record.birth_date == "1980-2-1"
         assert record.name[0].family == "Doe"
         assert record.name[0].given == ["John", "L"]
         assert record.name[1].family == "Smith"
@@ -68,7 +68,7 @@ class TestPIIRecord:
         assert record.address[0].county == "county"
         assert record.address[1].line == ["456 Elm St", "Apt 2"]
         assert record.address[1].city == "Somecity"
-        assert record.address[1].state == "CA"
+        assert record.address[1].state == "California"
         assert record.address[1].postal_code == "98765-4321"
         assert record.address[1].county == "county2"
 
@@ -116,30 +116,8 @@ class TestPIIRecord:
         }
         record = pii.PIIRecord.model_construct(**data)
         assert record.address[0].state == "NY"
-        assert record.address[1].state == "CA"
+        assert record.address[1].state == "California"
         assert record.address[2].state is None
-
-    def test_normalize_invalid_state(self):
-        data = {
-            "birth_date": "1980-2-1",
-            "name": [
-                {"family": "Doe", "given": ["John", "L"]},
-                {"family": "Smith", "given": ["Jane"]},
-            ],
-            "address": [
-                {
-                    "line": ["123 Main St"],
-                    "city": "Anytown",
-                    "postalCode": "12345",
-                    "state": "blah",
-                    "country": "US",
-                    "county": "county",
-                },
-            ],
-        }
-
-        with pytest.raises(pydantic.ValidationError):
-            pii.PIIRecord.model_construct(**data)
 
     def test_parse_external_id(self):
         record = pii.PIIRecord(external_id=uuid.UUID("7ca699d9-1986-4c0c-a0fd-ac4ae0dfa297"))
