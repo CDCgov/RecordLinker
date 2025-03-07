@@ -11,6 +11,7 @@ import pydantic
 from recordlinker import models
 from recordlinker.schemas.identifier import Identifier
 from recordlinker.schemas.identifier import IdentifierType
+from recordlinker.utils import path as utils
 
 
 class FeatureAttribute(enum.Enum):
@@ -169,6 +170,9 @@ class Address(pydantic.BaseModel):
         """
         Normalize the state field into 2-digit USPS code.
         """
+
+        _STATE_NAME_TO_CODE = utils.read_json("assets/states.json")
+        _STATE_CODE_TO_NAME = {v: k for k, v in _STATE_NAME_TO_CODE.items()}
         if self.state:
             state = self.state.strip().title()
 
@@ -451,70 +455,3 @@ class PIIRecord(pydantic.BaseModel):
             # a PII data dict could have multiple given names
             for val in self.blocking_keys(key):
                 yield key, val
-
-
-_STATE_NAME_TO_CODE = {
-    "Alabama": "AL",
-    "Alaska": "AK",
-    "American Samoa": "AS",
-    "Arizona": "AZ",
-    "Arkansas": "AR",
-    "California": "CA",
-    "Colorado": "CO",
-    "Connecticut": "CT",
-    "Delaware": "DE",
-    "District Of Columbia": "DC",
-    "Federated States Of Micronesia": "FM",
-    "Florida": "FL",
-    "Georgia": "GA",
-    "Guam": "GU",
-    "Hawaii": "HI",
-    "Idaho": "ID",
-    "Illinois": "IL",
-    "Indiana": "IN",
-    "Iowa": "IA",
-    "Kansas": "KS",
-    "Kentucky": "KY",
-    "Louisiana": "LA",
-    "Maine": "ME",
-    "Marshall Islands": "MH",
-    "Maryland": "MD",
-    "Massachusetts": "MA",
-    "Michigan": "MI",
-    "Minnesota": "MN",
-    "Mississippi": "MS",
-    "Missouri": "MO",
-    "Montana": "MT",
-    "Nebraska": "NE",
-    "Nevada": "NV",
-    "New Hampshire": "NH",
-    "New Jersey": "NJ",
-    "New Mexico": "NM",
-    "New York": "NY",
-    "North Carolina": "NC",
-    "North Dakota": "ND",
-    "Northern Mariana Islands": "MP",
-    "Ohio": "OH",
-    "Oklahoma": "OK",
-    "Oregon": "OR",
-    "Palau": "PW",
-    "Pennsylvania": "PA",
-    "Puerto Rico": "PR",
-    "Rhode Island": "RI",
-    "South Carolina": "SC",
-    "South Dakota": "SD",
-    "Tennessee": "TN",
-    "Texas": "TX",
-    "Utah": "UT",
-    "Vermont": "VT",
-    "Virgin Islands": "VI",
-    "Virginia": "VA",
-    "Washington": "WA",
-    "West Virginia": "WV",
-    "Wisconsin": "WI",
-    "Wyoming": "WY",
-    "Armed Forces Europe, The Middle East, And Canada": "AE",
-    "Armed Forces Pacific": "AP",
-    "Armed Forces Americas (Except Canada)": "AA",
-}
-_STATE_CODE_TO_NAME = {v: k for k, v in _STATE_NAME_TO_CODE.items()}
