@@ -59,7 +59,7 @@ def test_fhir_record_to_pii_record():
             },
         ],
         "name": [{"family": "Shepard", "given": ["John"], "use": "official"}],
-        "birthDate": "2053-11-07",
+        "birthDate": "2013-11-07",
         "gender": "male",
         "address": [
             {
@@ -112,7 +112,7 @@ def test_fhir_record_to_pii_record():
     assert pii_record.external_id == "f6a16ff7-4a31-11eb-be7b-8344edc8f36b"
     assert pii_record.name[0].family == "Shepard"
     assert pii_record.name[0].given == ["John"]
-    assert str(pii_record.birth_date) == "2053-11-07"
+    assert str(pii_record.birth_date) == "2013-11-07"
     assert str(pii_record.sex) == "M"
     assert pii_record.address[0].line == ["1234 Silversun Strip"]
     assert pii_record.address[0].city == "Boston"

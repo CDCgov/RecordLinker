@@ -5,6 +5,7 @@ import re
 import typing
 
 import dateutil.parser
+from dateutil.parser import parserinfo
 import pydantic
 
 from recordlinker import models
@@ -243,8 +244,30 @@ class PIIRecord(pydantic.BaseModel):
         """
         Parse the birthdate string into a datetime object.
         """
+        class LinkerParserInfo(parserinfo):
+            def convertyear(self, year, *args):
+                """
+                Subclass method override for parser info function dedicatedo to
+                handling two-digit year strings.
+                """
+                # self._year is the current four-digit year
+                # self._century is leading two digits of self._year
+                # implementation override follows template pattern in docs
+                # https://dateutil.readthedocs.io/en/latest/_modules/dateutil/parser/_parser.html#parserinfo.convertyear # noqa: E712
+                if year < 100:
+                    year += self._century
+                    if year > self._year:
+                        # This allows us to continually make a pivot at the current year;
+                        # Keeps with best practice and conventional norms
+                        year -= 100
+                return year
         if value:
-            return dateutil.parser.parse(str(value))
+            given_date = dateutil.parser.parse(str(value), LinkerParserInfo())
+            if given_date > datetime.datetime.today():
+                raise ValueError("Dates cannot be in the future")
+            if given_date < datetime.datetime(1850, 1, 1):
+                raise ValueError("Dates cannot be before 1850")
+            return given_date
 
     @pydantic.field_validator("sex", mode="before")
     def parse_sex(cls, value):
