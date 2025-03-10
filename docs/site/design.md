@@ -24,6 +24,8 @@ The following diagram illustrates the relationships between the `Person`, `Patie
 
 ```mermaid
 erDiagram
+    accTitle: Master Patient Index (MPI) Entity Relationship Diagram
+    accDescr: This diagram illustrates the relationships between the Person, Patient, and BlockingValue models.
     Person {
         bigint id PK "Primary Key (auto-generated)"
         uuid reference_id "Reference UUID (auto-generated)"
