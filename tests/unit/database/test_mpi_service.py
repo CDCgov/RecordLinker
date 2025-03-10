@@ -54,9 +54,9 @@ class TestInsertBlockingValues:
             if val.blockingkey == models.BlockingKey.BIRTHDATE.id:
                 assert val.value == "1980-01-01"
             elif val.blockingkey == models.BlockingKey.FIRST_NAME.id:
-                assert val.value in ["John", "Bill"]
+                assert val.value in ["john", "bill"]
             elif val.blockingkey == models.BlockingKey.LAST_NAME.id:
-                assert val.value == "Smit"
+                assert val.value == "smit"
             else:
                 assert False, f"Unexpected blocking key: {val.blockingkey}"
 
@@ -120,7 +120,7 @@ class TestInsertBlockingValues:
         values = pat.blocking_values
         assert len(values) == 3
         assert set(v.patient_id for v in values) == {pat.id}
-        assert set(v.value for v in values) == {"1980-01-01", "John", "Smit"}
+        assert set(v.value for v in values) == {"1980-01-01", "john", "smit"}
 
 
 class TestInsertPatient:
@@ -258,7 +258,7 @@ class TestBulkInsertPatients:
         assert patients[0].external_person_id == "123456"
         values = patients[0].blocking_values
         assert len(values) == 2
-        assert set(v.value for v in values) == {"John", "Smit"}
+        assert set(v.value for v in values) == {"john", "smit"}
 
     def test_with_person(self, session: Session):
         person = models.Person()
@@ -290,12 +290,12 @@ class TestBulkInsertPatients:
         assert patients[0].external_person_id == "123456"
         assert patients[1].external_person_id == "123456"
         assert len(patients[0].blocking_values) == 3
-        assert set(v.value for v in patients[0].blocking_values) == {"1950-01-01", "Geor", "Harr"}
+        assert set(v.value for v in patients[0].blocking_values) == {"1950-01-01", "geor", "harr"}
         assert len(patients[1].blocking_values) == 3
         assert set(v.value for v in patients[1].blocking_values) == {
             "1950-01-01",
-            "Geor",
-            "Harr",
+            "geor",
+            "harr",
         }
 
 

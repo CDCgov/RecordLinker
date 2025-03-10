@@ -1,5 +1,6 @@
 import datetime
 import enum
+import functools
 import json
 import re
 import typing
@@ -10,6 +11,7 @@ import pydantic
 from recordlinker import models
 from recordlinker.schemas.identifier import Identifier
 from recordlinker.schemas.identifier import IdentifierType
+from recordlinker.utils.normalize import normalize_text
 
 
 class FeatureAttribute(enum.Enum):
@@ -182,7 +184,7 @@ class Telecom(pydantic.BaseModel):
         if self.system != "phone":
             return None
         # normalize the number to include just the 10 digits
-        return re.sub(r"\D", "", self.value)[:10]
+        return re.sub(r"\D", "", self.value).strip()[:10]
 
     def email(self) -> str | None:
         """
@@ -190,7 +192,21 @@ class Telecom(pydantic.BaseModel):
         """
         if self.system != "email":
             return None
-        return self.value
+        return self.value.lower().strip()
+
+    @classmethod
+    @functools.lru_cache()
+    def get_system_handlers(cls) -> dict[str, str]:
+        """
+        Return a dictionary of system handlers for the Telecom class where the keys
+        are the system values and the values are the method names to call.
+
+        """
+        return {
+            name: name
+            for name, method in cls.__dict__.items()
+            if callable(method) and not name.startswith("_")
+        }
 
 
 class PIIRecord(pydantic.BaseModel):
@@ -320,11 +336,11 @@ class PIIRecord(pydantic.BaseModel):
                 # The 2nd, 3rd, etc lines of an address are not as important as
                 # the first line, so we only include the first line in the comparison.
                 if address.line and address.line[0]:
-                    yield address.line[0]
+                    yield normalize_text(address.line[0])
         elif attribute == FeatureAttribute.CITY:
             for address in self.address:
                 if address.city:
-                    yield address.city
+                    yield normalize_text(address.city)
         elif attribute == FeatureAttribute.STATE:
             for address in self.address:
                 if address.state:
@@ -333,28 +349,37 @@ class PIIRecord(pydantic.BaseModel):
             for address in self.address:
                 if address.postal_code:
                     # only use the first 5 digits for comparison
-                    yield address.postal_code[:5]
+                    yield normalize_text(address.postal_code)[:5]
         elif attribute == FeatureAttribute.GIVEN_NAME:
             for name in self.name:
                 if name.given:
-                    yield " ".join(name.given)
+                    yield normalize_text("".join(name.given))
         elif attribute == FeatureAttribute.FIRST_NAME:
             for name in self.name:
                 # We only want the first given name for comparison
                 for given in name.given[0:1]:
                     if given:
-                        yield given
+                        yield normalize_text(given)
         elif attribute == FeatureAttribute.LAST_NAME:
             for name in self.name:
                 if name.family:
-                    yield name.family
+                    yield normalize_text(name.family)
         elif attribute == FeatureAttribute.RACE:
             if self.race and self.race not in [Race.UNKNOWN, Race.ASKED_UNKNOWN]:
                 yield str(self.race)
         elif attribute == FeatureAttribute.TELECOM:
             for telecom in self.telecom:
-                if telecom.value:
-                    yield telecom.value
+                if telecom.system is None:
+                    yield telecom.value.strip().lower()
+                    continue
+
+                handlers = Telecom.get_system_handlers()
+
+                if telecom.system in handlers:
+                    value = getattr(telecom, handlers[telecom.system])()
+                    if value:
+                        yield value
+
         elif attribute == FeatureAttribute.PHONE:
             for telecom in self.telecom:
                 number = telecom.phone_number()
@@ -369,15 +394,16 @@ class PIIRecord(pydantic.BaseModel):
             for name in self.name:
                 for suffix in name.suffix:
                     if suffix:
-                        yield suffix
+                        yield normalize_text(suffix)
         elif attribute == FeatureAttribute.COUNTY:
             for address in self.address:
                 if address.county:
-                    yield address.county
+                    yield normalize_text(address.county)
         elif attribute == FeatureAttribute.IDENTIFIER:
             for identifier in self.identifiers:
                 if identifier_suffix is None or identifier_suffix == identifier.type:
-                    yield f"{identifier.value}:{identifier.authority or ''}:{identifier.type}"
+                    identifier_authority = identifier.authority or ""
+                    yield f"{normalize_text(identifier.value)}:{normalize_text(identifier_authority) if identifier_authority else identifier_authority}:{identifier.type}"
 
     def blocking_keys(self, key: models.BlockingKey) -> set[str]:
         """
