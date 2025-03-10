@@ -11,6 +11,11 @@ import pydantic
 from recordlinker import models
 from recordlinker.schemas.identifier import Identifier
 from recordlinker.schemas.identifier import IdentifierType
+from recordlinker.utils import path as utils
+
+# Load the state code mapping for state normalization in Address class
+_STATE_NAME_TO_CODE = utils.read_json("assets/states.json")
+_STATE_CODE_TO_NAME = {v: k for k, v in _STATE_NAME_TO_CODE.items()}
 from recordlinker.utils.normalize import normalize_text
 
 
@@ -165,6 +170,23 @@ class Address(pydantic.BaseModel):
     latitude: typing.Optional[float] = None
     longitude: typing.Optional[float] = None
 
+    @functools.cached_property
+    def normalize_state(self) -> str | None:
+        """
+        Normalize the state field into 2-letter USPS code.
+        """
+
+        if self.state:
+            state = self.state.strip().title()
+
+            if len(state) == 2 and state.upper() in _STATE_CODE_TO_NAME:
+                return self.state.upper()
+
+            if state in _STATE_NAME_TO_CODE:
+                return _STATE_NAME_TO_CODE[state]
+
+        return None
+
 
 class Telecom(pydantic.BaseModel):
     """
@@ -243,7 +265,6 @@ class PIIRecord(pydantic.BaseModel):
         obj.name = [Name.model_construct(**n) for n in values.get("name", [])]
         obj.telecom = [Telecom.model_construct(**t) for t in values.get("telecom", [])]
         obj.identifiers = [Identifier.model_construct(**i) for i in values.get("identifiers", [])]
-
         return obj
 
     @pydantic.field_validator("external_id", mode="before")
@@ -265,7 +286,7 @@ class PIIRecord(pydantic.BaseModel):
     @pydantic.field_validator("sex", mode="before")
     def parse_sex(cls, value):
         """
-        Parse the
+        Parse the sex value into a sex enum.
         """
         if value:
             val = str(value).lower().strip()
@@ -278,7 +299,7 @@ class PIIRecord(pydantic.BaseModel):
     @pydantic.field_validator("race", mode="before")
     def parse_race(cls, value):
         """
-        Prase the race string into a race enum
+        Parse the race string into a race enum.
         """
 
         race_mapping = [
@@ -344,7 +365,9 @@ class PIIRecord(pydantic.BaseModel):
         elif attribute == FeatureAttribute.STATE:
             for address in self.address:
                 if address.state:
-                    yield address.state
+                    state = address.normalize_state
+                    if state:
+                        yield state
         elif attribute == FeatureAttribute.ZIP:
             for address in self.address:
                 if address.postal_code:
