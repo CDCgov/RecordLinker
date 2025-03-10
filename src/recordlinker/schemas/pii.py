@@ -4,8 +4,7 @@ import json
 import re
 import typing
 
-import dateutil.parser
-from dateutil.parser import parserinfo
+from dateutil.parser import parse, parserinfo
 import pydantic
 
 from recordlinker import models
@@ -262,7 +261,7 @@ class PIIRecord(pydantic.BaseModel):
                         year -= 100
                 return year
         if value:
-            given_date = dateutil.parser.parse(str(value), LinkerParserInfo())
+            given_date = parse(str(value), LinkerParserInfo())
             if given_date > datetime.datetime.today():
                 raise ValueError("Dates cannot be in the future")
             if given_date < datetime.datetime(1850, 1, 1):
