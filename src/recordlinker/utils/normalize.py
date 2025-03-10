@@ -4,7 +4,8 @@ import unicodedata
 
 def normalize_strings(text: str) -> str:
     """
-    Normalize text by removing non-alphanumeric characters and converting to lowercase.
+    Normalize text by removing non-alphanumeric characters, converting to lowercase,
+    and removing all whitespace (trailing, leading, and internal).
     """
     text = "".join(
         c for c in unicodedata.normalize("NFKD", text) if unicodedata.category(c) != "Mn"
