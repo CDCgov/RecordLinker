@@ -18,6 +18,64 @@ from recordlinker import models
 from recordlinker import schemas
 
 
+def _filter_incorrect_blocks(
+        record: schemas.PIIRecord,
+        patients: typing.Sequence[models.Patient],
+        blocking_keys: list[str]
+) -> list[models.Patient]:
+    """
+    Filter a set of candidates returned via blocking from the MPI. The initial
+    SQL query returns a collection of candidates comprised of all patients in
+    the MPI belonging to a Person cluster for which at *least one* patient
+    satisfied blocking criteria. This function filters that candidate set to
+    include *only* those patients who either satisfied blocking criteria or
+    were missing a value for one or more blocked fields. This eliminates 
+    patients from consideration who have mismatched blocking information but
+    belonged to a Person cluster where a different record had correct blocking
+    values.
+
+    :param record: The PIIRecord of the incoming patient.
+    :param patients: The initial collection of candidates retrieved from the MPI.
+    :param blocking_keys: A list of strings of the fields used for blocking.
+    :returns: A filtered list of Patients from the MPI.
+    """
+    # Extract the acceptable blocking values from the incoming record
+    # Keys have already been getattr validated by caller, no need
+    # to check that they exist
+    blocking_vals_in_incoming = {}
+    for bk in blocking_keys:
+        key = getattr(models.BlockingKey, bk)
+        blocking_vals_in_incoming[bk] = [v for v in record.blocking_keys(key)]
+
+    # Can't modify sequence in place, so we'll build up a list of list idxs
+    # to exclude for mpi patients who don't match blocking criteria exactly
+    pats_to_exclude = set()
+    print("incoming blocking vals", blocking_vals_in_incoming)
+    for p in patients:
+        num_agreeing_blocking_fields = 0
+        mpi_record = p.record
+        for bk, allowed_vals in blocking_vals_in_incoming.items():
+            # Compare incoming blocking value to what would be the blocking
+            # value of the mpi record to make sure we compare on e.g. same
+            # number of characters at beginning/end of string
+            mpi_vals = mpi_record.blocking_keys(getattr(models.BlockingKey, bk))
+
+            # Generator gets us best performance, fastest way to check membership
+            # because we return True as soon as we get 1 rather than build the
+            # whole list. Also count compatibility if mpi_val is missing.
+            found_compatible_val = (len(mpi_vals) == 0) or any(x in mpi_vals for x in allowed_vals)
+            if found_compatible_val:
+                num_agreeing_blocking_fields += 1
+
+        # If we get through all the blocking criteria with no missing entries
+        # and no true-value agreement, we exclude
+        if num_agreeing_blocking_fields < len(blocking_keys):
+            print("Found patient to exclude", p.data)
+            pats_to_exclude.add(p.id)
+    
+    return [pat for pat in patients if pat.id not in pats_to_exclude]
+
+
 def get_block_data(
     session: orm.Session, record: schemas.PIIRecord, algorithm_pass: models.AlgorithmPass
 ) -> typing.Sequence[models.Patient]:
@@ -60,7 +118,8 @@ def get_block_data(
 
     # Using the subquery of unique Patient IDs, select all the Patients
     expr = expression.select(models.Patient).where(models.Patient.person_id.in_(base))
-    return session.execute(expr).scalars().all()
+    candidates = session.execute(expr).scalars().all()
+    return _filter_incorrect_blocks(record, candidates, algorithm_pass.blocking_keys)
 
 
 def insert_patient(

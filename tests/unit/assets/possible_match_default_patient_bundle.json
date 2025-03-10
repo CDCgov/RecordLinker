@@ -84,16 +84,16 @@
         "birthDate": "1980-01-01",
         "gender": "male",
         "address": [
-            {
+          {
             "line": [
               "Bay 16",
               "Ward Sector 24"
             ],
-            "city": "Brooklyn",
-            "state": "New York",
-            "postalCode": "54321",
+            "city": "Boston",
+            "state": "Massachusetts",
+            "postalCode": "99999",
             "use": "home"
-            }
+          }
         ],
         "telecom": [
           {
@@ -134,7 +134,7 @@
         "birthDate": "1980-01-01",
         "gender": "male",
         "address": [
-            {
+          {
             "line": [
               "1234 Silversun Strip"
             ],
