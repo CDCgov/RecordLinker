@@ -172,7 +172,7 @@ class Address(pydantic.BaseModel):
     @functools.cached_property
     def normalize_state(self) -> str | None:
         """
-        Normalize the state field into 2-digit USPS code.
+        Normalize the state field into 2-letter USPS code.
         """
 
         if self.state:
