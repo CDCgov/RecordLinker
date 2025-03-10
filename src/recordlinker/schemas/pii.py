@@ -3,9 +3,10 @@ import enum
 import json
 import re
 import typing
-
-from dateutil.parser import parse, parserinfo
 import pydantic
+
+from dateutil.parser import parse
+from dateutil.parser import parserinfo
 
 from recordlinker import models
 from recordlinker.schemas.identifier import Identifier
