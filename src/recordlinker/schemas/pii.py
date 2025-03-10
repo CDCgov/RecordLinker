@@ -3,8 +3,8 @@ import enum
 import json
 import re
 import typing
-import pydantic
 
+import pydantic
 from dateutil.parser import parse
 from dateutil.parser import parserinfo
 
