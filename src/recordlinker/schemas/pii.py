@@ -13,6 +13,10 @@ from recordlinker.schemas.identifier import Identifier
 from recordlinker.schemas.identifier import IdentifierType
 from recordlinker.utils import path as utils
 
+# Load the state code mapping for state normalization in Address class
+_STATE_NAME_TO_CODE = utils.read_json("assets/states.json")
+_STATE_CODE_TO_NAME = {v: k for k, v in _STATE_NAME_TO_CODE.items()}
+
 
 class FeatureAttribute(enum.Enum):
     """
@@ -171,8 +175,6 @@ class Address(pydantic.BaseModel):
         Normalize the state field into 2-digit USPS code.
         """
 
-        _STATE_NAME_TO_CODE = utils.read_json("assets/states.json")
-        _STATE_CODE_TO_NAME = {v: k for k, v in _STATE_NAME_TO_CODE.items()}
         if self.state:
             state = self.state.strip().title()
 
