@@ -87,7 +87,7 @@ patient data and used during query retrieval. The following blocking key types a
 
 `BIRTHDATE` (ID: **1**)
 
-:   The patients birthdate in the format `YYYY-MM-DD`.
+:   The patient's birthdate in the format `YYYY-MM-DD`.
 
 `SEX` (ID: **3**)
 
