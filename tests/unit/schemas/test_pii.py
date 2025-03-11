@@ -268,14 +268,13 @@ class TestPIIRecord:
             "smith",
         ]
         assert list(record.feature_iter(pii.Feature(attribute=pii.FeatureAttribute.RACE))) == []
-        print(list(record.feature_iter(pii.Feature(attribute=pii.FeatureAttribute.TELECOM))))
-        # assert list(record.feature_iter(pii.Feature(attribute=pii.FeatureAttribute.TELECOM))) == [
-        #     "555-123-4567",
-        #     "5559876543",
-        #     "test@email.com",
-        #     "555*987*6543",
-        #     "test@email.com",
-        # ]
+        assert list(record.feature_iter(pii.Feature(attribute=pii.FeatureAttribute.TELECOM))) == [
+            "555-123-4567",
+            "5559876543",
+            "test@email.com",
+            "555*987*6543",
+            "test@email.com",
+        ]
 
         assert list(record.feature_iter(pii.Feature(attribute=pii.FeatureAttribute.PHONE))) == [
             "5559876543"

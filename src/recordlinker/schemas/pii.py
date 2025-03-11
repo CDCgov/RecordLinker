@@ -199,7 +199,7 @@ class Telecom(pydantic.BaseModel):
     system: typing.Optional[str] = None
     use: typing.Optional[str] = None
 
-    def phone_number(self) -> str | None:
+    def phone(self) -> str | None:
         """
         Return the phone number from the telecom record.
         """
@@ -405,7 +405,7 @@ class PIIRecord(pydantic.BaseModel):
 
         elif attribute == FeatureAttribute.PHONE:
             for telecom in self.telecom:
-                number = telecom.phone_number()
+                number = telecom.phone()
                 if number:
                     yield number
         elif attribute == FeatureAttribute.EMAIL:
