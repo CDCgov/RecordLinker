@@ -12,11 +12,11 @@ from recordlinker import models
 from recordlinker.schemas.identifier import Identifier
 from recordlinker.schemas.identifier import IdentifierType
 from recordlinker.utils import path as utils
+from recordlinker.utils.normalize import normalize_text
 
 # Load the state code mapping for state normalization in Address class
 _STATE_NAME_TO_CODE = utils.read_json("assets/states.json")
 _STATE_CODE_TO_NAME = {v: k for k, v in _STATE_NAME_TO_CODE.items()}
-from recordlinker.utils.normalize import normalize_text
 
 
 class FeatureAttribute(enum.Enum):
