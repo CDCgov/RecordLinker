@@ -42,7 +42,7 @@ class TestPIIRecord:
                     "county": "county2",
                 },
             ],
-            "telecom": [{"value": "555-123-4567"}, {"value": "555-987-6543"}],
+            "telecom": [{"value": " 555-123-4567"}, {"value": "555-987-6543"}],
             "identifiers": [
                 {
                     "type": "MR",
@@ -191,10 +191,10 @@ class TestPIIRecord:
             race="unknown",
             address=[
                 pii.Address(
-                    line=["123 Main St"],
+                    line=[" 123 Main St"],
                     city="Anytown",
                     state="NY",
-                    postalCode="12345",
+                    postalCode=" 12345",
                     country="US",
                     county="county",
                 ),

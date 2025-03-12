@@ -1,4 +1,3 @@
-import re
 import unicodedata
 
 
@@ -10,5 +9,5 @@ def normalize_text(text: str) -> str:
     text = "".join(
         c for c in unicodedata.normalize("NFKD", text) if unicodedata.category(c) != "Mn"
     )
-    text = re.sub(r"[^a-zA-Z0-9]", "", text)
-    return text.lower()
+
+    return "".join(c.lower() for c in text if c.isalnum())
