@@ -49,7 +49,18 @@ class FeatureAttribute(enum.Enum):
         return self.value
 
 
-class Feature(pydantic.BaseModel):
+class StrippedBaseModel(pydantic.BaseModel):
+    @pydantic.field_validator("*", mode="before")
+    def strip_whitespace(cls, v):
+        """
+        Remove leading and trailing whitespace from all string fields.
+        """
+        if isinstance(v, str):
+            return v.strip()
+        return v
+
+
+class Feature(StrippedBaseModel):
     """
     The schema for a feature.
     """
@@ -135,7 +146,7 @@ class Race(enum.Enum):
         return self.value
 
 
-class Name(pydantic.BaseModel):
+class Name(StrippedBaseModel):
     """
     The schema for a name record.
     """
@@ -149,7 +160,7 @@ class Name(pydantic.BaseModel):
     suffix: typing.List[str] = []
 
 
-class Address(pydantic.BaseModel):
+class Address(StrippedBaseModel):
     """
     The schema for an address record.
     """
@@ -188,7 +199,7 @@ class Address(pydantic.BaseModel):
         return None
 
 
-class Telecom(pydantic.BaseModel):
+class Telecom(StrippedBaseModel):
     """
     The schema for a telecom record.
     """
@@ -231,7 +242,7 @@ class Telecom(pydantic.BaseModel):
         }
 
 
-class PIIRecord(pydantic.BaseModel):
+class PIIRecord(StrippedBaseModel):
     """
     The schema for a PII record.
     """
@@ -372,7 +383,7 @@ class PIIRecord(pydantic.BaseModel):
             for address in self.address:
                 if address.postal_code:
                     # only use the first 5 digits for comparison
-                    yield normalize_text(address.postal_code)[:5]
+                    yield address.postal_code[:5]
         elif attribute == FeatureAttribute.GIVEN_NAME:
             for name in self.name:
                 if name.given:
