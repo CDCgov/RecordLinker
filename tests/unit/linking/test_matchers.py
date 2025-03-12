@@ -24,7 +24,7 @@ class TestRuleFunc:
             params = list(signature.parameters.values())
             assert len(params) == 2
             assert params[0].annotation == list[float]
-            assert params[1].annotation == typing.Any
+            assert params[1].annotation is float
             assert signature.return_annotation is bool
 
 
@@ -35,34 +35,16 @@ class TestFeatureFunc:
             assert callable(fn)
             signature = inspect.signature(fn)
             params = list(signature.parameters.values())
-            assert len(params) == 4
+            assert len(params) == 5
             assert params[0].annotation == schemas.PIIRecord
             assert params[1].annotation == models.Patient
             assert params[2].annotation == schemas.Feature
-            assert params[3].annotation == typing.Any
+            assert params[3].annotation is float
+            assert params[4].annotation == typing.Any
             assert signature.return_annotation is float
 
 
-def test_get_fuzzy_params():
-    assert matchers._get_fuzzy_params("last_name") == ("JaroWinkler", 0.7)
-
-    kwargs = {
-        "similarity_measure": "Levenshtein",
-        "thresholds": {"city": 0.95, "address": 0.98},
-    }
-    assert matchers._get_fuzzy_params("city", **kwargs) == ("Levenshtein", 0.95)
-    assert matchers._get_fuzzy_params("address", **kwargs) == ("Levenshtein", 0.98)
-    assert matchers._get_fuzzy_params("first_name", **kwargs) == ("Levenshtein", 0.7)
-
-
 def test_compare_probabilistic_exact_match():
-    with pytest.raises(ValueError):
-        matchers.compare_probabilistic_exact_match(
-            schemas.PIIRecord(),
-            models.Patient(),
-            schemas.Feature(attribute=schemas.FeatureAttribute.SEX),
-        )
-    
     rec = schemas.PIIRecord(
         name=[{"given": ["John", "T"], "family": "Shepard"}],
         birthDate="1980-11-7",
@@ -73,65 +55,55 @@ def test_compare_probabilistic_exact_match():
             "birthDate": "1970-06-07",
         }
     )
-    log_odds = {
-        schemas.FeatureAttribute.FIRST_NAME.value: 4.0,
-        schemas.FeatureAttribute.LAST_NAME.value: 6.5,
-        schemas.FeatureAttribute.BIRTHDATE.value: 9.8,
-        schemas.FeatureAttribute.ADDRESS.value: 3.7,
-    }
 
     assert (
         matchers.compare_probabilistic_exact_match(
-            rec, pat, schemas.Feature(attribute=schemas.FeatureAttribute.FIRST_NAME), log_odds=log_odds
+            rec, pat, schemas.Feature(attribute=schemas.FeatureAttribute.FIRST_NAME), 4.0
         )
         == 4.0
     )
 
     assert (
         matchers.compare_probabilistic_exact_match(
-            rec, pat, schemas.Feature(attribute=schemas.FeatureAttribute.LAST_NAME), log_odds=log_odds
+            rec, pat, schemas.Feature(attribute=schemas.FeatureAttribute.LAST_NAME), 6.5
         )
         == 6.5
     )
 
     assert (
         matchers.compare_probabilistic_exact_match(
-            rec, pat, schemas.Feature(attribute=schemas.FeatureAttribute.BIRTHDATE), log_odds=log_odds
+            rec, pat, schemas.Feature(attribute=schemas.FeatureAttribute.BIRTHDATE), 9.8
         )
         == 0.0
     )
 
 
 def test_compare_probabilistic_fuzzy_match():
-    with pytest.raises(ValueError):
+    with pytest.raises(AssertionError):
         matchers.compare_probabilistic_fuzzy_match(
             schemas.PIIRecord(),
             models.Patient(),
             schemas.Feature(attribute=schemas.FeatureAttribute.IDENTIFIER),
+            0.0
         )
 
     rec = schemas.PIIRecord(
         name=[{"given": ["John"], "family": "Shepard"}],
         birthDate="1980-11-7",
-        address=[{"line": ["1234 Silversun Strip"]}],
+        address=[{"line": ["1234 Silversun Sq"]}],
     )
     pat = models.Patient(
         data={
             "name": [{"given": ["John"], "family": "Sheperd"}],
             "birthDate": "1970-06-07",
-            "address": [{"line": ["asdfghjeki"]}],
+            "address": [{"line": ["1234 Silversun Square"]}],
         }
     )
-    log_odds = {
-        schemas.FeatureAttribute.FIRST_NAME.value: 4.0,
-        schemas.FeatureAttribute.LAST_NAME.value: 6.5,
-        schemas.FeatureAttribute.BIRTHDATE.value: 9.8,
-        schemas.FeatureAttribute.ADDRESS.value: 3.7,
-    }
 
     assert (
         matchers.compare_probabilistic_fuzzy_match(
-            rec, pat, schemas.Feature(attribute=schemas.FeatureAttribute.FIRST_NAME), log_odds=log_odds
+            rec, pat, schemas.Feature(attribute=schemas.FeatureAttribute.FIRST_NAME), 4.0,
+            fuzzy_match_measure="JaroWinkler", fuzzy_match_threshold=0.9
         )
         == 4.0
     )
@@ -139,7 +111,8 @@ def test_compare_probabilistic_fuzzy_match():
     assert (
         round(
             matchers.compare_probabilistic_fuzzy_match(
-                rec, pat, schemas.Feature(attribute=schemas.FeatureAttribute.LAST_NAME), log_odds=log_odds
+                rec, pat, schemas.Feature(attribute=schemas.FeatureAttribute.LAST_NAME), 6.5,
+                fuzzy_match_measure="JaroWinkler", fuzzy_match_threshold=0.9
             ),
             3,
         )
@@ -149,19 +122,21 @@ def test_compare_probabilistic_fuzzy_match():
     assert (
         round(
             matchers.compare_probabilistic_fuzzy_match(
-                rec, pat, schemas.Feature(attribute=schemas.FeatureAttribute.BIRTHDATE), log_odds=log_odds
+                rec, pat, schemas.Feature(attribute=schemas.FeatureAttribute.BIRTHDATE), 9.8,
+                fuzzy_match_measure="JaroWinkler", fuzzy_match_threshold=0.95
             ),
             3,
         )
-        == 7.859
+        == 0.0
     )
 
     assert (
         round(
             matchers.compare_probabilistic_fuzzy_match(
-                rec, pat, schemas.Feature(attribute=schemas.FeatureAttribute.ADDRESS), log_odds=log_odds
+                rec, pat, schemas.Feature(attribute=schemas.FeatureAttribute.ADDRESS), 3.7,
+                fuzzy_match_measure="JaroWinkler", fuzzy_match_threshold=0.9
             ),
             3,
         )
-        == 0.0
+        == 3.559
     )

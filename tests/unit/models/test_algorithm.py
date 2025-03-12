@@ -126,6 +126,9 @@ class TestAlgorithmPass:
         Tests that the bound_evaluators method returns the correct functions
         """
         ap = models.AlgorithmPass(
+            algorithm=models.Algorithm(
+                log_odds=[{"feature": "BIRTHDATE", "value": 9.0}],
+            ),
             evaluators=[
                 {
                     "feature": "BIRTHDATE",
@@ -134,19 +137,26 @@ class TestAlgorithmPass:
             ]
         )
         assert ap.bound_evaluators() == [
-            models.BoundEvaluator("BIRTHDATE", matchers.compare_probabilistic_fuzzy_match, None, None)
+            models.BoundEvaluator(
+                "BIRTHDATE", matchers.compare_probabilistic_fuzzy_match, 9.0, None, None
+            )
         ]
         ap = models.AlgorithmPass(
-            algorithm=models.Algorithm(defaults={"fuzzy_match_threshold":0.8, "fuzzy_match_measure":"JaroWinkler"}),
+            algorithm=models.Algorithm(
+                log_odds=[{"feature": "BIRTHDATE", "value": 9.8}],
+                defaults={"fuzzy_match_threshold": 0.8, "fuzzy_match_measure": "JaroWinkler"},
+            ),
             evaluators=[
                 {
                     "feature": "BIRTHDATE",
                     "func": "func:recordlinker.linking.matchers.compare_probabilistic_fuzzy_match",
                 }
-            ]
+            ],
         )
         assert ap.bound_evaluators() == [
-            models.BoundEvaluator("BIRTHDATE", matchers.compare_probabilistic_fuzzy_match, 0.8, "JaroWinkler")
+            models.BoundEvaluator(
+                "BIRTHDATE", matchers.compare_probabilistic_fuzzy_match, 9.8, 0.8, "JaroWinkler"
+            )
         ]
         ap.evaluators = [
             {
@@ -157,7 +167,9 @@ class TestAlgorithmPass:
             }
         ]
         assert ap.bound_evaluators() == [
-            models.BoundEvaluator("BIRTHDATE", matchers.compare_probabilistic_fuzzy_match, 0.7, "Levenshtein")
+            models.BoundEvaluator(
+                "BIRTHDATE", matchers.compare_probabilistic_fuzzy_match, 9.8, 0.7, "Levenshtein"
+            )
         ]
         ap.evaluators = [
             {"feature": "BIRTHDATE", "func": "func:recordlinker.linking.matchers.invalid"}
@@ -169,7 +181,9 @@ class TestAlgorithmPass:
         """
         Tests that the bound_rule method returns the correct function
         """
-        ap = models.AlgorithmPass(rule="func:recordlinker.linking.matchers.rule_probabilistic_match")
+        ap = models.AlgorithmPass(
+            rule="func:recordlinker.linking.matchers.rule_probabilistic_match"
+        )
         assert ap.bound_rule() == matchers.rule_probabilistic_match
         ap.rule = "func:recordlinker.linking.matchers.invalid"
         with pytest.raises(ValueError, match="Failed to convert string to callable"):

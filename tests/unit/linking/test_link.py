@@ -47,6 +47,10 @@ class TestCompare:
 
         algorithm_pass = models.AlgorithmPass(
             id=1,
+            algorithm=models.Algorithm(
+                log_odds=[{"feature": "FIRST_NAME", "value": 6.85}, {"feature": "LAST_NAME", "value": 6.35}],
+                defaults={"fuzzy_match_threshold": 0.9, "fuzzy_match_measure": "JaroWinkler"},
+            ),
             algorithm_id=1,
             blocking_keys=[1],
             evaluators=[
@@ -54,7 +58,7 @@ class TestCompare:
                 {"feature": "LAST_NAME", "func": "func:recordlinker.linking.matchers.compare_probabilistic_fuzzy_match"},
             ],
             rule="func:recordlinker.linking.matchers.rule_probabilistic_match",
-            kwargs={"log_odds": {"FIRST_NAME": 6.85, "LAST_NAME": 6.35}, "true_match_threshold": 12},
+            true_match_threshold=12,
         )
 
         assert link.compare(rec, pat, algorithm_pass) is True
@@ -86,14 +90,17 @@ class TestCompare:
         )
         algorithm_pass = models.AlgorithmPass(
             id=1,
-            algorithm_id=1,
+            algorithm=models.Algorithm(
+                log_odds=[{"feature": "FIRST_NAME", "value": 6.85}, {"feature": "LAST_NAME", "value": 6.35}],
+                defaults={"fuzzy_match_threshold": 0.9, "fuzzy_match_measure": "JaroWinkler"},
+            ),
             blocking_keys=[1],
             evaluators=[
                 {"feature": "FIRST_NAME", "func": "func:recordlinker.linking.matchers.compare_probabilistic_fuzzy_match"},
                 {"feature": "LAST_NAME", "func": "func:recordlinker.linking.matchers.compare_probabilistic_fuzzy_match"},
             ],
             rule="func:recordlinker.linking.matchers.rule_probabilistic_match",
-            kwargs={"log_odds": {"FIRST_NAME": 6.85, "LAST_NAME": 6.35}, "true_match_threshold": 12.95},
+            true_match_threshold=12.95,
         )
 
         assert link.compare(rec, pat, algorithm_pass) is False
@@ -134,13 +141,16 @@ class TestCompare:
 
         algorithm_pass = models.AlgorithmPass(
             id=1,
-            algorithm_id=1,
+            algorithm=models.Algorithm(
+                log_odds=[{"feature": "IDENTIFIER", "value": 0.35}],
+                defaults={"fuzzy_match_threshold": 0.9, "fuzzy_match_measure": "JaroWinkler"},
+            ),
             blocking_keys=[1],
             evaluators=[
                 {"feature": "IDENTIFIER", "func": "func:recordlinker.linking.matchers.compare_probabilistic_fuzzy_match"},
             ],
             rule="func:recordlinker.linking.matchers.rule_probabilistic_match",
-            kwargs={"log_odds": {"IDENTIFIER": 0.35}, "true_match_threshold": 0.3},
+            true_match_threshold=0.3,
         )
 
         assert link.compare(rec, pat, algorithm_pass) is True
@@ -181,12 +191,16 @@ class TestCompare:
 
         algorithm_pass = models.AlgorithmPass(
             id=1,
-            algorithm_id=1,
+            algorithm=models.Algorithm(
+                log_odds=[{"feature": "IDENTIFIER", "value": 0.35}],
+                defaults={"fuzzy_match_threshold": 0.9, "fuzzy_match_measure": "JaroWinkler"},
+            ),
             blocking_keys=[1],
             evaluators=[
                 {"feature": "IDENTIFIER:MR", "func": "func:recordlinker.linking.matchers.compare_probabilistic_fuzzy_match"},
             ],
             rule="func:recordlinker.linking.matchers.rule_probabilistic_match",
+            true_match_threshold=0.3,
             kwargs={"log_odds": {"IDENTIFIER": 0.35}, "true_match_threshold": 0.3},
         )
 
@@ -225,7 +239,10 @@ class TestCompare:
 
         algorithm_pass = models.AlgorithmPass(
             id=1,
-            algorithm_id=1,
+            algorithm=models.Algorithm(
+                log_odds=[{"feature": "FIRST_NAME", "value": 6.85}, {"feature": "LAST_NAME", "value": 6.35}],
+                defaults={"fuzzy_match_threshold": 0.9, "fuzzy_match_measure": "JaroWinkler"},
+            ),
             blocking_keys=[1],
             evaluators=[
                 {"feature": "FIRST_NAME:DL", "func": "func:recordlinker.linking.matchers.compare_probabilistic_fuzzy_match"},

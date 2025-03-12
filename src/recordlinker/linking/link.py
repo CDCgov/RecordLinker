@@ -44,8 +44,6 @@ def compare(
     evals: list[models.BoundEvaluator] = algorithm_pass.bound_evaluators()
     # a function to determine a match based on the comparison results
     matching_rule: typing.Callable = algorithm_pass.bound_rule()
-    # keyword arguments to pass to comparison functions and matching rule
-    kwargs: dict[typing.Any, typing.Any] = algorithm_pass.kwargs
 
     results: list[float] = []
     details: dict[str, typing.Any] = {"patient.reference_id": str(patient.reference_id)}
@@ -55,10 +53,17 @@ def compare(
         if feature is None:
             raise ValueError(f"Invalid comparison field: {e.feature}")
         # Evaluate the comparison function and append the result to the list
-        result: float = e.func(record, patient, feature, **kwargs)  # type: ignore
+        result: float = e.func(
+            record,
+            patient,
+            feature,
+            e.log_odds,
+            fuzzy_match_threshold=e.fuzzy_match_threshold,
+            fuzzy_match_measure=e.fuzzy_match_measure,
+        )
         results.append(result)
         details[f"evaluator.{e.feature}.{e.func.__name__}.result"] = result
-    is_match = matching_rule(results, **kwargs)
+    is_match = matching_rule(results, algorithm_pass.true_match_threshold)
     details[f"rule.{matching_rule.__name__}.results"] = is_match
     # TODO: this may add a lot of noise, consider moving to debug
     LOGGER.info("patient comparison", extra=details)

@@ -20,13 +20,22 @@ LOGGER = logging.getLogger(__name__)
 @dataclasses.dataclass
 class BoundEvaluator:
     """
-    The schema for a bound evaluator record.
+    The schema for a bound evaluator record and its arguments.
     """
 
     feature: str
     func: typing.Callable
-    fuzzy_match_threshold: float
-    fuzzy_match_measure: str
+    log_odds: float
+    fuzzy_match_threshold: float | None
+    fuzzy_match_measure: str | None
+
+    def __post_init__(self):
+        """
+        Type checks on the required fields to ensure they were specified
+        """
+        assert isinstance(self.feature, str), "feature must be a string"
+        assert callable(self.func), "func must be a callable"
+        assert isinstance(self.log_odds, float), "log_odds must be a float"
 
 
 class Algorithm(Base):
@@ -76,6 +85,41 @@ class Algorithm(Base):
         """
         passes = [AlgorithmPass(**p) for p in data.pop("passes", [])]
         return cls(passes=passes, **data)
+
+    def get_log_odds(self, feature: str) -> float | None:
+        """
+        Get the log odds for a given feature.
+
+        Parameters:
+        feature: The feature to get the log odds for.
+
+        Returns:
+        The log odds for the feature.
+        """
+        if self.log_odds:
+            lookup: dict[str, float] = {i["feature"]: float(i["value"]) for i in self.log_odds}
+            val = lookup.get(feature)
+            if val:
+                return val
+            if ":" in feature:
+                feature = feature.split(":")[0]
+                return lookup.get(feature)
+        return None
+
+
+    def get_default(self, key: str) -> typing.Any:
+        """
+        Get the default value for a given key.
+
+        Parameters:
+        key: The key to get the default value for.
+
+        Returns:
+        The default value for the key.
+        """
+        if not self.defaults:
+            return None
+        return self.defaults.get(key, None)
 
 
 def check_only_one_default(mapping, connection, target):
@@ -143,18 +187,19 @@ class AlgorithmPass(Base):
         """
         if not hasattr(self, "_bound_evaluators"):
             self._bound_evaluators = []
-            defaults = getattr(self.algorithm, "defaults", None) or {}
+            algo = self.algorithm or Algorithm()
             for e in self.evaluators:
                 bound = func_utils.bind_functions(e)
+                bound["log_odds"] = algo.get_log_odds(bound["feature"])
                 bound["fuzzy_match_threshold"] = bound.get(
                     # default to the algorithm's fuzzy match threshold if not defined
                     "fuzzy_match_threshold",
-                    defaults.get("fuzzy_match_threshold", None),
+                    algo.get_default("fuzzy_match_threshold"),
                 )
                 bound["fuzzy_match_measure"] = bound.get(
                     # default to the algorithm's fuzzy match measure if not defined
                     "fuzzy_match_measure",
-                    defaults.get("fuzzy_match_measure", None),
+                    algo.get_default("fuzzy_match_measure"),
                 )
                 self._bound_evaluators.append(BoundEvaluator(**bound))
         return self._bound_evaluators
