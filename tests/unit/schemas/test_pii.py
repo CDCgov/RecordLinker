@@ -42,7 +42,7 @@ class TestPIIRecord:
                     "county": "county2",
                 },
             ],
-            "telecom": [{"value": "555-123-4567"}, {"value": "555-987-6543"}],
+            "telecom": [{"value": " 555-123-4567"}, {"value": "555-987-6543"}],
             "identifiers": [
                 {
                     "type": "MR",
@@ -191,10 +191,10 @@ class TestPIIRecord:
             race="unknown",
             address=[
                 pii.Address(
-                    line=["123 Main St"],
+                    line=[" 123 Main St"],
                     city="Anytown",
                     state="NY",
-                    postalCode="12345",
+                    postalCode=" 12345",
                     country="US",
                     county="county",
                 ),
@@ -213,7 +213,9 @@ class TestPIIRecord:
             telecom=[
                 pii.Telecom(value="555-123-4567"),
                 pii.Telecom(value="(555) 987-6543", system="phone"),
-                pii.Telecom(value="test@email.com", system="email"),
+                pii.Telecom(value=" teSt@email.com", system="email"),
+                pii.Telecom(value="555*987*6543"),
+                pii.Telecom(value=" teSt@email.com"),
             ],
             identifiers=[
                 {
@@ -240,12 +242,12 @@ class TestPIIRecord:
         ]
         assert list(record.feature_iter(pii.Feature(attribute=pii.FeatureAttribute.SEX))) == ["M"]
         assert list(record.feature_iter(pii.Feature(attribute=pii.FeatureAttribute.ADDRESS))) == [
-            "123 Main St",
-            "456 Elm St",
+            "123mainst",
+            "456elmst",
         ]
         assert list(record.feature_iter(pii.Feature(attribute=pii.FeatureAttribute.CITY))) == [
-            "Anytown",
-            "Somecity",
+            "anytown",
+            "somecity",
         ]
         assert list(record.feature_iter(pii.Feature(attribute=pii.FeatureAttribute.STATE))) == [
             "NY",
@@ -257,20 +259,23 @@ class TestPIIRecord:
         ]
         assert list(
             record.feature_iter(pii.Feature(attribute=pii.FeatureAttribute.GIVEN_NAME))
-        ) == ["John L", "Jane"]
+        ) == ["johnl", "jane"]
         assert list(
             record.feature_iter(pii.Feature(attribute=pii.FeatureAttribute.FIRST_NAME))
-        ) == ["John", "Jane"]
+        ) == ["john", "jane"]
         assert list(record.feature_iter(pii.Feature(attribute=pii.FeatureAttribute.LAST_NAME))) == [
-            "Doe",
-            "Smith",
+            "doe",
+            "smith",
         ]
         assert list(record.feature_iter(pii.Feature(attribute=pii.FeatureAttribute.RACE))) == []
         assert list(record.feature_iter(pii.Feature(attribute=pii.FeatureAttribute.TELECOM))) == [
             "555-123-4567",
-            "(555) 987-6543",
+            "5559876543",
+            "test@email.com",
+            "555*987*6543",
             "test@email.com",
         ]
+
         assert list(record.feature_iter(pii.Feature(attribute=pii.FeatureAttribute.PHONE))) == [
             "5559876543"
         ]
@@ -286,7 +291,7 @@ class TestPIIRecord:
         ]
         assert list(
             record.feature_iter(pii.Feature(attribute=pii.FeatureAttribute.IDENTIFIER))
-        ) == ["123456::MR", "123-45-6789::SS", "D1234567:VA:DL"]
+        ) == ["123456::MR", "123456789::SS", "d1234567:va:DL"]
 
         # IDENTIFIER with suffix
         assert list(
@@ -294,7 +299,7 @@ class TestPIIRecord:
         ) == ["123456::MR"]
         assert list(
             record.feature_iter(pii.Feature(attribute=pii.FeatureAttribute.IDENTIFIER, suffix="SS"))
-        ) == ["123-45-6789::SS"]
+        ) == ["123456789::SS"]
 
         # Other fields work okay, few more checks on difference race yield values
         record = pii.PIIRecord(race="asked unknown")
@@ -324,10 +329,10 @@ class TestPIIRecord:
 
         assert list(
             record.feature_iter(pii.Feature(attribute=pii.FeatureAttribute.GIVEN_NAME))
-        ) == ["John L", "Jon Lewis Doe"]
+        ) == ["johnl", "jonlewisdoe"]
         assert list(
             record.feature_iter(pii.Feature(attribute=pii.FeatureAttribute.FIRST_NAME))
-        ) == ["John", "Jon"]
+        ) == ["john", "jon"]
 
     def test_feature_iter_state(self):
         record = pii.PIIRecord(
@@ -420,14 +425,16 @@ class TestPIIRecord:
         assert rec.blocking_keys(BlockingKey.ZIP) == {"12345"}
         rec = pii.PIIRecord(**{"address": [{"zipCode": "12345-6789"}, {"zip": "54321"}]})
         assert rec.blocking_keys(BlockingKey.ZIP) == {"12345", "54321"}
+        rec = pii.PIIRecord(**{"address": [{"zipCode": " 12345-6789"}, {"zip": " 54321 "}]})
+        assert rec.blocking_keys(BlockingKey.ZIP) == {"12345", "54321"}
 
     def test_blocking_keys_first_name_first_four(self):
-        rec = pii.PIIRecord(**{"first_name": "John"})
+        rec = pii.PIIRecord(**{"first_name": "john"})
         assert rec.blocking_keys(BlockingKey.FIRST_NAME) == set()
-        rec = pii.PIIRecord(**{"name": [{"given": [""], "family": "Doe"}]})
+        rec = pii.PIIRecord(**{"name": [{"given": [""], "family": "doe"}]})
         assert rec.blocking_keys(BlockingKey.FIRST_NAME) == set()
-        rec = pii.PIIRecord(**{"name": [{"given": ["John", "Jane"], "family": "Doe"}]})
-        assert rec.blocking_keys(BlockingKey.FIRST_NAME) == {"John"}
+        rec = pii.PIIRecord(**{"name": [{"given": ["john", "jane"], "family": "doe"}]})
+        assert rec.blocking_keys(BlockingKey.FIRST_NAME) == {"john"}
         rec = pii.PIIRecord(
             **{
                 "name": [
@@ -436,7 +443,7 @@ class TestPIIRecord:
                 ]
             }
         )
-        assert rec.blocking_keys(BlockingKey.FIRST_NAME) == {"Jane"}
+        assert rec.blocking_keys(BlockingKey.FIRST_NAME) == {"jane"}
 
     def test_blocking_keys_last_name_first_four(self):
         rec = pii.PIIRecord(**{"last_name": "Doe"})
@@ -444,19 +451,19 @@ class TestPIIRecord:
         rec = pii.PIIRecord(**{"name": [{"family": ""}]})
         assert rec.blocking_keys(BlockingKey.LAST_NAME) == set()
         rec = pii.PIIRecord(**{"name": [{"family": "Doe"}]})
-        assert rec.blocking_keys(BlockingKey.LAST_NAME) == {"Doe"}
+        assert rec.blocking_keys(BlockingKey.LAST_NAME) == {"doe"}
         rec = pii.PIIRecord(**{"name": [{"family": "Smith"}, {"family": "Doe"}]})
-        assert rec.blocking_keys(BlockingKey.LAST_NAME) == {"Smit", "Doe"}
+        assert rec.blocking_keys(BlockingKey.LAST_NAME) == {"smit", "doe"}
 
     def test_blocking_keys_address_first_four(self):
         rec = pii.PIIRecord(**{"line": "123 Main St"})
         assert rec.blocking_keys(BlockingKey.ADDRESS) == set()
         rec = pii.PIIRecord(**{"address": [{"line": ["123 Main St"]}]})
-        assert rec.blocking_keys(BlockingKey.ADDRESS) == {"123 "}
+        assert rec.blocking_keys(BlockingKey.ADDRESS) == {"123m"}
         rec = pii.PIIRecord(**{"address": [{"line": ["123 Main St", "Apt 2"]}]})
-        assert rec.blocking_keys(BlockingKey.ADDRESS) == {"123 "}
+        assert rec.blocking_keys(BlockingKey.ADDRESS) == {"123m"}
         rec = pii.PIIRecord(**{"address": [{"line": ["123 Main St"]}, {"line": ["456 Elm St"]}]})
-        assert rec.blocking_keys(BlockingKey.ADDRESS) == {"123 ", "456 "}
+        assert rec.blocking_keys(BlockingKey.ADDRESS) == {"123m", "456e"}
 
     def test_blocking_keys_phone_last_four(self):
         rec = pii.PIIRecord(**{"phone": "555-123-4567"})
@@ -475,7 +482,7 @@ class TestPIIRecord:
         rec = pii.PIIRecord(
             **{
                 "telecom": [
-                    {"value": "555.123.4567", "system": "phone"},
+                    {"value": "555.123.4567 ", "system": "phone"},
                     {"value": "555-987-6543", "system": "fax"},
                 ]
             }
@@ -491,7 +498,7 @@ class TestPIIRecord:
             **{
                 "telecom": [
                     {"value": "test@email.com", "system": "email"},
-                    {"value": "bob@email.com", "system": "email"},
+                    {"value": " bob@email.com", "system": "email"},
                 ]
             }
         )
@@ -535,8 +542,8 @@ class TestPIIRecord:
             elif key == BlockingKey.IDENTIFIER:
                 assert val == "3456:MR"
             elif key == BlockingKey.FIRST_NAME:
-                assert val == "John"
+                assert val == "john"
             elif key == BlockingKey.LAST_NAME:
-                assert val == "Doe"
+                assert val == "doe"
             else:
                 raise AssertionError(f"Unexpected key: {key}")
