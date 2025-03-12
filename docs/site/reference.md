@@ -49,7 +49,7 @@ linkage evaluation phase. The following features are supported:
 
 `STATE`
 
-:   The patient's state.
+:   The patient's state, normalized to standard USPS two-letter codes.
 
 `ZIP`
 
