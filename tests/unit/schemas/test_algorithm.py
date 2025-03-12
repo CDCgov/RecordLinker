@@ -103,30 +103,6 @@ class TestAlgorithmPass:
             true_match_threshold=0,
         )
 
-    def test_kwargs(self):
-        with pytest.raises(pydantic.ValidationError):
-            AlgorithmPass(
-                blocking_keys=[],
-                evaluators=[],
-                rule="func:recordlinker.linking.matchers.rule_probabilistic_match",
-                cluster_ratio=0.5,
-                true_match_threshold=0,
-                kwargs={"invalid": "key"},
-            )
-        AlgorithmPass(
-            blocking_keys=[],
-            evaluators=[],
-            rule="func:recordlinker.linking.matchers.rule_probabilistic_match",
-            true_match_threshold=0,
-            kwargs={
-                "similarity_measure": "JaroWinkler",
-                "thresholds": {"CITY": 0.95, "ADDRESS": 0.98},
-                "threshold": 0.9,
-                "log_odds": {"CITY": 12.0, "ADDRESS": 15.0},
-                "true_match_threshold": 0.8,
-            },
-        )
-
 
 class TestAlgorithm:
     def test_validate_belongingness_ratio(self):

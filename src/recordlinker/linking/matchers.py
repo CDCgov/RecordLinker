@@ -51,24 +51,6 @@ class FeatureFunc(enum.Enum):
     )
 
 
-# TODO: DELETE
-class AvailableKwarg(enum.Enum):
-    """
-    Enum for the different types of keyword arguments that can be used in the
-    AlgorithmPass schema. This is the universe of all possible keyword arguments
-    that a user can choose from when configuring their algorithm.  When data is
-    loaded into the MPI, all possible AvailableKwargs will be created for the
-    defined keyword arguments. However, only a subset will be used in matching,
-    based on the configuration of the algorithm.
-    """
-
-    SIMILARITY_MEASURE = "similarity_measure"
-    THRESHOLD = "threshold"
-    THRESHOLDS = "thresholds"
-    LOG_ODDS = "log_odds"
-    TRUE_MATCH_THRESHOLD = "true_match_threshold"
-
-
 def rule_probabilistic_match(feature_comparisons: list[float], threshold: float) -> bool:
     """
     Determines whether a given set of feature comparisons matches enough
@@ -97,9 +79,6 @@ def compare_probabilistic_exact_match(
     :param patient: The patient record to compare against.
     :param key: The name of the column being evaluated (e.g. "city").
     :param log_odds: The log-odds weight-points for this field
-    :param **kwargs: Optionally, a dictionary including specifications for
-      the string comparison metric to use, as well as the cutoff score
-      beyond which to classify the strings as a partial match.
     :return: A float of the score the feature comparison earned.
     """
     agree = 0.0
@@ -127,9 +106,8 @@ def compare_probabilistic_fuzzy_match(
     :param patient: The patient record to compare against.
     :param key: The name of the column being evaluated (e.g. "city").
     :param log_odds: The log-odds weight-points for this field
-    :param **kwargs: Optionally, a dictionary including specifications for
-      the string comparison metric to use, as well as the cutoff score
-      beyond which to classify the strings as a partial match.
+    :param fuzzy_match_measure: The string comparison metric to use
+    :params fuzzy_match_threshold: The cutoff score beyond which to classify the strings as a partial match
     :return: A float of the score the feature comparison earned.
     """
     measure = kwargs.get("fuzzy_match_measure")

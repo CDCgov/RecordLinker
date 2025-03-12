@@ -163,7 +163,6 @@ class AlgorithmPass(Base):
     _evaluators: orm.Mapped[list[dict]] = orm.mapped_column("evaluators", sqltypes.JSON)
     _rule: orm.Mapped[str] = orm.mapped_column("rule", sqltypes.String(255))
     true_match_threshold: orm.Mapped[float] = orm.mapped_column(sqltypes.Float, default=0.0)
-    kwargs: orm.Mapped[dict] = orm.mapped_column(sqltypes.JSON, default=dict)
 
     @property
     def evaluators(self) -> list[dict]:

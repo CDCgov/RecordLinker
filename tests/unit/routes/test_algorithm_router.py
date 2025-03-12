@@ -61,7 +61,6 @@ class TestGetAlgorithm:
                     ],
                     rule="func:recordlinker.linking.matchers.rule_probabilistic_match",
                     true_match_threshold=6,
-                    kwargs={"similarity_measure": "JaroWinkler", "log_odds": {"FIRST_NAME": 6.8}},
                 )
             ],
         )
@@ -97,10 +96,6 @@ class TestGetAlgorithm:
                     ],
                     "rule": "func:recordlinker.linking.matchers.rule_probabilistic_match",
                     "true_match_threshold": 6,
-                    "kwargs": {
-                        "similarity_measure": "JaroWinkler",
-                        "log_odds": {"FIRST_NAME": 6.8}
-                    },
                 }
             ],
         }
@@ -171,7 +166,6 @@ class TestCreateAlgorithm:
             }
         ]
         assert algo.passes[0].rule == "func:recordlinker.linking.matchers.rule_probabilistic_match"
-        assert algo.passes[0].kwargs == {}
 
 
 class TestUpdateAlgorithm:
@@ -245,6 +239,10 @@ class TestUpdateAlgorithm:
         assert algo.is_default is True
         assert algo.description == "Updated algorithm"
         assert algo.belongingness_ratio == (0.25, 0.5)
+        assert algo.defaults == {
+            "fuzzy_match_threshold": 0.9,
+            "fuzzy_match_measure": "JaroWinkler",
+        }
         assert len(algo.passes) == 1
         assert algo.passes[0].blocking_keys == ["BIRTHDATE"]
         assert algo.passes[0].evaluators == [
@@ -256,7 +254,7 @@ class TestUpdateAlgorithm:
             }
         ]
         assert algo.passes[0].rule == "func:recordlinker.linking.matchers.rule_probabilistic_match"
-        assert algo.passes[0].kwargs == {}
+        assert algo.passes[0].true_match_threshold == 5
 
 
 class TestDeleteAlgorithm:

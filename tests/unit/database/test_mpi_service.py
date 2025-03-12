@@ -678,7 +678,6 @@ class TestGetBlockData:
             blocking_keys=["FIRST_NAME", "LAST_NAME"],
             evaluators={},
             rule="",
-            kwargs={},
         )
         matches = mpi_service.get_block_data(session, schemas.PIIRecord(**data), algorithm_pass)
         assert len(matches) == 5

@@ -201,7 +201,6 @@ class TestCompare:
             ],
             rule="func:recordlinker.linking.matchers.rule_probabilistic_match",
             true_match_threshold=0.3,
-            kwargs={"log_odds": {"IDENTIFIER": 0.35}, "true_match_threshold": 0.3},
         )
 
         #should pass as MR is the same for both
@@ -248,7 +247,6 @@ class TestCompare:
                 {"feature": "FIRST_NAME:DL", "func": "func:recordlinker.linking.matchers.compare_probabilistic_fuzzy_match"},
             ],
             rule="func:recordlinker.linking.matchers.rule_probabilistic_match",
-            kwargs={},
         )
 
         with pytest.raises(ValueError):
