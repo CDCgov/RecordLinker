@@ -45,13 +45,23 @@ def _filter_incorrect_blocks(
     blocking_vals_in_incoming = {}
     for bk in blocking_keys:
         key = getattr(models.BlockingKey, bk)
-        blocking_vals_in_incoming[bk] = [v for v in record.blocking_keys(key)]
+        vals_blocked_from_key = [v for v in record.blocking_keys(key)]
+        if len(vals_blocked_from_key) > 0:
+            blocking_vals_in_incoming[bk] = vals_blocked_from_key
 
     # Can't modify sequence in place, so we'll build up a list of list idxs
     # to exclude for mpi patients who don't match blocking criteria exactly
     pats_to_exclude = set()
-    print("incoming blocking vals", blocking_vals_in_incoming)
     for p in patients:
+        # Note: This implementation searches for compatible values in the
+        # fields of candidates. It is possible to write this inner loop
+        # checking for incompatible values instead. This changes which loop
+        # gets short-circuited. Performance testing found compatible search
+        # faster than incompatible search due to generator termination and
+        # time-complexity growth with number of blocking keys. The more
+        # normalization and preprocessing done in `feature_iter`, the slower
+        # this search method becomes. If heavy processing is performed,
+        # consider switching to incompatible search.
         num_agreeing_blocking_fields = 0
         mpi_record = p.record
         for bk, allowed_vals in blocking_vals_in_incoming.items():
@@ -70,7 +80,6 @@ def _filter_incorrect_blocks(
         # If we get through all the blocking criteria with no missing entries
         # and no true-value agreement, we exclude
         if num_agreeing_blocking_fields < len(blocking_keys):
-            print("Found patient to exclude", p.data)
             pats_to_exclude.add(p.id)
     
     return [pat for pat in patients if pat.id not in pats_to_exclude]
