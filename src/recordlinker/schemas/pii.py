@@ -12,6 +12,7 @@ from recordlinker import models
 from recordlinker.schemas.identifier import Identifier
 from recordlinker.schemas.identifier import IdentifierType
 from recordlinker.utils import path as utils
+from recordlinker.utils.normalize import normalize_text
 
 # Load the state code mapping for state normalization in Address class
 _STATE_NAME_TO_CODE = utils.read_json("assets/states.json")
@@ -48,7 +49,18 @@ class FeatureAttribute(enum.Enum):
         return self.value
 
 
-class Feature(pydantic.BaseModel):
+class StrippedBaseModel(pydantic.BaseModel):
+    @pydantic.field_validator("*", mode="before")
+    def strip_whitespace(cls, v):
+        """
+        Remove leading and trailing whitespace from all string fields.
+        """
+        if isinstance(v, str):
+            return v.strip()
+        return v
+
+
+class Feature(StrippedBaseModel):
     """
     The schema for a feature.
     """
@@ -134,7 +146,7 @@ class Race(enum.Enum):
         return self.value
 
 
-class Name(pydantic.BaseModel):
+class Name(StrippedBaseModel):
     """
     The schema for a name record.
     """
@@ -148,7 +160,7 @@ class Name(pydantic.BaseModel):
     suffix: typing.List[str] = []
 
 
-class Address(pydantic.BaseModel):
+class Address(StrippedBaseModel):
     """
     The schema for an address record.
     """
@@ -187,7 +199,7 @@ class Address(pydantic.BaseModel):
         return None
 
 
-class Telecom(pydantic.BaseModel):
+class Telecom(StrippedBaseModel):
     """
     The schema for a telecom record.
     """
@@ -198,14 +210,14 @@ class Telecom(pydantic.BaseModel):
     system: typing.Optional[str] = None
     use: typing.Optional[str] = None
 
-    def phone_number(self) -> str | None:
+    def phone(self) -> str | None:
         """
         Return the phone number from the telecom record.
         """
         if self.system != "phone":
             return None
         # normalize the number to include just the 10 digits
-        return re.sub(r"\D", "", self.value)[:10]
+        return re.sub(r"\D", "", self.value).strip()[:10]
 
     def email(self) -> str | None:
         """
@@ -213,10 +225,24 @@ class Telecom(pydantic.BaseModel):
         """
         if self.system != "email":
             return None
-        return self.value
+        return self.value.lower().strip()
+
+    @classmethod
+    @functools.lru_cache()
+    def get_system_handlers(cls) -> dict[str, str]:
+        """
+        Return a dictionary of system handlers for the Telecom class where the keys
+        are the system values and the values are the method names to call.
+
+        """
+        return {
+            name: name
+            for name, method in cls.__dict__.items()
+            if callable(method) and not name.startswith("_")
+        }
 
 
-class PIIRecord(pydantic.BaseModel):
+class PIIRecord(StrippedBaseModel):
     """
     The schema for a PII record.
     """
@@ -342,11 +368,11 @@ class PIIRecord(pydantic.BaseModel):
                 # The 2nd, 3rd, etc lines of an address are not as important as
                 # the first line, so we only include the first line in the comparison.
                 if address.line and address.line[0]:
-                    yield address.line[0]
+                    yield normalize_text(address.line[0])
         elif attribute == FeatureAttribute.CITY:
             for address in self.address:
                 if address.city:
-                    yield address.city
+                    yield normalize_text(address.city)
         elif attribute == FeatureAttribute.STATE:
             for address in self.address:
                 if address.state:
@@ -361,27 +387,36 @@ class PIIRecord(pydantic.BaseModel):
         elif attribute == FeatureAttribute.GIVEN_NAME:
             for name in self.name:
                 if name.given:
-                    yield " ".join(name.given)
+                    yield normalize_text("".join(name.given))
         elif attribute == FeatureAttribute.FIRST_NAME:
             for name in self.name:
                 # We only want the first given name for comparison
                 for given in name.given[0:1]:
                     if given:
-                        yield given
+                        yield normalize_text(given)
         elif attribute == FeatureAttribute.LAST_NAME:
             for name in self.name:
                 if name.family:
-                    yield name.family
+                    yield normalize_text(name.family)
         elif attribute == FeatureAttribute.RACE:
             if self.race and self.race not in [Race.UNKNOWN, Race.ASKED_UNKNOWN]:
                 yield str(self.race)
         elif attribute == FeatureAttribute.TELECOM:
             for telecom in self.telecom:
-                if telecom.value:
-                    yield telecom.value
+                if telecom.system is None:
+                    yield telecom.value.strip().lower()
+                    continue
+
+                handlers = Telecom.get_system_handlers()
+
+                if telecom.system in handlers:
+                    value = getattr(telecom, handlers[telecom.system])()
+                    if value:
+                        yield value
+
         elif attribute == FeatureAttribute.PHONE:
             for telecom in self.telecom:
-                number = telecom.phone_number()
+                number = telecom.phone()
                 if number:
                     yield number
         elif attribute == FeatureAttribute.EMAIL:
@@ -393,15 +428,16 @@ class PIIRecord(pydantic.BaseModel):
             for name in self.name:
                 for suffix in name.suffix:
                     if suffix:
-                        yield suffix
+                        yield normalize_text(suffix)
         elif attribute == FeatureAttribute.COUNTY:
             for address in self.address:
                 if address.county:
-                    yield address.county
+                    yield normalize_text(address.county)
         elif attribute == FeatureAttribute.IDENTIFIER:
             for identifier in self.identifiers:
                 if identifier_suffix is None or identifier_suffix == identifier.type:
-                    yield f"{identifier.value}:{identifier.authority or ''}:{identifier.type}"
+                    identifier_authority = identifier.authority or ""
+                    yield f"{normalize_text(identifier.value)}:{normalize_text(identifier_authority) if identifier_authority else identifier_authority}:{identifier.type}"
 
     def blocking_keys(self, key: models.BlockingKey) -> set[str]:
         """
