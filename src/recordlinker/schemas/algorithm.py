@@ -100,7 +100,7 @@ class EvaluationContext(pydantic.BaseModel):
         """
         Get the log odds for a specific feature.
         """
-        mapping: dict[str, float]= {str(o.feature): o.value for o in self.log_odds}
+        mapping: dict[str, float] = {str(o.feature): o.value for o in self.log_odds}
         for val in feature.values_to_match():
             if val in mapping:
                 return mapping[val]
@@ -134,7 +134,8 @@ class Evaluator(pydantic.BaseModel):
         ""
         func = func_utils.str_to_callable(self.func.value)
         kwargs = {
-            "fuzzy_match_threshold": self.fuzzy_match_threshold or context.defaults.fuzzy_match_threshold,
+            "fuzzy_match_threshold": self.fuzzy_match_threshold
+            or context.defaults.fuzzy_match_threshold,
             "fuzzy_match_measure": self.fuzzy_match_measure or context.defaults.fuzzy_match_measure,
         }
         log_odds = context.get_log_odds(self.feature)
@@ -194,6 +195,22 @@ class Algorithm(pydantic.BaseModel):
     is_default: bool = False
     evaluation_context: EvaluationContext = EvaluationContext()
     passes: typing.Sequence[AlgorithmPass]
+
+    # TODO: test cases
+    @pydantic.model_validator(mode="after")
+    def validate_log_odds_defined(self) -> typing.Self:
+        """
+        Check that log odds values are defined for all blocking keys and evaluators.
+        """
+        for pass_ in self.passes:
+            # NOTE: this is a future use case, as we may want to use log odds in our blocking calls
+            for blocking_key in pass_.blocking_keys:
+                if not self.evaluation_context.get_log_odds(Feature.parse(str(blocking_key))):
+                    raise ValueError("Log odds must be defined for all blocking keys.")
+            for evaluator in pass_.evaluators:
+                if not self.evaluation_context.get_log_odds(evaluator.feature):
+                    raise ValueError("Log odds must be defined for all evaluators.")
+        return self
 
 
 class AlgorithmSummary(Algorithm):

@@ -16,6 +16,7 @@
             { "feature": "FIRST_NAME", "value": 6.849475906891162 },
             { "feature": "LAST_NAME", "value": 6.350720397426025 },
             { "feature": "IDENTIFIER:MR", "value": 0.3051262572525359 },
+            { "feature": "IDENTIFIER", "value": 0.3051262572525359 },
             { "feature": "SEX", "value": 0.7510419059643679 },
             { "feature": "STATE", "value": 0.022376768992488694 },
             { "feature": "ZIP", "value": 4.975031471124867 }

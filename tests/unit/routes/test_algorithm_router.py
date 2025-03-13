@@ -232,6 +232,10 @@ class TestUpdateAlgorithm:
             "description": "Updated algorithm",
             "evaluation_context": {
                 "belongingness_ratio": [0.45, 0.5],
+                "log_odds": [
+                    {"feature": "BIRTHDATE", "value": 10},
+                    {"feature": "FIRST_NAME", "value": 7},
+                ],
             },
             "passes": [
                 {
@@ -262,7 +266,10 @@ class TestUpdateAlgorithm:
         assert algo.evaluation_context == {
             "include_multiple_matches": True,
             "belongingness_ratio": [0.45, 0.5],
-            "log_odds": [],
+            "log_odds": [
+                {"feature": "BIRTHDATE", "value": 10},
+                {"feature": "FIRST_NAME", "value": 7},
+            ],
             "defaults": {
                 "fuzzy_match_threshold": 0.9,
                 "fuzzy_match_measure": "JaroWinkler",
