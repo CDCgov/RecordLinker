@@ -247,11 +247,18 @@ class PIIRecord(pydantic.BaseModel):
         class LinkerParserInfo(parserinfo):
             def convertyear(self, year, *args):
                 """
-                Subclass method override for parser info function dedicatedo to
-                handling two-digit year strings.
+                Subclass method override for parser info function dedicated to
+                handling two-digit year strings. The Parser interprets any two
+                digit year string up to and including the last two digits of
+                the current year as the current century; any two-digit value 
+                above this number is interpreted as the preceding century.
+                E.g. '25' is parsed to '2025', but '74' becomes '1974'.
+                The Parser does not accept dates in the future, even if in 
+                the same calendar year.
                 """
                 # self._year is the current four-digit year
-                # self._century is leading two digits of self._year
+                # self._century is self._year with the tens and ones digits dropped, e.g.
+                # 19XX becomes 1900, 20XX becomes 2000
                 # implementation override follows template pattern in docs
                 # https://dateutil.readthedocs.io/en/latest/_modules/dateutil/parser/_parser.html#parserinfo.convertyear # noqa: E712
                 if year < 100:
@@ -264,9 +271,9 @@ class PIIRecord(pydantic.BaseModel):
         if value:
             given_date = parse(str(value), LinkerParserInfo())
             if given_date > datetime.datetime.today():
-                raise ValueError("Dates cannot be in the future")
+                raise ValueError("Birthdates cannot be in the future")
             if given_date < datetime.datetime(1850, 1, 1):
-                raise ValueError("Dates cannot be before 1850")
+                raise ValueError("Birthdates cannot be before 1850")
             return given_date
 
     @pydantic.field_validator("sex", mode="before")

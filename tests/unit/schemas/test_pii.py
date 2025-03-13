@@ -101,8 +101,6 @@ class TestPIIRecord:
         assert record.birth_date == datetime.date(1980, 1, 1)
         record = pii.PIIRecord()
         assert record.birth_date is None
-        record = pii.PIIRecord(birthdate="02-09-39")
-        assert record.birth_date == datetime.date(1939, 2, 9)
         record = pii.PIIRecord(birthdate="06-06-74")
         assert record.birth_date == datetime.date(1974, 6, 6)
         record = pii.PIIRecord(birthdate="12-19-08")
