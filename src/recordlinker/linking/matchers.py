@@ -20,19 +20,6 @@ from recordlinker.schemas.pii import PIIRecord
 SIMILARITY_MEASURES = typing.Literal["JaroWinkler", "Levenshtein", "DamerauLevenshtein"]
 
 
-class RuleFunc(enum.Enum):
-    """
-    Enum for the different types of match rules that can be used for patient
-    matching. This is the universe of all possible match rules that a user can
-    choose from when configuring their algorithm.  When data is loaded into the
-    MPI, all possible RuleFuncs will be created for the defined match rules.
-    However, only a subset will be used in matching, based on the configuration of
-    the algorithm.
-    """
-
-    RULE_PROBABILISTIC_MATCH = "func:recordlinker.linking.matchers.rule_probabilistic_match"
-
-
 class FeatureFunc(enum.Enum):
     """
     Enum for the different types of feature comparison functions that can be used
@@ -43,6 +30,7 @@ class FeatureFunc(enum.Enum):
     matching, based on the configuration of the algorithm.
     """
 
+    # TODO: serialize name, not value
     COMPARE_PROBABILISTIC_EXACT_MATCH = (
         "func:recordlinker.linking.matchers.compare_probabilistic_exact_match"
     )
@@ -50,20 +38,11 @@ class FeatureFunc(enum.Enum):
         "func:recordlinker.linking.matchers.compare_probabilistic_fuzzy_match"
     )
 
-
-def rule_probabilistic_match(feature_comparisons: list[float], threshold: float) -> bool:
-    """
-    Determines whether a given set of feature comparisons matches enough
-    to be the result of a true patient link instead of just random chance.
-    This is represented using previously computed log-odds ratios.
-
-    :param feature_comparisons: A list of floats representing the log-odds
-      score of each field computed on.
-    :param threshold: The minimum score required to classify a match.
-    :return: Whether the feature comparisons score well enough to be
-      considered a match.
-    """
-    return sum(feature_comparisons) >= threshold
+    def __str__(self):
+        """
+        Returns the string representation of the FeatureFunc.
+        """
+        return self.value
 
 
 def compare_probabilistic_exact_match(

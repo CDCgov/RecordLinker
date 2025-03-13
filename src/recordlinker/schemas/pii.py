@@ -108,6 +108,24 @@ class Feature(StrippedBaseModel):
                     options.append(f"{feature}:{identifier}")
         return options
 
+    @pydantic.model_serializer()
+    def __str__(self):
+        """
+        Override the default model dump to create a single string for Feature.
+        """
+        if self.suffix:
+            return f"{self.attribute}:{self.suffix}"
+        return str(self.attribute)
+
+    def values_to_match(self) -> typing.List[str]:
+        """
+        Return a list of all possible values for this feature that can be used for comparison.
+        """
+        values = [str(self)]
+        if self.suffix:
+            values.append(str(self.attribute))
+        return values
+
 
 class Sex(enum.Enum):
     """

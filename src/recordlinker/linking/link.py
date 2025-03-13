@@ -35,36 +35,23 @@ class LinkResult:
 
 
 def compare(
-    record: schemas.PIIRecord, patient: models.Patient, algorithm_pass: models.AlgorithmPass
+    record: schemas.PIIRecord,
+    patient: models.Patient,
+    algorithm_pass: schemas.AlgorithmPass,
+    context: schemas.EvaluationContext,
 ) -> bool:
     """
     Compare the incoming record to the linked patient
     """
-    # all the functions used for comparison
-    evals: list[models.BoundEvaluator] = algorithm_pass.bound_evaluators()
-    # a function to determine a match based on the comparison results
-    matching_rule: typing.Callable = algorithm_pass.bound_rule()
-
     results: list[float] = []
     details: dict[str, typing.Any] = {"patient.reference_id": str(patient.reference_id)}
-    for e in evals:
-        # TODO: can we do this check earlier?
-        feature = schemas.Feature.parse(e.feature)
-        if feature is None:
-            raise ValueError(f"Invalid comparison field: {e.feature}")
+    for e in algorithm_pass.evaluators:
         # Evaluate the comparison function and append the result to the list
-        result: float = e.func(
-            record,
-            patient,
-            feature,
-            e.log_odds,
-            fuzzy_match_threshold=e.fuzzy_match_threshold,
-            fuzzy_match_measure=e.fuzzy_match_measure,
-        )
+        result: float = e.invoke(record, patient, context)
         results.append(result)
-        details[f"evaluator.{e.feature}.{e.func.__name__}.result"] = result
-    is_match = matching_rule(results, algorithm_pass.true_match_threshold)
-    details[f"rule.{matching_rule.__name__}.results"] = is_match
+        details[f"evaluator.{e.feature}.{e.func}.result"] = result
+    is_match: bool = sum(results) >= algorithm_pass.true_match_threshold
+    details["rule.results"] = is_match
     # TODO: this may add a lot of noise, consider moving to debug
     LOGGER.info("patient comparison", extra=details)
     return is_match
@@ -73,7 +60,7 @@ def compare(
 def link_record_against_mpi(
     record: schemas.PIIRecord,
     session: orm.Session,
-    algorithm: models.Algorithm,
+    algorithm: schemas.Algorithm,
     external_person_id: typing.Optional[str] = None,
     persist: bool = True,
 ) -> tuple[models.Patient | None, models.Person | None, list[LinkResult], schemas.Prediction]:
@@ -101,8 +88,8 @@ def link_record_against_mpi(
     # Membership scores need to persist across linkage passes so that we can
     # find the highest scoring match across all passes
     scores: dict[models.Person, float] = collections.defaultdict(float)
-    # the minimum ratio of matches needed to be considered a cluster member
-    belongingness_ratio_lower_bound, belongingness_ratio_upper_bound = algorithm.belongingness_ratio
+    # Retrieve the evaluation context
+    context: schemas.EvaluationContext = algorithm.evaluation_context
     # initialize counters to track evaluation results to log
     result_counts: dict[str, int] = {
         "persons_compared": 0,
@@ -131,7 +118,7 @@ def link_record_against_mpi(
                     for pat in pats:
                         # increment our match count if the pii_record matches the patient
                         with TRACER.start_as_current_span("link.compare"):
-                            if compare(record, pat, algorithm_pass):
+                            if compare(record, pat, algorithm_pass, context):
                                 matched_count += 1
                     result_counts["persons_compared"] += 1
                     result_counts["patients_compared"] += len(pats)
@@ -144,11 +131,11 @@ def link_record_against_mpi(
                             "person.reference_id": str(person.reference_id),
                             "matched": matched_count,
                             "total": len(pats),
-                            "algorithm.belongingness_ratio_lower": belongingness_ratio_lower_bound,
-                            "algorithm.belongingness_ratio_upper": belongingness_ratio_upper_bound,
+                            "algorithm.belongingness_ratio_lower": context.belongingness_ratio_lower_bound,
+                            "algorithm.belongingness_ratio_upper": context.belongingness_ratio_upper_bound,
                         },
                     )
-                    if belongingness_ratio >= belongingness_ratio_lower_bound:
+                    if belongingness_ratio >= context.belongingness_ratio_lower_bound:
                         # The match ratio is larger than the minimum cluster threshold,
                         # optionally update the max score for this person
                         scores[person] = max(scores[person], belongingness_ratio)
@@ -165,14 +152,16 @@ def link_record_against_mpi(
         if persist:
             # Only create a new person cluster if we are persisting data
             matched_person = models.Person()
-    elif results[0].belongingness_ratio >= belongingness_ratio_upper_bound:
+    elif results[0].belongingness_ratio >= context.belongingness_ratio_upper_bound:
         # Match (1 or many)
         prediction = "match"
         matched_person = results[0].person
         # reduce results to only those that meet the upper bound threshold
-        results = [x for x in results if x.belongingness_ratio >= belongingness_ratio_upper_bound]
+        results = [
+            x for x in results if x.belongingness_ratio >= context.belongingness_ratio_upper_bound
+        ]
         result_counts["above_upper_bound"] = len(results)
-        if not algorithm.include_multiple_matches:
+        if not context.include_multiple_matches:
             # reduce results to only the highest match
             results = [results[0]]
 

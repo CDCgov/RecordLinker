@@ -148,6 +148,12 @@ class BlockingKey(enum.Enum):
         """
         return self._value
 
+    def __str__(self):
+        """
+        Return the value of the enum as a string.
+        """
+        return self._value
+
 
 class BlockingValue(Base):
     __tablename__ = "mpi_blocking_value"

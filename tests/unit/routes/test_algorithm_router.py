@@ -21,12 +21,14 @@ class TestListAlgorithms:
                 "label": "default",
                 "is_default": True,
                 "description": "First algorithm",
-                "include_multiple_matches": True,
-                "belongingness_ratio": [1.0, 1.0],
-                "log_odds": [],
-                "defaults": {
-                    "fuzzy_match_threshold": 0.9,
-                    "fuzzy_match_measure": "JaroWinkler",
+                "evaluation_context": {
+                    "include_multiple_matches": True,
+                    "belongingness_ratio": [1.0, 1.0],
+                    "log_odds": [],
+                    "defaults": {
+                        "fuzzy_match_threshold": 0.9,
+                        "fuzzy_match_measure": "JaroWinkler",
+                    },
                 },
                 "pass_count": 0,
             },
@@ -43,25 +45,25 @@ class TestGetAlgorithm:
             label="default",
             is_default=True,
             description="First algorithm",
-            belongingness_ratio=(0.25, 0.5),
-            log_odds=[
-                {"feature": "BIRTHDATE", "value": 10.2},
-                {"feature": "FIRST_NAME", "value": 6.8}
-            ],
+            evaluation_context={
+                "include_multiple_matches": True,
+                "belongingness_ratio": [0.25, 0.5],
+                "log_odds": [
+                    {"feature": "BIRTHDATE", "value": 10.2},
+                    {"feature": "FIRST_NAME", "value": 6.8}
+                ],
+            },
             passes=[
-                models.AlgorithmPass(
-                    blocking_keys=[
-                        "BIRTHDATE",
-                    ],
-                    evaluators=[
+                {
+                    "blocking_keys": ["BIRTHDATE"],
+                    "evaluators": [
                         {
                             "feature": "FIRST_NAME",
                             "func": "func:recordlinker.linking.matchers.compare_probabilistic_fuzzy_match",
                         },
                     ],
-                    rule="func:recordlinker.linking.matchers.rule_probabilistic_match",
-                    true_match_threshold=6,
-                )
+                    "true_match_threshold": 6,
+                }
             ],
         )
         client.session.add(algo)
@@ -73,15 +75,17 @@ class TestGetAlgorithm:
             "label": "default",
             "is_default": True,
             "description": "First algorithm",
-            "include_multiple_matches": True,
-            "belongingness_ratio": [0.25, 0.5],
-            "log_odds": [
-                {"feature": "BIRTHDATE", "value": 10.2},
-                {"feature": "FIRST_NAME", "value": 6.8}
-            ],
-            "defaults": {
-                "fuzzy_match_threshold": 0.9,
-                "fuzzy_match_measure": "JaroWinkler",
+            "evaluation_context": {
+                "include_multiple_matches": True,
+                "belongingness_ratio": [0.25, 0.5],
+                "log_odds": [
+                    {"feature": "BIRTHDATE", "value": 10.2},
+                    {"feature": "FIRST_NAME", "value": 6.8},
+                ],
+                "defaults": {
+                    "fuzzy_match_threshold": 0.9,
+                    "fuzzy_match_measure": "JaroWinkler",
+                },
             },
             "passes": [
                 {
@@ -94,8 +98,7 @@ class TestGetAlgorithm:
                             "fuzzy_match_measure": None,
                         }
                     ],
-                    "rule": "func:recordlinker.linking.matchers.rule_probabilistic_match",
-                    "true_match_threshold": 6,
+                    "true_match_threshold": 6.0,
                 }
             ],
         }
@@ -106,7 +109,7 @@ class TestCreateAlgorithm:
         response = client.post("/algorithm", json={})
         assert response.status_code == 422
 
-    def test_exsiting_default(self, client):
+    def test_existing_default(self, client):
         algo = models.Algorithm(label="default", is_default=True, description="First algorithm")
         client.session.add(algo)
         client.session.commit()
@@ -124,11 +127,13 @@ class TestCreateAlgorithm:
         payload = {
             "label": "created",
             "description": "Created algorithm",
-            "belongingness_ratio": (0.25, 0.5),
-            "log_odds": [
-                {"feature": "BIRTHDATE", "value": 10},
-                {"feature": "FIRST_NAME", "value": 7},
-            ],
+            "evaluation_context": {
+                "belongingness_ratio": (0.25, 0.5),
+                "log_odds": [
+                    {"feature": "BIRTHDATE", "value": 10},
+                    {"feature": "FIRST_NAME", "value": 7},
+                ],
+            },
             "passes": [
                 {
                     "blocking_keys": [
@@ -140,7 +145,6 @@ class TestCreateAlgorithm:
                             "func": "func:recordlinker.linking.matchers.compare_probabilistic_fuzzy_match",
                         }
                     ],
-                    "rule": "func:recordlinker.linking.matchers.rule_probabilistic_match",
                     "true_match_threshold": 8,
                 }
             ],
@@ -149,23 +153,38 @@ class TestCreateAlgorithm:
         assert response.status_code == 201
 
         algo = (
-            client.session.query(models.Algorithm).filter(models.Algorithm.label == "created").first()
+            client.session.query(models.Algorithm)
+            .filter(models.Algorithm.label == "created")
+            .first()
         )
         assert algo.label == "created"
         assert algo.is_default is False
         assert algo.description == "Created algorithm"
-        assert algo.belongingness_ratio == (0.25, 0.5)
+        assert algo.evaluation_context == {
+            "include_multiple_matches": True,
+            "belongingness_ratio": [0.25, 0.5],
+            "log_odds": [
+                {"feature": "BIRTHDATE", "value": 10.0},
+                {"feature": "FIRST_NAME", "value": 7.0},
+            ],
+            "defaults": {
+                "fuzzy_match_threshold": 0.9,
+                "fuzzy_match_measure": "JaroWinkler",
+            },
+        }
         assert len(algo.passes) == 1
-        assert algo.passes[0].blocking_keys == ["BIRTHDATE"]
-        assert algo.passes[0].evaluators == [
-            {
-                "feature": "FIRST_NAME",
-                "func": "func:recordlinker.linking.matchers.compare_probabilistic_fuzzy_match",
-                "fuzzy_match_threshold": None,
-                "fuzzy_match_measure": None,
-            }
-        ]
-        assert algo.passes[0].rule == "func:recordlinker.linking.matchers.rule_probabilistic_match"
+        assert algo.passes[0] == {
+            "blocking_keys": ["BIRTHDATE"],
+            "evaluators": [
+                {
+                    "feature": "FIRST_NAME",
+                    "func": "func:recordlinker.linking.matchers.compare_probabilistic_fuzzy_match",
+                    "fuzzy_match_threshold": None,
+                    "fuzzy_match_measure": None,
+                }
+            ],
+            "true_match_threshold": 8.0,
+        }
 
 
 class TestUpdateAlgorithm:
@@ -173,7 +192,6 @@ class TestUpdateAlgorithm:
         payload = {
             "label": "bad",
             "description": "First algorithm",
-            "belongingness_ratio": (1.0, 1.0),
             "passes": [],
         }
         response = client.put("/algorithm/unknown", json=payload)
@@ -212,7 +230,9 @@ class TestUpdateAlgorithm:
             "label": "default",
             "is_default": True,
             "description": "Updated algorithm",
-            "belongingness_ratio": (0.25, 0.5),
+            "evaluation_context": {
+                "belongingness_ratio": [0.45, 0.5],
+            },
             "passes": [
                 {
                     "blocking_keys": [
@@ -224,7 +244,6 @@ class TestUpdateAlgorithm:
                             "func": "func:recordlinker.linking.matchers.compare_probabilistic_fuzzy_match",
                         }
                     ],
-                    "rule": "func:recordlinker.linking.matchers.rule_probabilistic_match",
                     "true_match_threshold": 5,
                 }
             ],
@@ -233,28 +252,35 @@ class TestUpdateAlgorithm:
         assert response.status_code == 200
 
         algo = (
-            client.session.query(models.Algorithm).filter(models.Algorithm.label == "default").first()
+            client.session.query(models.Algorithm)
+            .filter(models.Algorithm.label == "default")
+            .first()
         )
         assert algo.label == "default"
         assert algo.is_default is True
         assert algo.description == "Updated algorithm"
-        assert algo.belongingness_ratio == (0.25, 0.5)
-        assert algo.defaults == {
-            "fuzzy_match_threshold": 0.9,
-            "fuzzy_match_measure": "JaroWinkler",
+        assert algo.evaluation_context == {
+            "include_multiple_matches": True,
+            "belongingness_ratio": [0.45, 0.5],
+            "log_odds": [],
+            "defaults": {
+                "fuzzy_match_threshold": 0.9,
+                "fuzzy_match_measure": "JaroWinkler",
+            }
         }
         assert len(algo.passes) == 1
-        assert algo.passes[0].blocking_keys == ["BIRTHDATE"]
-        assert algo.passes[0].evaluators == [
-            {
-                "feature": "FIRST_NAME",
-                "func": "func:recordlinker.linking.matchers.compare_probabilistic_fuzzy_match",
-                "fuzzy_match_threshold": None,
-                "fuzzy_match_measure": None,
-            }
-        ]
-        assert algo.passes[0].rule == "func:recordlinker.linking.matchers.rule_probabilistic_match"
-        assert algo.passes[0].true_match_threshold == 5
+        assert algo.passes[0] == {
+            "blocking_keys": ["BIRTHDATE"],
+            "evaluators": [
+                {
+                    "feature": "FIRST_NAME",
+                    "func": "func:recordlinker.linking.matchers.compare_probabilistic_fuzzy_match",
+                    "fuzzy_match_threshold": None,
+                    "fuzzy_match_measure": None,
+                }
+            ],
+            "true_match_threshold": 5.0,
+        }
 
 
 class TestDeleteAlgorithm:
@@ -271,6 +297,8 @@ class TestDeleteAlgorithm:
         assert response.status_code == 204
 
         algo = (
-            client.session.query(models.Algorithm).filter(models.Algorithm.label == "default").first()
+            client.session.query(models.Algorithm)
+            .filter(models.Algorithm.label == "default")
+            .first()
         )
         assert algo is None

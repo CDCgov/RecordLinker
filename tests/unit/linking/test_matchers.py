@@ -15,19 +15,6 @@ from recordlinker.linking import matchers
 from recordlinker.utils import functools as utils
 
 
-class TestRuleFunc:
-    def test_correct_signatures(self):
-        for rule in matchers.RuleFunc:
-            fn = utils.str_to_callable(rule.value)
-            assert callable(fn)
-            signature = inspect.signature(fn)
-            params = list(signature.parameters.values())
-            assert len(params) == 2
-            assert params[0].annotation == list[float]
-            assert params[1].annotation is float
-            assert signature.return_annotation is bool
-
-
 class TestFeatureFunc:
     def test_correct_signatures(self):
         for rule in matchers.FeatureFunc:
@@ -138,5 +125,5 @@ def test_compare_probabilistic_fuzzy_match():
             ),
             3,
         )
-        == 3.559
+        == 3.544
     )

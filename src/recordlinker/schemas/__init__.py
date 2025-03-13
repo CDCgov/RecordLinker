@@ -1,6 +1,7 @@
 from .algorithm import Algorithm
 from .algorithm import AlgorithmPass
 from .algorithm import AlgorithmSummary
+from .algorithm import EvaluationContext
 from .link import LinkFhirInput
 from .link import LinkFhirResponse
 from .link import LinkInput
@@ -34,6 +35,7 @@ __all__ = [
     "Algorithm",
     "AlgorithmPass",
     "AlgorithmSummary",
+    "EvaluationContext",
     "Feature",
     "FeatureAttribute",
     "PIIRecord",
