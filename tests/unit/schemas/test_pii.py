@@ -101,10 +101,18 @@ class TestPIIRecord:
         assert record.birth_date == datetime.date(1980, 1, 1)
         record = pii.PIIRecord()
         assert record.birth_date is None
+        record = pii.PIIRecord(birthdate="06-06-74")
+        assert record.birth_date == datetime.date(1974, 6, 6)
+        record = pii.PIIRecord(birthdate="12-19-08")
+        assert record.birth_date == datetime.date(2008, 12, 19)
 
     def test_parse_invalid_birthdate(self):
         with pytest.raises(pydantic.ValidationError):
             pii.PIIRecord(birth_date="1 de enero de 1980")
+        with pytest.raises(pydantic.ValidationError):
+            pii.PIIRecord(birth_date="01/01/3000")
+        with pytest.raises(pydantic.ValidationError):
+            pii.PIIRecord(birth_date="07/10/1543")
 
     def test_parse_sex(self):
         record = pii.PIIRecord(sex="M")
