@@ -183,6 +183,7 @@ class AlgorithmPass(pydantic.BaseModel):
         return [k.value for k in value]
 
 
+
 class Algorithm(pydantic.BaseModel):
     """
     The schema for an algorithm record.
@@ -196,7 +197,6 @@ class Algorithm(pydantic.BaseModel):
     evaluation_context: EvaluationContext = EvaluationContext()
     passes: typing.Sequence[AlgorithmPass]
 
-    # TODO: test cases
     @pydantic.model_validator(mode="after")
     def validate_log_odds_defined(self) -> typing.Self:
         """
@@ -210,6 +210,19 @@ class Algorithm(pydantic.BaseModel):
             for evaluator in pass_.evaluators:
                 if not self.evaluation_context.get_log_odds(evaluator.feature):
                     raise ValueError("Log odds must be defined for all evaluators.")
+        return self
+
+    @pydantic.model_validator(mode="after")
+    def validate_true_match_threshold(self) -> typing.Self:
+        """
+        Validate the true match threshold is less than the max evaluator score.
+        """
+        for pass_ in self.passes:
+            max_score = 0.0
+            for evaluator in pass_.evaluators:
+                max_score += self.evaluation_context.get_log_odds(evaluator.feature) or 0.0
+            if pass_.true_match_threshold > max_score:
+                raise ValueError("True match threshold must be less than or equal to the max evaluator score.")
         return self
 
 

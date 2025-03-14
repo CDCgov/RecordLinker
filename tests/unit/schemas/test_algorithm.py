@@ -10,11 +10,28 @@ import pytest
 
 from recordlinker.linking import matchers
 from recordlinker.models.mpi import BlockingKey
+from recordlinker.schemas.algorithm import Algorithm
 from recordlinker.schemas.algorithm import AlgorithmPass
+from recordlinker.schemas.algorithm import Defaults
 from recordlinker.schemas.algorithm import EvaluationContext
 from recordlinker.schemas.algorithm import Evaluator
 from recordlinker.schemas.algorithm import LogOdd
 from recordlinker.schemas.pii import Feature
+
+
+class TestDefaults:
+    def test_validate_fuzzy_match_threshold(self):
+        with pytest.raises(pydantic.ValidationError):
+            Defaults(fuzzy_match_threshold=-0.5)
+        with pytest.raises(pydantic.ValidationError):
+            Defaults(fuzzy_match_threshold=1.1)
+        Defaults(fuzzy_match_threshold=0.5)
+
+    def test_validate_fuzzy_match_measure(self):
+        with pytest.raises(pydantic.ValidationError):
+            Defaults(fuzzy_match_measure="UNKNOWN")
+        Defaults(fuzzy_match_measure="JaroWinkler")
+        Defaults(fuzzy_match_measure="Levenshtein")
 
 
 class TestLogOdd:
@@ -125,3 +142,105 @@ class TestAlgorithmPass:
             "FIRST_NAME",
             "LAST_NAME",
         ]
+
+
+class TestAlgorithm:
+    def test_validate_log_odds_defined(self):
+        with pytest.raises(pydantic.ValidationError):
+            Algorithm(
+                label="test",
+                passes=[
+                    AlgorithmPass(
+                        blocking_keys=["BIRTHDATE"],
+                        evaluators=[],
+                        true_match_threshold=0,
+                    )
+                ]
+            )
+        with pytest.raises(pydantic.ValidationError):
+            Algorithm(
+                label="test",
+                passes=[
+                    AlgorithmPass(
+                        blocking_keys=[],
+                        evaluators=[{"feature": "FIRST_NAME", "func": "func:recordlinker.linking.matchers.compare_probabilistic_fuzzy_match"}],
+                        true_match_threshold=0,
+                    )
+                ]
+            )
+        Algorithm(
+            label="test",
+            evaluation_context={
+                "log_odds": [
+                    {"feature": "FIRST_NAME", "value": 7},
+                    {"feature": "BIRTHDATE", "value": 10},
+                ]
+            },
+            passes=[
+                AlgorithmPass(
+                    blocking_keys=["BIRTHDATE"],
+                    evaluators=[{"feature": "FIRST_NAME", "func": "func:recordlinker.linking.matchers.compare_probabilistic_fuzzy_match"}],
+                    true_match_threshold=0,
+                )
+            ]
+        )
+
+    def test_validate_true_match_threshold(self):
+        with pytest.raises(pydantic.ValidationError):
+            Algorithm(
+                label="test",
+                evaluation_context={
+                    "log_odds": [
+                        {"feature": "FIRST_NAME", "value": 7},
+                        {"feature": "BIRTHDATE", "value": 10},
+                    ]
+                },
+                passes=[
+                    AlgorithmPass(
+                        blocking_keys=["BIRTHDATE"],
+                        evaluators=[{"feature": "FIRST_NAME", "func": "func:recordlinker.linking.matchers.compare_probabilistic_fuzzy_match"}],
+                        true_match_threshold=7.3,
+                    )
+                ]
+            )
+        with pytest.raises(pydantic.ValidationError):
+            Algorithm(
+                label="test",
+                evaluation_context={
+                    "log_odds": [
+                        {"feature": "FIRST_NAME", "value": 7},
+                        {"feature": "LAST_NAME", "value": 6},
+                        {"feature": "BIRTHDATE", "value": 10},
+                    ]
+                },
+                passes=[
+                    AlgorithmPass(
+                        blocking_keys=["BIRTHDATE"],
+                        evaluators=[
+                            {"feature": "FIRST_NAME", "func": "func:recordlinker.linking.matchers.compare_probabilistic_fuzzy_match"},
+                            {"feature": "LAST_NAME", "func": "func:recordlinker.linking.matchers.compare_probabilistic_fuzzy_match"},
+                        ],
+                        true_match_threshold=14,
+                    )
+                ]
+            )
+        Algorithm(
+            label="test",
+            evaluation_context={
+                "log_odds": [
+                    {"feature": "FIRST_NAME", "value": 7},
+                    {"feature": "LAST_NAME", "value": 6},
+                    {"feature": "BIRTHDATE", "value": 10},
+                ]
+            },
+            passes=[
+                AlgorithmPass(
+                    blocking_keys=["BIRTHDATE"],
+                    evaluators=[
+                        {"feature": "FIRST_NAME", "func": "func:recordlinker.linking.matchers.compare_probabilistic_fuzzy_match"},
+                        {"feature": "LAST_NAME", "func": "func:recordlinker.linking.matchers.compare_probabilistic_fuzzy_match"},
+                    ],
+                    true_match_threshold=12.9,
+                )
+            ]
+        )

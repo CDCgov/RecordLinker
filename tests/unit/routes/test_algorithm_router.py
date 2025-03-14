@@ -145,7 +145,7 @@ class TestCreateAlgorithm:
                             "func": "func:recordlinker.linking.matchers.compare_probabilistic_fuzzy_match",
                         }
                     ],
-                    "true_match_threshold": 8,
+                    "true_match_threshold": 6,
                 }
             ],
         }
@@ -183,7 +183,7 @@ class TestCreateAlgorithm:
                     "fuzzy_match_measure": None,
                 }
             ],
-            "true_match_threshold": 8.0,
+            "true_match_threshold": 6.0,
         }
 
 

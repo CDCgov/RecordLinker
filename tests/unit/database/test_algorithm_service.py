@@ -84,7 +84,7 @@ class TestLoadAlgorithm:
                         }
                     ],
                     rule="func:recordlinker.linking.matchers.rule_probabilistic_match",
-                    true_match_threshold=7,
+                    true_match_threshold=3,
                 )
             ],
         )
@@ -117,7 +117,7 @@ class TestLoadAlgorithm:
                     "fuzzy_match_measure": None,
                 }
             ],
-            "true_match_threshold": 7.0,
+            "true_match_threshold": 3.0,
         }
 
     def test_load_algorithm_updated(self, session):
@@ -146,7 +146,7 @@ class TestLoadAlgorithm:
                         }
                     ],
                     rule="func:recordlinker.linking.matchers.rule_probabilistic_match",
-                    true_match_threshold=7,
+                    true_match_threshold=3.4,
                 )
             ],
         )
@@ -184,7 +184,7 @@ class TestLoadAlgorithm:
                     "fuzzy_match_measure": None,
                 }
             ],
-            "true_match_threshold": 7.0,
+            "true_match_threshold": 3.4,
         }
 
 
