@@ -329,7 +329,7 @@ class TestMatch:
         assert resp.json()["detail"] == "No algorithm found"
 
     def test_no_match(self, client, default_algorithm, patients):
-        client.session.add(default_algorithm)
+        client.session.add(models.Algorithm(**default_algorithm.model_dump()))
         client.session.commit()
         resp = client.post("/match", json={"record": patients[0].to_dict(True)})
         assert resp.status_code == status.HTTP_200_OK
@@ -341,7 +341,7 @@ class TestMatch:
         assert len(client.session.query(models.Patient).all()) == 0
 
     def test_match(self, client, default_algorithm, patients):
-        client.session.add(default_algorithm)
+        client.session.add(models.Algorithm(**default_algorithm.model_dump()))
         client.session.commit()
         per1 = client.post("/link", json={"record": patients[0].to_dict(True)}).json()["person_reference_id"]
 
@@ -371,7 +371,7 @@ class TestMatchFHIR:
         assert resp.json()["detail"] == "No algorithm found"
 
     def test_no_match(self, client, default_algorithm, patient_bundles):
-        client.session.add(default_algorithm)
+        client.session.add(models.Algorithm(**default_algorithm.model_dump()))
         client.session.commit()
         resp = client.post("/match/fhir", json={"bundle": patient_bundles[0]})
         assert resp.status_code == status.HTTP_200_OK
@@ -384,7 +384,7 @@ class TestMatchFHIR:
         assert len(client.session.query(models.Patient).all()) == 0
 
     def test_match(self, client, default_algorithm, patient_bundles):
-        client.session.add(default_algorithm)
+        client.session.add(models.Algorithm(**default_algorithm.model_dump()))
         client.session.commit()
         per1 = client.post("/link/fhir", json={"bundle": patient_bundles[0]}).json()["person_reference_id"]
 

@@ -20,19 +20,6 @@ from recordlinker.schemas.pii import PIIRecord
 SIMILARITY_MEASURES = typing.Literal["JaroWinkler", "Levenshtein", "DamerauLevenshtein"]
 
 
-class RuleFunc(enum.Enum):
-    """
-    Enum for the different types of match rules that can be used for patient
-    matching. This is the universe of all possible match rules that a user can
-    choose from when configuring their algorithm.  When data is loaded into the
-    MPI, all possible RuleFuncs will be created for the defined match rules.
-    However, only a subset will be used in matching, based on the configuration of
-    the algorithm.
-    """
-
-    RULE_PROBABILISTIC_MATCH = "func:recordlinker.linking.matchers.rule_probabilistic_match"
-
-
 class FeatureFunc(enum.Enum):
     """
     Enum for the different types of feature comparison functions that can be used
@@ -43,6 +30,7 @@ class FeatureFunc(enum.Enum):
     matching, based on the configuration of the algorithm.
     """
 
+    # TODO: serialize name, not value
     COMPARE_PROBABILISTIC_EXACT_MATCH = (
         "func:recordlinker.linking.matchers.compare_probabilistic_exact_match"
     )
@@ -50,73 +38,15 @@ class FeatureFunc(enum.Enum):
         "func:recordlinker.linking.matchers.compare_probabilistic_fuzzy_match"
     )
 
-
-class AvailableKwarg(enum.Enum):
-    """
-    Enum for the different types of keyword arguments that can be used in the
-    AlgorithmPass schema. This is the universe of all possible keyword arguments
-    that a user can choose from when configuring their algorithm.  When data is
-    loaded into the MPI, all possible AvailableKwargs will be created for the
-    defined keyword arguments. However, only a subset will be used in matching,
-    based on the configuration of the algorithm.
-    """
-
-    SIMILARITY_MEASURE = "similarity_measure"
-    THRESHOLD = "threshold"
-    THRESHOLDS = "thresholds"
-    LOG_ODDS = "log_odds"
-    TRUE_MATCH_THRESHOLD = "true_match_threshold"
-
-
-def _get_fuzzy_params(col: str, **kwargs) -> tuple[SIMILARITY_MEASURES, float]:
-    """
-    Helper method to quickly determine the appropriate similarity measure
-    and fuzzy matching threshold to use for fuzzy-comparing a particular
-    field between two records.
-
-    :param col: The string name of the column being used in a fuzzy
-      comparison.
-    :param kwargs: Optionally, a dictionary of keyword arguments containing
-      values for a similarity metric and appropriate fuzzy thresholds.
-    :return: A tuple containing the similarity metric to use and the
-      fuzzy comparison threshold to measure against.
-    """
-    similarity_measure: SIMILARITY_MEASURES = "JaroWinkler"
-    if "similarity_measure" in kwargs:
-        similarity_measure = kwargs["similarity_measure"]
-        # Ensure the similarity measure is valid
-        if similarity_measure not in typing.get_args(SIMILARITY_MEASURES):
-            raise ValueError(f"Invalid similarity measure: {similarity_measure}")
-
-    threshold: float = 0.7
-    if "thresholds" in kwargs:
-        if col in kwargs["thresholds"]:
-            threshold = kwargs["thresholds"][col]
-    elif "threshold" in kwargs:
-        threshold = kwargs["threshold"]
-
-    return (similarity_measure, threshold)
-
-
-def rule_probabilistic_match(feature_comparisons: list[float], **kwargs: typing.Any) -> bool:
-    """
-    Determines whether a given set of feature comparisons matches enough
-    to be the result of a true patient link instead of just random chance.
-    This is represented using previously computed log-odds ratios.
-
-    :param feature_comparisons: A list of floats representing the log-odds
-      score of each field computed on.
-    :return: Whether the feature comparisons score well enough to be
-      considered a match.
-    """
-    threshold: typing.Any = kwargs.get("true_match_threshold")
-    if threshold is None:
-        raise KeyError("Cutoff threshold for true matches must be passed.")
-    return sum(feature_comparisons) >= float(threshold)
+    def __str__(self):
+        """
+        Returns the string representation of the FeatureFunc.
+        """
+        return self.value
 
 
 def compare_probabilistic_exact_match(
-    record: PIIRecord, patient: Patient, key: Feature, **kwargs: typing.Any
+    record: PIIRecord, patient: Patient, key: Feature, log_odds: float, **kwargs: typing.Any
 ) -> float:
     """
     Compare the same Feature Field in two patient records, one incoming and one
@@ -127,27 +57,21 @@ def compare_probabilistic_exact_match(
     :param record: The incoming record to evaluate.
     :param patient: The patient record to compare against.
     :param key: The name of the column being evaluated (e.g. "city").
-    :param **kwargs: Optionally, a dictionary including specifications for
-      the string comparison metric to use, as well as the cutoff score
-      beyond which to classify the strings as a partial match.
+    :param log_odds: The log-odds weight-points for this field
     :return: A float of the score the feature comparison earned.
     """
-    log_odds = kwargs.get("log_odds", {}).get(str(key.attribute))
-    if log_odds is None:
-        raise ValueError(f"Log odds not found for feature {key}")
-
     agree = 0.0
     for x in patient.record.feature_iter(key):
         for y in record.feature_iter(key):
             # for each permutation of values, check whether the values agree
-            if (x == y):
+            if x == y:
                 agree = 1.0
                 break
     return agree * log_odds
 
 
 def compare_probabilistic_fuzzy_match(
-    record: PIIRecord, patient: Patient, key: Feature, **kwargs: typing.Any
+    record: PIIRecord, patient: Patient, key: Feature, log_odds: float, **kwargs: typing.Any
 ) -> float:
     """
     Compare the same Feature Field in two patient records, one incoming and one
@@ -160,17 +84,18 @@ def compare_probabilistic_fuzzy_match(
     :param record: The incoming record to evaluate.
     :param patient: The patient record to compare against.
     :param key: The name of the column being evaluated (e.g. "city").
-    :param **kwargs: Optionally, a dictionary including specifications for
-      the string comparison metric to use, as well as the cutoff score
-      beyond which to classify the strings as a partial match.
+    :param log_odds: The log-odds weight-points for this field
+    :param fuzzy_match_measure: The string comparison metric to use
+    :params fuzzy_match_threshold: The cutoff score beyond which to classify the strings as a partial match
     :return: A float of the score the feature comparison earned.
     """
-    log_odds = kwargs.get("log_odds", {}).get(str(key.attribute))
-    if log_odds is None:
-        raise ValueError(f"Log odds not found for feature {key}")
+    measure = kwargs.get("fuzzy_match_measure")
+    threshold = kwargs.get("fuzzy_match_threshold")
+    assert measure in typing.get_args(SIMILARITY_MEASURES), "fuzzy match measure must be specified"
+    comp_func = getattr(rapidfuzz.distance, str(measure)).normalized_similarity
+    assert isinstance(threshold, float), "fuzzy match threshold must be specified"
+    threshold = float(threshold)
 
-    similarity_measure, threshold = _get_fuzzy_params(str(key.attribute), **kwargs)
-    comp_func = getattr(rapidfuzz.distance, similarity_measure).normalized_similarity
     max_score = 0.0
     for x in patient.record.feature_iter(key):
         for y in record.feature_iter(key):

@@ -12,7 +12,7 @@ from fastapi.testclient import TestClient
 
 from recordlinker import database
 from recordlinker import main
-from recordlinker import models
+from recordlinker import schemas
 from recordlinker.utils import path as utils
 
 
@@ -76,7 +76,7 @@ def clean_test_database():
 def default_algorithm():
     for algo in utils.read_json("assets/initial_algorithms.json"):
         if algo["label"] == "dibbs-default":
-            return models.Algorithm.from_dict(**algo)
+            return schemas.Algorithm.model_validate(algo)
 
 
 @contextlib.contextmanager

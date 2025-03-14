@@ -11,7 +11,6 @@ import typing
 import fastapi
 import sqlalchemy.orm as orm
 
-from recordlinker import models
 from recordlinker import schemas
 from recordlinker.database import algorithm_service
 from recordlinker.database import get_session
@@ -21,7 +20,7 @@ from recordlinker.linking import link
 router = fastapi.APIRouter()
 
 
-def algorithm_or_422(db_session: orm.Session, label: str | None) -> models.Algorithm:
+def algorithm_or_422(db_session: orm.Session, label: str | None) -> schemas.Algorithm:
     """
     Get the Algorithm, or default if no label. Raise a 422 if no Algorithm can be found.
     """
@@ -35,7 +34,7 @@ def algorithm_or_422(db_session: orm.Session, label: str | None) -> models.Algor
             status_code=fastapi.status.HTTP_422_UNPROCESSABLE_ENTITY,
             detail="No algorithm found",
         )
-    return algorithm
+    return schemas.Algorithm.model_validate(algorithm)
 
 
 def fhir_record_or_422(bundle: dict) -> schemas.PIIRecord:
@@ -70,7 +69,7 @@ def link_piirecord(
     check for matches with existing patient records If matches are found,
     returns the patient and person reference id's
     """
-    algorithm: models.Algorithm = algorithm_or_422(db_session, input.algorithm)
+    algorithm: schemas.Algorithm = algorithm_or_422(db_session, input.algorithm)
 
     (patient, person, results, prediction) = link.link_record_against_mpi(
         record=input.record,
@@ -100,7 +99,7 @@ def link_fhir(
     check for matches with existing patient records If matches are found,
     returns the FHIR bundle with updated references to existing patients.
     """
-    algorithm: models.Algorithm = algorithm_or_422(db_session, input.algorithm)
+    algorithm: schemas.Algorithm = algorithm_or_422(db_session, input.algorithm)
     record: schemas.PIIRecord = fhir_record_or_422(input.bundle)
 
     (patient, person, results, prediction) = link.link_record_against_mpi(
@@ -133,7 +132,7 @@ def match_piirecord(
     """
     Similar to the /link endpoint, but does not save the incoming data.
     """
-    algorithm: models.Algorithm = algorithm_or_422(db_session, input.algorithm)
+    algorithm: schemas.Algorithm = algorithm_or_422(db_session, input.algorithm)
 
     (patient, person, results, prediction) = link.link_record_against_mpi(
         record=input.record,
@@ -160,7 +159,7 @@ def match_fhir(
     """
     Similar to the /link/fhir endpoint, but does not save the incoming data.
     """
-    algorithm: models.Algorithm = algorithm_or_422(db_session, input.algorithm)
+    algorithm: schemas.Algorithm = algorithm_or_422(db_session, input.algorithm)
     record: schemas.PIIRecord = fhir_record_or_422(input.bundle)
 
     (patient, person, results, prediction) = link.link_record_against_mpi(
