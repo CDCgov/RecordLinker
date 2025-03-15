@@ -514,7 +514,7 @@ class TestGetBlockData:
                     ],
                     "birthdate": "1974-11-07",
                 },
-                person_2
+                person_2,
             ),
             (
                 {
@@ -528,8 +528,8 @@ class TestGetBlockData:
                     ],
                     "birthdate": "1983-08-17",
                 },
-                person_2
-            )
+                person_2,
+            ),
         ]
         for datum, person in data:
             mpi_service.insert_patient(session, schemas.PIIRecord(**datum), person=person)
@@ -587,7 +587,9 @@ class TestGetBlockData:
             ],
             "birthdate": "1974-11-07",
         }
-        algorithm_pass = models.AlgorithmPass(blocking_keys=["BIRTHDATE", "FIRST_NAME"])
+        algorithm_pass = schemas.AlgorithmPass(
+            blocking_keys=["BIRTHDATE", "FIRST_NAME"], evaluators=[], true_match_threshold=0
+        )
         # Will initially be 3 patients in this person cluster
         # One agrees on blocking, one has missing values, and one
         # is wrong, so we should throw away that one
