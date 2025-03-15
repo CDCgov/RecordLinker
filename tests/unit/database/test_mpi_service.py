@@ -677,7 +677,9 @@ class TestGetBlockData:
 
     def test_block_missing_keys(self, session: Session, prime_index: None):
         data = {"birthdate": "01/01/1980"}
-        algorithm_pass = schemas.AlgorithmPass(blocking_keys=["BIRTHDATE", "LAST_NAME"], evaluators=[], true_match_threshold=0)
+        algorithm_pass = schemas.AlgorithmPass(
+            blocking_keys=["BIRTHDATE", "LAST_NAME"], evaluators=[], true_match_threshold=0
+        )
         matches = mpi_service.get_block_data(session, schemas.PIIRecord(**data), algorithm_pass)
         assert len(matches) == 0
 
