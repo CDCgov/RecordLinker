@@ -21,7 +21,7 @@ from recordlinker.utils import functools as func_utils
 
 class Defaults(pydantic.BaseModel):
     """
-    Advanced values with defaults that users typically don't change.
+    Advanced values with good defaults. Please override with caution.
     """
 
     model_config = pydantic.ConfigDict(from_attributes=True)
@@ -58,10 +58,16 @@ class EvaluationContext(pydantic.BaseModel):
 
     model_config = pydantic.ConfigDict(from_attributes=True)
 
-    include_multiple_matches: bool = True
+    include_multiple_matches: bool = pydantic.Field(
+        default=True,
+        description="Whether to include multiple results if more than one cluster is identified above the upper threshold.",
+    )
     belongingness_ratio: tuple[
         Annotated[float, pydantic.Field(ge=0, le=1)], Annotated[float, pydantic.Field(ge=0, le=1)]
-    ] = (1.0, 1.0)
+    ] = pydantic.Field(
+        default=(1.0, 1.0),
+        description="The lower and upper bounds of belongingness in which a results is considered a possible or certain match.",
+    )
     log_odds: list[LogOdd] = []
     defaults: Defaults = Defaults()
 
@@ -116,8 +122,14 @@ class Evaluator(pydantic.BaseModel):
 
     feature: Feature = pydantic.Field(json_schema_extra={"enum": Feature.all_options()})
     func: matchers.FeatureFunc
-    fuzzy_match_threshold: Annotated[float, pydantic.Field(ge=0, le=1)] | None = None
-    fuzzy_match_measure: matchers.SIMILARITY_MEASURES | None = None
+    fuzzy_match_threshold: Annotated[float, pydantic.Field(ge=0, le=1)] | None = pydantic.Field(
+        default=None,
+        description="[Optional] Set to override the default fuzzy match threshold for this evaluator.",
+    )
+    fuzzy_match_measure: matchers.SIMILARITY_MEASURES | None = pydantic.Field(
+        default=None,
+        description="[Optional] Set to override the default fuzzy match measure for this evaluator.",
+    )
 
     @pydantic.field_validator("feature", mode="before")
     def validate_feature(cls, value):
@@ -183,7 +195,6 @@ class AlgorithmPass(pydantic.BaseModel):
         return [k.value for k in value]
 
 
-
 class Algorithm(pydantic.BaseModel):
     """
     The schema for an algorithm record.
@@ -191,9 +202,15 @@ class Algorithm(pydantic.BaseModel):
 
     model_config = pydantic.ConfigDict(from_attributes=True)
 
-    label: str = pydantic.Field(pattern=r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
+    label: str = pydantic.Field(
+        pattern=r"^[a-z0-9]+(?:-[a-z0-9]+)*$",
+        description="A unique string used to identify this algorithm.",
+    )
     description: typing.Optional[str] = None
-    is_default: bool = False
+    is_default: bool = pydantic.Field(
+        default=False,
+        description="Whether this is the default algorithm used for linking. Only one algorithm can be the default.",
+    )
     evaluation_context: EvaluationContext = EvaluationContext()
     passes: typing.Sequence[AlgorithmPass]
 
@@ -222,7 +239,9 @@ class Algorithm(pydantic.BaseModel):
             for evaluator in pass_.evaluators:
                 max_score += self.evaluation_context.get_log_odds(evaluator.feature) or 0.0
             if pass_.true_match_threshold > max_score:
-                raise ValueError("True match threshold must be less than or equal to the max evaluator score.")
+                raise ValueError(
+                    "True match threshold must be less than or equal to the max evaluator score."
+                )
         return self
 
 
