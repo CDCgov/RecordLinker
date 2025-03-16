@@ -13,9 +13,7 @@ from typing_extensions import Annotated
 
 from recordlinker.linking import matchers
 from recordlinker.models.mpi import BlockingKey
-from recordlinker.models.mpi import Patient
 from recordlinker.schemas.pii import Feature
-from recordlinker.schemas.pii import PIIRecord
 
 
 class Defaults(pydantic.BaseModel):
@@ -101,15 +99,33 @@ class EvaluationContext(pydantic.BaseModel):
         """
         return self.belongingness_ratio[1]
 
+    @pydantic.model_validator(mode="after")
+    def init_log_odds_helpers(self) -> typing.Self:
+        """
+        Initialize cache helpers for returning log odds values.
+        """
+        self._log_odds_cache: dict[str, float | None] = {}
+        self._log_odds_mapping: dict[str, float] = {str(o.feature): o.value for o in self.log_odds}
+        return self
+
     def get_log_odds(self, feature: Feature) -> float | None:
         """
         Get the log odds for a specific feature.
         """
-        mapping: dict[str, float] = {str(o.feature): o.value for o in self.log_odds}
+        key = str(feature)
+        result: float | None = None
+
+        result = self._log_odds_cache.get(key, None)
+        if result:
+            return result
+
         for val in feature.values_to_match():
-            if val in mapping:
-                return mapping[val]
-        return None
+            result = self._log_odds_mapping.get(val, None)
+            if result:
+                break
+
+        self._log_odds_cache[key] = result
+        return result
 
 
 class Evaluator(pydantic.BaseModel):
@@ -139,18 +155,6 @@ class Evaluator(pydantic.BaseModel):
             return Feature.parse(value)
         except ValueError as e:
             raise ValueError(f"Invalid feature: '{value}'. {e}")
-
-    # TODO: move to link.py????
-    def invoke(self, record: PIIRecord, patient: Patient, context: EvaluationContext) -> float:
-        ""
-        func: typing.Callable = self.func.callable()
-        kwargs = {
-            "fuzzy_match_threshold": self.fuzzy_match_threshold
-            or context.defaults.fuzzy_match_threshold,
-            "fuzzy_match_measure": self.fuzzy_match_measure or context.defaults.fuzzy_match_measure,
-        }
-        log_odds = context.get_log_odds(self.feature)
-        return func(record, patient, self.feature, log_odds, **kwargs)
 
     @pydantic.field_serializer("func")
     def serialize_func(self, value: matchers.FeatureFunc) -> str:

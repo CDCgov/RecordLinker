@@ -34,6 +34,26 @@ class LinkResult:
     belongingness_ratio: float
 
 
+def invoke(
+    evaluator: schemas.Evaluator,
+    record: schemas.PIIRecord,
+    patient: models.Patient,
+    context: schemas.EvaluationContext,
+) -> float:
+    """
+    Invoke the evaluator function and return the result
+    """
+    fn: typing.Callable = evaluator.func.callable()
+    kwargs = {
+        "log_odds": context.get_log_odds(evaluator.feature),
+        "fuzzy_match_threshold": evaluator.fuzzy_match_threshold
+        or context.defaults.fuzzy_match_threshold,
+        "fuzzy_match_measure": evaluator.fuzzy_match_measure
+        or context.defaults.fuzzy_match_measure,
+    }
+    return fn(record, patient, evaluator.feature, **kwargs)
+
+
 def compare(
     record: schemas.PIIRecord,
     patient: models.Patient,
@@ -47,7 +67,7 @@ def compare(
     details: dict[str, typing.Any] = {"patient.reference_id": str(patient.reference_id)}
     for e in algorithm_pass.evaluators:
         # Evaluate the comparison function and append the result to the list
-        result: float = e.invoke(record, patient, context)
+        result: float = invoke(e, record, patient, context)
         results.append(result)
         details[f"evaluator.{e.feature}.{e.func}.result"] = result
     is_match: bool = sum(results) >= algorithm_pass.true_match_threshold

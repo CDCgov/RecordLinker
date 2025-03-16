@@ -44,7 +44,9 @@ class FeatureFunc(enum.Enum):
         """
         Returns the callable associated with the FeatureFunc.
         """
-        return getattr(sys.modules[__name__], self.value.lower())
+        if not hasattr(self, "_callable"):
+            self._callable = getattr(sys.modules[__name__], self.value.lower())
+        return self._callable
 
 
 def compare_probabilistic_exact_match(

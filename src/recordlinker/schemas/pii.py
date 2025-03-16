@@ -117,14 +117,13 @@ class Feature(StrippedBaseModel):
             return f"{self.attribute}:{self.suffix}"
         return str(self.attribute)
 
-    def values_to_match(self) -> typing.List[str]:
+    def values_to_match(self) -> typing.Iterator[str]:
         """
         Return a list of all possible values for this feature that can be used for comparison.
         """
-        values = [str(self)]
+        yield str(self)
         if self.suffix:
-            values.append(str(self.attribute))
-        return values
+            yield str(self.attribute)
 
 
 class Sex(enum.Enum):
