@@ -16,7 +16,6 @@ from recordlinker.models.mpi import BlockingKey
 from recordlinker.models.mpi import Patient
 from recordlinker.schemas.pii import Feature
 from recordlinker.schemas.pii import PIIRecord
-from recordlinker.utils import functools as func_utils
 
 
 class Defaults(pydantic.BaseModel):
@@ -144,7 +143,7 @@ class Evaluator(pydantic.BaseModel):
     # TODO: move to link.py????
     def invoke(self, record: PIIRecord, patient: Patient, context: EvaluationContext) -> float:
         ""
-        func = func_utils.str_to_callable(self.func.value)
+        func: typing.Callable = self.func.callable()
         kwargs = {
             "fuzzy_match_threshold": self.fuzzy_match_threshold
             or context.defaults.fuzzy_match_threshold,
@@ -158,7 +157,7 @@ class Evaluator(pydantic.BaseModel):
         """
         Serialize the func to a string.
         """
-        return value.value
+        return str(value)
 
 
 class AlgorithmPass(pydantic.BaseModel):

@@ -9,6 +9,7 @@ pair of records should be considered a match or not.
 """
 
 import enum
+import sys
 import typing
 
 import rapidfuzz
@@ -30,19 +31,20 @@ class FeatureFunc(enum.Enum):
     matching, based on the configuration of the algorithm.
     """
 
-    # TODO: serialize name, not value
-    COMPARE_PROBABILISTIC_EXACT_MATCH = (
-        "func:recordlinker.linking.matchers.compare_probabilistic_exact_match"
-    )
-    COMPARE_PROBABILISTIC_FUZZY_MATCH = (
-        "func:recordlinker.linking.matchers.compare_probabilistic_fuzzy_match"
-    )
+    COMPARE_PROBABILISTIC_EXACT_MATCH = "COMPARE_PROBABILISTIC_EXACT_MATCH"
+    COMPARE_PROBABILISTIC_FUZZY_MATCH = "COMPARE_PROBABILISTIC_FUZZY_MATCH"
 
-    def __str__(self):
+    def __str__(self) -> str:
         """
         Returns the string representation of the FeatureFunc.
         """
         return self.value
+
+    def callable(self) -> typing.Callable:
+        """
+        Returns the callable associated with the FeatureFunc.
+        """
+        return getattr(sys.modules[__name__], self.value.lower())
 
 
 def compare_probabilistic_exact_match(

@@ -55,14 +55,13 @@ class TestCompare:
             evaluators=[
                 {
                     "feature": "FIRST_NAME",
-                    "func": "func:recordlinker.linking.matchers.compare_probabilistic_fuzzy_match",
+                    "func": "COMPARE_PROBABILISTIC_FUZZY_MATCH",
                 },
                 {
                     "feature": "LAST_NAME",
-                    "func": "func:recordlinker.linking.matchers.compare_probabilistic_fuzzy_match",
+                    "func": "COMPARE_PROBABILISTIC_FUZZY_MATCH",
                 },
             ],
-            rule="func:recordlinker.linking.matchers.rule_probabilistic_match",
             true_match_threshold=12,
         )
 
@@ -104,14 +103,13 @@ class TestCompare:
             evaluators=[
                 {
                     "feature": "FIRST_NAME",
-                    "func": "func:recordlinker.linking.matchers.compare_probabilistic_fuzzy_match",
+                    "func": "COMPARE_PROBABILISTIC_FUZZY_MATCH",
                 },
                 {
                     "feature": "LAST_NAME",
-                    "func": "func:recordlinker.linking.matchers.compare_probabilistic_fuzzy_match",
+                    "func": "COMPARE_PROBABILISTIC_FUZZY_MATCH",
                 },
             ],
-            rule="func:recordlinker.linking.matchers.rule_probabilistic_match",
             true_match_threshold=12.95,
         )
 
@@ -145,10 +143,9 @@ class TestCompare:
             evaluators=[
                 {
                     "feature": "IDENTIFIER",
-                    "func": "func:recordlinker.linking.matchers.compare_probabilistic_fuzzy_match",
+                    "func": "COMPARE_PROBABILISTIC_FUZZY_MATCH",
                 },
             ],
-            rule="func:recordlinker.linking.matchers.rule_probabilistic_match",
             true_match_threshold=0.3,
         )
 
@@ -182,10 +179,9 @@ class TestCompare:
             evaluators=[
                 {
                     "feature": "IDENTIFIER:MR",
-                    "func": "func:recordlinker.linking.matchers.compare_probabilistic_fuzzy_match",
+                    "func": "COMPARE_PROBABILISTIC_FUZZY_MATCH",
                 },
             ],
-            rule="func:recordlinker.linking.matchers.rule_probabilistic_match",
             true_match_threshold=0.3,
         )
 
@@ -197,10 +193,9 @@ class TestCompare:
             evaluators=[
                 {
                     "feature": "IDENTIFIER:SS",
-                    "func": "func:recordlinker.linking.matchers.compare_probabilistic_fuzzy_match",
+                    "func": "COMPARE_PROBABILISTIC_FUZZY_MATCH",
                 },
             ],
-            rule="func:recordlinker.linking.matchers.rule_probabilistic_match",
             true_match_threshold=0.3,
         )
 

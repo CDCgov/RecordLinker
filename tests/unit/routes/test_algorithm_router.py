@@ -59,7 +59,7 @@ class TestGetAlgorithm:
                     "evaluators": [
                         {
                             "feature": "FIRST_NAME",
-                            "func": "func:recordlinker.linking.matchers.compare_probabilistic_fuzzy_match",
+                            "func": "COMPARE_PROBABILISTIC_FUZZY_MATCH",
                         },
                     ],
                     "true_match_threshold": 6,
@@ -93,7 +93,7 @@ class TestGetAlgorithm:
                     "evaluators": [
                         {
                             "feature": "FIRST_NAME",
-                            "func": "func:recordlinker.linking.matchers.compare_probabilistic_fuzzy_match",
+                            "func": "COMPARE_PROBABILISTIC_FUZZY_MATCH",
                             "fuzzy_match_threshold": None,
                             "fuzzy_match_measure": None,
                         }
@@ -142,7 +142,7 @@ class TestCreateAlgorithm:
                     "evaluators": [
                         {
                             "feature": "FIRST_NAME",
-                            "func": "func:recordlinker.linking.matchers.compare_probabilistic_fuzzy_match",
+                            "func": "COMPARE_PROBABILISTIC_FUZZY_MATCH",
                         }
                     ],
                     "true_match_threshold": 6,
@@ -178,7 +178,7 @@ class TestCreateAlgorithm:
             "evaluators": [
                 {
                     "feature": "FIRST_NAME",
-                    "func": "func:recordlinker.linking.matchers.compare_probabilistic_fuzzy_match",
+                    "func": "COMPARE_PROBABILISTIC_FUZZY_MATCH",
                     "fuzzy_match_threshold": None,
                     "fuzzy_match_measure": None,
                 }
@@ -245,7 +245,7 @@ class TestUpdateAlgorithm:
                     "evaluators": [
                         {
                             "feature": "FIRST_NAME",
-                            "func": "func:recordlinker.linking.matchers.compare_probabilistic_fuzzy_match",
+                            "func": "COMPARE_PROBABILISTIC_FUZZY_MATCH",
                         }
                     ],
                     "true_match_threshold": 5,
@@ -281,7 +281,7 @@ class TestUpdateAlgorithm:
             "evaluators": [
                 {
                     "feature": "FIRST_NAME",
-                    "func": "func:recordlinker.linking.matchers.compare_probabilistic_fuzzy_match",
+                    "func": "COMPARE_PROBABILISTIC_FUZZY_MATCH",
                     "fuzzy_match_threshold": None,
                     "fuzzy_match_measure": None,
                 }

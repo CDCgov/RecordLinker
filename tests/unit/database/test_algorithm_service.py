@@ -80,10 +80,9 @@ class TestLoadAlgorithm:
                     evaluators=[
                         {
                             "feature": "ZIP",
-                            "func": "func:recordlinker.linking.matchers.compare_probabilistic_fuzzy_match",
+                            "func": "COMPARE_PROBABILISTIC_FUZZY_MATCH",
                         }
                     ],
-                    rule="func:recordlinker.linking.matchers.rule_probabilistic_match",
                     true_match_threshold=3,
                 )
             ],
@@ -112,7 +111,7 @@ class TestLoadAlgorithm:
             "evaluators": [
                 {
                     "feature": "ZIP",
-                    "func": "func:recordlinker.linking.matchers.compare_probabilistic_fuzzy_match",
+                    "func": "COMPARE_PROBABILISTIC_FUZZY_MATCH",
                     "fuzzy_match_threshold": None,
                     "fuzzy_match_measure": None,
                 }
@@ -142,10 +141,9 @@ class TestLoadAlgorithm:
                     evaluators=[
                         {
                             "feature": "ZIP",
-                            "func": "func:recordlinker.linking.matchers.compare_probabilistic_fuzzy_match",
+                            "func": "COMPARE_PROBABILISTIC_FUZZY_MATCH",
                         }
                     ],
-                    rule="func:recordlinker.linking.matchers.rule_probabilistic_match",
                     true_match_threshold=3.4,
                 )
             ],
@@ -179,7 +177,7 @@ class TestLoadAlgorithm:
             "evaluators": [
                 {
                     "feature": "ZIP",
-                    "func": "func:recordlinker.linking.matchers.compare_probabilistic_fuzzy_match",
+                    "func": "COMPARE_PROBABILISTIC_FUZZY_MATCH",
                     "fuzzy_match_threshold": None,
                     "fuzzy_match_measure": None,
                 }
@@ -201,7 +199,7 @@ def test_delete_algorithm(session):
                 "evaluators": [
                     {
                         "feature": "ZIP",
-                        "func": "func:recordlinker.linking.matchers.compare_probabilistic_fuzzy_match",
+                        "func": "COMPARE_PROBABILISTIC_FUZZY_MATCH",
                     }
                 ],
                 "true_match_threshold": 7,
@@ -226,7 +224,7 @@ def test_clear_algorithms(session):
                 "evaluators": [
                     {
                         "feature": "ZIP",
-                        "func": "func:recordlinker.linking.matchers.compare_probabilistic_fuzzy_match",
+                        "func": "COMPARE_PROBABILISTIC_FUZZY_MATCH",
                     }
                 ],
                 "true_match_threshold": 7,

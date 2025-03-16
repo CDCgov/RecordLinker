@@ -85,34 +85,34 @@ class TestEvaluator:
         with pytest.raises(pydantic.ValidationError):
             Evaluator(
                 feature="UNKNOWN",
-                func="func:recordlinker.linking.matchers.compare_probabilistic_fuzzy_match",
+                func="COMPARE_PROBABILISTIC_FUZZY_MATCH",
             )
 
         Evaluator(
             feature="IDENTIFIER",
-            func="func:recordlinker.linking.matchers.compare_probabilistic_fuzzy_match",
+            func="COMPARE_PROBABILISTIC_FUZZY_MATCH",
         )
         Evaluator(
             feature="ZIP",
-            func="func:recordlinker.linking.matchers.compare_probabilistic_fuzzy_match",
+            func="COMPARE_PROBABILISTIC_FUZZY_MATCH",
         )
         Evaluator(
             feature="IDENTIFIER:MR",
-            func="func:recordlinker.linking.matchers.compare_probabilistic_fuzzy_match",
+            func="COMPARE_PROBABILISTIC_FUZZY_MATCH",
         )
 
     def test_serialize_func(self):
         evaluator = Evaluator(
             feature="IDENTIFIER",
-            func="func:recordlinker.linking.matchers.compare_probabilistic_fuzzy_match",
+            func="COMPARE_PROBABILISTIC_FUZZY_MATCH",
         )
         assert (
             evaluator.serialize_func(matchers.FeatureFunc.COMPARE_PROBABILISTIC_FUZZY_MATCH)
-            == "func:recordlinker.linking.matchers.compare_probabilistic_fuzzy_match"
+            == "COMPARE_PROBABILISTIC_FUZZY_MATCH"
         )
         assert (
             evaluator.serialize_func(matchers.FeatureFunc.COMPARE_PROBABILISTIC_EXACT_MATCH)
-            == "func:recordlinker.linking.matchers.compare_probabilistic_exact_match"
+            == "COMPARE_PROBABILISTIC_EXACT_MATCH"
         )
 
 
@@ -123,7 +123,6 @@ class TestAlgorithmPass:
             AlgorithmPass(
                 blocking_keys=keys,
                 evaluators=[],
-                rule="func:recordlinker.linking.matchers.rule_probabilistic_match",
                 true_match_threshold=0,
             )
         keys = ["LAST_NAME", "BIRTHDATE", "ZIP"]
@@ -131,7 +130,6 @@ class TestAlgorithmPass:
         AlgorithmPass(
             blocking_keys=keys,
             evaluators=[],
-            rule="func:recordlinker.linking.matchers.rule_probabilistic_match",
             true_match_threshold=0,
         )
 
@@ -163,7 +161,7 @@ class TestAlgorithm:
                 passes=[
                     AlgorithmPass(
                         blocking_keys=[],
-                        evaluators=[{"feature": "FIRST_NAME", "func": "func:recordlinker.linking.matchers.compare_probabilistic_fuzzy_match"}],
+                        evaluators=[{"feature": "FIRST_NAME", "func": "COMPARE_PROBABILISTIC_FUZZY_MATCH"}],
                         true_match_threshold=0,
                     )
                 ]
@@ -179,7 +177,7 @@ class TestAlgorithm:
             passes=[
                 AlgorithmPass(
                     blocking_keys=["BIRTHDATE"],
-                    evaluators=[{"feature": "FIRST_NAME", "func": "func:recordlinker.linking.matchers.compare_probabilistic_fuzzy_match"}],
+                    evaluators=[{"feature": "FIRST_NAME", "func": "COMPARE_PROBABILISTIC_FUZZY_MATCH"}],
                     true_match_threshold=0,
                 )
             ]
@@ -198,7 +196,7 @@ class TestAlgorithm:
                 passes=[
                     AlgorithmPass(
                         blocking_keys=["BIRTHDATE"],
-                        evaluators=[{"feature": "FIRST_NAME", "func": "func:recordlinker.linking.matchers.compare_probabilistic_fuzzy_match"}],
+                        evaluators=[{"feature": "FIRST_NAME", "func": "COMPARE_PROBABILISTIC_FUZZY_MATCH"}],
                         true_match_threshold=7.3,
                     )
                 ]
@@ -217,8 +215,8 @@ class TestAlgorithm:
                     AlgorithmPass(
                         blocking_keys=["BIRTHDATE"],
                         evaluators=[
-                            {"feature": "FIRST_NAME", "func": "func:recordlinker.linking.matchers.compare_probabilistic_fuzzy_match"},
-                            {"feature": "LAST_NAME", "func": "func:recordlinker.linking.matchers.compare_probabilistic_fuzzy_match"},
+                            {"feature": "FIRST_NAME", "func": "COMPARE_PROBABILISTIC_FUZZY_MATCH"},
+                            {"feature": "LAST_NAME", "func": "COMPARE_PROBABILISTIC_FUZZY_MATCH"},
                         ],
                         true_match_threshold=14,
                     )
@@ -237,8 +235,8 @@ class TestAlgorithm:
                 AlgorithmPass(
                     blocking_keys=["BIRTHDATE"],
                     evaluators=[
-                        {"feature": "FIRST_NAME", "func": "func:recordlinker.linking.matchers.compare_probabilistic_fuzzy_match"},
-                        {"feature": "LAST_NAME", "func": "func:recordlinker.linking.matchers.compare_probabilistic_fuzzy_match"},
+                        {"feature": "FIRST_NAME", "func": "COMPARE_PROBABILISTIC_FUZZY_MATCH"},
+                        {"feature": "LAST_NAME", "func": "COMPARE_PROBABILISTIC_FUZZY_MATCH"},
                     ],
                     true_match_threshold=12.9,
                 )
