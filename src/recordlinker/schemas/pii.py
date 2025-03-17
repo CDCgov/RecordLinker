@@ -139,6 +139,29 @@ class Race(enum.Enum):
     ASKED_UNKNOWN = "ASKED_UNKNOWN"
     UNKNOWN = "UNKNOWN"
 
+    @classmethod
+    @functools.cache
+    def parse(cls, value: str) -> "Race":
+        """
+        Parse a race string into a Race enum.
+        """
+        # Create a list of string/race mappings, this is intentionally ordered
+        # to ensure we test for the substrings in the correct order
+        mapping = [
+            (["american indian", "alaska native"], cls.AMERICAN_INDIAN),
+            (["asian"], cls.ASIAN),
+            (["black", "african american"], cls.BLACK),
+            (["white"], cls.WHITE),
+            (["hawaiian", "pacific islander"], cls.HAWAIIAN),
+            (["asked unknown", "asked but unknown"], cls.ASKED_UNKNOWN),
+            (["unknown"], cls.UNKNOWN),
+        ]
+        val = value.lower().strip()
+        for substrings, race in mapping:
+            if any(substring in val for substring in substrings):
+                return race
+        return cls.OTHER
+
     def __str__(self):
         """
         Return the value of the enum as a string.
@@ -257,7 +280,7 @@ class PIIRecord(StrippedBaseModel):
     address: typing.List[Address] = []
     name: typing.List[Name] = []
     telecom: typing.List[Telecom] = []
-    race: typing.Optional[Race] = None
+    race: typing.List[Race] = []
     identifiers: typing.List[Identifier] = []
 
     @classmethod
@@ -312,23 +335,7 @@ class PIIRecord(StrippedBaseModel):
         """
         Parse the race string into a race enum.
         """
-
-        race_mapping = [
-            (["american indian", "alaska native"], Race.AMERICAN_INDIAN),
-            (["asian"], Race.ASIAN),
-            (["black", "african american"], Race.BLACK),
-            (["white"], Race.WHITE),
-            (["hawaiian", "pacific islander"], Race.HAWAIIAN),
-            (["asked unknown", "asked but unknown"], Race.ASKED_UNKNOWN),
-            (["unknown"], Race.UNKNOWN),
-        ]
-
-        if value:
-            val = str(value).lower().strip()
-            for substrings, race in race_mapping:
-                if any(substring in val for substring in substrings):
-                    return race
-            return Race.OTHER
+        return [Race.parse(v) for v in value]
 
     def to_json(self, prune_empty: bool = False) -> str:
         """
@@ -399,8 +406,9 @@ class PIIRecord(StrippedBaseModel):
                 if name.family:
                     yield normalize_text(name.family)
         elif attribute == FeatureAttribute.RACE:
-            if self.race and self.race not in [Race.UNKNOWN, Race.ASKED_UNKNOWN]:
-                yield str(self.race)
+            for race in self.race:
+                if race and race not in [Race.UNKNOWN, Race.ASKED_UNKNOWN]:
+                    yield str(race)
         elif attribute == FeatureAttribute.TELECOM:
             for telecom in self.telecom:
                 if telecom.system is None:
