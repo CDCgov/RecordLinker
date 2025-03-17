@@ -35,9 +35,6 @@ for ((i=1; i<=ITERATIONS; i++)); do
             bundle=$(jq ".entry[0].resource.id = \"$uuid\"" <<< "$raw_bundle")
             # use the bundle to create a JSON payload for the linkage API
             payload="{\"bundle\": ${bundle}}"
-            # create the X-Use-Simple-Link header to indicate which schema the API
-            # should use to match the patient data
-            simple_header="X-Use-Simple-Link: ${USE_SIMPLE_LINK:-false}"
             # record the response to response.txt and capture the status code from STDOUT
             response=$(curl -s -o response.txt -w "%{http_code}" \
                 --header "Content-Type: application/json" --header "$simple_header" \
