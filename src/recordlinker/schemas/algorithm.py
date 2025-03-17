@@ -173,6 +173,14 @@ class AlgorithmPass(pydantic.BaseModel):
 
     blocking_keys: list[BlockingKey] = pydantic.Field(
         ...,
+        description=(
+            "The blocking keys are a subset of the FEATURES that are used to quickly "
+            "reduce the number of MPI records to compare against.  Note, these are not "
+            "always the exact same values used in feature evaluation, some of these "
+            "blocking keys are designed to check if a portion of the value matches. "
+            "Please see the [reference docs](https://cdcgov.github.io/RecordLinker/reference/) "
+            "for more information."
+        ),
         json_schema_extra={
             "enum": [{"value": k.value, "description": k.description} for k in BlockingKey],
         },

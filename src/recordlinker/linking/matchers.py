@@ -24,11 +24,9 @@ SIMILARITY_MEASURES = typing.Literal["JaroWinkler", "Levenshtein", "DamerauLeven
 class FeatureFunc(enum.Enum):
     """
     Enum for the different types of feature comparison functions that can be used
-    for patient matching. This is the universe of all possible feature comparison
-    functions that a user can choose from when configuring their algorithm.  When
-    data is loaded into the MPI, all possible FeatureFuncs will be created for the
-    defined feature comparison functions. However, only a subset will be used in
-    matching, based on the configuration of the algorithm.
+    for patient matching. We recommend using COMPARE_PROBABILISTIC_EXACT_MATCH for
+    features that are comparing to a set of known values (e.g. "SEX", "RACE").  For
+    all other features, we recommend using COMPARE_PROBABILISTIC_FUZZY_MATCH.
     """
 
     COMPARE_PROBABILISTIC_EXACT_MATCH = "COMPARE_PROBABILISTIC_EXACT_MATCH"

@@ -62,7 +62,11 @@ class StrippedBaseModel(pydantic.BaseModel):
 
 class Feature(StrippedBaseModel):
     """
-    The schema for a feature.
+    All the available features that can be used for comparison. IDENTIFIER
+    is a special case where a suffix is allowed that describes the specific
+    type of an identifier to compare. See the
+    [reference docs](https://cdcgov.github.io/RecordLinker/reference/)
+    for more information.
     """
 
     model_config = pydantic.ConfigDict(extra="allow")
