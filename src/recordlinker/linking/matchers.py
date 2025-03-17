@@ -38,6 +38,7 @@ class FeatureFunc(enum.Enum):
         """
         return self.value
 
+    # TODO: unit test cases
     def callable(self) -> typing.Callable:
         """
         Returns the callable associated with the FeatureFunc.
@@ -73,7 +74,13 @@ def compare_probabilistic_exact_match(
 
 
 def compare_probabilistic_fuzzy_match(
-    record: PIIRecord, patient: Patient, key: Feature, log_odds: float, **kwargs: typing.Any
+    record: PIIRecord,
+    patient: Patient,
+    key: Feature,
+    log_odds: float,
+    fuzzy_match_measure: SIMILARITY_MEASURES,
+    fuzzy_match_threshold: float,
+    **kwargs: typing.Any,
 ) -> float:
     """
     Compare the same Feature Field in two patient records, one incoming and one
@@ -91,20 +98,15 @@ def compare_probabilistic_fuzzy_match(
     :params fuzzy_match_threshold: The cutoff score beyond which to classify the strings as a partial match
     :return: A float of the score the feature comparison earned.
     """
-    measure = kwargs.get("fuzzy_match_measure")
-    threshold = kwargs.get("fuzzy_match_threshold")
-    assert measure in typing.get_args(SIMILARITY_MEASURES), "fuzzy match measure must be specified"
-    comp_func = getattr(rapidfuzz.distance, str(measure)).normalized_similarity
-    assert isinstance(threshold, float), "fuzzy match threshold must be specified"
-    threshold = float(threshold)
+    cmp_fn = getattr(rapidfuzz.distance, str(fuzzy_match_measure)).normalized_similarity
 
     max_score = 0.0
     for x in patient.record.feature_iter(key):
         for y in record.feature_iter(key):
             # for each permutation of values, find the score and record it if its
             # larger than any previous score
-            max_score = max(comp_func(x, y), max_score)
-    if max_score < threshold:
+            max_score = max(cmp_fn(x, y), max_score)
+    if max_score < fuzzy_match_threshold:
         # return 0 if our max score is less than the threshold
         return 0.0
     return max_score * log_odds
