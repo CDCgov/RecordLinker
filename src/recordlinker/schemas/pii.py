@@ -123,7 +123,7 @@ class Feature(StrippedBaseModel):
 
     def values_to_match(self) -> typing.Iterator[str]:
         """
-        Return a list of all possible values for this feature that can be used for comparison.
+        Return an iterator of all possible values for this feature that can be used for comparison.
         """
         yield str(self)
         if self.suffix:
