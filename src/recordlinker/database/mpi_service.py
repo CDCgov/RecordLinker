@@ -21,151 +21,149 @@ from recordlinker import schemas
 LOGGER = logging.getLogger(__name__)
 
 
-def _filter_incorrect_blocks(
-    record: schemas.PIIRecord,
-    patients: typing.Sequence[models.Patient],
-    blocking_keys: typing.Sequence[models.BlockingKey],
-) -> list[models.Patient]:
-    """
-    Filter a set of candidates returned via blocking from the MPI. The initial
-    SQL query returns a collection of candidates comprised of all patients in
-    the MPI belonging to a Person cluster for which at *least one* patient
-    satisfied blocking criteria. This function filters that candidate set to
-    include *only* those patients who either satisfied blocking criteria or
-    were missing a value for one or more blocked fields. This eliminates
-    patients from consideration who have mismatched blocking information but
-    belonged to a Person cluster where a different record had correct blocking
-    values.
+class GetBlockData:
+    def _reset(self, kwargs: dict[str, typing.Any]) -> None:
+        """
+        Reset the state of the class
 
-    :param record: The PIIRecord of the incoming patient.
-    :param patients: The initial collection of candidates retrieved from the MPI.
-    :param blocking_keys: A list of strings of the fields used for blocking.
-    :returns: A filtered list of Patients from the MPI.
-    """
-    # Extract the acceptable blocking values from the incoming record
-    # Keys have already been getattr validated by caller, no need
-    # to check that they exist
-    blocking_vals_in_incoming = {}
-    for key in blocking_keys:
-        vals_blocked_from_key = [v for v in record.blocking_keys(key)]
-        if len(vals_blocked_from_key) > 0:
-            blocking_vals_in_incoming[key] = vals_blocked_from_key
+        :param kwargs: dict
+        :return: None
+        """
+        self.kwargs: dict[str, typing.Any] = kwargs
+        # Create a list of tuples of (BlockingKey, log_odds, has_value)
+        # to use when building the query, this will let us know when we have
+        # too many missing values and need to abort the query
+        self.total_odds: float = 0
+        self.found_odds: float = 0
+        self.blocking_values: dict[models.BlockingKey, list[str]] = {}
 
-    # Can't modify sequence in place, so we'll build up a list of list idxs
-    # to exclude for mpi patients who don't match blocking criteria exactly
-    pats_to_exclude = set()
-    for p in patients:
-        # Note: This implementation searches for compatible values in the
-        # fields of candidates. It is possible to write this inner loop
-        # checking for incompatible values instead. This changes which loop
-        # gets short-circuited. Performance testing found compatible search
-        # faster than incompatible search due to generator termination and
-        # time-complexity growth with number of blocking keys. The more
-        # normalization and preprocessing done in `feature_iter`, the slower
-        # this search method becomes. If heavy processing is performed,
-        # consider switching to incompatible search.
-        num_agreeing_blocking_fields = 0
-        mpi_record = p.record
-        for key, allowed_vals in blocking_vals_in_incoming.items():
-            # Compare incoming blocking value to what would be the blocking
-            # value of the mpi record to make sure we compare on e.g. same
-            # number of characters at beginning/end of string
-            mpi_vals = mpi_record.blocking_keys(key)
+    def _check_skip_conditions(self) -> bool:
+        """
+        Analyze the log odds of the blocking keys found in the query.  If the number of
+        points collected is below the minimum threshold, return True to indicate this
+        blocking query should be skipped.
 
+        :return: bool
+        """
+        minimum_percentage = self.kwargs.get("compare_minimum_percentage", 1.0)
+        details: dict[str, float] = {
+            "found_blocking_odds": self.found_odds,
+            "total_blocking_odds": self.total_odds,
+            "minimum_percentage": minimum_percentage,
+        }
+        if self.total_odds == 0 and any(not v for v in self.blocking_values.values()):
+            # No log odds were specified and we had at least 1 missing blocking key
+            LOGGER.info("skipping blocking query: no log odds", extra=details)
+            return True
+        if self.total_odds and (self.found_odds / self.total_odds) < minimum_percentage:
+            # The log odds for the found blocking keys were below the minimum threshold
+            LOGGER.info("skipping blocking query: log odds too low", extra=details)
+            return True
+        return False
+
+    def _filter_incorrect_match(self, patient: models.Patient) -> bool:
+        """
+        Filter out patient records that have conflicting blocking values with the incoming
+        record.  If either record is missing values for a blocking key, we can ignore,
+        however when both records have values, verify that there is overlap between
+        the values.  Return False if the records are not in agreement.
+
+        :param patient: models.Patient
+        :return: bool
+        """
+        agree_count = 0
+        for key, incoming_vals in self.blocking_values.items():
+            if not incoming_vals:
+                # The incoming record has no value for this blocking key, thus there
+                # is no reason to compare.  We can increment the counter to indicate
+                # the two records are still in agreement and continue
+                agree_count += 1
+                continue
+            # Calculate the blocking values for the patient
+            patient_vals = patient.record.blocking_keys(key)
+            if not patient_vals:
+                # The patient record has no value for this blocking key, thus there
+                # is no reason to compare.  We can increment the counter to indicate
+                # the two records are still in agreement and continue
+                agree_count += 1
+                continue
             # Generator gets us best performance, fastest way to check membership
             # because we return True as soon as we get 1 rather than build the
-            # whole list. Also count compatibility if mpi_val is missing.
-            found_compatible_val = (len(mpi_vals) == 0) or any(x in mpi_vals for x in allowed_vals)
-            if found_compatible_val:
-                num_agreeing_blocking_fields += 1
+            # whole list.
+            if any(v in patient_vals for v in incoming_vals):
+                agree_count += 1
 
         # If we get through all the blocking criteria with no missing entries
         # and no true-value agreement, we exclude
-        if num_agreeing_blocking_fields < len(blocking_keys):
-            pats_to_exclude.add(p.id)
+        return agree_count == len(self.blocking_values)
 
-    return [pat for pat in patients if pat.id not in pats_to_exclude]
+    def __call__(
+        self, session: orm.Session, record: schemas.PIIRecord, algorithm_pass: models.AlgorithmPass
+    ) -> typing.Sequence[models.Patient]:
+        """
+        Get all of the matching Patients for the given data using the provided
+        blocking keys defined in the algorithm_pass. Also, get all the
+        remaining Patient records in the Person clusters identified in
+        blocking to calculate Belongingness Ratio.
 
+        :param session: The database session
+        :param record: The PIIRecord to match
+        :param algorithm_pass: The AlgorithmPass to use
+        :return: The matching Patients
+        """
+        # Create the base query
+        base: expression.Select = expression.select(models.Patient.person_id).distinct()
+        # Get the pass kwargs or create an empty dict
+        kwargs: dict[str, typing.Any] = algorithm_pass.kwargs or {}
 
-def get_block_data(
-    session: orm.Session, record: schemas.PIIRecord, algorithm_pass: models.AlgorithmPass
-) -> typing.Sequence[models.Patient]:
-    """
-    Get all of the matching Patients for the given data using the provided
-    blocking keys defined in the algorithm_pass. Also, get all the
-    remaining Patient records in the Person clusters identified in
-    blocking to calculate Belongingness Ratio.
-    """
-    # Create the base query
-    base = expression.select(models.Patient.person_id).distinct()
+        # Reset state before running
+        self._reset(kwargs)
+        # Build the join criteria, we are joining the Blocking Value table
+        # multiple times, once for each Blocking Key.  If a Patient record
+        # has a matching Blocking Value for all the Blocking Keys, then it
+        # is considered a match.
+        for idx, key_id in enumerate(algorithm_pass.blocking_keys):
+            # get the BlockingKey obj from the id
+            if not hasattr(models.BlockingKey, key_id):
+                raise ValueError(f"No BlockingKey with id {id} found.")
+            key = getattr(models.BlockingKey, key_id)
+            # Get the log odds value for the key
+            log_odds: float = kwargs.get("log_odds", {}).get(key_id, 0.0)
+            # Keep track of total log odds, for checking skip conditions
+            self.total_odds += log_odds
+            # Get all the possible values from the data for this key
+            self.blocking_values[key] = [v for v in record.blocking_keys(key)]
+            if not self.blocking_values[key]:
+                # This blocking key doesn't have any possible values, so skip
+                # the joining query
+                continue
+            # This blocking key does have values, track the found log odds for checking skip conditions
+            self.found_odds += log_odds
+            # Create a dynamic alias for the Blocking Value table using the index
+            # this is necessary since we are potentially joining the same table
+            # multiple times with different conditions
+            alias = orm.aliased(models.BlockingValue, name=f"bv{idx}")
+            # Add a join clause to the mpi_blocking_value table for each Blocking Key.
+            # This results in multiple joins to the same table, one for each Key, but
+            # with different joining conditions.
+            base = base.join(
+                alias,
+                expression.and_(
+                    models.Patient.id == alias.patient_id,
+                    alias.blockingkey == key.id,
+                    alias.value.in_(self.blocking_values[key]),
+                ),
+            )
 
-    # Create a list of tuples of (BlockingKey, log_odds, has_value)
-    # to use when building the query, this will let us know when we have
-    # too many missing values and need to abort the query
-    blocking_odds: list[tuple[models.BlockingKey, float, bool]] = []
+        if self._check_skip_conditions():
+            return []
 
-    # Get the pass kwargs or create an empty dict
-    kwargs: dict[str, typing.Any] = algorithm_pass.kwargs or {}
-
-    # Build the join criteria, we are joining the Blocking Value table
-    # multiple times, once for each Blocking Key.  If a Patient record
-    # has a matching Blocking Value for all the Blocking Keys, then it
-    # is considered a match.
-    for idx, key_id in enumerate(algorithm_pass.blocking_keys):
-        # get the BlockingKey obj from the id
-        if not hasattr(models.BlockingKey, key_id):
-            raise ValueError(f"No BlockingKey with id {id} found.")
-        key = getattr(models.BlockingKey, key_id)
-        # Get the log odds value for the key
-        log_odds: float = kwargs.get("log_odds", {}).get(key_id, 0.0)
-        # Get all the possible values from the data for this key
-        vals = [v for v in record.blocking_keys(key)]
-        blocking_odds.append((key, log_odds, bool(vals)))
-        if not vals:
-            # This blocking key doesn't have any possible values, so skip
-            # the joining query
-            continue
-        # Create a dynamic alias for the Blocking Value table using the index
-        # this is necessary since we are potentially joining the same table
-        # multiple times with different conditions
-        alias = orm.aliased(models.BlockingValue, name=f"bv{idx}")
-        # Add a join clause to the mpi_blocking_value table for each Blocking Key.
-        # This results in multiple joins to the same table, one for each Key, but
-        # with different joining conditions.
-        base = base.join(
-            alias,
-            expression.and_(
-                models.Patient.id == alias.patient_id,
-                alias.blockingkey == key.id,
-                alias.value.in_(vals),
-            ),
-        )
-
-    minimum_percentage = kwargs.get("compare_minimum_percentage", 0.0)
-    total_blocking_odds = sum(log_odds for _, log_odds, _ in blocking_odds)
-    found_blocking_odds = sum(log_odds for _, log_odds, has_value in blocking_odds if has_value)
-    found_keys = [key for key, _, has_value in blocking_odds if has_value]
-    if total_blocking_odds == 0 and any(not has_value for _, _, has_value in blocking_odds):
-        details = {
-            "found_blocking_odds": found_blocking_odds,
-            "total_blocking_odds": total_blocking_odds,
-            "minimum_percentage": minimum_percentage,
-        }
-        LOGGER.info("skipping blocking query: no log odds", extra=details)
-        return []
-    if total_blocking_odds and (found_blocking_odds / total_blocking_odds) < minimum_percentage:
-        details = {
-            "found_blocking_odds": found_blocking_odds,
-            "total_blocking_odds": total_blocking_odds,
-            "minimum_percentage": minimum_percentage,
-        }
-        LOGGER.info("skipping blocking query: log odds too low", extra=details)
-        return []
-
-    # Using the subquery of unique Patient IDs, select all the Patients
-    expr = expression.select(models.Patient).where(models.Patient.person_id.in_(base))
-    candidates = session.execute(expr).scalars().all()
-    return _filter_incorrect_blocks(record, candidates, found_keys)
+        # Using the subquery of unique Patient IDs, select all the Patients
+        expr = expression.select(models.Patient).where(models.Patient.person_id.in_(base))
+        # Execute the query and collect all the Patients in matching Person clusters
+        patients: typing.Sequence[models.Patient] = session.execute(expr).scalars().all()
+        # Remove any Patient records that have incorrect blocking value matches
+        return [p for p in patients if self._filter_incorrect_match(p)]
 
 
 def insert_patient(

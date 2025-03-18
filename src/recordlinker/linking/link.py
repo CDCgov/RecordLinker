@@ -114,7 +114,8 @@ def link_record_against_mpi(
             with TRACER.start_as_current_span("link.block"):
                 # get all candidate Patient records identified in blocking
                 # and the remaining Patient records in their Person clusters
-                pats = mpi_service.get_block_data(session, record, algorithm_pass)
+                blocker = mpi_service.GetBlockData()
+                pats = blocker(session, record, algorithm_pass)
                 for pat in pats:
                     clusters[pat.person].append(pat)
 
