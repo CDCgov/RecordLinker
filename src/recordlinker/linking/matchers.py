@@ -38,7 +38,6 @@ class FeatureFunc(enum.Enum):
         """
         return self.value
 
-    # TODO: unit test cases
     def callable(self) -> typing.Callable:
         """
         Returns the callable associated with the FeatureFunc.
