@@ -156,6 +156,7 @@ class GetBlockData:
             )
 
         if self._check_skip_conditions():
+            # Too many missing blocking values
             return []
 
         # Using the subquery of unique Patient IDs, select all the Patients
