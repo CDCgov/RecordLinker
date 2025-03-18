@@ -34,7 +34,6 @@ class LinkResult:
     belongingness_ratio: float
 
 
-# TODO: unit tests
 def invoke(
     evaluator: schemas.Evaluator,
     record: schemas.PIIRecord,

@@ -18,6 +18,92 @@ from recordlinker.hl7 import fhir
 from recordlinker.linking import link
 
 
+class TestInvoke:
+    @pytest.fixture
+    def rec(self):
+        return schemas.PIIRecord(
+            **{
+                "name": [
+                    {
+                        "given": [
+                            "John",
+                        ],
+                        "family": "Doe",
+                    }
+                ]
+            }
+        )
+
+    @pytest.fixture
+    def pat(self):
+        return models.Patient(
+            data={
+                "name": [
+                    {
+                        "given": [
+                            "John",
+                        ],
+                        "family": "Doey",
+                    }
+                ]
+            }
+        )
+
+    @pytest.fixture
+    def context(self):
+        return schemas.EvaluationContext(
+            log_odds=[
+                {"feature": "FIRST_NAME", "value": 6.85},
+                {"feature": "LAST_NAME", "value": 6.35},
+            ],
+        )
+
+    def test_fuzzy_match(self, rec, pat, context):
+        evaluator = schemas.Evaluator(
+            feature="FIRST_NAME",
+            func="COMPARE_PROBABILISTIC_FUZZY_MATCH",
+        )
+        assert link.invoke(evaluator, rec, pat, context) == pytest.approx(6.85, abs=0.01)
+
+    def test_fuzzy_close(self, rec, pat, context):
+        evaluator = schemas.Evaluator(
+            feature="LAST_NAME",
+            func="COMPARE_PROBABILISTIC_FUZZY_MATCH",
+        )
+        assert link.invoke(evaluator, rec, pat, context) == pytest.approx(5.98, abs=0.01)
+
+    def test_fuzzy_exact_match(self, rec, pat, context):
+        evaluator = schemas.Evaluator(
+            feature="FIRST_NAME",
+            func="COMPARE_PROBABILISTIC_EXACT_MATCH",
+        )
+        assert link.invoke(evaluator, rec, pat, context) == 6.85
+
+    def test_fuzzy_exact_miss(self, rec, pat, context):
+        evaluator = schemas.Evaluator(
+            feature="LAST_NAME",
+            func="COMPARE_PROBABILISTIC_EXACT_MATCH",
+        )
+        assert link.invoke(evaluator, rec, pat, context) == 0.0
+
+    def test_override_measure(self, rec, pat, context):
+        evaluator = schemas.Evaluator(
+            feature="LAST_NAME",
+            func="COMPARE_PROBABILISTIC_FUZZY_MATCH",
+            fuzzy_match_measure="Levenshtein",
+            fuzzy_match_threshold=0.5,
+        )
+        assert link.invoke(evaluator, rec, pat, context) == pytest.approx(4.76, abs=0.01)
+
+    def test_override_threshold(self, rec, pat, context):
+        evaluator = schemas.Evaluator(
+            feature="LAST_NAME",
+            func="COMPARE_PROBABILISTIC_FUZZY_MATCH",
+            fuzzy_match_threshold=0.99,
+        )
+        assert link.invoke(evaluator, rec, pat, context) == 0.0
+
+
 class TestCompare:
     def test_compare_match(self):
         rec = schemas.PIIRecord(
@@ -302,7 +388,10 @@ class TestLinkRecordAgainstMpi:
         predictions: dict[str, dict] = collections.defaultdict(dict)
         # Decrease Belongingness Ratio lower bound to catch Possible Match when Belongingness Ratio = 0.5
         for lower_bound in [0.5, 0.45]:  # test >= lower bound
-            default_algorithm.evaluation_context.belongingness_ratio = (lower_bound, 0.9)  # test >= lower_bound
+            default_algorithm.evaluation_context.belongingness_ratio = (
+                lower_bound,
+                0.9,
+            )  # test >= lower_bound
             for i, data in enumerate(possible_match_default_patients):
                 (patient, person, results, prediction) = link.link_record_against_mpi(
                     data, session, default_algorithm
@@ -350,7 +439,8 @@ class TestLinkRecordAgainstMpi:
             )  # Assign to Person with highest Belongingness Ratio (1.0)
             for match in predictions[2]["results"]:
                 assert (
-                    match.belongingness_ratio >= default_algorithm.evaluation_context.belongingness_ratio_upper_bound
+                    match.belongingness_ratio
+                    >= default_algorithm.evaluation_context.belongingness_ratio_upper_bound
                 )
             assert predictions[3]["prediction"] == "match"
 
