@@ -514,7 +514,7 @@ class TestGetBlockData:
                     ],
                     "birthdate": "1974-11-07",
                 },
-                person_2
+                person_2,
             ),
             (
                 {
@@ -528,8 +528,8 @@ class TestGetBlockData:
                     ],
                     "birthdate": "1983-08-17",
                 },
-                person_2
-            )
+                person_2,
+            ),
         ]
         for datum, person in data:
             mpi_service.insert_patient(session, schemas.PIIRecord(**datum), person=person)
@@ -721,6 +721,52 @@ class TestGetBlockData:
             ],
             "birthdate": "Jan 1 1980",
         }
+        matches = mpi_service.get_block_data(session, schemas.PIIRecord(**data), algorithm_pass)
+        assert len(matches) == 0
+
+    def test_block_missing_some_values(self, session: Session, prime_index: None):
+        data = {
+            "name": [
+                {
+                    "given": [
+                        "Johnathon",
+                        "Bill",
+                    ],
+                    "family": "",
+                }
+            ],
+            "birthdate": "01/01/1980",
+        }
+        algorithm_pass = models.AlgorithmPass(
+            blocking_keys=["BIRTHDATE", "FIRST_NAME", "LAST_NAME"],
+            kwargs={
+                "log_odds": {"FIRST_NAME": 6.8, "LAST_NAME": 6.3, "BIRTHDATE": 10.1},
+                "compare_minimum_percentage": 0.7,
+            },
+        )
+        matches = mpi_service.get_block_data(session, schemas.PIIRecord(**data), algorithm_pass)
+        assert len(matches) == 3
+
+    def test_block_missing_too_many_values(self, session: Session, prime_index: None):
+        data = {
+            "name": [
+                {
+                    "given": [
+                        "Johnathon",
+                        "Bill",
+                    ],
+                    "family": "",
+                }
+            ],
+            "birthdate": "01/01/1980",
+        }
+        algorithm_pass = models.AlgorithmPass(
+            blocking_keys=["BIRTHDATE", "FIRST_NAME", "LAST_NAME"],
+            kwargs={
+                "log_odds": {"FIRST_NAME": 6.8, "LAST_NAME": 6.3, "BIRTHDATE": 10.1},
+                "compare_minimum_percentage": 0.8,
+            },
+        )
         matches = mpi_service.get_block_data(session, schemas.PIIRecord(**data), algorithm_pass)
         assert len(matches) == 0
 
