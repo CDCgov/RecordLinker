@@ -145,13 +145,21 @@ def get_block_data(
     total_blocking_odds = sum(log_odds for _, log_odds, _ in blocking_odds)
     found_blocking_odds = sum(log_odds for _, log_odds, has_value in blocking_odds if has_value)
     found_keys = [key for key, _, has_value in blocking_odds if has_value]
+    if total_blocking_odds == 0 and any(not has_value for _, _, has_value in blocking_odds):
+        details = {
+            "found_blocking_odds": found_blocking_odds,
+            "total_blocking_odds": total_blocking_odds,
+            "minimum_percentage": minimum_percentage,
+        }
+        LOGGER.info("skipping blocking query: no log odds", extra=details)
+        return []
     if total_blocking_odds and (found_blocking_odds / total_blocking_odds) < minimum_percentage:
         details = {
             "found_blocking_odds": found_blocking_odds,
             "total_blocking_odds": total_blocking_odds,
             "minimum_percentage": minimum_percentage,
         }
-        LOGGER.info("skipping blocking query due to missing values", extra=details)
+        LOGGER.info("skipping blocking query: log odds too low", extra=details)
         return []
 
     # Using the subquery of unique Patient IDs, select all the Patients
