@@ -40,7 +40,6 @@ jobs:
 
     - name: Pull Cached Images for Smoke Tests
       run: |
-        echo "${{ env.PACKAGE_NAME }}"
         docker pull ghcr.io/${{ env.PACKAGE_NAME }}/postgres:17
         docker pull ghcr.io/${{ env.PACKAGE_NAME }}/mysql:8
         docker pull ghcr.io/${{ env.PACKAGE_NAME }}/sqlserver:2022-latest
