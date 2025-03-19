@@ -150,53 +150,53 @@ class TestPIIRecord:
 
     def test_parse_race(self):
         # testing verbose races
-        record = pii.PIIRecord(race="american indian or alaska native")
-        assert record.race == pii.Race.AMERICAN_INDIAN
-        record = pii.PIIRecord(race="black or african american")
-        assert record.race == pii.Race.BLACK
-        record = pii.PIIRecord(race="native hawaiian or other pacific islander")
-        assert record.race == pii.Race.HAWAIIAN
-        record = pii.PIIRecord(race="asked unknown")
-        assert record.race == pii.Race.ASKED_UNKNOWN
-        record = pii.PIIRecord(race="asked but unknown")
-        assert record.race == pii.Race.ASKED_UNKNOWN
-        record = pii.PIIRecord(race="unknown")
-        assert record.race == pii.Race.UNKNOWN
+        record = pii.PIIRecord(race=["american indian or alaska native"])
+        assert record.race == [pii.Race.AMERICAN_INDIAN]
+        record = pii.PIIRecord(race=["black or african american", "asian"])
+        assert record.race == [pii.Race.BLACK, pii.Race.ASIAN]
+        record = pii.PIIRecord(race=["native hawaiian or other pacific islander"])
+        assert record.race == [pii.Race.HAWAIIAN]
+        record = pii.PIIRecord(race=["asked unknown"])
+        assert record.race == [pii.Race.ASKED_UNKNOWN]
+        record = pii.PIIRecord(race=["asked but unknown"])
+        assert record.race == [pii.Race.ASKED_UNKNOWN]
+        record = pii.PIIRecord(race=["unknown"])
+        assert record.race == [pii.Race.UNKNOWN]
 
         # testing less verbose races
-        record = pii.PIIRecord(race="Asian")
-        assert record.race == pii.Race.ASIAN
-        record = pii.PIIRecord(race="Black")
-        assert record.race == pii.Race.BLACK
-        record = pii.PIIRecord(race="Hispanic")
-        assert record.race == pii.Race.OTHER
-        record = pii.PIIRecord(race="White")
-        assert record.race == pii.Race.WHITE
-        record = pii.PIIRecord(race="Other")
-        assert record.race == pii.Race.OTHER
-        record = pii.PIIRecord(race="Hawaiian")
-        assert record.race == pii.Race.HAWAIIAN
-        record = pii.PIIRecord(race="Pacific Islander")
-        assert record.race == pii.Race.HAWAIIAN
-        record = pii.PIIRecord(race="African American")
-        assert record.race == pii.Race.BLACK
-        record = pii.PIIRecord(race="American Indian")
-        assert record.race == pii.Race.AMERICAN_INDIAN
+        record = pii.PIIRecord(race=["Asian"])
+        assert record.race == [pii.Race.ASIAN]
+        record = pii.PIIRecord(race=["Black"])
+        assert record.race == [pii.Race.BLACK]
+        record = pii.PIIRecord(race=["Hispanic"])
+        assert record.race == [pii.Race.OTHER]
+        record = pii.PIIRecord(race=["White"])
+        assert record.race == [pii.Race.WHITE]
+        record = pii.PIIRecord(race=["Other"])
+        assert record.race == [pii.Race.OTHER]
+        record = pii.PIIRecord(race=["Hawaiian"])
+        assert record.race == [pii.Race.HAWAIIAN]
+        record = pii.PIIRecord(race=["Pacific Islander", "african american"])
+        assert record.race == [pii.Race.HAWAIIAN, pii.Race.BLACK]
+        record = pii.PIIRecord(race=["African American"])
+        assert record.race == [pii.Race.BLACK]
+        record = pii.PIIRecord(race=["American Indian"])
+        assert record.race == [pii.Race.AMERICAN_INDIAN]
 
         # testing other race
-        record = pii.PIIRecord(race="American")
-        assert record.race is pii.Race.OTHER
+        record = pii.PIIRecord(race=["American"])
+        assert record.race == [pii.Race.OTHER]
 
         # testing none result
         record = pii.PIIRecord()
-        assert record.race is None
+        assert record.race == []
 
     def test_feature_iter(self):
         record = pii.PIIRecord(
             external_id="99",
             birth_date="1980-2-1",
             sex="male",
-            race="unknown",
+            race=["unknown"],
             address=[
                 pii.Address(
                     line=[" 123 Main St"],
@@ -310,19 +310,19 @@ class TestPIIRecord:
         ) == ["123456789::SS"]
 
         # Other fields work okay, few more checks on difference race yield values
-        record = pii.PIIRecord(race="asked unknown")
+        record = pii.PIIRecord(race=["asked unknown"])
         assert list(record.feature_iter(pii.Feature(attribute=pii.FeatureAttribute.RACE))) == []
-        record = pii.PIIRecord(race="asked but unknown")
+        record = pii.PIIRecord(race=["asked but unknown"])
         assert list(record.feature_iter(pii.Feature(attribute=pii.FeatureAttribute.RACE))) == []
-        record = pii.PIIRecord(race="asian")
+        record = pii.PIIRecord(race=["asian"])
         assert list(record.feature_iter(pii.Feature(attribute=pii.FeatureAttribute.RACE))) == [
             "ASIAN"
         ]
-        record = pii.PIIRecord(race="african american")
+        record = pii.PIIRecord(race=["african american"])
         assert list(record.feature_iter(pii.Feature(attribute=pii.FeatureAttribute.RACE))) == [
             "BLACK"
         ]
-        record = pii.PIIRecord(race="white")
+        record = pii.PIIRecord(race=["white"])
         assert list(record.feature_iter(pii.Feature(attribute=pii.FeatureAttribute.RACE))) == [
             "WHITE"
         ]

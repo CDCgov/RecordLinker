@@ -98,8 +98,21 @@ def test_fhir_record_to_pii_record():
                         "url": "ombCategory",
                         "valueCoding": {
                             "system": "urn:oid:2.16.840.1.113883.6.238",
-                            "code": "2106-3",
-                            "display": "White",
+                            "code": "2028-9",
+                            "display": "Asian",
+                        },
+                    }
+                ],
+            },
+            {
+                "url": "http://hl7.org/fhir/us/core/StructureDefinition/us-core-race",
+                "extension": [
+                    {
+                        "url": "ombCategory",
+                        "valueCoding": {
+                            "system": "urn:oid:2.16.840.1.113883.6.238",
+                            "code": "2054-5",
+                            "display": "Black or African American",
                         },
                     }
                 ],
@@ -121,7 +134,7 @@ def test_fhir_record_to_pii_record():
     assert pii_record.address[0].county == "county"
     assert pii_record.telecom[0].value == "123-456-7890"
     assert pii_record.telecom[0].system == "phone"
-    assert str(pii_record.race) == "WHITE"
+    assert [str(r) for r in pii_record.race] == ["ASIAN", "BLACK"]
 
     # identifiers
     assert pii_record.identifiers[0].value == "1234567890"
