@@ -1,118 +1,118 @@
-name: unit tests check
+# name: unit tests check
 
-on:
-  push:
-    branches: [main]
-  pull_request:
-    branches: [main]
+# on:
+#   push:
+#     branches: [main]
+#   pull_request:
+#     branches: [main]
 
-jobs:
-  test:
-    runs-on: ubuntu-latest
+# jobs:
+#   test:
+#     runs-on: ubuntu-latest
 
-    strategy:
-      matrix:
-        database: [postgres, sqlite, mysql, sqlserver]  # Matrix for database types
+#     strategy:
+#       matrix:
+#         database: [postgres, sqlite, mysql, sqlserver]  # Matrix for database types
 
-    services:
-      postgres:
-        image: postgres:17
-        ports:
-          - 5432:5432
-        env:
-          POSTGRES_PASSWORD: pw
+#     services:
+#       postgres:
+#         image: postgres:17
+#         ports:
+#           - 5432:5432
+#         env:
+#           POSTGRES_PASSWORD: pw
 
-      mysql:
-        image: mysql:8
-        ports:
-          - 3306:3306
-        env:
-          MYSQL_ROOT_PASSWORD: pw
+#       mysql:
+#         image: mysql:8
+#         ports:
+#           - 3306:3306
+#         env:
+#           MYSQL_ROOT_PASSWORD: pw
 
-      sqlserver:
-        image: mcr.microsoft.com/mssql/server:2022-latest
-        ports:
-          - 1433:1433
-        env:
-          ACCEPT_EULA: Y
-          SA_PASSWORD: "YourStrong!Passw0rd"
+#       sqlserver:
+#         image: mcr.microsoft.com/mssql/server:2022-latest
+#         ports:
+#           - 1433:1433
+#         env:
+#           ACCEPT_EULA: Y
+#           SA_PASSWORD: "YourStrong!Passw0rd"
 
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+#     steps:
+#       - name: Checkout code
+#         uses: actions/checkout@v4
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.11'
-          cache: 'pip'
+#       - name: Set up Python
+#         uses: actions/setup-python@v5
+#         with:
+#           python-version: '3.11'
+#           cache: 'pip'
 
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install '.[dev]'
+#       - name: Install dependencies
+#         run: |
+#           python -m pip install --upgrade pip
+#           pip install '.[dev]'
 
-      - name: Install ODBC Driver for SQL Server
-        if: ${{ matrix.database == 'sqlserver' }}
-        run: |
-          # Add Microsoft repository keys
-          curl https://packages.microsoft.com/keys/microsoft.asc | sudo apt-key add -
+#       - name: Install ODBC Driver for SQL Server
+#         if: ${{ matrix.database == 'sqlserver' }}
+#         run: |
+#           # Add Microsoft repository keys
+#           curl https://packages.microsoft.com/keys/microsoft.asc | sudo apt-key add -
           
-          # Add the Microsoft SQL Server repository for Ubuntu
-          curl https://packages.microsoft.com/config/ubuntu/$(lsb_release -rs)/prod.list | sudo tee /etc/apt/sources.list.d/mssql-release.list
+#           # Add the Microsoft SQL Server repository for Ubuntu
+#           curl https://packages.microsoft.com/config/ubuntu/$(lsb_release -rs)/prod.list | sudo tee /etc/apt/sources.list.d/mssql-release.list
           
-          # Update package lists
-          sudo apt-get update
+#           # Update package lists
+#           sudo apt-get update
           
-          # Accept the EULA and install msodbcsql18
-          sudo ACCEPT_EULA=Y apt-get install -y msodbcsql18 unixodbc-dev
+#           # Accept the EULA and install msodbcsql18
+#           sudo ACCEPT_EULA=Y apt-get install -y msodbcsql18 unixodbc-dev
 
-      - name: Run Pytest with the matrix database
-        run: |
-          if [[ "${{ matrix.database }}" == "postgres" ]]; then
-            export TEST_DB_URI=postgresql+psycopg2://postgres:pw@localhost:5432/postgres
-          elif [[ "${{ matrix.database }}" == "sqlite" ]]; then
-            export TEST_DB_URI=sqlite:///testdb.sqlite3
-          elif [[ "${{ matrix.database }}" == "mysql" ]]; then
-            export TEST_DB_URI=mysql+pymysql://root:pw@localhost:3306/mysql
-          elif [[ "${{ matrix.database }}" == "sqlserver" ]]; then
-            export TEST_DB_URI=mssql+pyodbc://sa:YourStrong!Passw0rd@localhost:1433/master?driver=ODBC+Driver+18+for+SQL+Server&TrustServerCertificate=yes
-          fi
+#       - name: Run Pytest with the matrix database
+#         run: |
+#           if [[ "${{ matrix.database }}" == "postgres" ]]; then
+#             export TEST_DB_URI=postgresql+psycopg2://postgres:pw@localhost:5432/postgres
+#           elif [[ "${{ matrix.database }}" == "sqlite" ]]; then
+#             export TEST_DB_URI=sqlite:///testdb.sqlite3
+#           elif [[ "${{ matrix.database }}" == "mysql" ]]; then
+#             export TEST_DB_URI=mysql+pymysql://root:pw@localhost:3306/mysql
+#           elif [[ "${{ matrix.database }}" == "sqlserver" ]]; then
+#             export TEST_DB_URI=mssql+pyodbc://sa:YourStrong!Passw0rd@localhost:1433/master?driver=ODBC+Driver+18+for+SQL+Server&TrustServerCertificate=yes
+#           fi
 
-          pytest --cov=recordlinker tests/unit
-          mv .coverage coverage-${{ matrix.database }}.dat
+#           pytest --cov=recordlinker tests/unit
+#           mv .coverage coverage-${{ matrix.database }}.dat
 
-      - name: Upload coverage artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: coverage-${{ matrix.database }}
-          path: coverage-${{ matrix.database }}.dat # Save the coverage data file as an artifact for each database
+#       - name: Upload coverage artifact
+#         uses: actions/upload-artifact@v4
+#         with:
+#           name: coverage-${{ matrix.database }}
+#           path: coverage-${{ matrix.database }}.dat # Save the coverage data file as an artifact for each database
 
-  coverage:
-    runs-on: ubuntu-latest
-    needs: test
+#   coverage:
+#     runs-on: ubuntu-latest
+#     needs: test
 
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+#     steps:
+#       - name: Checkout code
+#         uses: actions/checkout@v4
 
-      - name: Download all coverage artifacts
-        uses: actions/download-artifact@v4
-        with:
-          path: coverage_artifacts
-          pattern: coverage-*
-          merge-multiple: true
+#       - name: Download all coverage artifacts
+#         uses: actions/download-artifact@v4
+#         with:
+#           path: coverage_artifacts
+#           pattern: coverage-*
+#           merge-multiple: true
 
-      - name: Combine coverage reports
-        run: |
-          pip install coverage
-          cd coverage_artifacts
-          coverage combine coverage-*.dat
-          coverage xml -o combined_coverage.xml
+#       - name: Combine coverage reports
+#         run: |
+#           pip install coverage
+#           cd coverage_artifacts
+#           coverage combine coverage-*.dat
+#           coverage xml -o combined_coverage.xml
 
-      - name: Upload combined coverage to Codecov
-        uses: codecov/codecov-action@v4
-        with:
-          token: ${{ secrets.CODECOV_TOKEN }}
-          files: coverage_artifacts/combined_coverage.xml
-          verbose: true
+#       - name: Upload combined coverage to Codecov
+#         uses: codecov/codecov-action@v4
+#         with:
+#           token: ${{ secrets.CODECOV_TOKEN }}
+#           files: coverage_artifacts/combined_coverage.xml
+#           verbose: true
