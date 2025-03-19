@@ -38,8 +38,8 @@ jobs:
         cache-from: type=registry,ref=ghcr.io/${{ env.PACKAGE_NAME }}/cache
         cache-to: type=registry,ref=ghcr.io/${{ env.PACKAGE_NAME }}/cache,mode=max
 
-    - name: Pull Cached Images for Smoke Tests
-      run: |
-        docker pull ghcr.io/${{ env.PACKAGE_NAME }}/postgres:17
-        docker pull ghcr.io/${{ env.PACKAGE_NAME }}/mysql:8
-        docker pull ghcr.io/${{ env.PACKAGE_NAME }}/sqlserver:2022-latest
+    # - name: Pull Cached Images for Smoke Tests
+    #   run: |
+    #     docker pull ghcr.io/${{ env.PACKAGE_NAME }}/postgres:17
+    #     docker pull ghcr.io/${{ env.PACKAGE_NAME }}/mysql:8
+    #     docker pull ghcr.io/${{ env.PACKAGE_NAME }}/sqlserver:2022-latest
