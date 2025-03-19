@@ -54,9 +54,9 @@ class TestInsertBlockingValues:
             if val.blockingkey == models.BlockingKey.BIRTHDATE.id:
                 assert val.value == "1980-01-01"
             elif val.blockingkey == models.BlockingKey.FIRST_NAME.id:
-                assert val.value in ["John", "Bill"]
+                assert val.value in ["john", "bill"]
             elif val.blockingkey == models.BlockingKey.LAST_NAME.id:
-                assert val.value == "Smit"
+                assert val.value == "smit"
             else:
                 assert False, f"Unexpected blocking key: {val.blockingkey}"
 
@@ -120,7 +120,7 @@ class TestInsertBlockingValues:
         values = pat.blocking_values
         assert len(values) == 3
         assert set(v.patient_id for v in values) == {pat.id}
-        assert set(v.value for v in values) == {"1980-01-01", "John", "Smit"}
+        assert set(v.value for v in values) == {"1980-01-01", "john", "smit"}
 
 
 class TestInsertPatient:
@@ -258,7 +258,7 @@ class TestBulkInsertPatients:
         assert patients[0].external_person_id == "123456"
         values = patients[0].blocking_values
         assert len(values) == 2
-        assert set(v.value for v in values) == {"John", "Smit"}
+        assert set(v.value for v in values) == {"john", "smit"}
 
     def test_with_person(self, session: Session):
         person = models.Person()
@@ -290,12 +290,12 @@ class TestBulkInsertPatients:
         assert patients[0].external_person_id == "123456"
         assert patients[1].external_person_id == "123456"
         assert len(patients[0].blocking_values) == 3
-        assert set(v.value for v in patients[0].blocking_values) == {"1950-01-01", "Geor", "Harr"}
+        assert set(v.value for v in patients[0].blocking_values) == {"1950-01-01", "geor", "harr"}
         assert len(patients[1].blocking_values) == 3
         assert set(v.value for v in patients[1].blocking_values) == {
             "1950-01-01",
-            "Geor",
-            "Harr",
+            "geor",
+            "harr",
         }
 
 
@@ -396,7 +396,9 @@ class TestGetBlockData:
     @pytest.fixture
     def prime_index(self, session: Session):
         person_1 = models.Person()
+        person_2 = models.Person()
         session.add(person_1)
+        session.add(person_2)
         session.flush()
 
         data = [
@@ -498,8 +500,36 @@ class TestGetBlockData:
                     ],
                     "birthdate": "",
                 },
-                models.Person(),
+                person_2,
             ),
+            (
+                {
+                    "name": [
+                        {
+                            "given": [
+                                "Ferris",
+                            ],
+                            "family": "Bueller",
+                        }
+                    ],
+                    "birthdate": "1974-11-07",
+                },
+                person_2
+            ),
+            (
+                {
+                    "name": [
+                        {
+                            "given": [
+                                "Ferris",
+                            ],
+                            "family": "Bueller",
+                        }
+                    ],
+                    "birthdate": "1983-08-17",
+                },
+                person_2
+            )
         ]
         for datum, person in data:
             mpi_service.insert_patient(session, schemas.PIIRecord(**datum), person=person)
@@ -553,6 +583,30 @@ class TestGetBlockData:
         matches = mpi_service.get_block_data(session, schemas.PIIRecord(**data), algorithm_pass)
         assert len(matches) == 0
 
+    def test_block_filter_mpi_candidates(self, session: Session, prime_index: None):
+        """
+        Tests filtering candidates returned from the MPI for either blocking
+        agreement or missing information. Patients who are in pulled clusters
+        but have wrong blocking fields should be eliminated from consideration.
+        """
+        data = {
+            "name": [
+                {
+                    "given": [
+                        "Ferris",
+                    ],
+                    "family": "Bueller",
+                }
+            ],
+            "birthdate": "1974-11-07",
+        }
+        algorithm_pass = models.AlgorithmPass(blocking_keys=["BIRTHDATE", "FIRST_NAME"])
+        # Will initially be 3 patients in this person cluster
+        # One agrees on blocking, one has missing values, and one
+        # is wrong, so we should throw away that one
+        matches = mpi_service.get_block_data(session, schemas.PIIRecord(**data), algorithm_pass)
+        assert len(matches) == 2
+
     def test_block_on_birthdate(self, session: Session, prime_index: None):
         data = {
             "name": [
@@ -600,7 +654,8 @@ class TestGetBlockData:
         }
         algorithm_pass = models.AlgorithmPass(blocking_keys=["FIRST_NAME"])
         matches = mpi_service.get_block_data(session, schemas.PIIRecord(**data), algorithm_pass)
-        assert len(matches) == 5
+        # One candidate in MPI person_1 is a Bill, will be ruled out
+        assert len(matches) == 4
 
     def test_block_on_birthdate_and_first_name(self, session: Session, prime_index: None):
         data = {
@@ -617,7 +672,8 @@ class TestGetBlockData:
         }
         algorithm_pass = models.AlgorithmPass(blocking_keys=["BIRTHDATE", "FIRST_NAME"])
         matches = mpi_service.get_block_data(session, schemas.PIIRecord(**data), algorithm_pass)
-        assert len(matches) == 4
+        # One candidate in MPI person_1 is just a Bill, ruled out
+        assert len(matches) == 3
 
     def test_block_on_birthdate_first_name_and_last_name(self, session: Session, prime_index: None):
         data = {
@@ -636,7 +692,8 @@ class TestGetBlockData:
             blocking_keys=["BIRTHDATE", "FIRST_NAME", "LAST_NAME"]
         )
         matches = mpi_service.get_block_data(session, schemas.PIIRecord(**data), algorithm_pass)
-        assert len(matches) == 3
+        # One person in MPI person_1 is just a Bill, ruled out
+        assert len(matches) == 2
         data = {
             "name": [
                 {
@@ -649,7 +706,9 @@ class TestGetBlockData:
             "birthdate": "Jan 1 1980",
         }
         matches = mpi_service.get_block_data(session, schemas.PIIRecord(**data), algorithm_pass)
-        assert len(matches) == 3
+        # Blocking uses feature_iter, which yields only the first `given` for a
+        # single name object, so only the patient with 'Bill' is caught
+        assert len(matches) == 1
         data = {
             "name": [
                 {
@@ -681,7 +740,8 @@ class TestGetBlockData:
             kwargs={},
         )
         matches = mpi_service.get_block_data(session, schemas.PIIRecord(**data), algorithm_pass)
-        assert len(matches) == 5
+        # One of patients in MPI person_1 is a Bill, so is excluded
+        assert len(matches) == 4
 
     def test_block_missing_keys(self, session: Session, prime_index: None):
         data = {"birthdate": "01/01/1980"}
@@ -925,8 +985,6 @@ class TestGetOrphanedPatients:
         assert len(mpi_service.get_orphaned_patients(session, limit=3)) == 2
 
     def test_get_orphaned_patients_cursor(self, session: Session):
-        # ordered_uuids.sort()
-
         patient1 = models.Patient(person=None, data={"id": 1})
         patient2 = models.Patient(person=None, data={"id": 2})
         patient3 = models.Patient(person=None, data={"id": 3})
@@ -948,4 +1006,57 @@ class TestGetOrphanedPatients:
         assert mpi_service.get_orphaned_patients(session, limit=2, cursor=patient1.data["id"]) == [
             patient2,
             patient3,
+        ]
+
+
+class TestGetOrphanedPersons:
+    def test_get_orphaned_persons_success(self, session: Session):
+        person1 = models.Person()
+        person2 = models.Person()
+        patient1 = models.Patient(person=person1, data={})
+        session.add_all([patient1, person2])
+        session.flush()
+        assert session.query(models.Patient).count() == 1
+        assert session.query(models.Person).count() == 2
+        assert mpi_service.get_orphaned_persons(session) == [person2]
+
+    def test_get_orphaned_persons_no_persons(self, session: Session):
+        patient = models.Patient(person=models.Person(), data={})
+        session.add(patient)
+        session.flush()
+        assert mpi_service.get_orphaned_persons(session) == []
+
+    def test_get_orphaned_persons_limit(self, session: Session):
+        # Checks that limit is correctly applied
+        person1 = models.Person()
+        person2 = models.Person()
+        person3 = models.Person()
+        patient = models.Patient(person=person1, data={})
+        session.add_all([patient, person2, person3])
+        session.flush()
+
+        assert len(mpi_service.get_orphaned_persons(session, limit=1)) == 1
+        assert len(mpi_service.get_orphaned_persons(session, limit=2)) == 2
+        assert len(mpi_service.get_orphaned_persons(session, limit=3)) == 2
+
+    def test_get_orphaned_persons_cursor(self, session: Session):
+        # Checks that cursor is correctly applied
+        person1 = models.Person(id=1)
+        person2 = models.Person(id=2)
+        person3 = models.Person(id=3)
+        person4 = models.Person(id=4)
+        patient = models.Patient(person=person4, data={})
+        session.add_all([patient, person1, person2, person3])
+        session.flush()
+
+        assert mpi_service.get_orphaned_persons(session, limit=1, cursor=person1.id) == [person2]
+        assert mpi_service.get_orphaned_persons(session, limit=1, cursor=person2.id) == [person3]
+        assert mpi_service.get_orphaned_persons(session, limit=2, cursor=person2.id) == [person3]
+        assert mpi_service.get_orphaned_persons(session, limit=2, cursor=person1.id) == [
+            person2,
+            person3,
+        ]
+        assert mpi_service.get_orphaned_persons(session, limit=5, cursor=person1.id) == [
+            person2,
+            person3,
         ]

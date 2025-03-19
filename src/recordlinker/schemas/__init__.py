@@ -12,7 +12,7 @@ from .link import Prediction
 from .mpi import ErrorDetail
 from .mpi import ErrorResponse
 from .mpi import PaginatedMetaData
-from .mpi import PaginatedPatientRefs
+from .mpi import PaginatedRefs
 from .mpi import PatientCreatePayload
 from .mpi import PatientInfo
 from .mpi import PatientPersonRef
@@ -61,5 +61,5 @@ __all__ = [
     "ErrorDetail",
     "ErrorResponse",
     "PaginatedMetaData",
-    "PaginatedPatientRefs",
+    "PaginatedRefs",
 ]
