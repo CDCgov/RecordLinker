@@ -18,15 +18,16 @@ jobs:
 
     services:
       postgres:
-        # image: postgres:17
-        image: ghcr.io/cdcgov/recordlinker/postgres:17
+        image: postgres:17
+        # image: ghcr.io/cdcgov/recordlinker/postgres:17
         ports:
           - 5432:5432
         env:
           POSTGRES_PASSWORD: pw
 
       mysql:
-        image: mysql:8
+        # image: mysql:8
+        image: ghcr.io/cdcgov/recordlinker/mysql:8
         ports:
           - 3306:3306
         env:
