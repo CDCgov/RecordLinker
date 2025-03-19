@@ -1,16 +1,18 @@
 name: check smoke tests test
 
 on:
-  # push:
-  #   branches: [main]
-  # pull_request:
-  #   branches: [main]
-  workflow_run:
-    workflows: ["Build and Cache Images Workflow"]  
-    types:
-      - completed
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  # workflow_run:
+  #   workflows: ["Build and Cache Images Workflow"]  
+  #   types:
+  #     - completed
 
 jobs:
+
+  
   smoke_tests:
     runs-on: ubuntu-latest
     needs: ["Build and Cache Images Workflow"]
