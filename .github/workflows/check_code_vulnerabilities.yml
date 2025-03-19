@@ -1,39 +1,39 @@
-# name: code vulnerabilities check
+name: code vulnerabilities check
 
-# on:
-#   push:
-#     branches: [main]
-#   pull_request:
-#     branches: [main]
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
 
-# jobs:
-#   codeql:
-#     runs-on: ubuntu-latest
+jobs:
+  codeql:
+    runs-on: ubuntu-latest
 
-#     permissions:
-#       packages: read
-#       actions: read
-#       contents: read
-#       security-events: write
+    permissions:
+      packages: read
+      actions: read
+      contents: read
+      security-events: write
 
-#     strategy:
-#       matrix:
-#         # Using a matrix in case we need to test Javascript code in the future
-#         language: ['python']
+    strategy:
+      matrix:
+        # Using a matrix in case we need to test Javascript code in the future
+        language: ['python']
 
-#     steps:
-#     - name: Checkout code
-#       uses: actions/checkout@v4
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
 
-#     - name: Initialize CodeQL
-#       uses: github/codeql-action/init@v3
-#       with:
-#         languages: ${{ matrix.language }}
+    - name: Initialize CodeQL
+      uses: github/codeql-action/init@v3
+      with:
+        languages: ${{ matrix.language }}
 
-#     - name: Perform CodeQL Analysis
-#       uses: github/codeql-action/analyze@v3
-#       with:
-#         category: "/language:${{matrix.language}}"
-#         config: |
-#           # only scan the code in the src directory
-#           paths: ["src"]
+    - name: Perform CodeQL Analysis
+      uses: github/codeql-action/analyze@v3
+      with:
+        category: "/language:${{matrix.language}}"
+        config: |
+          # only scan the code in the src directory
+          paths: ["src"]
