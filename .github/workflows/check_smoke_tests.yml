@@ -1,4 +1,4 @@
-name: check smoke tests
+name: check smoke tests test
 
 on:
   push:
