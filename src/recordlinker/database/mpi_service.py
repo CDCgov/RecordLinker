@@ -21,7 +21,7 @@ from recordlinker import schemas
 def _filter_incorrect_blocks(
         record: schemas.PIIRecord,
         patients: typing.Sequence[models.Patient],
-        blocking_keys: list[str]
+        blocking_keys: typing.Sequence[models.BlockingKey],
 ) -> list[models.Patient]:
     """
     Filter a set of candidates returned via blocking from the MPI. The initial
@@ -43,11 +43,10 @@ def _filter_incorrect_blocks(
     # Keys have already been getattr validated by caller, no need
     # to check that they exist
     blocking_vals_in_incoming = {}
-    for bk in blocking_keys:
-        key = getattr(models.BlockingKey, bk)
+    for key in blocking_keys:
         vals_blocked_from_key = [v for v in record.blocking_keys(key)]
         if len(vals_blocked_from_key) > 0:
-            blocking_vals_in_incoming[bk] = vals_blocked_from_key
+            blocking_vals_in_incoming[key] = vals_blocked_from_key
 
     # Can't modify sequence in place, so we'll build up a list of list idxs
     # to exclude for mpi patients who don't match blocking criteria exactly
@@ -64,11 +63,11 @@ def _filter_incorrect_blocks(
         # consider switching to incompatible search.
         num_agreeing_blocking_fields = 0
         mpi_record = p.record
-        for bk, allowed_vals in blocking_vals_in_incoming.items():
+        for key, allowed_vals in blocking_vals_in_incoming.items():
             # Compare incoming blocking value to what would be the blocking
             # value of the mpi record to make sure we compare on e.g. same
             # number of characters at beginning/end of string
-            mpi_vals = mpi_record.blocking_keys(getattr(models.BlockingKey, bk))
+            mpi_vals = mpi_record.blocking_keys(key)
 
             # Generator gets us best performance, fastest way to check membership
             # because we return True as soon as we get 1 rather than build the
@@ -86,7 +85,7 @@ def _filter_incorrect_blocks(
 
 
 def get_block_data(
-    session: orm.Session, record: schemas.PIIRecord, algorithm_pass: models.AlgorithmPass
+    session: orm.Session, record: schemas.PIIRecord, algorithm_pass: schemas.AlgorithmPass
 ) -> typing.Sequence[models.Patient]:
     """
     Get all of the matching Patients for the given data using the provided
@@ -101,12 +100,7 @@ def get_block_data(
     # multiple times, once for each Blocking Key.  If a Patient record
     # has a matching Blocking Value for all the Blocking Keys, then it
     # is considered a match.
-    for idx, key_id in enumerate(algorithm_pass.blocking_keys):
-        # get the BlockingKey obj from the id
-        if not hasattr(models.BlockingKey, key_id):
-            raise ValueError(f"No BlockingKey with id {id} found.")
-        key = getattr(models.BlockingKey, key_id)
-
+    for idx, key in enumerate(algorithm_pass.blocking_keys):
         # Get all the possible values from the data for this key
         vals = [v for v in record.blocking_keys(key)]
         # Create a dynamic alias for the Blocking Value table using the index

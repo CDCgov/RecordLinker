@@ -62,20 +62,30 @@ class TestLoadAlgorithm:
         data = schemas.Algorithm(
             label="dibbs-test",
             description="First algorithm",
-            belongingness_ratio=(0.75, 0.8),
+            evaluation_context={
+                "include_multiple_matches": True,
+                "belongingness_ratio": [0.75, 0.8],
+                "log_odds": [
+                    {"feature": "FIRST_NAME", "value": 7},
+                    {"feature": "ZIP", "value": 4},
+                ],
+                "defaults": {
+                    "fuzzy_match_threshold": 0.8,
+                    "fuzzy_match_measure": "Levenshtein",
+                },
+            },
             passes=[
                 schemas.AlgorithmPass(
                     blocking_keys=["FIRST_NAME"],
                     evaluators=[
                         {
                             "feature": "ZIP",
-                            "func": "func:recordlinker.linking.matchers.compare_probabilistic_fuzzy_match",
+                            "func": "COMPARE_PROBABILISTIC_FUZZY_MATCH",
                         }
                     ],
-                    rule="func:recordlinker.linking.matchers.rule_probabilistic_match",
+                    true_match_threshold=3,
                 )
             ],
-            
         )
         obj, created = algorithm_service.load_algorithm(session, data)
         session.flush()
@@ -83,88 +93,146 @@ class TestLoadAlgorithm:
         assert obj.id == 1
         assert obj.label == "dibbs-test"
         assert obj.description == "First algorithm"
-        assert obj.belongingness_ratio == (0.75, 0.8)
+        assert obj.evaluation_context == {
+            "include_multiple_matches": True,
+            "belongingness_ratio": [0.75, 0.8],
+            "log_odds": [
+                {"feature": "FIRST_NAME", "value": 7},
+                {"feature": "ZIP", "value": 4},
+            ],
+            "defaults": {
+                "fuzzy_match_threshold": 0.8,
+                "fuzzy_match_measure": "Levenshtein",
+            }
+        }
         assert len(obj.passes) == 1
-        assert obj.passes[0].algorithm_id == 1
-        assert obj.passes[0].blocking_keys == ["FIRST_NAME"]
-        assert obj.passes[0].evaluators == [
-            {"feature": "ZIP", "func": "func:recordlinker.linking.matchers.compare_probabilistic_fuzzy_match"}
-        ]
-        assert obj.passes[0].rule == "func:recordlinker.linking.matchers.rule_probabilistic_match"
+        assert obj.passes[0] == {
+            "blocking_keys": ["FIRST_NAME"],
+            "evaluators": [
+                {
+                    "feature": "ZIP",
+                    "func": "COMPARE_PROBABILISTIC_FUZZY_MATCH",
+                    "fuzzy_match_threshold": None,
+                    "fuzzy_match_measure": None,
+                }
+            ],
+            "true_match_threshold": 3.0,
+        }
 
     def test_load_algorithm_updated(self, session):
         data = schemas.Algorithm(
             label="dibbs-test",
             description="First algorithm",
-            belongingness_ratio=(0.75, 0.8),
+            evaluation_context={
+                "include_multiple_matches": True,
+                "belongingness_ratio": [0.75, 0.8],
+                "log_odds": [
+                    {"feature": "FIRST_NAME", "value": 7},
+                    {"feature": "ZIP", "value": 4},
+                ],
+                "defaults": {
+                    "fuzzy_match_threshold": 0.8,
+                    "fuzzy_match_measure": "Levenshtein",
+                },
+            },
             passes=[
                 schemas.AlgorithmPass(
                     blocking_keys=["FIRST_NAME"],
                     evaluators=[
                         {
                             "feature": "ZIP",
-                            "func": "func:recordlinker.linking.matchers.compare_probabilistic_fuzzy_match",
+                            "func": "COMPARE_PROBABILISTIC_FUZZY_MATCH",
                         }
                     ],
-                    rule="func:recordlinker.linking.matchers.rule_probabilistic_match",
+                    true_match_threshold=3.4,
                 )
             ],
         )
         obj, created = algorithm_service.load_algorithm(session, data)
         session.flush()
         data.description = "Updated description"
-        data.passes[0].blocking_keys = ["LAST_NAME"]
+        data.passes[0].blocking_keys = [models.BlockingKey.LAST_NAME]
+        data.evaluation_context.defaults.fuzzy_match_threshold = 0.85
         obj, created = algorithm_service.load_algorithm(session, data, obj)
         session.flush()
         assert created is False
         assert obj.id == 1
         assert obj.label == "dibbs-test"
         assert obj.description == "Updated description"
-        assert obj.belongingness_ratio == (0.75, 0.8)
+        assert obj.evaluation_context == {
+            "include_multiple_matches": True,
+            "belongingness_ratio": [0.75, 0.8],
+            "log_odds": [
+                {"feature": "FIRST_NAME", "value": 7},
+                {"feature": "ZIP", "value": 4},
+            ],
+            "defaults": {
+                "fuzzy_match_threshold": 0.85,
+                "fuzzy_match_measure": "Levenshtein",
+            }
+        }
         assert len(obj.passes) == 1
-        assert obj.passes[0].algorithm_id == 1
-        assert obj.passes[0].blocking_keys == ["LAST_NAME"]
-        assert obj.passes[0].evaluators == [
-            {"feature": "ZIP", "func": "func:recordlinker.linking.matchers.compare_probabilistic_fuzzy_match"}
-        ]
-        assert obj.passes[0].rule == "func:recordlinker.linking.matchers.rule_probabilistic_match"
+        assert obj.passes[0] == {
+            "blocking_keys": ["LAST_NAME"],
+            "evaluators": [
+                {
+                    "feature": "ZIP",
+                    "func": "COMPARE_PROBABILISTIC_FUZZY_MATCH",
+                    "fuzzy_match_threshold": None,
+                    "fuzzy_match_measure": None,
+                }
+            ],
+            "true_match_threshold": 3.4,
+        }
 
 
 def test_delete_algorithm(session):
     with pytest.raises(sqlalchemy.exc.SQLAlchemyError):
         algorithm_service.delete_algorithm(session, models.Algorithm())
-    algo1 = models.Algorithm(label="default", is_default=True, description="First algorithm")
-    session.add(algo1)
-    pass1 = models.AlgorithmPass(
-        algorithm=algo1,
-        blocking_keys=["FIRST_NAME"],
-        evaluators=[
-            {"feature": "ZIP", "func": "func:recordlinker.linking.matchers.compare_probabilistic_fuzzy_match"}
+    algo1 = models.Algorithm(
+        label="default",
+        is_default=True,
+        description="First algorithm",
+        passes=[
+            {
+                "blocking_keys": ["FIRST_NAME"],
+                "evaluators": [
+                    {
+                        "feature": "ZIP",
+                        "func": "COMPARE_PROBABILISTIC_FUZZY_MATCH",
+                    }
+                ],
+                "true_match_threshold": 7,
+            }
         ],
-        rule="func:recordlinker.linking.matchers.rule_probabilistic_match",
     )
-    session.add(pass1)
+    session.add(algo1)
     session.commit()
 
     algorithm_service.delete_algorithm(session, algo1)
     assert session.execute(select(models.Algorithm)).scalar() is None
-    assert session.execute(select(models.AlgorithmPass)).scalar() is None
 
 
 def test_clear_algorithms(session):
-    algo1 = models.Algorithm(label="default", is_default=True, description="First algorithm")
-    session.add(algo1)
-    pass1 = models.AlgorithmPass(
-        algorithm=algo1,
-        blocking_keys=["FIRST_NAME"],
-        evaluators=[
-            {"feature": "ZIP", "func": "func:recordlinker.linking.matchers.compare_probabilistic_match"}
+    algo1 = models.Algorithm(
+        label="default",
+        is_default=True,
+        description="First algorithm",
+        passes=[
+            {
+                "blocking_keys": ["FIRST_NAME"],
+                "evaluators": [
+                    {
+                        "feature": "ZIP",
+                        "func": "COMPARE_PROBABILISTIC_FUZZY_MATCH",
+                    }
+                ],
+                "true_match_threshold": 7,
+            }
         ],
-        rule="func:recordlinker.linking.matchers.rule_probabilistic_match",
     )
-    session.add(pass1)
+    session.add(algo1)
     session.commit()
 
     algorithm_service.clear_algorithms(session)
     assert session.execute(select(models.Algorithm)).scalar() is None
-    assert session.execute(select(models.AlgorithmPass)).scalar() is None
