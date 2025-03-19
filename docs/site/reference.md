@@ -13,7 +13,12 @@ linkage evaluation phase. The following features are supported:
 
 `BIRTHDATE`
 
-:   The patient's birthdate (normalized to `YYYY-MM-DD`).
+:   The patient's birthdate (normalized to `YYYY-MM-DD`). If a birthdate with an ambiguous (i.e. 
+given as a two-digit year, rather than as four digits) year is provided, RecordLinker parses the 
+birthdate as `19XX` if the given year is after the two-digit year of the current calendar year 
+(`47`, for example, would become `1947`), and parses the birthdate as `20XX` otherwise (`08` and
+`25` would become `2008` and `2025`, respectively). If a patient's birthdate is given as a date 
+in the future, parsing the birthdate will generate an error message and result in a failure.
 
 `SEX`
 
