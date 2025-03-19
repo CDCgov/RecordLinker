@@ -11,6 +11,7 @@ import pytest
 import sqlalchemy.exc
 from conftest import count_queries
 from conftest import db_dialect
+from sqlalchemy.orm.session import Session
 
 from recordlinker import models
 from recordlinker import schemas
@@ -24,12 +25,12 @@ class TestInsertBlockingValues:
         session.flush()
         return patient
 
-    def test_no_values(self, session):
+    def test_no_values(self, session: Session):
         pat = self.new_patient(session, data={"name": []})
         mpi_service.insert_blocking_values(session, [pat])
         assert len(pat.blocking_values) == 0
 
-    def test_patient(self, session):
+    def test_patient(self, session: Session):
         pat = self.new_patient(
             session,
             data={
@@ -53,13 +54,13 @@ class TestInsertBlockingValues:
             if val.blockingkey == models.BlockingKey.BIRTHDATE.id:
                 assert val.value == "1980-01-01"
             elif val.blockingkey == models.BlockingKey.FIRST_NAME.id:
-                assert val.value in ["John", "Bill"]
+                assert val.value in ["john", "bill"]
             elif val.blockingkey == models.BlockingKey.LAST_NAME.id:
-                assert val.value == "Smit"
+                assert val.value == "smit"
             else:
                 assert False, f"Unexpected blocking key: {val.blockingkey}"
 
-    def test_multiple_patients(self, session):
+    def test_multiple_patients(self, session: Session):
         pat1 = self.new_patient(
             session,
             data={
@@ -93,12 +94,12 @@ class TestInsertBlockingValues:
         assert len(pat1.blocking_values) == 3
         assert len(pat2.blocking_values) == 3
 
-    def test_with_mismatched_records(self, session):
+    def test_with_mismatched_records(self, session: Session):
         pat = self.new_patient(session, data={"name": []})
         with pytest.raises(ValueError):
             mpi_service.insert_blocking_values(session, [pat], [])
 
-    def test_with_records(self, session):
+    def test_with_records(self, session: Session):
         pat = self.new_patient(
             session,
             data={
@@ -119,11 +120,11 @@ class TestInsertBlockingValues:
         values = pat.blocking_values
         assert len(values) == 3
         assert set(v.patient_id for v in values) == {pat.id}
-        assert set(v.value for v in values) == {"1980-01-01", "John", "Smit"}
+        assert set(v.value for v in values) == {"1980-01-01", "john", "smit"}
 
 
 class TestInsertPatient:
-    def test_no_person(self, session):
+    def test_no_person(self, session: Session):
         data = {
             "name": [
                 {
@@ -154,7 +155,7 @@ class TestInsertPatient:
         assert patient.person_id is None
         assert len(patient.blocking_values) == 3
 
-    def test_no_person_with_external_id(self, session):
+    def test_no_person_with_external_id(self, session: Session):
         data = {
             "name": [
                 {
@@ -182,7 +183,7 @@ class TestInsertPatient:
         assert patient.external_person_source == "IRIS"
         assert len(patient.blocking_values) == 3
 
-    def test_with_person(self, session):
+    def test_with_person(self, session: Session):
         person = models.Person()
         session.add(person)
         session.flush()
@@ -213,7 +214,7 @@ class TestInsertPatient:
         assert patient.external_person_source is None
         assert len(patient.blocking_values) == 3
 
-    def test_with_person_and_external_patient_id(self, session):
+    def test_with_person_and_external_patient_id(self, session: Session):
         person = models.Person()
         session.add(person)
         session.flush()
@@ -245,10 +246,10 @@ class TestBulkInsertPatients:
         if db_dialect() == "mysql":
             pytest.skip("Test skipped because the database dialect is MySQL")
 
-    def test_empty(self, session):
+    def test_empty(self, session: Session):
         assert mpi_service.bulk_insert_patients(session, []) == []
 
-    def test_no_person(self, session):
+    def test_no_person(self, session: Session):
         rec = schemas.PIIRecord(**{"name": [{"given": ["Johnathon"], "family": "Smith"}]})
         patients = mpi_service.bulk_insert_patients(session, [rec], external_person_id="123456")
         assert len(patients) == 1
@@ -257,9 +258,9 @@ class TestBulkInsertPatients:
         assert patients[0].external_person_id == "123456"
         values = patients[0].blocking_values
         assert len(values) == 2
-        assert set(v.value for v in values) == {"John", "Smit"}
+        assert set(v.value for v in values) == {"john", "smit"}
 
-    def test_with_person(self, session):
+    def test_with_person(self, session: Session):
         person = models.Person()
         session.add(person)
         session.flush()
@@ -289,12 +290,12 @@ class TestBulkInsertPatients:
         assert patients[0].external_person_id == "123456"
         assert patients[1].external_person_id == "123456"
         assert len(patients[0].blocking_values) == 3
-        assert set(v.value for v in patients[0].blocking_values) == {"1950-01-01", "Geor", "Harr"}
+        assert set(v.value for v in patients[0].blocking_values) == {"1950-01-01", "geor", "harr"}
         assert len(patients[1].blocking_values) == 3
         assert set(v.value for v in patients[1].blocking_values) == {
             "1950-01-01",
-            "Geor",
-            "Harr",
+            "geor",
+            "harr",
         }
 
 
@@ -304,17 +305,17 @@ class TestBulkInsertPatientsMySQL:
         if db_dialect() != "mysql":
             pytest.skip("Test skipped because the database dialect is not MySQL")
 
-    def test_error(self, session):
+    def test_error(self, session: Session):
         with pytest.raises(ValueError):
             assert mpi_service.bulk_insert_patients(session, [])
 
 
 class TestUpdatePatient:
-    def test_no_patient(self, session):
+    def test_no_patient(self, session: Session):
         with pytest.raises(ValueError):
             mpi_service.update_patient(session, models.Patient(), schemas.PIIRecord())
 
-    def test_update_record(self, session):
+    def test_update_record(self, session: Session):
         patient = models.Patient(person=models.Person(), data={"sex": "M"})
         session.add(patient)
         session.flush()
@@ -333,7 +334,7 @@ class TestUpdatePatient:
         }
         assert len(patient.blocking_values) == 3
 
-    def test_update_person(self, session):
+    def test_update_person(self, session: Session):
         person = models.Person()
         session.add(person)
         patient = models.Patient()
@@ -342,7 +343,7 @@ class TestUpdatePatient:
         patient = mpi_service.update_patient(session, patient, person=person)
         assert patient.person_id == person.id
 
-    def test_update_external_patient_id(self, session):
+    def test_update_external_patient_id(self, session: Session):
         patient = models.Patient()
         session.add(patient)
         session.flush()
@@ -352,7 +353,7 @@ class TestUpdatePatient:
 
 
 class TestDeleteBlockingValuesForPatient:
-    def test_no_values(self, session):
+    def test_no_values(self, session: Session):
         other_patient = models.Patient()
         session.add(other_patient)
         session.flush()
@@ -371,7 +372,7 @@ class TestDeleteBlockingValuesForPatient:
         mpi_service.delete_blocking_values_for_patient(session, patient)
         assert len(patient.blocking_values) == 0
 
-    def test_with_values(self, session):
+    def test_with_values(self, session: Session):
         patient = models.Patient()
         session.add(patient)
         session.flush()
@@ -393,9 +394,11 @@ class TestDeleteBlockingValuesForPatient:
 
 class TestGetBlockData:
     @pytest.fixture
-    def prime_index(self, session):
+    def prime_index(self, session: Session):
         person_1 = models.Person()
+        person_2 = models.Person()
         session.add(person_1)
+        session.add(person_2)
         session.flush()
 
         data = [
@@ -497,13 +500,41 @@ class TestGetBlockData:
                     ],
                     "birthdate": "",
                 },
-                models.Person(),
+                person_2,
             ),
+            (
+                {
+                    "name": [
+                        {
+                            "given": [
+                                "Ferris",
+                            ],
+                            "family": "Bueller",
+                        }
+                    ],
+                    "birthdate": "1974-11-07",
+                },
+                person_2
+            ),
+            (
+                {
+                    "name": [
+                        {
+                            "given": [
+                                "Ferris",
+                            ],
+                            "family": "Bueller",
+                        }
+                    ],
+                    "birthdate": "1983-08-17",
+                },
+                person_2
+            )
         ]
         for datum, person in data:
             mpi_service.insert_patient(session, schemas.PIIRecord(**datum), person=person)
 
-    def test_block_invalid_key(self, session):
+    def test_block_invalid_key(self, session: Session):
         data = {
             "name": [
                 {
@@ -520,7 +551,7 @@ class TestGetBlockData:
         with pytest.raises(ValueError):
             mpi_service.get_block_data(session, schemas.PIIRecord(**data), algorithm_pass)
 
-    def test_block_missing_data(self, session, prime_index):
+    def test_block_missing_data(self, session: Session, prime_index: None):
         data = {
             "name": [
                 {
@@ -536,7 +567,7 @@ class TestGetBlockData:
         matches = mpi_service.get_block_data(session, schemas.PIIRecord(**data), algorithm_pass)
         assert len(matches) == 0
 
-    def test_block_empty_block_key(self, session, prime_index):
+    def test_block_empty_block_key(self, session: Session, prime_index: None):
         data = {
             "name": [
                 {
@@ -552,7 +583,31 @@ class TestGetBlockData:
         matches = mpi_service.get_block_data(session, schemas.PIIRecord(**data), algorithm_pass)
         assert len(matches) == 0
 
-    def test_block_on_birthdate(self, session, prime_index):
+    def test_block_filter_mpi_candidates(self, session: Session, prime_index: None):
+        """
+        Tests filtering candidates returned from the MPI for either blocking
+        agreement or missing information. Patients who are in pulled clusters
+        but have wrong blocking fields should be eliminated from consideration.
+        """
+        data = {
+            "name": [
+                {
+                    "given": [
+                        "Ferris",
+                    ],
+                    "family": "Bueller",
+                }
+            ],
+            "birthdate": "1974-11-07",
+        }
+        algorithm_pass = models.AlgorithmPass(blocking_keys=["BIRTHDATE", "FIRST_NAME"])
+        # Will initially be 3 patients in this person cluster
+        # One agrees on blocking, one has missing values, and one
+        # is wrong, so we should throw away that one
+        matches = mpi_service.get_block_data(session, schemas.PIIRecord(**data), algorithm_pass)
+        assert len(matches) == 2
+
+    def test_block_on_birthdate(self, session: Session, prime_index: None):
         data = {
             "name": [
                 {
@@ -584,7 +639,7 @@ class TestGetBlockData:
         matches = mpi_service.get_block_data(session, schemas.PIIRecord(**data), algorithm_pass)
         assert len(matches) == 1
 
-    def test_block_on_first_name(self, session, prime_index):
+    def test_block_on_first_name(self, session: Session, prime_index: None):
         data = {
             "name": [
                 {
@@ -599,9 +654,10 @@ class TestGetBlockData:
         }
         algorithm_pass = models.AlgorithmPass(blocking_keys=["FIRST_NAME"])
         matches = mpi_service.get_block_data(session, schemas.PIIRecord(**data), algorithm_pass)
-        assert len(matches) == 5
+        # One candidate in MPI person_1 is a Bill, will be ruled out
+        assert len(matches) == 4
 
-    def test_block_on_birthdate_and_first_name(self, session, prime_index):
+    def test_block_on_birthdate_and_first_name(self, session: Session, prime_index: None):
         data = {
             "name": [
                 {
@@ -616,9 +672,10 @@ class TestGetBlockData:
         }
         algorithm_pass = models.AlgorithmPass(blocking_keys=["BIRTHDATE", "FIRST_NAME"])
         matches = mpi_service.get_block_data(session, schemas.PIIRecord(**data), algorithm_pass)
-        assert len(matches) == 4
+        # One candidate in MPI person_1 is just a Bill, ruled out
+        assert len(matches) == 3
 
-    def test_block_on_birthdate_first_name_and_last_name(self, session, prime_index):
+    def test_block_on_birthdate_first_name_and_last_name(self, session: Session, prime_index: None):
         data = {
             "name": [
                 {
@@ -635,7 +692,8 @@ class TestGetBlockData:
             blocking_keys=["BIRTHDATE", "FIRST_NAME", "LAST_NAME"]
         )
         matches = mpi_service.get_block_data(session, schemas.PIIRecord(**data), algorithm_pass)
-        assert len(matches) == 3
+        # One person in MPI person_1 is just a Bill, ruled out
+        assert len(matches) == 2
         data = {
             "name": [
                 {
@@ -648,7 +706,9 @@ class TestGetBlockData:
             "birthdate": "Jan 1 1980",
         }
         matches = mpi_service.get_block_data(session, schemas.PIIRecord(**data), algorithm_pass)
-        assert len(matches) == 3
+        # Blocking uses feature_iter, which yields only the first `given` for a
+        # single name object, so only the patient with 'Bill' is caught
+        assert len(matches) == 1
         data = {
             "name": [
                 {
@@ -664,7 +724,7 @@ class TestGetBlockData:
         matches = mpi_service.get_block_data(session, schemas.PIIRecord(**data), algorithm_pass)
         assert len(matches) == 0
 
-    def test_block_on_multiple_names(self, session, prime_index):
+    def test_block_on_multiple_names(self, session: Session, prime_index: None):
         data = {
             "name": [
                 {"use": "official", "given": ["John", "Doe"], "family": "Smith"},
@@ -680,15 +740,16 @@ class TestGetBlockData:
             kwargs={},
         )
         matches = mpi_service.get_block_data(session, schemas.PIIRecord(**data), algorithm_pass)
-        assert len(matches) == 5
+        # One of patients in MPI person_1 is a Bill, so is excluded
+        assert len(matches) == 4
 
-    def test_block_missing_keys(self, session, prime_index):
+    def test_block_missing_keys(self, session: Session, prime_index: None):
         data = {"birthdate": "01/01/1980"}
         algorithm_pass = models.AlgorithmPass(blocking_keys=["BIRTHDATE", "LAST_NAME"])
         matches = mpi_service.get_block_data(session, schemas.PIIRecord(**data), algorithm_pass)
         assert len(matches) == 0
 
-    def test_block_on_duplicates(self, session):
+    def test_block_on_duplicates(self, session: Session):
         data = {
             "external_id": "d3ecb447-d05f-4ec1-8ef1-ce4bbda59a25",
             "birth_date": "1997-12-09",
@@ -736,11 +797,11 @@ class TestGetBlockData:
 
 
 class TestGetPatientsByReferenceIds:
-    def test_invalid_reference_id(self, session):
+    def test_invalid_reference_id(self, session: Session):
         with pytest.raises(sqlalchemy.exc.SQLAlchemyError):
             mpi_service.get_patients_by_reference_ids(session, "123")
 
-    def test_reference_ids(self, session):
+    def test_reference_ids(self, session: Session):
         patient = models.Patient(person=models.Person(), data={})
         session.add(patient)
         session.flush()
@@ -748,7 +809,7 @@ class TestGetPatientsByReferenceIds:
             session, uuid.uuid4(), patient.reference_id
         ) == [None, patient]
 
-    def test_eager_load_of_person(self, session):
+    def test_eager_load_of_person(self, session: Session):
         pat_ref = uuid.uuid4()
         per_ref = uuid.uuid4()
         person = models.Person(reference_id=per_ref)
@@ -766,14 +827,14 @@ class TestGetPatientsByReferenceIds:
 
 
 class TestGetPersonByReferenceId:
-    def test_invalid_reference_id(self, session):
+    def test_invalid_reference_id(self, session: Session):
         with pytest.raises(sqlalchemy.exc.SQLAlchemyError):
             mpi_service.get_person_by_reference_id(session, "123")
 
-    def test_no_reference_id(self, session):
+    def test_no_reference_id(self, session: Session):
         assert mpi_service.get_person_by_reference_id(session, uuid.uuid4()) is None
 
-    def test_reference_id(self, session):
+    def test_reference_id(self, session: Session):
         person = models.Person()
         session.add(person)
         session.flush()
@@ -781,7 +842,7 @@ class TestGetPersonByReferenceId:
 
 
 class TestUpdatePersonCluster:
-    def test_no_person(self, session):
+    def test_no_person(self, session: Session):
         person = models.Person()
         patient = models.Patient(person=person, data={})
         session.add(patient)
@@ -790,7 +851,7 @@ class TestUpdatePersonCluster:
         person = mpi_service.update_person_cluster(session, [patient])
         assert person.id != original_person_id
 
-    def test_with_person(self, session):
+    def test_with_person(self, session: Session):
         patient = models.Patient(person=models.Person(), data={})
         session.add(patient)
         new_person = models.Person()
@@ -799,7 +860,7 @@ class TestUpdatePersonCluster:
         person = mpi_service.update_person_cluster(session, [patient], person=new_person)
         assert person.id == new_person.id
 
-    def test_multiple_patients(self, session):
+    def test_multiple_patients(self, session: Session):
         patient1 = models.Patient(person=models.Person(), data={})
         patient2 = models.Patient(person=models.Person(), data={})
         session.add_all([patient1, patient2])
@@ -810,7 +871,7 @@ class TestUpdatePersonCluster:
 
 
 class TestResetMPI:
-    def test(self, session):
+    def test(self, session: Session):
         data = {
             "name": [
                 {
@@ -834,11 +895,11 @@ class TestResetMPI:
 
 
 class TestUpdatePatientPersonIds:
-    def test_invalid_person_id(self, session):
+    def test_invalid_person_id(self, session: Session):
         with pytest.raises(sqlalchemy.exc.SQLAlchemyError):
             mpi_service.update_patient_person_ids(session, models.Person(), "123")
 
-    def test_update_patient_person_ids(self, session):
+    def test_update_patient_person_ids(self, session: Session):
         # Tests that we can update the person_id of a patient
         person1 = models.Person()
         patient1 = models.Patient(person=person1, data={})
@@ -852,11 +913,11 @@ class TestUpdatePatientPersonIds:
 
 
 class TestGetPersonsbyReferenceIds:
-    def test_invalid_reference_id(self, session):
+    def test_invalid_reference_id(self, session: Session):
         with pytest.raises(sqlalchemy.exc.SQLAlchemyError):
             mpi_service.get_persons_by_reference_ids(session, "123")
 
-    def test_reference_ids(self, session):
+    def test_reference_ids(self, session: Session):
         person = models.Person()
         session.add(person)
         session.flush()
@@ -866,7 +927,7 @@ class TestGetPersonsbyReferenceIds:
 
 
 class TestDeletePersons:
-    def test_delete_persons(self, session):
+    def test_delete_persons(self, session: Session):
         person1 = models.Person()
         person2 = models.Person()
         session.add_all([person1, person2])
@@ -876,3 +937,126 @@ class TestDeletePersons:
         assert session.query(models.Person).count() == 1
         assert mpi_service.get_person_by_reference_id(session, person1.reference_id) is None
         assert mpi_service.get_person_by_reference_id(session, person2.reference_id) == person2
+
+
+class TestCheckPersonForPatients:
+    def test_check_person_for_patients(self, session: Session):
+        person1 = models.Person()
+        patient1 = models.Patient(person=person1, data={})
+        person2 = models.Person()
+        patient2 = models.Patient(person=person2, data={})
+        session.add_all([patient1, patient2])
+        session.flush()
+        session.delete(patient2)
+
+        assert session.query(models.Patient).count() == 1
+        assert session.query(models.Person).count() == 2
+        assert mpi_service.check_person_for_patients(session, person1)
+        assert not mpi_service.check_person_for_patients(session, person2)
+
+
+class TestGetOrphanedPatients:
+    def test_get_orphaned_patients_success(self, session: Session):
+        patient = models.Patient(person=None, data={"reference_id": str(uuid.uuid4())})
+        patient2 = models.Patient(person=models.Person(), data={})
+        session.add_all([patient, patient2])
+        session.flush()
+        assert session.query(models.Patient).count() == 2
+        assert session.query(models.Person).count() == 1
+        assert mpi_service.get_orphaned_patients(session) == [patient]
+
+    def test_get_orphaned_patients_no_patients(self, session: Session):
+        person = models.Person()
+        patient = models.Patient(person=person, data={})
+        session.add(patient)
+        session.flush()
+        assert mpi_service.get_orphaned_patients(session) == []
+
+    def test_get_orphaned_patients_limit(self, session: Session):
+        # Checks that limit is correctly applied
+        patient1 = models.Patient(person=None, data={"id": 1, "reference_id": str(uuid.uuid4())})
+        patient2 = models.Patient(person=None, data={"id": 2, "reference_id": str(uuid.uuid4())})
+        patient3 = models.Patient(person=models.Person(), data={})
+        session.add_all([patient1, patient2, patient3])
+        session.flush()
+
+        assert len(mpi_service.get_orphaned_patients(session, limit=1)) == 1
+        assert len(mpi_service.get_orphaned_patients(session, limit=2)) == 2
+        assert len(mpi_service.get_orphaned_patients(session, limit=3)) == 2
+
+    def test_get_orphaned_patients_cursor(self, session: Session):
+        patient1 = models.Patient(person=None, data={"id": 1})
+        patient2 = models.Patient(person=None, data={"id": 2})
+        patient3 = models.Patient(person=None, data={"id": 3})
+        patient4 = models.Patient(person=models.Person(), id=4)
+        session.add_all([patient1, patient2, patient3, patient4])
+        session.flush()
+
+        # Checks that cursor is correctly applied
+        assert mpi_service.get_orphaned_patients(session, limit=1, cursor=patient1.data["id"]) == [
+            patient2
+        ]
+
+        assert mpi_service.get_orphaned_patients(session, limit=1, cursor=patient2.data["id"]) == [
+            patient3
+        ]
+        assert mpi_service.get_orphaned_patients(session, limit=2, cursor=patient2.data["id"]) == [
+            patient3
+        ]
+        assert mpi_service.get_orphaned_patients(session, limit=2, cursor=patient1.data["id"]) == [
+            patient2,
+            patient3,
+        ]
+
+
+class TestGetOrphanedPersons:
+    def test_get_orphaned_persons_success(self, session: Session):
+        person1 = models.Person()
+        person2 = models.Person()
+        patient1 = models.Patient(person=person1, data={})
+        session.add_all([patient1, person2])
+        session.flush()
+        assert session.query(models.Patient).count() == 1
+        assert session.query(models.Person).count() == 2
+        assert mpi_service.get_orphaned_persons(session) == [person2]
+
+    def test_get_orphaned_persons_no_persons(self, session: Session):
+        patient = models.Patient(person=models.Person(), data={})
+        session.add(patient)
+        session.flush()
+        assert mpi_service.get_orphaned_persons(session) == []
+
+    def test_get_orphaned_persons_limit(self, session: Session):
+        # Checks that limit is correctly applied
+        person1 = models.Person()
+        person2 = models.Person()
+        person3 = models.Person()
+        patient = models.Patient(person=person1, data={})
+        session.add_all([patient, person2, person3])
+        session.flush()
+
+        assert len(mpi_service.get_orphaned_persons(session, limit=1)) == 1
+        assert len(mpi_service.get_orphaned_persons(session, limit=2)) == 2
+        assert len(mpi_service.get_orphaned_persons(session, limit=3)) == 2
+
+    def test_get_orphaned_persons_cursor(self, session: Session):
+        # Checks that cursor is correctly applied
+        person1 = models.Person(id=1)
+        person2 = models.Person(id=2)
+        person3 = models.Person(id=3)
+        person4 = models.Person(id=4)
+        patient = models.Patient(person=person4, data={})
+        session.add_all([patient, person1, person2, person3])
+        session.flush()
+
+        assert mpi_service.get_orphaned_persons(session, limit=1, cursor=person1.id) == [person2]
+        assert mpi_service.get_orphaned_persons(session, limit=1, cursor=person2.id) == [person3]
+        assert mpi_service.get_orphaned_persons(session, limit=2, cursor=person2.id) == [person3]
+        assert mpi_service.get_orphaned_persons(session, limit=2, cursor=person1.id) == [
+            person2,
+            person3,
+        ]
+        assert mpi_service.get_orphaned_persons(session, limit=5, cursor=person1.id) == [
+            person2,
+            person3,
+        ]

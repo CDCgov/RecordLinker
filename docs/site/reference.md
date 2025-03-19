@@ -49,7 +49,7 @@ linkage evaluation phase. The following features are supported:
 
 `STATE`
 
-:   The patient's state.
+:   The patient's state, normalized to standard USPS two-letter codes.
 
 `ZIP`
 
@@ -87,7 +87,7 @@ patient data and used during query retrieval. The following blocking key types a
 
 `BIRTHDATE` (ID: **1**)
 
-:   The patients birthdate in the format `YYYY-MM-DD`.
+:   The patient's birthdate in the format `YYYY-MM-DD`.
 
 `SEX` (ID: **3**)
 
@@ -119,7 +119,7 @@ patient data and used during query retrieval. The following blocking key types a
 
 `IDENTIFIER` (ID: **10**)
 
-:  A colon separated string of the identifier type, first 2 characters of the authority and last 4 characters of the value.
+:  A colon separated string of the last 4 characters of the value and the identifier type.
 
 
 ### Evaluation Functions
