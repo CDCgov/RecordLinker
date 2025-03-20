@@ -99,6 +99,11 @@ jobs:
         echo "Checking PostgreSQL container health..."
         docker ps -a
     
+    - name: Check PostgreSQL Logs
+      run: |
+        echo "Checking PostgreSQL logs..."
+        docker logs $(docker ps -aqf "ancestor=ghcr.io/cdcgov/recordlinker/postgres:17")
+        
     - name: Wait for PostgreSQL to be Ready
       run: |
         echo "Waiting for PostgreSQL to become available..."
