@@ -17,8 +17,8 @@ jobs:
 
     services:
       postgres:
-        # image: postgres:17
-        image: ghcr.io/cdcgov/recordlinker/postgres:17
+        image: postgres:17
+        # image: ghcr.io/cdcgov/recordlinker/postgres:17
         ports:
           - 5432:5432
         env:
@@ -32,13 +32,13 @@ jobs:
         env:
           MYSQL_ROOT_PASSWORD: pw
 
-      # sqlserver:
-      #   image: mcr.microsoft.com/mssql/server:2022-latest
-      #   ports:
-      #     - 1433:1433
-      #   env:
-      #     ACCEPT_EULA: Y
-      #     SA_PASSWORD: "YourStrong!Passw0rd"
+      sqlserver:
+        image: mcr.microsoft.com/mssql/server:2022-latest
+        ports:
+          - 1433:1433
+        env:
+          ACCEPT_EULA: Y
+          SA_PASSWORD: "YourStrong!Passw0rd"
 
     steps:
     - name: Check out repository
@@ -47,17 +47,17 @@ jobs:
     - name: Convert repository name to lowercase
       run: echo "PACKAGE_NAME=$(echo '${{ github.repository }}' | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
 
-    - name: Verify PostgreSQL container is running
-      run: docker ps --filter "ancestor=ghcr.io/${{ env.PACKAGE_NAME }}/postgres:17"
+    # - name: Verify PostgreSQL container is running
+    #   run: docker ps --filter "ancestor=ghcr.io/${{ env.PACKAGE_NAME }}/postgres:17"
 
-    - name: Wait for PostgreSQL to be ready
-      run: |
-          for i in {1..20}; do
-            pg_isready -h localhost -p 5432 && exit 0
-            echo "Waiting for PostgreSQL..."
-            sleep 5
-          done
-          echo "PostgreSQL did not become ready in time" && exit 1
+    # - name: Wait for PostgreSQL to be ready
+    #   run: |
+    #       for i in {1..20}; do
+    #         pg_isready -h localhost -p 5432 && exit 0
+    #         echo "Waiting for PostgreSQL..."
+    #         sleep 5
+    #       done
+    #       echo "PostgreSQL did not become ready in time" && exit 1
 
 
     - name: Set up Docker Buildx
@@ -66,6 +66,24 @@ jobs:
     - name: Build RecordLinker Docker Image
       run: |
         docker build -t rl-service-image . 
+    
+    - name: Push image to GitHub Container Registry
+      run: |
+        echo ${{ env.PACKAGE_NAME }}
+        docker tag rl-service-image ghcr.io/${{ env.PACKAGE_NAME }}/rl-service:latest
+        docker push ghcr.io/${{ env.PACKAGE_NAME }}/rl-service:latest
+
+    - name: Log in to GitHub Container Registry
+      uses: docker/login-action@v3
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Pull cached image from GitHub Container Registry
+      run: |
+        docker pull ghcr.io/${{ env.PACKAGE_NAME }}/rl-service:latest || echo "No cached image found, skipping pull."
+
 
     - name: Start RecordLinker Service and Run Smoke Tests
       run: |
@@ -83,7 +101,7 @@ jobs:
         docker run -d --name rl-service \
           --network="host" \
           -e DB_URI=$DB_URI \
-          rl-service-image
+          ghcr.io/${{ env.PACKAGE_NAME }}/rl-service:latest  # Use the pulled cached image
     
         # docker logs -f rl-service
 
