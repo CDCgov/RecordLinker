@@ -97,7 +97,7 @@ jobs:
     - name: Verify PostgreSQL Health in Docker
       run: |
         echo "Checking PostgreSQL container health..."
-        docker ps
+        docker ps -a
     
     - name: Wait for PostgreSQL to be Ready
       run: |
