@@ -1,0 +1,51 @@
+name: Test with Cached PostgreSQL
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: ghcr.io/${{ env.PACKAGE_NAME }}/postgres:17
+        ports:
+          - 5432:5432
+        env:
+          POSTGRES_PASSWORD: pw
+        options: >-
+          --health-cmd="pg_isready -U testuser"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+        
+      - name: Convert repository name to lowercase
+        run: echo "PACKAGE_NAME=$(echo '${{ github.repository }}' | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
+
+      - name: Install PostgreSQL Client
+        run: sudo apt-get update && sudo apt-get install -y postgresql-client
+
+      - name: Wait for PostgreSQL to be ready
+        run: |
+          for i in {1..10}; do
+            pg_isready -h localhost -p 5432 -U testuser && exit 0
+            echo "Waiting for PostgreSQL..."
+            sleep 3
+          done
+          echo "PostgreSQL did not become ready in time" && exit 1
+
+      - name: Run Database Migrations
+        run: |
+          PGPASSWORD=testpassword psql -h localhost -U testuser -d testdb -c "SELECT 'Database connection successful';"
+
+      - name: Run Tests
+        run: |
+          echo "Run your application tests here"
