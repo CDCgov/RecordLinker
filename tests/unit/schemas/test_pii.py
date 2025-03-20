@@ -358,7 +358,6 @@ class TestPIIRecord:
             "NY",
             "CA",
             "CA",
-            "of mind",
         ]
 
     def test_blocking_keys_invalid(self):
@@ -569,3 +568,13 @@ class TestAddress:
 
         address = pii.Address(line=[" 123 Main avenue "])
         assert address.line[0] == "123 Main AVE"
+
+    def test_parse_state(self):
+        address = pii.Address(state=" New York") 
+        assert address.state == "NY"
+        address = pii.Address(state="oregon")
+        assert address.state == "OR"
+        address = pii.Address(state="wa")
+        assert address.state == "WA"
+        address = pii.Address(state= "district of  columbia")
+        assert address.state == "DC"

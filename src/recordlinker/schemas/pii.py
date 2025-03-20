@@ -225,19 +225,21 @@ class Address(StrippedBaseModel):
         return normalized
 
     @pydantic.field_validator("state", mode="before")
-    def normalize_state(cls, value: str) -> str:
+    def parse_state(cls, value: str) -> str | None:
         """
         Normalize the state field into 2-letter USPS code.
         """
         if value:
             state = value.strip().title()
+            # reduce inner whitespace to a single whitespace char
+            state = " ".join(w for w in state.split(" ") if w)
 
             if len(state) == 2 and state.upper() in _STATE_CODE_TO_NAME:
                 return state.upper()
 
             if state in _STATE_NAME_TO_CODE:
                 return _STATE_NAME_TO_CODE[state]
-        return value
+        return None
 
 
 class Telecom(StrippedBaseModel):
