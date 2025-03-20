@@ -47,21 +47,8 @@ jobs:
     - name: Convert repository name to lowercase
       run: echo "PACKAGE_NAME=$(echo '${{ github.repository }}' | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
 
-    # - name: Verify PostgreSQL container is running
-    #   run: docker ps --filter "ancestor=ghcr.io/${{ env.PACKAGE_NAME }}/postgres:17"
-
-    # - name: Wait for PostgreSQL to be ready
-    #   run: |
-    #       for i in {1..20}; do
-    #         pg_isready -h localhost -p 5432 && exit 0
-    #         echo "Waiting for PostgreSQL..."
-    #         sleep 5
-    #       done
-    #       echo "PostgreSQL did not become ready in time" && exit 1
-
-
-    - name: Set up Docker Buildx
-      uses: docker/setup-buildx-action@v3
+    # - name: Set up Docker Buildx
+    #   uses: docker/setup-buildx-action@v3
 
     - name: Log in to GitHub Container Registry
       uses: docker/login-action@v3
@@ -88,7 +75,6 @@ jobs:
       run: |
         docker pull ghcr.io/${{ env.PACKAGE_NAME }}/rl-service:latest || echo "No cached image found, skipping pull."
 
-
     - name: Start RecordLinker Service and Run Smoke Tests
       run: |
         if [[ "${{ matrix.database }}" == "postgres" ]]; then
@@ -105,11 +91,8 @@ jobs:
         docker run -d --name rl-service \
           --network="host" \
           -e DB_URI=$DB_URI \
-          ghcr.io/${{ env.PACKAGE_NAME }}/rl-service:latest  # Use the pulled cached image
+          ghcr.io/${{ env.PACKAGE_NAME }}/rl-service:latest  # Use the cached image
     
-        # docker logs -f rl-service
-
-
         # Wait for the RL Service to be healthy
         TRIES=5
         COUNT=0
