@@ -555,3 +555,16 @@ class TestPIIRecord:
                 assert val == "doe"
             else:
                 raise AssertionError(f"Unexpected key: {key}")
+
+class TestAddress:
+    def test_parse_line(self):
+        address = pii.Address(line=["123 Main St.", "Apt 2"])
+        assert address.line[0] == "123 Main ST"
+        assert address.line[1] == "Apt 2"
+
+        address = pii.Address(line=["123 Main Jctn", "Suite"])
+        assert address.line[0] == "123 Main JCT"
+        assert address.line[1] == "Suite"
+
+        address = pii.Address(line=[" 123 Main avenue "])
+        assert address.line[0] == "123 Main AVE"
