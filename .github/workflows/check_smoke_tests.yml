@@ -7,8 +7,6 @@ on:
     branches: [main]
 
 jobs:
-
-
   smoke_tests:
     runs-on: ubuntu-latest
 
@@ -19,8 +17,8 @@ jobs:
 
     services:
       postgres:
-        image: postgres:17
-        # image: ghcr.io/cdcgov/recordlinker/postgres:17
+        # image: postgres:17
+        image: ghcr.io/cdcgov/recordlinker/postgres:17
         ports:
           - 5432:5432
         env:
@@ -49,11 +47,20 @@ jobs:
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v3
     
-    # - name: Pull Cached Database Images
-    #   run: |
-    #     docker pull ghcr.io/cdcgov/recordlinker/postgres:17
+    - name: Pull Cached Database Images
+      run: |
+        docker pull ghcr.io/cdcgov/recordlinker/postgres:17
+        docker logs -f postgres
     #     docker pull ghcr.io/cdcgov/recordlinker/mysql:8
     #     docker pull ghcr.io/cdcgov/recordlinker/sqlserver:2022-latest
+
+    - name: Wait for PostgreSQL to be Ready
+      run: |
+        until docker exec postgres pg_isready -U postgres; do
+          echo "Waiting for PostgreSQL to become ready..."
+          sleep 5
+        done
+        echo "PostgreSQL is ready!"
 
     - name: Build RecordLinker Docker Image
       run: |
