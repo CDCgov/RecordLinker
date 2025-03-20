@@ -8,6 +8,7 @@ on:
 
 jobs:
   cache_images:
+    runs-on: ubuntu-latest
     steps:
     - name: Convert repository name to lowercase
       run: echo "PACKAGE_NAME=$(echo '${{ github.repository }}' | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
