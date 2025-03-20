@@ -94,21 +94,25 @@ jobs:
       run: |
         docker pull ghcr.io/${{ env.PACKAGE_NAME }}/rl-service:latest || echo "No cached image found, skipping pull."
     
+    - name: Verify PostgreSQL Health in Docker
+      run: |
+        echo "Checking PostgreSQL container health..."
+        docker ps
+    
     - name: Wait for PostgreSQL to be Ready
       run: |
         echo "Waiting for PostgreSQL to become available..."
         TRIES=10
         COUNT=0
-        until pg_isready -h http://localhost:5432; do
-          echo "PostgreSQL is not ready yet... Attempt $((COUNT+1)) of $TRIES"
-          sleep 3
+        until curl -s http://localhost:5432/ | grep "OK"; do
+          echo "Waiting for Postgres to become healthy... Attempt $((COUNT+1)) of $TRIES"
+          sleep 10
           COUNT=$((COUNT+1))
           if [ "$COUNT" -ge "$TRIES" ]; then
-            echo "PostgreSQL did not become available in time."
+            echo "Postgres not become healthy in time."
             exit 1
           fi
         done
-        echo "PostgreSQL is ready."
 
     - name: Start RecordLinker Service and Run Smoke Tests
       run: |
