@@ -51,18 +51,14 @@ class FeatureAttribute(enum.Enum):
 
 
 class StrippedBaseModel(pydantic.BaseModel):
-    @pydantic.field_validator("*", mode="wrap")
-    def strip_whitespace(
-        cls, val: typing.Any, handler: pydantic.ValidatorFunctionWrapHandler
-    ) -> str:
+    @pydantic.field_validator("*", mode="before")
+    def strip_whitespace(cls, v: typing.Any) -> str:
         """
         Remove leading and trailing whitespace from all string fields.
         """
-        # NOTE: using a wrap validator allows us to control having this called before
-        # other field validators, which is useful for downstream validators to know
-        # the string has been stripped first
-        val = val.strip() if isinstance(val, str) else val
-        return handler(val)
+        if isinstance(v, str):
+            return v.strip()
+        return v
 
 
 class Feature(StrippedBaseModel):
@@ -228,23 +224,20 @@ class Address(StrippedBaseModel):
             normalized.append(" ".join(parts))
         return normalized
 
-    # FIXME: this should be a validator
-    @functools.cached_property
-    def normalize_state(self) -> str | None:
+    @pydantic.field_validator("state", mode="before")
+    def normalize_state(cls, value: str) -> str:
         """
         Normalize the state field into 2-letter USPS code.
         """
-
-        if self.state:
-            state = self.state.strip().title()
+        if value:
+            state = value.strip().title()
 
             if len(state) == 2 and state.upper() in _STATE_CODE_TO_NAME:
-                return self.state.upper()
+                return state.upper()
 
             if state in _STATE_NAME_TO_CODE:
                 return _STATE_NAME_TO_CODE[state]
-
-        return None
+        return value
 
 
 class Telecom(StrippedBaseModel):
@@ -439,9 +432,7 @@ class PIIRecord(StrippedBaseModel):
         elif attribute == FeatureAttribute.STATE:
             for address in self.address:
                 if address.state:
-                    state = address.normalize_state
-                    if state:
-                        yield state
+                    yield address.state
         elif attribute == FeatureAttribute.ZIP:
             for address in self.address:
                 if address.postal_code:

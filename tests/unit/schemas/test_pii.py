@@ -358,6 +358,7 @@ class TestPIIRecord:
             "NY",
             "CA",
             "CA",
+            "of mind",
         ]
 
     def test_blocking_keys_invalid(self):
