@@ -70,6 +70,9 @@ jobs:
     - name: Check out repository
       uses: actions/checkout@v4
     
+    - name: Convert repository name to lowercase
+      run: echo "PACKAGE_NAME=$(echo '${{ github.repository }}' | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
+    
     - name: Pull cached RecordLinker image from GitHub Container Registry
       run: |
         docker pull ghcr.io/${{ env.PACKAGE_NAME }}/rl-service:latest || echo "No cached image found, skipping pull."
@@ -87,7 +90,7 @@ jobs:
         fi
 
         # Start Record Linker Service
-        docker run -d --name rl-service --rm \
+        docker run -d --name rl-service \
           --network="host" \
           -e DB_URI=$DB_URI \
           ghcr.io/${{ env.PACKAGE_NAME }}/rl-service:latest  # Use the cached image
