@@ -43,3 +43,6 @@ jobs:
         docker pull ghcr.io/${{ env.PACKAGE_NAME }}/postgres:17
         docker pull ghcr.io/${{ env.PACKAGE_NAME }}/mysql:8
         docker pull ghcr.io/${{ env.PACKAGE_NAME }}/sqlserver:2022-latest
+    
+    - name: show env.PACKAGE_NAME
+      run: echo ${{ env.PACKAGE_NAME }}
