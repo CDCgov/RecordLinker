@@ -52,7 +52,7 @@ class FeatureAttribute(enum.Enum):
 
 class StrippedBaseModel(pydantic.BaseModel):
     @pydantic.field_validator("*", mode="before")
-    def strip_whitespace(cls, v):
+    def strip_whitespace(cls, v: typing.Any) -> str:
         """
         Remove leading and trailing whitespace from all string fields.
         """
@@ -189,6 +189,9 @@ class Address(StrippedBaseModel):
     The schema for an address record.
     """
 
+    ST_SUFFIXES: typing.ClassVar[dict[str, str]] = utils.read_json(
+        "assets/usps_street_suffixes.json"
+    )
     model_config = pydantic.ConfigDict(extra="allow")
 
     line: typing.List[str] = []
@@ -205,21 +208,37 @@ class Address(StrippedBaseModel):
     latitude: typing.Optional[float] = None
     longitude: typing.Optional[float] = None
 
-    @functools.cached_property
-    def normalize_state(self) -> str | None:
+    @pydantic.field_validator("line", mode="before")
+    def parse_line(cls, value: list[str]) -> list[str]:
+        """
+        Parse the line field into a list of strings with normalized street suffixes.
+        """
+        normalized = []
+        for line in value:
+            parts = line.strip().split(" ")
+            # remove all non-alphanumeric characters and convert to uppercase
+            suffix = "".join(c for c in parts[-1] if c.isalnum()).upper()
+            if common := cls.ST_SUFFIXES.get(suffix):
+                # replace the suffix with the common suffix
+                parts[-1] = common
+            normalized.append(" ".join(parts))
+        return normalized
+
+    @pydantic.field_validator("state", mode="before")
+    def parse_state(cls, value: str) -> str | None:
         """
         Normalize the state field into 2-letter USPS code.
         """
-
-        if self.state:
-            state = self.state.strip().title()
+        if value:
+            state = value.strip().title()
+            # reduce inner whitespace to a single whitespace char
+            state = " ".join(w for w in state.split(" ") if w)
 
             if len(state) == 2 and state.upper() in _STATE_CODE_TO_NAME:
-                return self.state.upper()
+                return state.upper()
 
             if state in _STATE_NAME_TO_CODE:
                 return _STATE_NAME_TO_CODE[state]
-
         return None
 
 
@@ -315,16 +334,17 @@ class PIIRecord(StrippedBaseModel):
         """
         Parse the birthdate string into a datetime object.
         """
+
         class LinkerParserInfo(parserinfo):
             def convertyear(self, year, *args):
                 """
                 Subclass method override for parser info function dedicated to
                 handling two-digit year strings. The Parser interprets any two
                 digit year string up to and including the last two digits of
-                the current year as the current century; any two-digit value 
+                the current year as the current century; any two-digit value
                 above this number is interpreted as the preceding century.
                 E.g. '25' is parsed to '2025', but '74' becomes '1974'.
-                The Parser does not accept dates in the future, even if in 
+                The Parser does not accept dates in the future, even if in
                 the same calendar year.
                 """
                 # self._year is the current four-digit year
@@ -339,6 +359,7 @@ class PIIRecord(StrippedBaseModel):
                         # Keeps with best practice and conventional norms
                         year -= 100
                 return year
+
         if value:
             given_date = parse(str(value), LinkerParserInfo())
             if given_date > datetime.datetime.today():
@@ -413,9 +434,7 @@ class PIIRecord(StrippedBaseModel):
         elif attribute == FeatureAttribute.STATE:
             for address in self.address:
                 if address.state:
-                    state = address.normalize_state
-                    if state:
-                        yield state
+                    yield address.state
         elif attribute == FeatureAttribute.ZIP:
             for address in self.address:
                 if address.postal_code:
