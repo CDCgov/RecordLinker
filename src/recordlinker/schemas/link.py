@@ -12,7 +12,7 @@ import pydantic
 
 from recordlinker.schemas.pii import PIIRecord
 
-Prediction = typing.Literal["match", "possible_match", "no_match"]
+Prediction = typing.Literal["certain", "possible", "certainly-not"]
 
 
 class LinkInput(pydantic.BaseModel):
@@ -41,10 +41,25 @@ class LinkResult(pydantic.BaseModel):
     person_reference_id: uuid.UUID = pydantic.Field(
         description="The identifier for a person that the patient may be linked to."
     )
-
-    belongingness_ratio: typing.Annotated[float, pydantic.Field(ge=0, le=1)] = pydantic.Field(
-        description="The proportion of patient records matched in this person cluster ("
-        "between 0 and 1.0)."
+    accumulated_points: float = pydantic.Field(
+        description="The median number of log-odds points accumulated by the blocked patients "
+        "belonging to this Person Cluster when compared to an incoming record."
+    )
+    rms: typing.Annotated[float, pydantic.Field(ge=0, le=1)] = pydantic.Field(
+        description="The Relative Match Strength (normalized between 0 and 1) of this "
+        "Person Cluster to an in coming record."
+    )
+    mmt: typing.Annotated[float, pydantic.Field(ge=0, le=1)] = pydantic.Field(
+        description="The Minimum Match Threshold (normalized between 0 and 1) used in "
+        "the linkage pass whose score this Result captures."
+    )
+    cmt: typing.Annotated[float, pydantic.Field(ge=0, le=1)] = pydantic.Field(
+        description="The Certain Match Threshold (normalized between 0 and 1) used "
+        "in the linkage pass whose score this Result captures."
+    )
+    grade: str = pydantic.Field(
+        description="The FHIR-corresponding Match-Grade assigned to the pass-specific "
+        "score measured by this Result."
     )
 
     @pydantic.model_validator(mode="before")
