@@ -7,8 +7,76 @@ on:
     branches: [main]
 
 jobs:
+  cache_images:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Check out repository
+      uses: actions/checkout@v4
+    
+    - name: Convert repository name to lowercase
+      run: echo "PACKAGE_NAME=$(echo '${{ github.repository }}' | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
+   
+    - name: Log in to GitHub Container Registry
+      uses: docker/login-action@v3
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+    
+    - name: Check if cached image of RL exists in GitHub Container Registry
+      id: check_rl_image
+      run: |
+        docker pull ghcr.io/${{ env.PACKAGE_NAME }}/rl-service:latest || echo "No cached image found"
+
+    - name: Build and push RecordLinker Docker image if not cached
+      if: steps.check_rl_image.outcome == 'failure'
+      run: |
+        # Build the RecordLinker Docker image, tag it, & push to ghcr
+        echo "Building and pushing RecordLinker Docker image..."
+        docker build -t rl-service-image .
+        docker tag rl-service-image ghcr.io/${{ env.PACKAGE_NAME }}/rl-service:latest
+        docker push ghcr.io/${{ env.PACKAGE_NAME }}/rl-service:latest
+
+    - name: Pull cached RecordLinker image from GitHub Container Registry
+      run: |
+        docker pull ghcr.io/${{ env.PACKAGE_NAME }}/rl-service:latest || echo "No cached image found, skipping pull."
+
+    # - name: Check if cached image of database exists in GitHub Container Registry
+    #   id: check_db_image
+    #   run: |
+    #     if [[ "${{ matrix.database }}" == "postgres" ]]; then
+    #       docker pull ghcr.io/${{ env.PACKAGE_NAME }}/postgres:17 || echo "No cached image found"
+    #     elif [[ "${{ matrix.database }}" == "mysql" ]]; then
+    #       docker pull ghcr.io/${{ env.PACKAGE_NAME }}/mysql:8 || echo "No cached image found"
+    #     elif [[ "${{ matrix.database }}" == "sqlserver" ]]; then
+    #       docker pull ghcr.io/${{ env.PACKAGE_NAME }}/sqlserver:2022-latest || echo "No cached image found"
+    #     fi
+
+    # - name: Build and push database Docker image if not cached
+    #   if: steps.check_db_image.outcome == 'failure'
+    #   run: |
+    #     # Build the Docker image, tag it, & push to ghcr
+    #     echo "Building and pushing ${{ matrix.database }} Docker image..."
+    #     # Build the postgres:17 image
+    #     if [[ "${{ matrix.database }}" == "postgres" ]]; then
+    #       docker pull postgres:17
+    #        docker tag postgres-image ghcr.io/${{ env.PACKAGE_NAME }}/postgres:17
+    #       docker push ghcr.io/${{ env.PACKAGE_NAME }}/postgres:17
+    #     # Build the mysql:8 image
+    #     elif [[ "${{ matrix.database }}" == "mysql" ]]; then
+    #       docker pull mysql:8
+    #       docker tag mysql:8 ghcr.io/${{ env.PACKAGE_NAME }}/mysql:8
+    #       docker push ghcr.io/${{ env.PACKAGE_NAME }}/mysql:8
+    #     # Build the sqlserver:2022-latest image
+    #     elif [[ "${{ matrix.database }}" == "sqlserver" ]]; then
+    #       docker pull mcr.microsoft.com/mssql/server:2022-latest
+    #       docker tag mcr.microsoft.com/mssql/server:2022-latest ghcr.io/${{ env.PACKAGE_NAME }}/sqlserver:2022-latest
+    #       docker push ghcr.io/${{ env.PACKAGE_NAME }}/sqlserver:2022-latest
+    #     fi
+
   smoke_tests:
     runs-on: ubuntu-latest
+    needs: cache_images
 
     strategy:
       matrix:
@@ -41,40 +109,6 @@ jobs:
           SA_PASSWORD: "YourStrong!Passw0rd"
 
     steps:
-    - name: Check out repository
-      uses: actions/checkout@v4
-    
-    - name: Convert repository name to lowercase
-      run: echo "PACKAGE_NAME=$(echo '${{ github.repository }}' | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
-
-    # - name: Set up Docker Buildx
-    #   uses: docker/setup-buildx-action@v3
-
-    - name: Log in to GitHub Container Registry
-      uses: docker/login-action@v3
-      with:
-        registry: ghcr.io
-        username: ${{ github.actor }}
-        password: ${{ secrets.GITHUB_TOKEN }}
-    
-    - name: Check if cached image exists in GitHub Container Registry
-      id: check_image
-      run: |
-        docker pull ghcr.io/${{ env.PACKAGE_NAME }}/rl-service:latest || echo "No cached image found"
-    
-    - name: Build and push RecordLinker Docker image if not cached
-      if: steps.check_image.outcome == 'failure'
-      run: |
-        # Build the Docker image, tag it, & push to ghcr
-        echo "Building and pushing RecordLinker Docker image..."
-        docker build -t rl-service-image .
-        docker tag rl-service-image ghcr.io/${{ env.PACKAGE_NAME }}/rl-service:latest
-        docker push ghcr.io/${{ env.PACKAGE_NAME }}/rl-service:latest
-
-    - name: Pull cached image from GitHub Container Registry
-      run: |
-        docker pull ghcr.io/${{ env.PACKAGE_NAME }}/rl-service:latest || echo "No cached image found, skipping pull."
-
     - name: Start RecordLinker Service and Run Smoke Tests
       run: |
         if [[ "${{ matrix.database }}" == "postgres" ]]; then
