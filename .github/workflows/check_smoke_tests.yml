@@ -33,6 +33,21 @@ jobs:
         docker build -t rl-service-image .
         docker tag rl-service-image ghcr.io/${{ env.PACKAGE_NAME }}/rl-service:latest
         docker push ghcr.io/${{ env.PACKAGE_NAME }}/rl-service:latest
+
+    - name: Check if cached postges:17 image exists in GitHub Container Registry
+      id: check_postgres_image
+      run: |
+          docker pull ghcr.io/${{ env.PACKAGE_NAME }}/postgres:17 || echo "No cached image found"
+
+    - name: Build and push postgres:17 Docker image if not cached
+      if: steps.check_postgres_image.outcome == 'failure'
+      run: |
+        # Build the Docker image, tag it, & push to ghcr
+        echo "Building and pushing postgres:17 Docker image..."
+        docker pull postgres:17
+        docker tag postgres:17 ghcr.io/${{ env.PACKAGE_NAME }}/postgres:17
+        docker push ghcr.io/${{ env.PACKAGE_NAME }}/postgres:17
+
   smoke_tests:
     runs-on: ubuntu-latest
 
@@ -43,8 +58,8 @@ jobs:
 
     services:
       postgres:
-        image: postgres:17
-        # image: ghcr.io/cdcgov/recordlinker/postgres:17
+        # image: postgres:17
+        image: ghcr.io/cdcgov/recordlinker/postgres:17
         ports:
           - 5432:5432
         env:
