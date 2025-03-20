@@ -18,7 +18,7 @@ jobs:
     services:
       postgres:
         # image: postgres:17
-        image: ghcr.io/${{ env.PACKAGE_NAME }}/postgres:17
+        image: ghcr.io/cdcgov/recordlinker/postgres:17
         ports:
           - 5432:5432
         env:
