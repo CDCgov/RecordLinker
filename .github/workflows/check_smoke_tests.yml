@@ -87,7 +87,7 @@ jobs:
         fi
 
         # Start Record Linker Service
-        docker run -d --name rl-service -rm \
+        docker run -d --name rl-service --rm \
           --network="host" \
           -e DB_URI=$DB_URI \
           ghcr.io/${{ env.PACKAGE_NAME }}/rl-service:latest  # Use the cached image
