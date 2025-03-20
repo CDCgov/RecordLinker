@@ -13,7 +13,6 @@ import typing
 
 import rapidfuzz
 
-from recordlinker.models.mpi import Patient
 from recordlinker.schemas.pii import Feature
 from recordlinker.schemas.pii import PIIRecord
 
@@ -116,7 +115,7 @@ def rule_probabilistic_match(feature_comparisons: list[float], **kwargs: typing.
 
 
 def compare_probabilistic_exact_match(
-    record: PIIRecord, patient: Patient, key: Feature, **kwargs: typing.Any
+    record: PIIRecord, mpi_record: PIIRecord, key: Feature, **kwargs: typing.Any
 ) -> float:
     """
     Compare the same Feature Field in two patient records, one incoming and one
@@ -125,7 +124,7 @@ def compare_probabilistic_exact_match(
     record pair's match strength. Otherwise, no points are added.
 
     :param record: The incoming record to evaluate.
-    :param patient: The patient record to compare against.
+    :param mpi_record: The MPI record to compare against.
     :param key: The name of the column being evaluated (e.g. "city").
     :param **kwargs: Optionally, a dictionary including specifications for
       the string comparison metric to use, as well as the cutoff score
@@ -137,7 +136,7 @@ def compare_probabilistic_exact_match(
         raise ValueError(f"Log odds not found for feature {key}")
 
     agree = 0.0
-    for x in patient.record.feature_iter(key):
+    for x in mpi_record.feature_iter(key):
         for y in record.feature_iter(key):
             # for each permutation of values, check whether the values agree
             if (x == y):
@@ -147,7 +146,7 @@ def compare_probabilistic_exact_match(
 
 
 def compare_probabilistic_fuzzy_match(
-    record: PIIRecord, patient: Patient, key: Feature, **kwargs: typing.Any
+    record: PIIRecord, mpi_record: PIIRecord, key: Feature, **kwargs: typing.Any
 ) -> float:
     """
     Compare the same Feature Field in two patient records, one incoming and one
@@ -158,7 +157,7 @@ def compare_probabilistic_fuzzy_match(
     are added.
 
     :param record: The incoming record to evaluate.
-    :param patient: The patient record to compare against.
+    :param mpi_record: The MPI record to compare against.
     :param key: The name of the column being evaluated (e.g. "city").
     :param **kwargs: Optionally, a dictionary including specifications for
       the string comparison metric to use, as well as the cutoff score
@@ -172,7 +171,7 @@ def compare_probabilistic_fuzzy_match(
     similarity_measure, threshold = _get_fuzzy_params(str(key.attribute), **kwargs)
     comp_func = getattr(rapidfuzz.distance, similarity_measure).normalized_similarity
     max_score = 0.0
-    for x in patient.record.feature_iter(key):
+    for x in mpi_record.feature_iter(key):
         for y in record.feature_iter(key):
             # for each permutation of values, find the score and record it if its
             # larger than any previous score

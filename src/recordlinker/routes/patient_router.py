@@ -130,7 +130,7 @@ def get_patient(
     return schemas.PatientInfo(
         patient_reference_id=patient.reference_id,
         person_reference_id=patient.person.reference_id,
-        record=patient.record,
+        record=schemas.PIIRecord.from_patient(patient),
         external_patient_id=patient.external_patient_id,
         external_person_id=patient.external_person_id,
     )

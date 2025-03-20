@@ -264,11 +264,11 @@ class TestBulkInsertPatients:
         person = models.Person()
         session.add(person)
         session.flush()
-        rec1 = schemas.PIIRecord(
-            **{"birthdate": "1950-01-01", "name": [{"given": ["George"], "family": "Harrison"}]}
+        rec1 = schemas.PIIRecord.model_validate(
+            {"birthdate": "1950-01-01", "name": [{"given": ["George"], "family": "Harrison"}]}
         )
-        rec2 = schemas.PIIRecord(
-            **{
+        rec2 = schemas.PIIRecord.model_validate(
+            {
                 "birthdate": "1950-01-01",
                 "name": [{"given": ["George", "Harold"], "family": "Harrison"}],
             }
@@ -514,7 +514,7 @@ class TestGetBlockData:
                     ],
                     "birthdate": "1974-11-07",
                 },
-                person_2
+                person_2,
             ),
             (
                 {
@@ -528,8 +528,8 @@ class TestGetBlockData:
                     ],
                     "birthdate": "1983-08-17",
                 },
-                person_2
-            )
+                person_2,
+            ),
         ]
         for datum, person in data:
             mpi_service.insert_patient(session, schemas.PIIRecord(**datum), person=person)

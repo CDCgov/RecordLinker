@@ -54,8 +54,9 @@ def compare(
         feature = schemas.Feature.parse(e.feature)
         if feature is None:
             raise ValueError(f"Invalid comparison field: {e.feature}")
+        mpi_record: schemas.PIIRecord = schemas.PIIRecord.from_patient(patient)
         # Evaluate the comparison function and append the result to the list
-        result: float = e.func(record, patient, feature, **kwargs)  # type: ignore
+        result: float = e.func(record, mpi_record, feature, **kwargs)
         results.append(result)
         details[f"evaluator.{e.feature}.{e.func.__name__}.result"] = result
     is_match = matching_rule(results, **kwargs)

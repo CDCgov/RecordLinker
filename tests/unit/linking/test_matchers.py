@@ -4,6 +4,7 @@ unit.linking.test_matchers
 
 This module contains unit tests for the :mod:`~recordlinker.linking.matchers` module.
 """
+
 import inspect
 import typing
 
@@ -37,7 +38,7 @@ class TestFeatureFunc:
             params = list(signature.parameters.values())
             assert len(params) == 4
             assert params[0].annotation == schemas.PIIRecord
-            assert params[1].annotation == models.Patient
+            assert params[1].annotation == schemas.PIIRecord
             assert params[2].annotation == schemas.Feature
             assert params[3].annotation == typing.Any
             assert signature.return_annotation is float
@@ -62,7 +63,7 @@ def test_compare_probabilistic_exact_match():
             models.Patient(),
             schemas.Feature(attribute=schemas.FeatureAttribute.SEX),
         )
-    
+
     rec = schemas.PIIRecord(
         name=[{"given": ["John", "T"], "family": "Shepard"}],
         birthDate="1980-11-7",
@@ -82,21 +83,30 @@ def test_compare_probabilistic_exact_match():
 
     assert (
         matchers.compare_probabilistic_exact_match(
-            rec, pat, schemas.Feature(attribute=schemas.FeatureAttribute.FIRST_NAME), log_odds=log_odds
+            rec,
+            schemas.PIIRecord.from_patient(pat),
+            schemas.Feature(attribute=schemas.FeatureAttribute.FIRST_NAME),
+            log_odds=log_odds,
         )
         == 4.0
     )
 
     assert (
         matchers.compare_probabilistic_exact_match(
-            rec, pat, schemas.Feature(attribute=schemas.FeatureAttribute.LAST_NAME), log_odds=log_odds
+            rec,
+            schemas.PIIRecord.from_patient(pat),
+            schemas.Feature(attribute=schemas.FeatureAttribute.LAST_NAME),
+            log_odds=log_odds,
         )
         == 6.5
     )
 
     assert (
         matchers.compare_probabilistic_exact_match(
-            rec, pat, schemas.Feature(attribute=schemas.FeatureAttribute.BIRTHDATE), log_odds=log_odds
+            rec,
+            schemas.PIIRecord.from_patient(pat),
+            schemas.Feature(attribute=schemas.FeatureAttribute.BIRTHDATE),
+            log_odds=log_odds,
         )
         == 0.0
     )
@@ -131,7 +141,10 @@ def test_compare_probabilistic_fuzzy_match():
 
     assert (
         matchers.compare_probabilistic_fuzzy_match(
-            rec, pat, schemas.Feature(attribute=schemas.FeatureAttribute.FIRST_NAME), log_odds=log_odds
+            rec,
+            schemas.PIIRecord.from_patient(pat),
+            schemas.Feature(attribute=schemas.FeatureAttribute.FIRST_NAME),
+            log_odds=log_odds,
         )
         == 4.0
     )
@@ -139,7 +152,10 @@ def test_compare_probabilistic_fuzzy_match():
     assert (
         round(
             matchers.compare_probabilistic_fuzzy_match(
-                rec, pat, schemas.Feature(attribute=schemas.FeatureAttribute.LAST_NAME), log_odds=log_odds
+                rec,
+                schemas.PIIRecord.from_patient(pat),
+                schemas.Feature(attribute=schemas.FeatureAttribute.LAST_NAME),
+                log_odds=log_odds,
             ),
             3,
         )
@@ -149,7 +165,10 @@ def test_compare_probabilistic_fuzzy_match():
     assert (
         round(
             matchers.compare_probabilistic_fuzzy_match(
-                rec, pat, schemas.Feature(attribute=schemas.FeatureAttribute.BIRTHDATE), log_odds=log_odds
+                rec,
+                schemas.PIIRecord.from_patient(pat),
+                schemas.Feature(attribute=schemas.FeatureAttribute.BIRTHDATE),
+                log_odds=log_odds,
             ),
             3,
         )
@@ -159,7 +178,10 @@ def test_compare_probabilistic_fuzzy_match():
     assert (
         round(
             matchers.compare_probabilistic_fuzzy_match(
-                rec, pat, schemas.Feature(attribute=schemas.FeatureAttribute.ADDRESS), log_odds=log_odds
+                rec,
+                schemas.PIIRecord.from_patient(pat),
+                schemas.Feature(attribute=schemas.FeatureAttribute.ADDRESS),
+                log_odds=log_odds,
             ),
             3,
         )

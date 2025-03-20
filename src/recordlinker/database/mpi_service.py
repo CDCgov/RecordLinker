@@ -63,7 +63,7 @@ def _filter_incorrect_blocks(
         # this search method becomes. If heavy processing is performed,
         # consider switching to incompatible search.
         num_agreeing_blocking_fields = 0
-        mpi_record = p.record
+        mpi_record = schemas.PIIRecord.from_patient(p)
         for bk, allowed_vals in blocking_vals_in_incoming.items():
             # Compare incoming blocking value to what would be the blocking
             # value of the mpi record to make sure we compare on e.g. same
@@ -152,7 +152,7 @@ def insert_patient(
     :returns: The inserted Patient record
     """
 
-    patient = models.Patient(person=person, record=record, external_patient_id=external_patient_id)
+    patient = models.Patient(person=person, data=record.to_data(), external_patient_id=external_patient_id)
 
     if external_person_id is not None:
         patient.external_person_id = external_person_id
@@ -201,7 +201,7 @@ def bulk_insert_patients(
     pat_data = [
         {
             "person_id": person and person.id,
-            "_data": record.to_dict(prune_empty=True),
+            "data": record.to_data(),
             "external_patient_id": record.external_id,
             "external_person_id": external_person_id,
             "external_person_source": "IRIS" if external_person_id else None,
@@ -244,7 +244,7 @@ def update_patient(
         raise ValueError("Patient has not yet been inserted into the database")
 
     if record:
-        patient.record = record
+        patient.data = record.to_data()
         delete_blocking_values_for_patient(session, patient, commit=False)
         insert_blocking_values(session, [patient], commit=False)
 
@@ -282,7 +282,7 @@ def insert_blocking_values(
 
     data: list[dict] = []
     for idx, patient in enumerate(patients):
-        record = records[idx] if records else patient.record
+        record = records[idx] if records else schemas.PIIRecord.from_patient(patient)
         for key, val in record.blocking_values():
             data.append({"patient_id": patient.id, "blockingkey": key.id, "value": val})
     if not data:

@@ -13,12 +13,13 @@ import pydantic
 import pytest
 
 from recordlinker.models import BlockingKey
+from recordlinker.models import Patient
 from recordlinker.schemas import pii
 
 
 class TestPIIRecord:
-    def test_model_construct(self):
-        data = {
+    def test_from_patient(self):
+        pat = Patient(data={
             "birth_date": "1980-2-1",
             "name": [
                 {"family": "Doe", "given": ["John", "L"]},
@@ -54,8 +55,8 @@ class TestPIIRecord:
                     "authority": "VA",
                 },
             ],
-        }
-        record = pii.PIIRecord.model_construct(**data)
+        })
+        record = pii.PIIRecord.from_patient(pat)
         assert record.birth_date == "1980-2-1"
         assert record.name[0].family == "Doe"
         assert record.name[0].given == ["John", "L"]
