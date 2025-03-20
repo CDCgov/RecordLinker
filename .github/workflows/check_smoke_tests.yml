@@ -63,10 +63,6 @@ jobs:
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v3
 
-    - name: Build RecordLinker Docker Image
-      run: |
-        docker build -t rl-service-image . 
-
     - name: Log in to GitHub Container Registry
       uses: docker/login-action@v3
       with:
@@ -74,9 +70,17 @@ jobs:
         username: ${{ github.actor }}
         password: ${{ secrets.GITHUB_TOKEN }}
     
-    - name: Push image to GitHub Container Registry
+    - name: Check if cached image exists in GitHub Container Registry
+      id: check_image
       run: |
-        echo ${{ env.PACKAGE_NAME }}
+        docker pull ghcr.io/${{ env.PACKAGE_NAME }}/rl-service:latest || echo "No cached image found"
+    
+    - name: Build and push RecordLinker Docker image if not cached
+      if: steps.check_image.outcome == 'failure'
+      run: |
+        # Build the Docker image, tag it, & push to ghcr
+        echo "Building and pushing RecordLinker Docker image..."
+        docker build -t rl-service-image .
         docker tag rl-service-image ghcr.io/${{ env.PACKAGE_NAME }}/rl-service:latest
         docker push ghcr.io/${{ env.PACKAGE_NAME }}/rl-service:latest
 
