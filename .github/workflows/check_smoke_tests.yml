@@ -27,8 +27,8 @@ jobs:
           POSTGRES_PASSWORD: pw
 
       mysql:
-        # image: mysql:8
-        image: ghcr.io/cdcgov/recordlinker/mysql:8
+        image: mysql:8
+        # image: ghcr.io/cdcgov/recordlinker/mysql:8
         ports:
           - 3306:3306
         env:
@@ -49,11 +49,11 @@ jobs:
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v3
     
-    - name: Pull Cached Database Images
-      run: |
-        docker pull ghcr.io/cdcgov/recordlinker/postgres:17
-        docker pull ghcr.io/cdcgov/recordlinker/mysql:8
-        docker pull ghcr.io/cdcgov/recordlinker/sqlserver:2022-latest
+    # - name: Pull Cached Database Images
+    #   run: |
+    #     docker pull ghcr.io/cdcgov/recordlinker/postgres:17
+    #     docker pull ghcr.io/cdcgov/recordlinker/mysql:8
+    #     docker pull ghcr.io/cdcgov/recordlinker/sqlserver:2022-latest
 
     - name: Build RecordLinker Docker Image
       run: |
@@ -77,7 +77,7 @@ jobs:
           -e DB_URI=$DB_URI \
           rl-service-image
     
-        docker logs -f rl-service
+        # docker logs -f rl-service
 
 
         # Wait for the RL Service to be healthy
