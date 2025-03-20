@@ -58,8 +58,10 @@ jobs:
 
     services:
       postgres:
-        image: postgres:17
-        # image: ghcr.io/cdcgov/recordlinker/postgres:17
+        # image: postgres:17
+        image: ghcr.io/cdcgov/recordlinker/postgres:17
+        # image: ${{ matrix.database == 'postgres' && 'ghcr.io/cdcgov/recordlinker/postgres:17' || 'postgres:17' }}
+
         ports:
           - 5432:5432
         env:
@@ -104,12 +106,25 @@ jobs:
           export DB_URI="mssql+pyodbc://sa:YourStrong!Passw0rd@localhost:1433/master?driver=ODBC+Driver+18+for+SQL+Server&TrustServerCertificate=yes"
         fi
 
+        # Wait for the database to be healthy
+        TRIES=5
+        COUNT=0
+        until docker exec -i postgres pg_isready; do
+          echo "Waiting for the database to become healthy... Attempt $((COUNT+1)) of $TRIES"
+          sleep 10
+          COUNT=$((COUNT+1))
+          if [ "$COUNT" -ge "$TRIES" ]; then
+            echo "Database did not become healthy in time."
+            exit 1
+          fi
+        done
+
         # Start Record Linker Service
         docker run -d --name rl-service \
           --network="host" \
           -e DB_URI=$DB_URI \
           ghcr.io/${{ env.PACKAGE_NAME }}/rl-service:latest  # Use the cached image
-  
+
         # Wait for the RL Service to be healthy
         TRIES=5
         COUNT=0
