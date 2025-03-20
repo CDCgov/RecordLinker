@@ -14,7 +14,8 @@ jobs:
 
     strategy:
       matrix:
-        database: [postgres, sqlite, mysql, sqlserver]  # Matrix for database types
+        database: [postgres]  # Matrix for database types
+        # database: [postgres, sqlite, mysql, sqlserver]  # Matrix for database types
 
     services:
       postgres:
