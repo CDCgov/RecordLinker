@@ -45,19 +45,26 @@ class TestCompare:
             }
         )
 
+        evaluators = [
+            {"feature": "FIRST_NAME", "func": "func:recordlinker.linking.matchers.compare_probabilistic_fuzzy_match"},
+            {"feature": "LAST_NAME", "func": "func:recordlinker.linking.matchers.compare_probabilistic_fuzzy_match"},
+        ]
+        log_odds = {"FIRST_NAME": 6.85, "LAST_NAME": 6.35}
+        eval_fields = [e["feature"] for e in evaluators]
+        max_points = sum([log_odds[e] for e in eval_fields])
+        max_allowed_missingness_proportion = 0.5
+        missing_field_points_proportion = 0.5
+
         algorithm_pass = models.AlgorithmPass(
             id=1,
             algorithm_id=1,
             blocking_keys=[1],
-            evaluators=[
-                {"feature": "FIRST_NAME", "func": "func:recordlinker.linking.matchers.compare_probabilistic_fuzzy_match"},
-                {"feature": "LAST_NAME", "func": "func:recordlinker.linking.matchers.compare_probabilistic_fuzzy_match"},
-            ],
+            evaluators=evaluators,
             rule="func:recordlinker.linking.matchers.rule_probabilistic_match",
-            kwargs={"log_odds": {"FIRST_NAME": 6.85, "LAST_NAME": 6.35}, "true_match_threshold": 12},
+            kwargs={"log_odds": log_odds, "true_match_threshold": 12},
         )
 
-        assert link.compare(rec, pat, algorithm_pass) is True
+        assert link.compare(rec, pat, max_points, max_allowed_missingness_proportion, missing_field_points_proportion, algorithm_pass) is True
 
     def test_compare_no_match(self):
         rec = schemas.PIIRecord(
@@ -84,19 +91,25 @@ class TestCompare:
                 ]
             }
         )
+        evaluators = [
+            {"feature": "FIRST_NAME", "func": "func:recordlinker.linking.matchers.compare_probabilistic_fuzzy_match"},
+            {"feature": "LAST_NAME", "func": "func:recordlinker.linking.matchers.compare_probabilistic_fuzzy_match"},
+        ]
+        log_odds = {"FIRST_NAME": 6.85, "LAST_NAME": 6.35}
+        eval_fields = [e["feature"] for e in evaluators]
+        max_points = sum([log_odds[e] for e in eval_fields])
+        max_allowed_missingness_proportion = 0.5
+        missing_field_points_proportion = 0.5
         algorithm_pass = models.AlgorithmPass(
             id=1,
             algorithm_id=1,
             blocking_keys=[1],
-            evaluators=[
-                {"feature": "FIRST_NAME", "func": "func:recordlinker.linking.matchers.compare_probabilistic_fuzzy_match"},
-                {"feature": "LAST_NAME", "func": "func:recordlinker.linking.matchers.compare_probabilistic_fuzzy_match"},
-            ],
+            evaluators=evaluators,
             rule="func:recordlinker.linking.matchers.rule_probabilistic_match",
-            kwargs={"log_odds": {"FIRST_NAME": 6.85, "LAST_NAME": 6.35}, "true_match_threshold": 12.95},
+            kwargs={"log_odds": log_odds, "true_match_threshold": 12.95},
         )
 
-        assert link.compare(rec, pat, algorithm_pass) is False
+        assert link.compare(rec, pat, max_points, max_allowed_missingness_proportion, missing_field_points_proportion, algorithm_pass) is False
 
     def test_compare_identifier_match(self):
         rec = schemas.PIIRecord(
@@ -132,18 +145,25 @@ class TestCompare:
             }
         )
 
+        evaluators = [
+            {"feature": "IDENTIFIER", "func": "func:recordlinker.linking.matchers.compare_probabilistic_fuzzy_match"}
+        ]
+        log_odds = {"IDENTIFIER": 0.35}
+        eval_fields = [e["feature"] for e in evaluators]
+        max_points = sum([log_odds[e] for e in eval_fields])
+        max_allowed_missingness_proportion = 0.5
+        missing_field_points_proportion = 0.5
+
         algorithm_pass = models.AlgorithmPass(
             id=1,
             algorithm_id=1,
             blocking_keys=[1],
-            evaluators=[
-                {"feature": "IDENTIFIER", "func": "func:recordlinker.linking.matchers.compare_probabilistic_fuzzy_match"},
-            ],
+            evaluators=evaluators,
             rule="func:recordlinker.linking.matchers.rule_probabilistic_match",
-            kwargs={"log_odds": {"IDENTIFIER": 0.35}, "true_match_threshold": 0.3},
+            kwargs={"log_odds": log_odds, "true_match_threshold": 0.3},
         )
 
-        assert link.compare(rec, pat, algorithm_pass) is True
+        assert link.compare(rec, pat, max_points, max_allowed_missingness_proportion, missing_field_points_proportion, algorithm_pass) is True
 
     def test_compare_identifier_with_suffix(self):
         rec = schemas.PIIRecord(
@@ -179,23 +199,30 @@ class TestCompare:
             }
         )
 
+        evaluators = [
+            {"feature": "IDENTIFIER", "func": "func:recordlinker.linking.matchers.compare_probabilistic_fuzzy_match"}
+        ]
+        log_odds = {"IDENTIFIER": 0.35}
+        eval_fields = [e["feature"] for e in evaluators]
+        max_points = sum([log_odds[e] for e in eval_fields])
+        max_allowed_missingness_proportion = 0.5
+        missing_field_points_proportion = 0.5
+
         algorithm_pass = models.AlgorithmPass(
             id=1,
             algorithm_id=1,
             blocking_keys=[1],
-            evaluators=[
-                {"feature": "IDENTIFIER:MR", "func": "func:recordlinker.linking.matchers.compare_probabilistic_fuzzy_match"},
-            ],
+            evaluators=evaluators,
             rule="func:recordlinker.linking.matchers.rule_probabilistic_match",
-            kwargs={"log_odds": {"IDENTIFIER": 0.35}, "true_match_threshold": 0.3},
+            kwargs={"log_odds": log_odds, "true_match_threshold": 0.3},
         )
 
         #should pass as MR is the same for both
-        assert link.compare(rec, pat, algorithm_pass) is True
+        assert link.compare(rec, pat, max_points, max_allowed_missingness_proportion, missing_field_points_proportion, algorithm_pass) is True
 
         algorithm_pass.evaluators = [{"feature": "IDENTIFIER:SS", "func": "func:recordlinker.linking.matchers.compare_probabilistic_fuzzy_match"}]
         #should fail as SS is different for both
-        assert link.compare(rec, pat, algorithm_pass) is False
+        assert link.compare(rec, pat, max_points, max_allowed_missingness_proportion, missing_field_points_proportion, algorithm_pass) is False
 
     def test_compare_invalid_feature(self):
         rec = schemas.PIIRecord(
@@ -235,7 +262,7 @@ class TestCompare:
         )
 
         with pytest.raises(ValueError):
-            link.compare(rec, pat, algorithm_pass)
+            link.compare(rec, pat, 0.0, 0.5, 0.5, algorithm_pass)
 
 
 class TestLinkRecordAgainstMpi:
@@ -328,6 +355,61 @@ class TestLinkRecordAgainstMpi:
         #  finds greatest strength match and correctly assigns to larger cluster
         assert matches == [False, True, False, True, False, False, True]
         assert sorted(list(mapped_patients.values())) == [1, 1, 1, 4]
+    
+    def test_match_with_missing_field(
+            self,
+            session,
+            default_algorithm,
+            patients: list[schemas.PIIRecord]
+        ):
+        # Make a deep copy of the first patient, then delete some info
+        patients = [patients[0]]
+        duplicate = copy.deepcopy(patients[0])
+        duplicate.external_id = str(uuid.uuid4())
+        duplicate.name[0].family = ""
+        duplicate.address[0].line[0] = ""
+        patients.append(duplicate)
+
+        # Test whether we can successfully make a match if info is missing
+        default_algorithm.passes[0].kwargs["true_match_threshold"] = 9.5
+        matches: list[bool] = []
+        mapped_patients: dict[str, int] = collections.defaultdict(int)
+        for data in patients[:2]:
+            (_, person, results, _) = link.link_record_against_mpi(data, session, default_algorithm)
+            matches.append(bool(person and results))
+            mapped_patients[person.reference_id] += 1
+
+        # First patient inserted into empty MPI, no match
+        # Second patient blocks in each pass, is missing a field, but is allowed to match
+        assert matches == [False, True]
+        assert sorted(list(mapped_patients.values())) == [2]
+
+    def test_reject_too_many_missing_field(
+            self,
+            session,
+            default_algorithm,
+            patients: list[schemas.PIIRecord]
+        ):
+        # Make a deep copy of the first patient, then delete some info
+        patients = [patients[0]]
+        duplicate = copy.deepcopy(patients[0])
+        duplicate.external_id = str(uuid.uuid4())
+        duplicate.name[0].given[0] = ""
+        duplicate.address[0].line[0] = ""
+        patients.append(duplicate)
+
+        # Test whether too many missing points causes failure
+        default_algorithm.max_missing_field_proportion = 0.3
+        matches: list[bool] = []
+        mapped_patients: dict[str, int] = collections.defaultdict(int)
+        for data in patients[:2]:
+            (_, person, results, _) = link.link_record_against_mpi(data, session, default_algorithm)
+            matches.append(bool(person and results))
+            mapped_patients[person.reference_id] += 1
+
+        # First patient inserted into empty MPI, no match
+        # Second patient blocks in each pass but missing too much data, fails
+        assert matches == [False, False]
 
     def test_default_possible_match(
             self,

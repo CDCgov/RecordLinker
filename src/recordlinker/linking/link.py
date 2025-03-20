@@ -35,10 +35,18 @@ class LinkResult:
 
 
 def compare(
-    record: schemas.PIIRecord, patient: models.Patient, algorithm_pass: models.AlgorithmPass
+    record: schemas.PIIRecord,
+    patient: models.Patient,
+    max_log_odds_points: float,
+    max_allowed_missingness_proportion: float,
+    missing_points_proportion: float,
+    algorithm_pass: models.AlgorithmPass
 ) -> bool:
     """
-    Compare the incoming record to the linked patient
+    Compare the incoming record to the linked patient and return the calculated
+    evaluation score. If a proportion of score points is accumulated via comparisons
+    with missing fields that is above a user-defined threshold, automatically reject
+    the potential match candidacy of the linked patient.
     """
     # all the functions used for comparison
     evals: list[models.BoundEvaluator] = algorithm_pass.bound_evaluators()
@@ -47,6 +55,7 @@ def compare(
     # keyword arguments to pass to comparison functions and matching rule
     kwargs: dict[typing.Any, typing.Any] = algorithm_pass.kwargs
 
+    missing_field_weights = 0.0
     results: list[float] = []
     details: dict[str, typing.Any] = {"patient.reference_id": str(patient.reference_id)}
     for e in evals:
@@ -54,11 +63,24 @@ def compare(
         feature = schemas.Feature.parse(e.feature)
         if feature is None:
             raise ValueError(f"Invalid comparison field: {e.feature}")
-        # Evaluate the comparison function and append the result to the list
-        result: float = e.func(record, patient, feature, **kwargs)  # type: ignore
-        results.append(result)
+        
+        # Evaluate the comparison function, track missingness, and append the 
+        # score component to the list
+        result: tuple[float, bool] = e.func(
+            record, patient, feature, missing_points_proportion, **kwargs
+        )  # type: ignore
+        if result[1]:
+            # If the field was missing, the log-odds weight was multiplied, so dividing
+            # here reverses the change without needing to overly pass the odds dict
+            missing_field_weights += result[0] / missing_points_proportion
+        results.append(result[0])
         details[f"evaluator.{e.feature}.{e.func.__name__}.result"] = result
-    is_match = matching_rule(results, **kwargs)
+
+    # Make sure this score wasn't just accumulated with missing checks
+    if missing_field_weights <= max_allowed_missingness_proportion * max_log_odds_points:
+        is_match = matching_rule(results, **kwargs)
+    else:
+        is_match = False
     details[f"rule.{matching_rule.__name__}.results"] = is_match
     # TODO: this may add a lot of noise, consider moving to debug
     LOGGER.info("patient comparison", extra=details)
@@ -98,6 +120,9 @@ def link_record_against_mpi(
     scores: dict[models.Person, float] = collections.defaultdict(float)
     # the minimum ratio of matches needed to be considered a cluster member
     belongingness_ratio_lower_bound, belongingness_ratio_upper_bound = algorithm.belongingness_ratio
+    # proportions for missingness calculation: points awarded, and max allowed
+    missing_field_points_fraction = algorithm.missing_field_compare_fraction
+    max_allowed_missingness = algorithm.max_missing_field_proportion
     # initialize counters to track evaluation results to log
     result_counts: dict[str, int] = {
         "persons_compared": 0,
@@ -107,6 +132,12 @@ def link_record_against_mpi(
     }
     for algorithm_pass in algorithm.passes:
         with TRACER.start_as_current_span("link.pass"):
+
+            # Determine the maximum possible number of log-odds points in this pass
+            evaluators: list[str] = [e["feature"] for e in algorithm_pass.evaluators]
+            log_odds_points = algorithm_pass.kwargs["log_odds"]
+            max_points = sum([log_odds_points[e] for e in evaluators])
+
             # initialize a dictionary to hold the clusters of patients for each person
             clusters: dict[models.Person, list[models.Patient]] = collections.defaultdict(list)
             # block on the pii_record and the algorithm's blocking criteria, then
@@ -126,7 +157,13 @@ def link_record_against_mpi(
                     for pat in pats:
                         # increment our match count if the pii_record matches the patient
                         with TRACER.start_as_current_span("link.compare"):
-                            if compare(record, pat, algorithm_pass):
+                            if compare(
+                                record,
+                                pat,
+                                max_points,
+                                max_allowed_missingness,
+                                missing_field_points_fraction,
+                                algorithm_pass):
                                 matched_count += 1
                     result_counts["persons_compared"] += 1
                     result_counts["patients_compared"] += len(pats)

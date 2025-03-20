@@ -125,6 +125,8 @@ class TestAlgorithm:
             Algorithm(
                 label="label",
                 belongingness_ratio=belongingness_ratio,
+                max_missing_field_proportion=0.5,
+                missing_field_compare_fraction=0.5,
                 passes=[
                     AlgorithmPass(
                         blocking_keys=[],
@@ -137,6 +139,8 @@ class TestAlgorithm:
         Algorithm(
             label="label",
             belongingness_ratio=belongingness_ratio,
+            max_missing_field_proportion=0.5,
+            missing_field_compare_fraction=0.5,
             passes=[
                 AlgorithmPass(
                     blocking_keys=[],
@@ -149,6 +153,8 @@ class TestAlgorithm:
         Algorithm(
             label="label",
             belongingness_ratio=belongingness_ratio,
+            max_missing_field_proportion=0.5,
+            missing_field_compare_fraction=0.5,
             passes=[
                 AlgorithmPass(
                     blocking_keys=[],

@@ -116,39 +116,53 @@ def rule_probabilistic_match(feature_comparisons: list[float], **kwargs: typing.
 
 
 def compare_probabilistic_exact_match(
-    record: PIIRecord, patient: Patient, key: Feature, **kwargs: typing.Any
-) -> float:
+    record: PIIRecord, patient: Patient, key: Feature, missing_points: float, **kwargs: typing.Any
+) -> tuple[float, bool]:
     """
     Compare the same Feature Field in two patient records, one incoming and one
     previously seen, to determine whether the fields fully agree.
     If they do, the full log-odds weight-points for this field are added to the
     record pair's match strength. Otherwise, no points are added.
+    If one or both of the Fields are missing (including blank or unknown), a
+    proportion of log-odds points specified in the algorithm configuration is
+    awarded.
+    In all cases, the comparison function captures whether one or both records
+    had missing information.
 
     :param record: The incoming record to evaluate.
     :param patient: The patient record to compare against.
     :param key: The name of the column being evaluated (e.g. "city").
+    :param missing_points: The proportion of log-odds points to award if one
+      of the records is missing information in the given field.
     :param **kwargs: Optionally, a dictionary including specifications for
       the string comparison metric to use, as well as the cutoff score
       beyond which to classify the strings as a partial match.
-    :return: A float of the score the feature comparison earned.
+    :return: A tuple containing: a float of the score the feature comparison
+      earned, and a boolean indicating whether one of the Fields was missing.
     """
     log_odds = kwargs.get("log_odds", {}).get(str(key.attribute))
     if log_odds is None:
         raise ValueError(f"Log odds not found for feature {key}")
 
+    # Return early if a field is missing, and log that was the case
+    incoming_fields = list(patient.record.feature_iter(key))
+    mpi_fields = list(record.feature_iter(key))
+    if len(incoming_fields) == 0 or len(mpi_fields) == 0:
+        return (missing_points * log_odds, True)
+
     agree = 0.0
-    for x in patient.record.feature_iter(key):
-        for y in record.feature_iter(key):
+    for x in incoming_fields:
+        for y in mpi_fields:
             # for each permutation of values, check whether the values agree
             if (x == y):
                 agree = 1.0
                 break
-    return agree * log_odds
+    return (agree * log_odds, False)
 
 
 def compare_probabilistic_fuzzy_match(
-    record: PIIRecord, patient: Patient, key: Feature, **kwargs: typing.Any
-) -> float:
+    record: PIIRecord, patient: Patient, key: Feature, missing_points: float, **kwargs: typing.Any
+) -> tuple[float, bool]:
     """
     Compare the same Feature Field in two patient records, one incoming and one
     previously seen, to determine the extent to which the fields agree.
@@ -156,28 +170,42 @@ def compare_probabilistic_fuzzy_match(
     specified as a kwarg, that proportion of the Field's maximum log-odds
     weight points are added to the record match strength. Otherwise, no points
     are added.
+    If one or both of the Fields are missing (including blank or unknown), a
+    proportion of log-odds points specified in the algorithm configuration is
+    awarded.
+    In all cases, the comparison function captures whether one or both records
+    had missing information.
 
     :param record: The incoming record to evaluate.
     :param patient: The patient record to compare against.
     :param key: The name of the column being evaluated (e.g. "city").
+    :param missing_points: The proportion of log-odds points to award if one
+      of the records is missing information in the given field.
     :param **kwargs: Optionally, a dictionary including specifications for
       the string comparison metric to use, as well as the cutoff score
       beyond which to classify the strings as a partial match.
-    :return: A float of the score the feature comparison earned.
+    :return: A tuple containing: a float of the score the feature comparison
+      earned, and a boolean indicating whether one of the Fields was missing.
     """
     log_odds = kwargs.get("log_odds", {}).get(str(key.attribute))
     if log_odds is None:
         raise ValueError(f"Log odds not found for feature {key}")
+    
+    # Return early if a field is missing, and log that was the case
+    incoming_fields = list(patient.record.feature_iter(key))
+    mpi_fields = list(record.feature_iter(key))
+    if len(incoming_fields) == 0 or len(mpi_fields) == 0:
+        return (missing_points * log_odds, True)
 
     similarity_measure, threshold = _get_fuzzy_params(str(key.attribute), **kwargs)
     comp_func = getattr(rapidfuzz.distance, similarity_measure).normalized_similarity
     max_score = 0.0
-    for x in patient.record.feature_iter(key):
-        for y in record.feature_iter(key):
+    for x in incoming_fields:
+        for y in mpi_fields:
             # for each permutation of values, find the score and record it if its
             # larger than any previous score
             max_score = max(comp_func(x, y), max_score)
     if max_score < threshold:
         # return 0 if our max score is less than the threshold
-        return 0.0
-    return max_score * log_odds
+        return (0.0, False)
+    return (max_score * log_odds, False)
