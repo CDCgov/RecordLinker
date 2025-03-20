@@ -66,6 +66,7 @@ jobs:
           - 5432:5432
         env:
           POSTGRES_PASSWORD: pw
+          DB_URI: "postgresql+psycopg2://postgres:pw@localhost:5432/postgres"
 
       mysql:
         image: mysql:8
@@ -103,7 +104,7 @@ jobs:
       run: |
         echo "Checking PostgreSQL logs..."
         docker logs $(docker ps -aqf "ancestor=ghcr.io/cdcgov/recordlinker/postgres:17")
-        
+
     - name: Wait for PostgreSQL to be Ready
       run: |
         echo "Waiting for PostgreSQL to become available..."
