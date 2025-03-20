@@ -43,22 +43,26 @@ jobs:
     steps:
     - name: Check out repository
       uses: actions/checkout@v4
-
-    - name: Set up Docker Buildx
-      uses: docker/setup-buildx-action@v3
     
     - name: Convert repository name to lowercase
       run: echo "PACKAGE_NAME=$(echo '${{ github.repository }}' | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
 
-    - name: Inspect Postgres Service
+    - name: Verify PostgreSQL container is running
+      run: docker ps --filter "ancestor=ghcr.io/${{ env.PACKAGE_NAME }}/postgres:17"
+
+    - name: Wait for PostgreSQL to be ready
       run: |
-        CONTAINER_ID=$(docker ps -q --filter "ancestor=ghcr.io/${{ env.PACKAGE_NAME }}/postgres:17")
-        if [ -n "$CONTAINER_ID" ]; then
-          docker inspect "$CONTAINER_ID" --format '{{.State.Status}}'
-        else
-          echo "PostgreSQL container is not running!" && exit 1
-        fi
-    
+          for i in {1..20}; do
+            pg_isready -h localhost -p 5432 && exit 0
+            echo "Waiting for PostgreSQL..."
+            sleep 5
+          done
+          echo "PostgreSQL did not become ready in time" && exit 1
+
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+
     - name: Build RecordLinker Docker Image
       run: |
         docker build -t rl-service-image . 
