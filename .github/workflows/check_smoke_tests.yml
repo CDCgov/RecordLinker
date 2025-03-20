@@ -50,9 +50,13 @@ jobs:
     - name: Pull Cached Database Images
       run: |
         docker pull ghcr.io/cdcgov/recordlinker/postgres:17
-        docker logs -f postgres
     #     docker pull ghcr.io/cdcgov/recordlinker/mysql:8
     #     docker pull ghcr.io/cdcgov/recordlinker/sqlserver:2022-latest
+    - name: List Running Containers
+      run: docker ps -a
+    
+    - name: Show PostgreSQL Logs
+      run: docker logs $(docker ps -q --filter ancestor=ghcr.io/cdcgov/recordlinker/postgres:17)
 
     - name: Wait for PostgreSQL to be Ready
       run: |
