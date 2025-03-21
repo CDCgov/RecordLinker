@@ -86,8 +86,8 @@ class Algorithm(pydantic.BaseModel):
         Annotated[float, pydantic.Field(ge=0, le=1)], Annotated[float, pydantic.Field(ge=0, le=1)]
     ]
     passes: typing.Sequence[AlgorithmPass]
-    max_missing_field_proportion: float = pydantic.Field(ge=0.0, le=1.0)
-    missing_field_compare_fraction: float = pydantic.Field(ge=0.0, le=1.0)
+    max_missing_allowed_proportion: float = pydantic.Field(ge=0.0, le=1.0)
+    missing_field_points_proportion: float = pydantic.Field(ge=0.0, le=1.0)
 
     @pydantic.field_validator("belongingness_ratio", mode="before")
     def validate_belongingness_ratio(cls, value):

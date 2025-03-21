@@ -39,7 +39,7 @@ def compare(
     patient: models.Patient,
     max_log_odds_points: float,
     max_allowed_missingness_proportion: float,
-    missing_points_proportion: float,
+    missing_field_points_proportion: float,
     algorithm_pass: models.AlgorithmPass
 ) -> bool:
     """
@@ -67,12 +67,12 @@ def compare(
         # Evaluate the comparison function, track missingness, and append the 
         # score component to the list
         result: tuple[float, bool] = e.func(
-            record, patient, feature, missing_points_proportion, **kwargs
+            record, patient, feature, missing_field_points_proportion, **kwargs
         )  # type: ignore
         if result[1]:
             # If the field was missing, the log-odds weight was multiplied, so dividing
             # here reverses the change without needing to overly pass the odds dict
-            missing_field_weights += result[0] / missing_points_proportion
+            missing_field_weights += result[0] / missing_field_points_proportion
         results.append(result[0])
         details[f"evaluator.{e.feature}.{e.func.__name__}.result"] = result
 
@@ -121,8 +121,8 @@ def link_record_against_mpi(
     # the minimum ratio of matches needed to be considered a cluster member
     belongingness_ratio_lower_bound, belongingness_ratio_upper_bound = algorithm.belongingness_ratio
     # proportions for missingness calculation: points awarded, and max allowed
-    missing_field_points_fraction = algorithm.missing_field_compare_fraction
-    max_allowed_missingness = algorithm.max_missing_field_proportion
+    missing_field_points_proportion = algorithm.missing_field_points_proportion
+    max_missing_allowed_proportion = algorithm.max_missing_allowed_proportion
     # initialize counters to track evaluation results to log
     result_counts: dict[str, int] = {
         "persons_compared": 0,
@@ -161,8 +161,8 @@ def link_record_against_mpi(
                                 record,
                                 pat,
                                 max_points,
-                                max_allowed_missingness,
-                                missing_field_points_fraction,
+                                max_missing_allowed_proportion,
+                                missing_field_points_proportion,
                                 algorithm_pass):
                                 matched_count += 1
                     result_counts["persons_compared"] += 1

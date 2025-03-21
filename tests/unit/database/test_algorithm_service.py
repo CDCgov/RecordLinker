@@ -63,8 +63,8 @@ class TestLoadAlgorithm:
             label="dibbs-test",
             description="First algorithm",
             belongingness_ratio=(0.75, 0.8),
-            max_missing_field_proportion=0.5,
-            missing_field_compare_fraction=0.5,
+            max_missing_allowed_proportion=0.5,
+            missing_field_points_proportion=0.5,
             passes=[
                 schemas.AlgorithmPass(
                     blocking_keys=["FIRST_NAME"],
@@ -86,8 +86,8 @@ class TestLoadAlgorithm:
         assert obj.label == "dibbs-test"
         assert obj.description == "First algorithm"
         assert obj.belongingness_ratio == (0.75, 0.8)
-        assert obj.max_missing_field_proportion == 0.5
-        assert obj.missing_field_compare_fraction == 0.5
+        assert obj.max_missing_allowed_proportion == 0.5
+        assert obj.missing_field_points_proportion == 0.5
         assert len(obj.passes) == 1
         assert obj.passes[0].algorithm_id == 1
         assert obj.passes[0].blocking_keys == ["FIRST_NAME"]
@@ -101,8 +101,8 @@ class TestLoadAlgorithm:
             label="dibbs-test",
             description="First algorithm",
             belongingness_ratio=(0.75, 0.8),
-            max_missing_field_proportion=0.5,
-            missing_field_compare_fraction=0.5,
+            max_missing_allowed_proportion=0.5,
+            missing_field_points_proportion=0.5,
             passes=[
                 schemas.AlgorithmPass(
                     blocking_keys=["FIRST_NAME"],
@@ -127,8 +127,8 @@ class TestLoadAlgorithm:
         assert obj.label == "dibbs-test"
         assert obj.description == "Updated description"
         assert obj.belongingness_ratio == (0.75, 0.8)
-        assert obj.max_missing_field_proportion == 0.5
-        assert obj.missing_field_compare_fraction == 0.5
+        assert obj.max_missing_allowed_proportion == 0.5
+        assert obj.missing_field_points_proportion == 0.5
         assert len(obj.passes) == 1
         assert obj.passes[0].algorithm_id == 1
         assert obj.passes[0].blocking_keys == ["LAST_NAME"]

@@ -399,7 +399,7 @@ class TestLinkRecordAgainstMpi:
         patients.append(duplicate)
 
         # Test whether too many missing points causes failure
-        default_algorithm.max_missing_field_proportion = 0.3
+        default_algorithm.max_missing_allowed_proportion = 0.3
         matches: list[bool] = []
         mapped_patients: dict[str, int] = collections.defaultdict(int)
         for data in patients[:2]:
