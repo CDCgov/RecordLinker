@@ -56,12 +56,12 @@ jobs:
           tags: |
             ghcr.io/${{ env.REPO }}/rl-service:latest 
     
-      run: |
-        # Build the Docker image, tag it, & push to ghcr
-        echo "Building and pushing RecordLinker Docker image..."
-        docker build -t rl-service-image .
-        docker tag rl-service-image ghcr.io/${{ env.REPO }}/rl-service:latest
-        docker push ghcr.io/${{ env.REPO }}/rl-service:latest
+      # run: |
+      #   # Build the Docker image, tag it, & push to ghcr
+      #   echo "Building and pushing RecordLinker Docker image..."
+      #   docker build -t rl-service-image .
+      #   docker tag rl-service-image ghcr.io/${{ env.REPO }}/rl-service:latest
+      #   docker push ghcr.io/${{ env.REPO }}/rl-service:latest
 
     - name: Check out repository
       uses: actions/checkout@v4
