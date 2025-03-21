@@ -38,16 +38,37 @@ jobs:
           SA_PASSWORD: "YourStrong!Passw0rd"
 
     steps:
+    - name: Convert repository name to lowercase
+      run: echo "PACKAGE_NAME=$(echo '${{ github.repository }}' | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
+
+    - name: Log in to GitHub Container Registry
+      uses: docker/login-action@v3
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Check if cached RecordLinker image exists in GitHub Container Registry
+      id: check_rl_image
+      run: |
+          docker pull ghcr.io/${{ env.PACKAGE_NAME }}/rl-service:latest || echo "No cached image found"
+      
+    - name: Build and push RecordLinker Docker image if not cached
+      if: steps.check_rl_image.outcome == 'failure'
+      run: |
+        # Build the Docker image, tag it, & push to ghcr
+        echo "Building and pushing RecordLinker Docker image..."
+        docker build -t rl-service-image .
+        docker tag rl-service-image ghcr.io/${{ env.PACKAGE_NAME }}/rl-service:latest
+        docker push ghcr.io/${{ env.PACKAGE_NAME }}/rl-service:latest
+
     - name: Check out repository
       uses: actions/checkout@v4
-
-    - name: Set up Docker Buildx
-      uses: docker/setup-buildx-action@v3
-
-    - name: Build RecordLinker Docker Image
+       
+    - name: Pull cached RecordLinker image from GitHub Container Registry
       run: |
-        docker build -t rl-service-image . 
-
+        docker pull ghcr.io/${{ env.PACKAGE_NAME }}/rl-service:latest || echo "No cached image found, skipping pull."
+    
     - name: Start RecordLinker Service and Run Smoke Tests
       run: |
         if [[ "${{ matrix.database }}" == "postgres" ]]; then
@@ -64,7 +85,7 @@ jobs:
         docker run -d --name rl-service \
           --network="host" \
           -e DB_URI=$DB_URI \
-          rl-service-image
+          ghcr.io/${{ env.PACKAGE_NAME }}/rl-service:latest  # Use the cached image
 
         # Wait for the RL Service to be healthy
         TRIES=5
@@ -125,4 +146,4 @@ jobs:
         -H "Content-Type: application/json")
 
         echo "Response: $RESPONSE_5"
-        echo "$RESPONSE_5" | grep -q "No algorithm found" 
+        echo "$RESPONSE_5" | grep -q "No algorithm found"
