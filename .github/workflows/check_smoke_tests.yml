@@ -7,8 +7,34 @@ on:
     branches: [main]
 
 jobs:
+
+  service-set-up:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Check out repository
+      uses: actions/checkout@v4
+
+    - name: Convert repository name to lowercase
+      run: echo "REPO=$(echo '${{ github.repository }}' | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
+
+    - name: Log in to GitHub Container Registry
+      uses: docker/login-action@v3
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+    
+    -name: Pull and push postgres:17 to GHCR
+      run: |
+        docker pull postgres:17
+        docker tag postgres:17 ghcr.io/${{ env.REPO }}/postgres:17
+        docker push ghcr.io/${{ env.REPO }}/postgres:17
+      
+
   smoke_tests:
     runs-on: ubuntu-latest
+    needs: service-set-up
 
     strategy:
       matrix:
@@ -16,7 +42,8 @@ jobs:
 
     services:
       postgres:
-        image: postgres:17
+        # image: postgres:17
+        image: ghcr.io/${{ env.REPO }}/postgres:17
         ports:
           - 5432:5432
         env:
