@@ -30,6 +30,18 @@ jobs:
           docker tag postgres:17 ghcr.io/${{ env.REPO }}/postgres:17
           docker push ghcr.io/${{ env.REPO }}/postgres:17
 
+      - name: Pull and push mysql to GHCR
+        run: |
+          docker pull mysql:8
+          docker tag mysql:8 ghcr.io/${{ env.REPO }}/mysql:8
+          docker push ghcr.io/${{ env.REPO }}/mysql:8
+
+      - name: Pull and push mssql to GHCR
+        run: |
+          docker pull mcr.microsoft.com/mssql/server:2022-latest
+          docker tag mcr.microsoft.com/mssql/server:2022-latest ghcr.io/${{ env.REPO }}/mssql:2022-latest
+          docker push ghcr.io/${{ env.REPO }}/mssql:2022-latest
+
   smoke_tests:
     runs-on: ubuntu-latest
     needs: service-set-up
@@ -40,7 +52,6 @@ jobs:
 
     services:
       postgres:
-        # image: postgres:17
         image: ghcr.io/cdcgov/recordlinker/postgres:17
         ports:
           - 5432:5432
@@ -48,14 +59,14 @@ jobs:
           POSTGRES_PASSWORD: pw
 
       mysql:
-        image: mysql:8
+        image: ghcr.io/cdcgov/recordlinker/mysql:8
         ports:
           - 3306:3306
         env:
           MYSQL_ROOT_PASSWORD: pw
 
       sqlserver:
-        image: mcr.microsoft.com/mssql/server:2022-latest
+        image: ghcr.io/cdcgov/recordlinker/mssql:2022-latest
         ports:
           - 1433:1433
         env:
