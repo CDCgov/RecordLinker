@@ -83,6 +83,8 @@ jobs:
         docker pull postgres:17
         docker tag postgres:17 ghcr.io/${{ env.PACKAGE_NAME }}/postgres:17
         docker push ghcr.io/${{ env.PACKAGE_NAME }}/postgres:17
+        
+    - name: Skip building and pushing postgres:17 Docker image if cached
       if: steps.check_postgres_image.outcome == 'success'
       run: |
         echo "No need to build and push postgres:17 Docker image, using cached image..."
