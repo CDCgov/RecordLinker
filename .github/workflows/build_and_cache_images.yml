@@ -63,26 +63,28 @@ jobs:
     
     services:
       postgres:
-        image: ${{ matrix.database == 'postgres' && 'ghcr.io/cdcgov/recordlinker/postgres:17' || 'postgres:17' }}
+        image: postgres:17
         ports:
           - 5432:5432
         env:
           POSTGRES_PASSWORD: pw
+        options: --pull=missing
 
       mysql:
-        image: ${{ matrix.database == 'mysql' && 'ghcr.io/cdcgov/recordlinker/mysql:8' || 'mysql:8' }}
+        image: mysql:8
         ports:
           - 3306:3306
         env:
           MYSQL_ROOT_PASSWORD: pw
+        options: --pull=missing
 
       sqlserver:
-        image: ${{ matrix.database == 'sqlserver' && 'ghcr.io/cdcgov/recordlinker/sqlserver:2022-latest' || 'mcr.microsoft.com/mssql/server:2022-latest' }}
-        ports:
+        image: sqlserver:2022-latest
           - 1433:1433
         env:
           ACCEPT_EULA: Y
           SA_PASSWORD: "YourStrong!Passw0rd"
+        options: --pull=missing
 
     steps:
     - name: Convert repository name to lowercase
