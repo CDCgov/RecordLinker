@@ -38,6 +38,9 @@ jobs:
           SA_PASSWORD: "YourStrong!Passw0rd"
 
     steps:
+    - name: Check out repository
+      uses: actions/checkout@v4
+      
     - name: Convert repository name to lowercase
       run: echo "REPO=$(echo '${{ github.repository }}' | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
 
@@ -54,7 +57,7 @@ jobs:
           push: true
           tags: |
             ghcr.io/${{ env.REPO }}/rl-service:latest 
-          
+
     - name: Pull cached RecordLinker image from GitHub Container Registry
       run: |
         docker pull ghcr.io/${{ env.REPO }}/rl-service:latest || echo "No cached image found, skipping pull."
