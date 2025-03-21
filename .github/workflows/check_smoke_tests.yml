@@ -21,7 +21,7 @@ jobs:
           - 5432:5432
         env:
           POSTGRES_PASSWORD: pw
-        options: --pull missing
+        options: --pull=missing
 
       mysql:
         image: mysql:8
