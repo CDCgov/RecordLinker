@@ -24,21 +24,23 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Pull and push database images to GHCR
+      - name: Pull and push postgres:17 to GHCR
         run: |
-          declare -A images=(
-            ["postgres"]="postgres:17"
-            ["mysql"]="mysql:8"
-            ["mssql"]="mcr.microsoft.com/mssql/server:2022-latest"
-          )
+          docker pull postgres:17
+          docker tag postgres:17 ghcr.io/${{ env.REPO }}/postgres:17
+          docker push ghcr.io/${{ env.REPO }}/postgres:17
 
-          for name in "${!images[@]}"; do
-            src_image="${images[$name]}"
-            dest_image="${{ env.REPO }}/$name:${src_image##*:}"
-            docker pull "$src_image"
-            docker tag "$src_image" "$dest_image"
-            docker push "$dest_image"
-          done
+      - name: Pull and push mysql to GHCR
+        run: |
+          docker pull mysql:8
+          docker tag mysql:8 ghcr.io/${{ env.REPO }}/mysql:8
+          docker push ghcr.io/${{ env.REPO }}/mysql:8
+
+      - name: Pull and push mssql to GHCR
+        run: |
+          docker pull mcr.microsoft.com/mssql/server:2022-latest
+          docker tag mcr.microsoft.com/mssql/server:2022-latest ghcr.io/${{ env.REPO }}/mssql:2022-latest
+          docker push ghcr.io/${{ env.REPO }}/mssql:2022-latest
 
   smoke_tests:
     runs-on: ubuntu-latest
