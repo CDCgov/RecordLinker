@@ -51,7 +51,6 @@ jobs:
     - name: Build and push RecordLinker image
       uses: docker/build-push-action@v3
       with:
-          context: ./recordlinker
           push: true
           tags: |
             ghcr.io/${{ env.REPO }}/rl-service:latest 
