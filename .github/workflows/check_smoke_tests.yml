@@ -21,13 +21,13 @@ jobs:
         image: ghcr.io/cdcgov/recordlinker/postgres:17
         # image: ${{ matrix.database == 'postgres' && 'ghcr.io/cdcgov/recordlinker/postgres:17' || 'postgres:17' }}
 
-      #   ports:
-      #     - 5432:5432
-      #   env:
-      #     POSTGRES_PASSWORD: pw
-      #     POSTGRES_DB: postgres
-      #     POSTGRES_USER: postgres
-      #     DB_URI: "postgresql+psycopg2://postgres:pw@postgres:5432/postgres"
+        ports:
+          - 5432:5432
+        env:
+          POSTGRES_PASSWORD: pw
+          # POSTGRES_DB: postgres
+          # POSTGRES_USER: postgres
+          # DB_URI: "postgresql+psycopg2://postgres:pw@postgres:5432/postgres"
 
       mysql:
         image: mysql:8
@@ -83,7 +83,7 @@ jobs:
         docker pull postgres:17
         docker tag postgres:17 ghcr.io/${{ env.PACKAGE_NAME }}/postgres:17
         docker push ghcr.io/${{ env.PACKAGE_NAME }}/postgres:17
-        
+
     - name: Skip building and pushing postgres:17 Docker image if cached
       if: steps.check_postgres_image.outcome == 'success'
       run: |
