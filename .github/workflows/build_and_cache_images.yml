@@ -63,12 +63,11 @@ jobs:
     
     services:
       postgres:
-        image: postgres:17
+        image: postgres:17.4
         ports:
           - 5432:5432
         env:
           POSTGRES_PASSWORD: pw
-        options: --pull=missing
 
       mysql:
         image: mysql:8
@@ -76,7 +75,6 @@ jobs:
           - 3306:3306
         env:
           MYSQL_ROOT_PASSWORD: pw
-        options: --pull=missing
 
       sqlserver:
         image: sqlserver:2022-latest
@@ -84,72 +82,10 @@ jobs:
         env:
           ACCEPT_EULA: Y
           SA_PASSWORD: "YourStrong!Passw0rd"
-        options: --pull=missing
+
 
     steps:
     - name: Convert repository name to lowercase
       run: echo "REPO=$(echo '${{ github.repository }}' | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
 
-    - name: Log in to GitHub Container Registry
-      uses: docker/login-action@v3
-      with:
-        registry: ghcr.io
-        username: ${{ github.actor }}
-        password: ${{ secrets.GITHUB_TOKEN }}
-
-    - name: Check if cached RecordLinker image exists in GitHub Container Registry
-      id: check_rl_image
-      run: |
-          docker pull ghcr.io/${{ env.REPO }}/rl-service:latest || echo "No cached image found"
-      
-    - name: Build and push RecordLinker Docker image if not cached
-      if: steps.check_rl_image.outcome == 'failure'
-      run: |
-        # Build the Docker image, tag it, & push to ghcr
-        echo "Building and pushing RecordLinker Docker image..."
-        docker build -t rl-service-image .
-        docker tag rl-service-image ghcr.io/${{ env.REPO }}/rl-service:latest
-        docker push ghcr.io/${{ env.REPO }}/rl-service:latest
-    
-    - name: Check out repository
-      uses: actions/checkout@v4
-       
-    - name: Pull cached RecordLinker image from GitHub Container Registry
-      run: |
-        docker pull ghcr.io/${{ env.REPO }}/rl-service:latest || echo "No cached image found, skipping pull."
-    
-    - name: Verify container Health in Docker
-      run: |
-        echo "Checking container health..."
-        docker ps -a
-    
-    - name: Start RecordLinker Service and Run Smoke Tests
-      run: |
-        if [[ "${{ matrix.database }}" == "postgres" ]]; then
-          export DB_URI="postgresql+psycopg2://postgres:pw@localhost:5432/postgres"
-        elif [[ "${{ matrix.database }}" == "sqlite" ]]; then
-          export DB_URI="sqlite:///testdb.sqlite3"
-        elif [[ "${{ matrix.database }}" == "mysql" ]]; then
-          export DB_URI="mysql+pymysql://root:pw@localhost:3306/mysql"
-        elif [[ "${{ matrix.database }}" == "sqlserver" ]]; then
-          export DB_URI="mssql+pyodbc://sa:YourStrong!Passw0rd@localhost:1433/master?driver=ODBC+Driver+18+for+SQL+Server&TrustServerCertificate=yes"
-        fi
-
-        # Start Record Linker Service
-        docker run -d --name rl-service \
-          --network="host" \
-          -e DB_URI=$DB_URI \
-          ghcr.io/${{ env.PACKAGE_NAME }}/rl-service:latest  # Use the cached image
-
-        # Wait for the RL Service to be healthy
-        TRIES=5
-        COUNT=0
-        until curl -s http://localhost:8080/ | grep "OK"; do
-          echo "Waiting for RL Service to become healthy... Attempt $((COUNT+1)) of $TRIES"
-          sleep 5
-          COUNT=$((COUNT+1))
-          if [ "$COUNT" -ge "$TRIES" ]; then
-            echo "RL Service did not become healthy in time."
-            exit 1
-          fi
-        done
+  
