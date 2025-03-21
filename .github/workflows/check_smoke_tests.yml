@@ -57,10 +57,10 @@ jobs:
         # database: [postgres, sqlite, mysql, sqlserver]  # Matrix for database types
 
     services:
-      # postgres:
-      #   # image: postgres:17
-      #   image: ghcr.io/cdcgov/recordlinker/postgres:17
-      #   # image: ${{ matrix.database == 'postgres' && 'ghcr.io/cdcgov/recordlinker/postgres:17' || 'postgres:17' }}
+      postgres:
+        # image: postgres:17
+        image: ghcr.io/cdcgov/recordlinker/postgres:17
+        # image: ${{ matrix.database == 'postgres' && 'ghcr.io/cdcgov/recordlinker/postgres:17' || 'postgres:17' }}
 
       #   ports:
       #     - 5432:5432
@@ -97,14 +97,14 @@ jobs:
       run: |
         docker pull ghcr.io/${{ env.PACKAGE_NAME }}/rl-service:latest || echo "No cached image found, skipping pull."
     
-    - name: Manually Start PostgreSQL (if service fails)
-      run: |
-        echo "Starting PostgreSQL manually..."
-        docker run -d --name postgres \
-          -p 5432:5432 \
-          -e POSTGRES_PASSWORD=pw \
-          -e POSTGRES_DB=postgres \
-          ghcr.io/cdcgov/recordlinker/postgres:17
+    # - name: Manually Start PostgreSQL (if service fails)
+    #   run: |
+    #     echo "Starting PostgreSQL manually..."
+    #     docker run -d --name postgres \
+    #       -p 5432:5432 \
+    #       -e POSTGRES_PASSWORD=pw \
+    #       -e POSTGRES_DB=postgres \
+    #       ghcr.io/cdcgov/recordlinker/postgres:17
     
     - name: Verify PostgreSQL Health in Docker
       run: |
