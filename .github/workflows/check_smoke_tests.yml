@@ -25,7 +25,7 @@ jobs:
         username: ${{ github.actor }}
         password: ${{ secrets.GITHUB_TOKEN }}
     
-    -name: Pull and push postgres:17 to GHCR
+    - name: Pull and push postgres:17 to GHCR
       run: |
         docker pull postgres:17
         docker tag postgres:17 ghcr.io/${{ env.REPO }}/postgres:17
