@@ -116,7 +116,11 @@ def rule_probabilistic_match(feature_comparisons: list[float], **kwargs: typing.
 
 
 def compare_probabilistic_exact_match(
-    record: PIIRecord, patient: Patient, key: Feature, missing_points: float, **kwargs: typing.Any
+    record: PIIRecord,
+    patient: Patient,
+    key: Feature,
+    missing_field_points_proportion: float,
+    **kwargs: typing.Any
 ) -> tuple[float, bool]:
     """
     Compare the same Feature Field in two patient records, one incoming and one
@@ -132,8 +136,8 @@ def compare_probabilistic_exact_match(
     :param record: The incoming record to evaluate.
     :param patient: The patient record to compare against.
     :param key: The name of the column being evaluated (e.g. "city").
-    :param missing_points: The proportion of log-odds points to award if one
-      of the records is missing information in the given field.
+    :param missing_field_points_proportion: The proportion of log-odds points to
+      award if one of the records is missing information in the given field.
     :param **kwargs: Optionally, a dictionary including specifications for
       the string comparison metric to use, as well as the cutoff score
       beyond which to classify the strings as a partial match.
@@ -145,14 +149,14 @@ def compare_probabilistic_exact_match(
         raise ValueError(f"Log odds not found for feature {key}")
 
     # Return early if a field is missing, and log that was the case
-    incoming_fields = list(patient.record.feature_iter(key))
-    mpi_fields = list(record.feature_iter(key))
-    if len(incoming_fields) == 0 or len(mpi_fields) == 0:
-        return (missing_points * log_odds, True)
+    incoming_record_fields = list(patient.record.feature_iter(key))
+    mpi_record_fields = list(record.feature_iter(key))
+    if len(incoming_record_fields) == 0 or len(mpi_record_fields) == 0:
+        return (missing_field_points_proportion * log_odds, True)
 
     agree = 0.0
-    for x in incoming_fields:
-        for y in mpi_fields:
+    for x in incoming_record_fields:
+        for y in mpi_record_fields:
             # for each permutation of values, check whether the values agree
             if (x == y):
                 agree = 1.0
@@ -161,7 +165,11 @@ def compare_probabilistic_exact_match(
 
 
 def compare_probabilistic_fuzzy_match(
-    record: PIIRecord, patient: Patient, key: Feature, missing_points: float, **kwargs: typing.Any
+    record: PIIRecord,
+    patient: Patient,
+    key: Feature,
+    missing_field_points_proportion: float,
+    **kwargs: typing.Any
 ) -> tuple[float, bool]:
     """
     Compare the same Feature Field in two patient records, one incoming and one
@@ -179,8 +187,8 @@ def compare_probabilistic_fuzzy_match(
     :param record: The incoming record to evaluate.
     :param patient: The patient record to compare against.
     :param key: The name of the column being evaluated (e.g. "city").
-    :param missing_points: The proportion of log-odds points to award if one
-      of the records is missing information in the given field.
+    :param missing_field_points_proportion: The proportion of log-odds points
+      to award if one of the records is missing information in the given field.
     :param **kwargs: Optionally, a dictionary including specifications for
       the string comparison metric to use, as well as the cutoff score
       beyond which to classify the strings as a partial match.
@@ -192,16 +200,16 @@ def compare_probabilistic_fuzzy_match(
         raise ValueError(f"Log odds not found for feature {key}")
     
     # Return early if a field is missing, and log that was the case
-    incoming_fields = list(patient.record.feature_iter(key))
-    mpi_fields = list(record.feature_iter(key))
-    if len(incoming_fields) == 0 or len(mpi_fields) == 0:
-        return (missing_points * log_odds, True)
+    incoming_record_fields = list(patient.record.feature_iter(key))
+    mpi_record_fields = list(record.feature_iter(key))
+    if len(incoming_record_fields) == 0 or len(mpi_record_fields) == 0:
+        return (missing_field_points_proportion * log_odds, True)
 
     similarity_measure, threshold = _get_fuzzy_params(str(key.attribute), **kwargs)
     comp_func = getattr(rapidfuzz.distance, similarity_measure).normalized_similarity
     max_score = 0.0
-    for x in incoming_fields:
-        for y in mpi_fields:
+    for x in incoming_record_fields:
+        for y in mpi_record_fields:
             # for each permutation of values, find the score and record it if its
             # larger than any previous score
             max_score = max(comp_func(x, y), max_score)

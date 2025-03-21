@@ -40,13 +40,33 @@ def compare(
     max_log_odds_points: float,
     max_allowed_missingness_proportion: float,
     missing_field_points_proportion: float,
-    algorithm_pass: models.AlgorithmPass
+    algorithm_pass: models.AlgorithmPass,
+    log_odds_weights: dict[str, float]
 ) -> bool:
     """
     Compare the incoming record to the linked patient and return the calculated
     evaluation score. If a proportion of score points is accumulated via comparisons
     with missing fields that is above a user-defined threshold, automatically reject
     the potential match candidacy of the linked patient.
+
+    :param record: The new, incoming record, as a PIIRecord data type.
+    :param patient: A candidate record returned by blocking from the MPI, whose 
+      match quality the function call will evaluate.
+    :param max_log_odds_points: The maximum available log odds points that can be
+      accumulated by a candidate pair during this pass of the algorithm.
+    :param max_allowed_missingness_proportion: The maximum proportion of log-odds
+      weights that can be missing across all fields used in evaluating this pass.
+    :param missing_field_points_proportion: The proportion of log-odds points
+      that a field missing data will earn during comparison (i.e. a fraction of
+      its regular log-odds weight value).
+    :algorithm_pass: A data structure containing information about the pass of
+      the algorithm in which this comparison is being run. Holds information 
+      like which fields to evaluate and how to total log-odds points.
+    :param log_odds_weights: A dictionary mapping Field names to float values,
+      which are the precomputed log-odds weights associated with that field.
+    :returns: A boolean indicating whether the incoming record and the supplied
+      candidate are a match, as determined by the specific matching rule 
+      contained in the algorithm_pass object.
     """
     # all the functions used for comparison
     evals: list[models.BoundEvaluator] = algorithm_pass.bound_evaluators()
@@ -70,9 +90,9 @@ def compare(
             record, patient, feature, missing_field_points_proportion, **kwargs
         )  # type: ignore
         if result[1]:
-            # If the field was missing, the log-odds weight was multiplied, so dividing
-            # here reverses the change without needing to overly pass the odds dict
-            missing_field_weights += result[0] / missing_field_points_proportion
+            # The field was missing, so update the running tally of how much
+            # the candidate is missing overall
+            missing_field_weights += log_odds_weights[str(feature.attribute)]
         results.append(result[0])
         details[f"evaluator.{e.feature}.{e.func.__name__}.result"] = result
 
@@ -158,12 +178,14 @@ def link_record_against_mpi(
                         # increment our match count if the pii_record matches the patient
                         with TRACER.start_as_current_span("link.compare"):
                             if compare(
-                                record,
-                                pat,
-                                max_points,
-                                max_missing_allowed_proportion,
-                                missing_field_points_proportion,
-                                algorithm_pass):
+                                    record,
+                                    pat,
+                                    max_points,
+                                    max_missing_allowed_proportion,
+                                    missing_field_points_proportion,
+                                    algorithm_pass,
+                                    log_odds_points
+                                ):
                                 matched_count += 1
                     result_counts["persons_compared"] += 1
                     result_counts["patients_compared"] += len(pats)

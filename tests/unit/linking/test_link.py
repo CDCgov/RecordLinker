@@ -64,7 +64,7 @@ class TestCompare:
             kwargs={"log_odds": log_odds, "true_match_threshold": 12},
         )
 
-        assert link.compare(rec, pat, max_points, max_allowed_missingness_proportion, missing_field_points_proportion, algorithm_pass) is True
+        assert link.compare(rec, pat, max_points, max_allowed_missingness_proportion, missing_field_points_proportion, algorithm_pass, log_odds) is True
 
     def test_compare_no_match(self):
         rec = schemas.PIIRecord(
@@ -109,7 +109,7 @@ class TestCompare:
             kwargs={"log_odds": log_odds, "true_match_threshold": 12.95},
         )
 
-        assert link.compare(rec, pat, max_points, max_allowed_missingness_proportion, missing_field_points_proportion, algorithm_pass) is False
+        assert link.compare(rec, pat, max_points, max_allowed_missingness_proportion, missing_field_points_proportion, algorithm_pass, log_odds) is False
 
     def test_compare_identifier_match(self):
         rec = schemas.PIIRecord(
@@ -163,7 +163,7 @@ class TestCompare:
             kwargs={"log_odds": log_odds, "true_match_threshold": 0.3},
         )
 
-        assert link.compare(rec, pat, max_points, max_allowed_missingness_proportion, missing_field_points_proportion, algorithm_pass) is True
+        assert link.compare(rec, pat, max_points, max_allowed_missingness_proportion, missing_field_points_proportion, algorithm_pass, log_odds) is True
 
     def test_compare_identifier_with_suffix(self):
         rec = schemas.PIIRecord(
@@ -218,11 +218,11 @@ class TestCompare:
         )
 
         #should pass as MR is the same for both
-        assert link.compare(rec, pat, max_points, max_allowed_missingness_proportion, missing_field_points_proportion, algorithm_pass) is True
+        assert link.compare(rec, pat, max_points, max_allowed_missingness_proportion, missing_field_points_proportion, algorithm_pass, log_odds) is True
 
         algorithm_pass.evaluators = [{"feature": "IDENTIFIER:SS", "func": "func:recordlinker.linking.matchers.compare_probabilistic_fuzzy_match"}]
         #should fail as SS is different for both
-        assert link.compare(rec, pat, max_points, max_allowed_missingness_proportion, missing_field_points_proportion, algorithm_pass) is False
+        assert link.compare(rec, pat, max_points, max_allowed_missingness_proportion, missing_field_points_proportion, algorithm_pass, log_odds) is False
 
     def test_compare_invalid_feature(self):
         rec = schemas.PIIRecord(
@@ -262,7 +262,7 @@ class TestCompare:
         )
 
         with pytest.raises(ValueError):
-            link.compare(rec, pat, 0.0, 0.5, 0.5, algorithm_pass)
+            link.compare(rec, pat, 0.0, 0.5, 0.5, algorithm_pass, {})
 
 
 class TestLinkRecordAgainstMpi:
