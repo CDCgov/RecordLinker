@@ -26,9 +26,9 @@ jobs:
 
       - name: Pull and push postgres:17 to GHCR
         run: |
-          docker pull ${{ matrix.database }}
-          docker tag ${{ matrix.database }} ghcr.io/${{ env.REPO }}/${{ matrix.database }}
-          docker push ghcr.io/${{ env.REPO }}/${{ matrix.database }}
+          docker pull postgres:17
+          docker tag postgres:17 ghcr.io/${{ env.REPO }}/postgres:17
+          docker push ghcr.io/${{ env.REPO }}/postgres:17
 
       - name: Pull and push mysql to GHCR
         run: |
