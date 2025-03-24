@@ -172,3 +172,13 @@ In that case we'd want to evaluate "123 Main St" against both "123 Main Street" 
     that feature is in determining whether two patient records are a true match, as opposed to a match
     by random chance). Use the kwargs parameter to specify the fuzzy match threshold and log-odds ratio
     based on training. Example: `{"kwargs": {"thresholds": {"FIRST_NAME": 0.8}, "log_odds": {"FIRST_NAME": 6.8}}}`
+
+One important caveat for both of these Feature Functions is how they handle patient
+records with missing information in one or more fields.  RecordLinker provides the option 
+to match records that are missing some data, e.g., Field X, with other records for which that 
+data (Field X) is present. In order to enable this possibility, and to avoid overly penalizing 
+records which may be strong matches but simply have data omitted due to collection 
+methods, both of these feature functions include a partial log-odds weighting. If one or more 
+records being compared is missing data for a field, each of the above functions returns exactly 
+half the log-odds weight for the field overall, along with a boolean flag indicating that data was 
+missing during comparison.
