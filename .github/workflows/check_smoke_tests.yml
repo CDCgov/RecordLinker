@@ -30,7 +30,12 @@ jobs:
 
       - name: Pull and push DB to GHCR
         run: |
-          docker pull ${{ matrix.database }}
+          # Change pull stratgey for mssql
+          if [[ "${{ matrix.database }}" == "mssql/server:2022-latest" ]]; then
+            docker pull mcr.microsoft.com/mssql/server:2022-latest
+          else
+            docker pull ${{ matrix.database }}
+          fi
           docker tag ${{ matrix.database }} ghcr.io/${{ env.REPO }}/${{ matrix.database }}
           docker push ghcr.io/${{ env.REPO }}/${{ matrix.database }}
 
