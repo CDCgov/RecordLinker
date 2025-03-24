@@ -411,6 +411,87 @@ class TestLinkRecordAgainstMpi:
         # Second patient blocks in each pass but missing too much data, fails
         assert matches == [False, False]
 
+    def test_both_missingness_params_zero(
+            self,
+            session,
+            default_algorithm,
+            patients: list[schemas.PIIRecord]
+        ):
+        # Make a deep copy of the first patient, then delete some info so
+        # that both blocks contain missing fields
+        patients = [patients[0]]
+        duplicate = copy.deepcopy(patients[0])
+        duplicate.external_id = str(uuid.uuid4())
+        duplicate.name[0].given[0] = ""
+        duplicate.address[0].line[0] = ""
+        patients.append(duplicate)
+
+        # We'll test lower log-odds cutoffs and show that even if a record
+        # would regularly have the points to match, it's disqualified if it
+        # violates the user missingness constraint.
+        default_algorithm.max_missing_allowed_proportion = 0.0
+        default_algorithm.missing_field_points_proportion = 0.0
+        default_algorithm.passes[0].kwargs["true_match_threshold"] = 4.0
+        default_algorithm.passes[1].kwargs["true_match_threshold"] = 4.0
+        matches: list[bool] = []
+        mapped_patients: dict[str, int] = collections.defaultdict(int)
+        for data in patients[:2]:
+            (_, person, results, _) = link.link_record_against_mpi(data, session, default_algorithm)
+            matches.append(bool(person and results))
+            mapped_patients[person.reference_id] += 1
+
+        # First patient inserted into empty MPI, no match
+        # Second patient blocks in each pass, has score to match, but missingness
+        # disqualifies it 
+        assert matches == [False, False]
+
+    def test_missing_field_points_exceed_max_missingness_fraction(
+            self,
+            session,
+            default_algorithm,
+            patients: list[schemas.PIIRecord]
+        ):
+        """
+        Tests for the edge case where missing_field_points_proportion is large
+        but max_missing_allowed_proportion is small. This could easily result
+        from a situation where a user trains an algorithm that has a number of
+        low-log-odds-weight fields (e.g. lots of points 2 or fewer) that they
+        don't wish to ignore, but they still want their comparison to be between
+        mostly complete records, e.g. not allowing more than 10% of field points
+        to be missing. 
+        """
+        # Make a deep copy of the first patient, then delete some info
+        patients = [patients[0]]
+        duplicate = copy.deepcopy(patients[0])
+        duplicate.external_id = str(uuid.uuid4())
+        duplicate.name[0].given[0] = ""
+        duplicate.address[0].line[0] = ""
+        patients.append(duplicate)
+
+        # Create scenario described above: each pass will have 10 total points,
+        # the missing field will represent a small number of these points, but
+        # the total result should still be disqualified
+        log_odds = {
+            "FIRST_NAME": 2.5, "LAST_NAME": 7.5, "BIRTHDATE": 7.5, "ADDRESS": 2.5
+        }
+        default_algorithm.max_missing_allowed_proportion = 0.2
+        default_algorithm.missing_field_points_proportion = 0.7
+        default_algorithm.passes[0].kwargs["true_match_threshold"] = 8.5
+        default_algorithm.passes[0].kwargs["log_odds"] = log_odds
+        default_algorithm.passes[1].kwargs["true_match_threshold"] = 8.5
+        default_algorithm.passes[1].kwargs["log_odds"] = log_odds
+        matches: list[bool] = []
+        mapped_patients: dict[str, int] = collections.defaultdict(int)
+        for data in patients[:2]:
+            (_, person, results, _) = link.link_record_against_mpi(data, session, default_algorithm)
+            matches.append(bool(person and results))
+            mapped_patients[person.reference_id] += 1
+
+        # First patient inserted into empty MPI, no match
+        # Second patient blocks in each pass, only gets a tiny bump overall from
+        # low-value missing field, but fails user's overall completeness constraint
+        assert matches == [False, False]
+
     def test_default_possible_match(
             self,
             session,
