@@ -16,9 +16,6 @@ jobs:
         database: [postgres:17, mysql:8, mssql/server:2022-latest]
 
     steps:
-      - name: Display the database
-        run: echo ${{ matrix.database }}
-
       - name: Check out repository
         uses: actions/checkout@v4
 
@@ -42,8 +39,6 @@ jobs:
             TARGET_IMAGE="ghcr.io/${{ env.REPO }}/${{ matrix.database }}"
             SOURCE_IMAGE="${{ matrix.database }}"
           fi
-          echo "$TARGET_IMAGE"
-          echo "$SOURCE_IMAGE"
 
           # Check if the image exists in GHCR
           if ! docker pull "$TARGET_IMAGE" >/dev/null; then
@@ -59,30 +54,6 @@ jobs:
           else
             echo "Image already exists in GHCR: $TARGET_IMAGE, skipping pull and push."
           fi
-
-      # - name: Pull and push to GHCR if necessary
-      #   run: |
-      #     if ! docker pull ghcr.io/${{ env.REPO }}/postgres:17; then
-      #       docker pull postgres:17
-      #       docker tag postgres:17 ghcr.io/${{ env.REPO }}/postgres:17
-      #       docker push ghcr.io/${{ env.REPO }}/postgres:17
-      #     fi
-
-      # - name: Pull and push mysql to GHCR if necessary
-      #   run: |
-      #     if ! docker pull ghcr.io/${{ env.REPO }}/mysql:8; then
-      #       docker pull mysql:8
-      #       docker tag mysql:8 ghcr.io/${{ env.REPO }}/mysql:8
-      #       docker push ghcr.io/${{ env.REPO }}/mysql:8
-      #     fi
-
-      # - name: Pull and push mssql to GHCR if necessary
-      #   run: |
-      #     if ! docker pull ghcr.io/${{ env.REPO }}/mssql:2022-latest; then
-      #       docker pull mcr.microsoft.com/mssql/server:2022-latest
-      #       docker tag mcr.microsoft.com/mssql/server:2022-latest ghcr.io/${{ env.REPO }}/mssql:2022-latest
-      #       docker push ghcr.io/${{ env.REPO }}/mssql:2022-latest
-      #     fi
 
   smoke_tests:
     runs-on: ubuntu-latest
