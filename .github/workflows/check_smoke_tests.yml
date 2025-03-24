@@ -39,9 +39,11 @@ jobs:
             TARGET_IMAGE="ghcr.io/${{ env.REPO }}/mssql:2022-latest"
             SOURCE_IMAGE="mcr.microsoft.com/mssql/server:2022-latest"
           else
-            TARGET_IMAGE="ghcr.io/${{ env.REPO }}/$IMAGE_NAME"
-            SOURCE_IMAGE="$IMAGE_NAME"
+            TARGET_IMAGE="ghcr.io/${{ env.REPO }}/${{ matrix.database }}"
+            SOURCE_IMAGE="${{ matrix.database }}"
           fi
+          echo "$TARGET_IMAGE"
+          echo "$SOURCE_IMAGE"
 
           # Check if the image exists in GHCR
           if ! docker pull "$TARGET_IMAGE" >/dev/null; then
