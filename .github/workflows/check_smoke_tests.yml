@@ -10,10 +10,6 @@ jobs:
   service-set-up:
     runs-on: ubuntu-latest
 
-    strategy:
-      matrix:
-        database: [postgres:17, mysql:8, mssql/server:2022-latest]
-
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
@@ -28,28 +24,23 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Pull and push DB to GHCR
+      - name: Pull and push postgres:17 to GHCR
         run: |
-          # Change pull stratgey for mssql
-          if [[ "${{ matrix.database }}" == "mssql/server:2022-latest" ]]; then
-            docker pull mcr.microsoft.com/mssql/server:2022-latest
-          else
-            docker pull ${{ matrix.database }}
-          fi
+          docker pull ${{ matrix.database }}
           docker tag ${{ matrix.database }} ghcr.io/${{ env.REPO }}/${{ matrix.database }}
           docker push ghcr.io/${{ env.REPO }}/${{ matrix.database }}
 
-      # - name: Pull and push mysql to GHCR
-      #   run: |
-      #     docker pull mysql:8
-      #     docker tag mysql:8 ghcr.io/${{ env.REPO }}/mysql:8
-      #     docker push ghcr.io/${{ env.REPO }}/mysql:8
+      - name: Pull and push mysql to GHCR
+        run: |
+          docker pull mysql:8
+          docker tag mysql:8 ghcr.io/${{ env.REPO }}/mysql:8
+          docker push ghcr.io/${{ env.REPO }}/mysql:8
 
-      # - name: Pull and push mssql to GHCR
-      #   run: |
-      #     docker pull mcr.microsoft.com/mssql/server:2022-latest
-      #     docker tag mcr.microsoft.com/mssql/server:2022-latest ghcr.io/${{ env.REPO }}/mssql:2022-latest
-      #     docker push ghcr.io/${{ env.REPO }}/mssql:2022-latest
+      - name: Pull and push mssql to GHCR
+        run: |
+          docker pull mcr.microsoft.com/mssql/server:2022-latest
+          docker tag mcr.microsoft.com/mssql/server:2022-latest ghcr.io/${{ env.REPO }}/mssql:2022-latest
+          docker push ghcr.io/${{ env.REPO }}/mssql:2022-latest
 
   smoke_tests:
     runs-on: ubuntu-latest
