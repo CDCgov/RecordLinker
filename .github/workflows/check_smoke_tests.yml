@@ -32,29 +32,55 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Pull and push to GHCR if necessary
+      - name: Pull and push db images to GHCR if necessary
         run: |
-          if ! docker pull ghcr.io/${{ env.REPO }}/postgres:17; then
-            docker pull postgres:17
-            docker tag postgres:17 ghcr.io/${{ env.REPO }}/postgres:17
-            docker push ghcr.io/${{ env.REPO }}/postgres:17
+          # If mssql, use a slightly different strategy
+          if [[ "${{ matrix.database }}" == "mssql/server:2022-latest" ]]; then
+            TARGET_IMAGE="ghcr.io/${{ env.REPO }}/mssql:2022-latest"
+            SOURCE_IMAGE="mcr.microsoft.com/mssql/server:2022-latest"
+          else
+            TARGET_IMAGE="ghcr.io/${{ env.REPO }}/$IMAGE_NAME"
+            SOURCE_IMAGE="$IMAGE_NAME"
           fi
 
-      - name: Pull and push mysql to GHCR if necessary
-        run: |
-          if ! docker pull ghcr.io/${{ env.REPO }}/mysql:8; then
-            docker pull mysql:8
-            docker tag mysql:8 ghcr.io/${{ env.REPO }}/mysql:8
-            docker push ghcr.io/${{ env.REPO }}/mysql:8
+          # Check if the image exists in GHCR
+          if ! docker pull "$TARGET_IMAGE" >/dev/null; then
+            echo "Image not found in GHCR, pulling from source: $SOURCE_IMAGE..."
+            if docker pull "$SOURCE_IMAGE"; then
+              docker tag "$SOURCE_IMAGE" "$TARGET_IMAGE"
+              docker push "$TARGET_IMAGE"
+              echo "Pushed $TARGET_IMAGE to GHCR."
+            else
+              echo "Failed to pull source image: $SOURCE_IMAGE" >&2
+              exit 1
+            fi
+          else
+            echo "Image already exists in GHCR: $TARGET_IMAGE, skipping pull and push."
           fi
 
-      - name: Pull and push mssql to GHCR if necessary
-        run: |
-          if ! docker pull ghcr.io/${{ env.REPO }}/mssql:2022-latest; then
-            docker pull mcr.microsoft.com/mssql/server:2022-latest
-            docker tag mcr.microsoft.com/mssql/server:2022-latest ghcr.io/${{ env.REPO }}/mssql:2022-latest
-            docker push ghcr.io/${{ env.REPO }}/mssql:2022-latest
-          fi
+      # - name: Pull and push to GHCR if necessary
+      #   run: |
+      #     if ! docker pull ghcr.io/${{ env.REPO }}/postgres:17; then
+      #       docker pull postgres:17
+      #       docker tag postgres:17 ghcr.io/${{ env.REPO }}/postgres:17
+      #       docker push ghcr.io/${{ env.REPO }}/postgres:17
+      #     fi
+
+      # - name: Pull and push mysql to GHCR if necessary
+      #   run: |
+      #     if ! docker pull ghcr.io/${{ env.REPO }}/mysql:8; then
+      #       docker pull mysql:8
+      #       docker tag mysql:8 ghcr.io/${{ env.REPO }}/mysql:8
+      #       docker push ghcr.io/${{ env.REPO }}/mysql:8
+      #     fi
+
+      # - name: Pull and push mssql to GHCR if necessary
+      #   run: |
+      #     if ! docker pull ghcr.io/${{ env.REPO }}/mssql:2022-latest; then
+      #       docker pull mcr.microsoft.com/mssql/server:2022-latest
+      #       docker tag mcr.microsoft.com/mssql/server:2022-latest ghcr.io/${{ env.REPO }}/mssql:2022-latest
+      #       docker push ghcr.io/${{ env.REPO }}/mssql:2022-latest
+      #     fi
 
   smoke_tests:
     runs-on: ubuntu-latest
