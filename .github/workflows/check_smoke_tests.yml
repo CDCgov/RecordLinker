@@ -101,12 +101,15 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build and push RecordLinker image
-        uses: docker/build-push-action@v3
-        with:
-          push: true
-          tags: |
-            ghcr.io/${{ env.REPO }}/rl-service:latest
+      - name: Build and push RecordLinker image to GHCR if necessary
+        run: |
+          if ! docker pull ghcr.io/${{ env.REPO }}/rl-service:latest; then
+            echo "RecordLinker image not found, building and pushing to GHCR"
+            docker build -t ghcr.io/${{ env.REPO }}/rl-service:latest .
+            docker push ghcr.io/${{ env.REPO }}/rl-service:latest
+          else
+            echo "RecordLinker image found, using cached image."
+          fi
 
       - name: Start RecordLinker Service and Run Smoke Tests
         run: |
