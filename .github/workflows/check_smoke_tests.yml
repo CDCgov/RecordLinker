@@ -10,68 +10,28 @@ jobs:
   service-set-up:
     runs-on: ubuntu-latest
 
-    strategy:
-      matrix:
-        database:
-          - name: postgres
-            image: postgres:17
-          - name: mysql
-            image: mysql:8
-          - name: mssql
-            image: mcr.microsoft.com/mssql/server:2022-latest
     steps:
-      - &checkout
-        name: Check out repository
+      - name: Check out repository
         uses: actions/checkout@v4
 
       - name: Convert repository name to lowercase
         run: echo "REPO=$(echo '${{ github.repository }}' | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
 
-      - &docker-login
-        name: Log in to GitHub Container Registry
+      - name: Log in to GitHub Container Registry
         uses: docker/login-action@v3
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Pull, Tag, and Push ${{ matrix.database.name }} to GHCR
+      - name: Pull and push database images to GHCR
         run: |
-          docker pull ${{ matrix.database.image }}
-          docker tag ${{ matrix.database.image }} ghcr.io/${{ env.REPO }}/${{ matrix.database.name }}:${{ matrix.database.image##*: }}
-          docker push ghcr.io/${{ env.REPO }}/${{ matrix.database.name }}:${{ matrix.database.image##*: }}
-
-    # steps:
-    #   - name: Check out repository
-    #     uses: actions/checkout@v4
-
-    #   - name: Convert repository name to lowercase
-    #     run: echo "REPO=$(echo '${{ github.repository }}' | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
-
-    #   - name: Log in to GitHub Container Registry
-    #     uses: docker/login-action@v3
-    #     with:
-    #       registry: ghcr.io
-    #       username: ${{ github.actor }}
-    #       password: ${{ secrets.GITHUB_TOKEN }}
-
-    #   - name: Pull and push postgres:17 to GHCR
-    #     run: |
-    #       docker pull postgres:17
-    #       docker tag postgres:17 ghcr.io/${{ env.REPO }}/postgres:17
-    #       docker push ghcr.io/${{ env.REPO }}/postgres:17
-
-    #   - name: Pull and push mysql to GHCR
-    #     run: |
-    #       docker pull mysql:8
-    #       docker tag mysql:8 ghcr.io/${{ env.REPO }}/mysql:8
-    #       docker push ghcr.io/${{ env.REPO }}/mysql:8
-
-    #   - name: Pull and push mssql to GHCR
-    #     run: |
-    #       docker pull mcr.microsoft.com/mssql/server:2022-latest
-    #       docker tag mcr.microsoft.com/mssql/server:2022-latest ghcr.io/${{ env.REPO }}/mssql:2022-latest
-    #       docker push ghcr.io/${{ env.REPO }}/mssql:2022-latest
+          for service in "postgres:17" "mysql:8" "mcr.microsoft.com/mssql/server:2022-latest"; do
+            image_name=$(echo $service | sed 's|mcr.microsoft.com/mssql/server|mssql|')
+            docker pull $service
+            docker tag $service ghcr.io/${{ env.REPO }}/$image_name
+            docker push ghcr.io/${{ env.REPO }}/$image_name
+          done
 
   smoke_tests:
     runs-on: ubuntu-latest
@@ -79,37 +39,44 @@ jobs:
 
     strategy:
       matrix:
-        database:
-          - name: postgres
-            image: ghcr.io/cdcgov/recordlinker/postgres:17
-            port: 5432
-            env: "POSTGRES_PASSWORD=pw"
-            uri: "postgresql+psycopg2://postgres:pw@localhost:5432/postgres"
-          - name: sqlite
-            uri: "sqlite:///testdb.sqlite3"
-          - name: mysql
-            image: ghcr.io/cdcgov/recordlinker/mysql:8
-            port: 3306
-            env: "MYSQL_ROOT_PASSWORD=pw"
-            uri: "mysql+pymysql://root:pw@localhost:3306/mysql"
-          - name: sqlserver
-            image: ghcr.io/cdcgov/recordlinker/mssql:2022-latest
-            port: 1433
-            env: |
-              ACCEPT_EULA=Y
-              SA_PASSWORD="YourStrong!Passw0rd"
-            uri: "mssql+pyodbc://sa:YourStrong!Passw0rd@localhost:1433/master?driver=ODBC+Driver+18+for+SQL+Server&TrustServerCertificate=yes"
+        database: [postgres, sqlite, mysql, sqlserver]
 
     services:
-      ${{ matrix.database.name }}:
-        image: ${{ matrix.database.image }}
+      postgres:
+        image: ghcr.io/${{ env.REPO }}/postgres:17
         ports:
-          - ${{ matrix.database.port }}:${{ matrix.database.port }}
-        env: ${{ matrix.database.env }}
+          - 5432:5432
+        env:
+          POSTGRES_PASSWORD: pw
+
+      mysql:
+        image: ghcr.io/${{ env.REPO }}/mysql:8
+        ports:
+          - 3306:3306
+        env:
+          MYSQL_ROOT_PASSWORD: pw
+
+      sqlserver:
+        image: ghcr.io/${{ env.REPO }}/mssql:2022-latest
+        ports:
+          - 1433:1433
+        env:
+          ACCEPT_EULA: Y
+          SA_PASSWORD: "YourStrong!Passw0rd"
 
     steps:
-      - *checkout
-      - *docker-login
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Convert repository name to lowercase
+        run: echo "REPO=$(echo '${{ github.repository }}' | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build and push RecordLinker image
         uses: docker/build-push-action@v3
@@ -119,7 +86,13 @@ jobs:
 
       - name: Start RecordLinker Service and Run Smoke Tests
         run: |
-          export DB_URI="${{ matrix.database.uri }}"
+          # Set database connection URI
+          case "${{ matrix.database }}" in
+            postgres)  DB_URI="postgresql+psycopg2://postgres:pw@localhost:5432/postgres" ;;
+            sqlite)    DB_URI="sqlite:///testdb.sqlite3" ;;
+            mysql)     DB_URI="mysql+pymysql://root:pw@localhost:3306/mysql" ;;
+            sqlserver) DB_URI="mssql+pyodbc://sa:YourStrong!Passw0rd@localhost:1433/master?driver=ODBC+Driver+18+for+SQL+Server&TrustServerCertificate=yes" ;;
+          esac
 
           # Start Record Linker Service
           docker run -d --name rl-service \
@@ -127,189 +100,54 @@ jobs:
             -e DB_URI=$DB_URI \
             ghcr.io/${{ env.REPO }}/rl-service:latest
 
-          # Wait for the RL Service to be healthy
-          TRIES=5
-          COUNT=0
-          until curl -s http://localhost:8080/ | grep "OK"; do
-            echo "Waiting for RL Service to become healthy... Attempt $((COUNT+1)) of $TRIES"
+          # Wait for RL Service to be healthy
+          for i in {1..5}; do
+            curl -s http://localhost:8080/ | grep "OK" && break
+            echo "Waiting for RL Service... Attempt $i/5"
             sleep 5
-            COUNT=$((COUNT+1))
-            if [ "$COUNT" -ge "$TRIES" ]; then
-              echo "RL Service did not become healthy in time."
-              exit 1
-            fi
-          done
+          done || { echo "RL Service did not become healthy."; exit 1; }
 
-          # Run smoke tests and print the response
+          # Function to send request and validate response
+          send_request() {
+            local json_body="$1"
+            local expected_prediction="$2"
+            local check_reference="$3"
+            local prev_person_reference_id="$4"
+
+            RESPONSE=$(curl -s -X POST http://localhost:8080/link \
+              -d "$json_body" \
+              -H "Content-Type: application/json")
+
+            echo "Response: $RESPONSE"
+
+            # Validate the prediction
+            echo "$RESPONSE" | jq -e --arg expected "$expected_prediction" '.prediction == $expected'
+
+            # If checking person_reference_id, compare it to the previous one
+            if [[ "$check_reference" == "true" ]]; then
+              echo "$RESPONSE" | jq -e --arg id "$prev_person_reference_id" '.person_reference_id == $id'
+            fi
+
+            # Extract and return person_reference_id
+            echo "$RESPONSE" | jq -r '.person_reference_id'
+          }
+
+          # Define JSON payloads
           JSON_BODY_1='{"record": {"birth_date": "2013-11-07", "sex": "M", "identifiers":[{"value": "123456789", "type": "MR"}], "name":[{"family":"Shepard", "given":["John"]}]}}'
           JSON_BODY_2='{"algorithm": "dibbs-default", "record": {"birth_date": "2000-12-06", "sex": "M", "identifiers":[{"value": "9876543210", "type": "MR"}], "name":[{"family":"Smith", "given":["William"]}]}}'
 
-          #basic tests
-          RESPONSE_1=$(curl -s -X POST http://localhost:8080/link \
-          -d "$JSON_BODY_1" \
-          -H "Content-Type: application/json")
+          # Run basic tests
+          PERSON_REFERENCE_ID_1=$(send_request "$JSON_BODY_1" "no_match" "false")
+          send_request "$JSON_BODY_1" "match" "true" "$PERSON_REFERENCE_ID_1"
 
-          echo "Response: $RESPONSE_1"
-          echo "$RESPONSE_1" | jq -e '.prediction == "no_match"' 
+          # Run enhanced tests
+          PERSON_REFERENCE_ID_2=$(send_request "$JSON_BODY_2" "no_match" "false")
+          send_request "$JSON_BODY_2" "match" "true" "$PERSON_REFERENCE_ID_2"
 
-          PERSON_REFERENCE_ID=$(echo "$RESPONSE_1" | jq -r '.person_reference_id')
+          # Run invalid test
+          RESPONSE_INVALID=$(curl -s -X POST http://localhost:8080/link \
+            -d '{"algorithm": "invalid", "record": {}}' \
+            -H "Content-Type: application/json")
 
-          RESPONSE_2=$(curl -s -X POST http://localhost:8080/link \
-          -d "$JSON_BODY_1" \
-          -H "Content-Type: application/json")
-
-          echo "Response: $RESPONSE_2"
-          echo "$RESPONSE_2" | jq -e '.prediction == "match"'  
-          echo "$RESPONSE_2" | jq -e --arg id "$PERSON_REFERENCE_ID" '.person_reference_id == $id'
-
-          #enhanced tests
-          RESPONSE_3=$(curl -s -X POST http://localhost:8080/link \
-          -d "$JSON_BODY_2" \
-          -H "Content-Type: application/json")
-
-          echo "Response: $RESPONSE_3"
-          echo "$RESPONSE_3" | jq -e '.prediction == "no_match"'  
-
-          PERSON_REFERENCE_ID=$(echo "$RESPONSE_3" | jq -r '.person_reference_id')
-
-          RESPONSE_4=$(curl -s -X POST http://localhost:8080/link \
-          -d "$JSON_BODY_2" \
-          -H "Content-Type: application/json")
-
-          echo "Response: $RESPONSE_4"
-          echo "$RESPONSE_4" | jq -e '.prediction == "match"' 
-          echo "$RESPONSE_4" | jq -e --arg id "$PERSON_REFERENCE_ID" '.person_reference_id == $id'     
-
-          #invalid tests
-          RESPONSE_5=$(curl -s -X POST http://localhost:8080/link \
-          -d '{"algorithm": "invalid", "record": {}}' \
-          -H "Content-Type: application/json")
-
-          echo "Response: $RESPONSE_5"
-          echo "$RESPONSE_5" | grep -q "No algorithm found"
-
-    # strategy:
-    #   matrix:
-    #     database: [postgres, sqlite, mysql, sqlserver] # Matrix for database types
-
-    # services:
-    #   postgres:
-    #     image: ghcr.io/cdcgov/recordlinker/postgres:17
-    #     ports:
-    #       - 5432:5432
-    #     env:
-    #       POSTGRES_PASSWORD: pw
-
-    #   mysql:
-    #     image: ghcr.io/cdcgov/recordlinker/mysql:8
-    #     ports:
-    #       - 3306:3306
-    #     env:
-    #       MYSQL_ROOT_PASSWORD: pw
-
-    #   sqlserver:
-    #     image: ghcr.io/cdcgov/recordlinker/mssql:2022-latest
-    #     ports:
-    #       - 1433:1433
-    #     env:
-    #       ACCEPT_EULA: Y
-    #       SA_PASSWORD: "YourStrong!Passw0rd"
-
-    # steps:
-    #   - name: Check out repository
-    #     uses: actions/checkout@v4
-
-    #   - name: Convert repository name to lowercase
-    #     run: echo "REPO=$(echo '${{ github.repository }}' | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
-
-    #   - name: Log in to GitHub Container Registry
-    #     uses: docker/login-action@v3
-    #     with:
-    #       registry: ghcr.io
-    #       username: ${{ github.actor }}
-    #       password: ${{ secrets.GITHUB_TOKEN }}
-
-    #   - name: Build and push RecordLinker image
-    #     uses: docker/build-push-action@v3
-    #     with:
-    #       push: true
-    #       tags: |
-    #         ghcr.io/${{ env.REPO }}/rl-service:latest
-
-    #   - name: Start RecordLinker Service and Run Smoke Tests
-    #     run: |
-    #       if [[ "${{ matrix.database }}" == "postgres" ]]; then
-    #         export DB_URI="postgresql+psycopg2://postgres:pw@localhost:5432/postgres"
-    #       elif [[ "${{ matrix.database }}" == "sqlite" ]]; then
-    #         export DB_URI="sqlite:///testdb.sqlite3"
-    #       elif [[ "${{ matrix.database }}" == "mysql" ]]; then
-    #         export DB_URI="mysql+pymysql://root:pw@localhost:3306/mysql"
-    #       elif [[ "${{ matrix.database }}" == "sqlserver" ]]; then
-    #         export DB_URI="mssql+pyodbc://sa:YourStrong!Passw0rd@localhost:1433/master?driver=ODBC+Driver+18+for+SQL+Server&TrustServerCertificate=yes"
-    #       fi
-
-    #       # Start Record Linker Service
-    #       docker run -d --name rl-service \
-    #         --network="host" \
-    #         -e DB_URI=$DB_URI \
-    #         ghcr.io/${{ env.REPO }}/rl-service:latest  # Use the cached image
-
-    #       # Wait for the RL Service to be healthy
-    #       TRIES=5
-    #       COUNT=0
-    #       until curl -s http://localhost:8080/ | grep "OK"; do
-    #         echo "Waiting for RL Service to become healthy... Attempt $((COUNT+1)) of $TRIES"
-    #         sleep 5
-    #         COUNT=$((COUNT+1))
-    #         if [ "$COUNT" -ge "$TRIES" ]; then
-    #           echo "RL Service did not become healthy in time."
-    #           exit 1
-    #         fi
-    #       done
-    # Run smoke tests and print the response
-    # JSON_BODY_1='{"record": {"birth_date": "2013-11-07", "sex": "M", "identifiers":[{"value": "123456789", "type": "MR"}], "name":[{"family":"Shepard", "given":["John"]}]}}'
-    # JSON_BODY_2='{"algorithm": "dibbs-default", "record": {"birth_date": "2000-12-06", "sex": "M", "identifiers":[{"value": "9876543210", "type": "MR"}], "name":[{"family":"Smith", "given":["William"]}]}}'
-
-    # #basic tests
-    # RESPONSE_1=$(curl -s -X POST http://localhost:8080/link \
-    # -d "$JSON_BODY_1" \
-    # -H "Content-Type: application/json")
-
-    # echo "Response: $RESPONSE_1"
-    # echo "$RESPONSE_1" | jq -e '.prediction == "no_match"'
-
-    # PERSON_REFERENCE_ID=$(echo "$RESPONSE_1" | jq -r '.person_reference_id')
-
-    # RESPONSE_2=$(curl -s -X POST http://localhost:8080/link \
-    # -d "$JSON_BODY_1" \
-    # -H "Content-Type: application/json")
-
-    # echo "Response: $RESPONSE_2"
-    # echo "$RESPONSE_2" | jq -e '.prediction == "match"'
-    # echo "$RESPONSE_2" | jq -e --arg id "$PERSON_REFERENCE_ID" '.person_reference_id == $id'
-
-    # #enhanced tests
-    # RESPONSE_3=$(curl -s -X POST http://localhost:8080/link \
-    # -d "$JSON_BODY_2" \
-    # -H "Content-Type: application/json")
-
-    # echo "Response: $RESPONSE_3"
-    # echo "$RESPONSE_3" | jq -e '.prediction == "no_match"'
-
-    # PERSON_REFERENCE_ID=$(echo "$RESPONSE_3" | jq -r '.person_reference_id')
-
-    # RESPONSE_4=$(curl -s -X POST http://localhost:8080/link \
-    # -d "$JSON_BODY_2" \
-    # -H "Content-Type: application/json")
-
-    # echo "Response: $RESPONSE_4"
-    # echo "$RESPONSE_4" | jq -e '.prediction == "match"'
-    # echo "$RESPONSE_4" | jq -e --arg id "$PERSON_REFERENCE_ID" '.person_reference_id == $id'
-
-    # #invalid tests
-    # RESPONSE_5=$(curl -s -X POST http://localhost:8080/link \
-    # -d '{"algorithm": "invalid", "record": {}}' \
-    # -H "Content-Type: application/json")
-
-    # echo "Response: $RESPONSE_5"
-    # echo "$RESPONSE_5" | grep -q "No algorithm found"
+          echo "Response: $RESPONSE_INVALID"
+          echo "$RESPONSE_INVALID" | grep -q "No algorithm found"
