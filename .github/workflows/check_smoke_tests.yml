@@ -34,41 +34,27 @@ jobs:
 
       - name: Pull and push to GHCR if necessary
         run: |
-          if ! docker pull ghcr.io/${{ env.REPO }}/${{ matrix.database }}; then
-            # Modify docker pull for mssql
-            if [[ "${{ matrix.database }}" == "mssql/server:2022-latest" ]]; then
-              docker pull mcr.microsoft.com/mssql/server:2022-latest
-              docker tag mcr.microsoft.com/mssql/server:2022-latest ghcr.io/${{ env.REPO }}/mssql:2022-latest
-            else
-              docker pull ${{ matrix.database }}
-              docker tag ${{ matrix.database }} ghcr.io/${{ env.REPO }}/${{ matrix.database }}
-            fi
-            docker push ghcr.io/${{ env.REPO }}/${{ matrix.database }}
+          if ! docker pull ghcr.io/${{ env.REPO }}/postgres:17; then
+            docker pull postgres:17
+            docker tag postgres:17 ghcr.io/${{ env.REPO }}/postgres:17
+            docker push ghcr.io/${{ env.REPO }}/postgres:17
           fi
 
-      # - name: Pull and push to GHCR if necessary
-      #   run: |
-      #     if ! docker pull ghcr.io/${{ env.REPO }}/postgres:17; then
-      #       docker pull postgres:17
-      #       docker tag postgres:17 ghcr.io/${{ env.REPO }}/postgres:17
-      #       docker push ghcr.io/${{ env.REPO }}/postgres:17
-      #     fi
+      - name: Pull and push mysql to GHCR if necessary
+        run: |
+          if ! docker pull ghcr.io/${{ env.REPO }}/mysql:8; then
+            docker pull mysql:8
+            docker tag mysql:8 ghcr.io/${{ env.REPO }}/mysql:8
+            docker push ghcr.io/${{ env.REPO }}/mysql:8
+          fi
 
-      # - name: Pull and push mysql to GHCR if necessary
-      #   run: |
-      #     if ! docker pull ghcr.io/${{ env.REPO }}/mysql:8; then
-      #       docker pull mysql:8
-      #       docker tag mysql:8 ghcr.io/${{ env.REPO }}/mysql:8
-      #       docker push ghcr.io/${{ env.REPO }}/mysql:8
-      #     fi
-
-      # - name: Pull and push mssql to GHCR if necessary
-      #   run: |
-      #     if ! docker pull ghcr.io/${{ env.REPO }}/mssql:2022-latest; then
-      #       docker pull mcr.microsoft.com/mssql/server:2022-latest
-      #       docker tag mcr.microsoft.com/mssql/server:2022-latest ghcr.io/${{ env.REPO }}/mssql:2022-latest
-      #       docker push ghcr.io/${{ env.REPO }}/mssql:2022-latest
-      #     fi
+      - name: Pull and push mssql to GHCR if necessary
+        run: |
+          if ! docker pull ghcr.io/${{ env.REPO }}/mssql:2022-latest; then
+            docker pull mcr.microsoft.com/mssql/server:2022-latest
+            docker tag mcr.microsoft.com/mssql/server:2022-latest ghcr.io/${{ env.REPO }}/mssql:2022-latest
+            docker push ghcr.io/${{ env.REPO }}/mssql:2022-latest
+          fi
 
   smoke_tests:
     runs-on: ubuntu-latest
