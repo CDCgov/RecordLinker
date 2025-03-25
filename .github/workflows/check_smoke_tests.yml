@@ -1,10 +1,14 @@
 name: check smoke tests
 
 on:
-  push:
-    branches: [main]
-  pull_request:
-    branches: [main]
+  # push:
+  #   branches: [main]
+  # pull_request:
+  #   branches: [main]
+  workflow_run:
+    workflows: ["Build RL Docker Image and Cache"]
+    types:
+      - completed
 
 jobs:
   smoke_tests:
@@ -40,27 +44,34 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@v4
 
-      - name: Convert repository name to lowercase
-        run: echo "REPO=$(echo '${{ github.repository }}' | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
+      # - name: Convert repository name to lowercase
+      #   run: echo "REPO=$(echo '${{ github.repository }}' | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
 
-      - name: Log in to GitHub Container Registry
-        uses: docker/login-action@v3
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
+      # - name: Log in to GitHub Container Registry
+      #   uses: docker/login-action@v3
+      #   with:
+      #     registry: ghcr.io
+      #     username: ${{ github.actor }}
+      #     password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build and push RecordLinker image to GHCR if necessary
-        env:
-          PR_NUMBER: ${{ github.event.number }}
+      # - name: Build and push RecordLinker image to GHCR if necessary
+      #   env:
+      #     PR_NUMBER: ${{ github.event.number }}
+      #   run: |
+      #     if ! docker pull ghcr.io/${{ env.REPO }}/rl-service:pr-$PR_NUMBER; then
+      #       echo "RecordLinker image not found, building and pushing to GHCR"
+      #       docker build -t ghcr.io/${{ env.REPO }}/rl-service:pr-$PR_NUMBER .
+      #       docker push ghcr.io/${{ env.REPO }}/rl-service:pr-$PR_NUMBER
+      #     else
+      #       echo "RecordLinker image found, using cached image."
+      #     fi
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v1
+
+      - name: Build RL image from GitHub Actions cache
         run: |
-          if ! docker pull ghcr.io/${{ env.REPO }}/rl-service:pr-$PR_NUMBER; then
-            echo "RecordLinker image not found, building and pushing to GHCR"
-            docker build -t ghcr.io/${{ env.REPO }}/rl-service:pr-$PR_NUMBER .
-            docker push ghcr.io/${{ env.REPO }}/rl-service:pr-$PR_NUMBER
-          else
-            echo "RecordLinker image found, using cached image."
-          fi
+          docker buildx build --cache-from=type=gha --load -t rl-service .
 
       - name: Start RecordLinker Service and Run Smoke Tests
         env:
@@ -80,7 +91,8 @@ jobs:
           docker run -d --name rl-service \
             --network="host" \
             -e DB_URI=$DB_URI \
-            ghcr.io/${{ env.REPO }}/rl-service:pr-$PR_NUMBER  # Use the cached image
+            rl-service # use image cached from GitHub Actions
+
 
           # Wait for the RL Service to be healthy
           TRIES=5
