@@ -308,19 +308,19 @@ def link_record_against_mpi(
     # 'certain' grades if we need them; we return the `results` variable as 
     # a placeholder later, so we need to keep this around for re-assignment
     results = [x for x in results if x.grade == 'possible']
-    match_grade: schemas.MatchGrade = "possible"
+    final_grade: schemas.MatchGrade = "possible"
     matched_person: typing.Optional[models.Person] = None
 
     if not results and not certain_results:
         # No match
-        match_grade = "certainly-not"
+        final_grade = "certainly-not"
         if persist:
             # Only create a new person cluster if we are persisting data
             matched_person = models.Person()
 
     elif certain_results and len(certain_results) > 0:
         # Match (1 or many)
-        match_grade = "certain"
+        final_grade = "certain"
         matched_person = certain_results[0].person
         if not algorithm.include_multiple_matches:
             # reduce results to only the highest match
@@ -345,10 +345,10 @@ def link_record_against_mpi(
     # to the user; we don't save certainly-not grades in the dynamic table
     best_score_str: str = "n/a"
     reference_range: str = "n/a"
-    if match_grade == "certain":
+    if final_grade == "certain":
         best_score_str = str(certain_results[0].rms)
         reference_range = "(" + str(certain_results[0].mmt) + ", " + str(certain_results[0].cmt) + ")"
-    elif match_grade == "possible":
+    elif final_grade == "possible":
         best_score_str = str(results[0].rms)
         reference_range = "(" + str(results[0].mmt) + ", " + str(results[0].cmt) + ")"
     LOGGER.info(
@@ -356,11 +356,11 @@ def link_record_against_mpi(
         extra={
             "person.reference_id": matched_person and str(matched_person.reference_id),
             "patient.reference_id": patient and str(patient.reference_id),
-            "result.match_grade": match_grade,
+            "result.match_grade": final_grade,
             "result.best_match_score": best_score_str,
             "result.best_match_reference_window": reference_range,
             "result.count_patients_compared": result_counts["patients_compared"],
         },
     )
     # return a tuple indicating whether a match was found and the person ID
-    return (patient, matched_person, results, match_grade)
+    return (patient, matched_person, results, final_grade)

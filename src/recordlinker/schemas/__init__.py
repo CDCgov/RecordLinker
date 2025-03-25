@@ -7,8 +7,8 @@ from .link import LinkInput
 from .link import LinkResponse
 from .link import LinkResult
 from .link import MatchFhirResponse
-from .link import MatchResponse
 from .link import MatchGrade
+from .link import MatchResponse
 from .mpi import ErrorDetail
 from .mpi import ErrorResponse
 from .mpi import PaginatedMetaData
