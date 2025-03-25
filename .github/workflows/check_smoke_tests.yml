@@ -9,7 +9,6 @@ on:
 jobs:
   smoke_tests:
     runs-on: ubuntu-latest
-    needs: service-set-up
 
     strategy:
       matrix:
