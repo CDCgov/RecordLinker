@@ -1,0 +1,54 @@
+name: Build and push RL and database images on a monthly schedule
+
+on:
+  schedule:
+    - cron: "0 8 1 * *"
+
+jobs:
+  service-set-up:
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: true
+      matrix:
+        database: [postgres:17, mysql:8, mssql/server:2022-latest]
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Convert repository name to lowercase
+        run: echo "REPO=$(echo '${{ github.repository }}' | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Pull and push db images to GHCR if necessary
+        run: |
+          # If mssql, use a slightly different strategy
+          if [[ "${{ matrix.database }}" == "mssql/server:2022-latest" ]]; then
+            TARGET_IMAGE="ghcr.io/${{ env.REPO }}/mssql:2022-latest"
+            SOURCE_IMAGE="mcr.microsoft.com/mssql/server:2022-latest"
+          else
+            TARGET_IMAGE="ghcr.io/${{ env.REPO }}/${{ matrix.database }}"
+            SOURCE_IMAGE="${{ matrix.database }}"
+          fi
+
+          # Check if the image exists in GHCR
+          if ! docker pull "$TARGET_IMAGE" >/dev/null; then
+            echo "Image not found in GHCR, pulling from source: $SOURCE_IMAGE..."
+            if docker pull "$SOURCE_IMAGE"; then
+              docker tag "$SOURCE_IMAGE" "$TARGET_IMAGE"
+              docker push "$TARGET_IMAGE"
+              echo "Pushed $TARGET_IMAGE to GHCR."
+            else
+              echo "Failed to pull source image: $SOURCE_IMAGE" >&2
+              exit 1
+            fi
+          else
+            echo "Image already exists in GHCR: $TARGET_IMAGE, skipping pull and push."
+          fi
