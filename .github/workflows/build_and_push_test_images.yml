@@ -11,8 +11,7 @@ jobs:
     strategy:
       fail-fast: true
       matrix:
-        database:
-          [postgres:17.4, mysql:8.0.41, mssql/server:2022-CU12-ubuntu-20.04]
+        database: [postgres:17, mysql:8, mssql/server:2022-latest]
 
     steps:
       - name: Check out repository
@@ -28,20 +27,18 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Pull and push db images to GHCR if necessary
+      - name: Pull and push db images to GHCR
         run: |
-          # If mssql, use a slightly different strategy
-          if [[ "${{ matrix.database }}" == "mssql/server:2022-CU12-ubuntu-20.04" ]]; then
-            TARGET_IMAGE="ghcr.io/${{ env.REPO }}/mssql:2022-CU12-ubuntu-20.04"
-            SOURCE_IMAGE="mcr.microsoft.com/mssql/server:2022-CU12-ubuntu-20.04"
+          # If mssql, use a slightly different strategy to determine source and target image
+          if [[ "${{ matrix.database }}" == "mssql/server:2022-latest" ]]; then
+            TARGET_IMAGE="ghcr.io/${{ env.REPO }}/mssql:2022-latest"
+            SOURCE_IMAGE="mcr.microsoft.com/mssql/server:2022-latest"
           else
             TARGET_IMAGE="ghcr.io/${{ env.REPO }}/${{ matrix.database }}"
             SOURCE_IMAGE="${{ matrix.database }}"
           fi
 
-          # Check if the image exists in GHCR
-          if ! docker pull "$TARGET_IMAGE" >/dev/null; then
-            echo "Image not found in GHCR, pulling from source: $SOURCE_IMAGE..."
+          echo "Pulling latest and greatest image from GHCR for $SOURCE_IMAGE..."
             if docker pull "$SOURCE_IMAGE"; then
               docker tag "$SOURCE_IMAGE" "$TARGET_IMAGE"
               docker push "$TARGET_IMAGE"
@@ -50,6 +47,3 @@ jobs:
               echo "Failed to pull source image: $SOURCE_IMAGE" >&2
               exit 1
             fi
-          else
-            echo "Image already exists in GHCR: $TARGET_IMAGE, skipping pull and push."
-          fi

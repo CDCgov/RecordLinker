@@ -16,21 +16,20 @@ jobs:
 
     services:
       postgres:
-        image: ghcr.io/cdcgov/recordlinker/postgres:17.4
+        image: ghcr.io/cdcgov/recordlinker/postgres:17
         ports:
           - 5432:5432
         env:
           POSTGRES_PASSWORD: pw
 
       mysql:
-        image: ghcr.io/cdcgov/recordlinker/mysql:8.0.41
-        ports:
+        image: ghcr.io/cdcgov/recordlinker/mysql:8
           - 3306:3306
         env:
           MYSQL_ROOT_PASSWORD: pw
 
       sqlserver:
-        image: ghcr.io/cdcgov/recordlinker/mssql:2022-CU12-ubuntu-20.04
+        image: ghcr.io/cdcgov/recordlinker/mssql:2022-latest
         ports:
           - 1433:1433
         env:
