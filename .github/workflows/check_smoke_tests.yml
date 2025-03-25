@@ -53,16 +53,20 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build and push RecordLinker image to GHCR if necessary
+        env:
+          PR_NUMBER: ${{ github.event.number }}
         run: |
-          if ! docker pull ghcr.io/${{ env.REPO }}/rl-service:latest; then
+          if ! docker pull ghcr.io/${{ env.REPO }}/rl-service:pr-$PR_NUMBER; then
             echo "RecordLinker image not found, building and pushing to GHCR"
-            docker build -t ghcr.io/${{ env.REPO }}/rl-service:latest .
-            docker push ghcr.io/${{ env.REPO }}/rl-service:latest
+            docker build -t ghcr.io/${{ env.REPO }}/rl-service:pr-$PR_NUMBER .
+            docker push ghcr.io/${{ env.REPO }}/rl-service:pr-$PR_NUMBER
           else
             echo "RecordLinker image found, using cached image."
           fi
 
       - name: Start RecordLinker Service and Run Smoke Tests
+        env:
+          PR_NUMBER: ${{ github.event.number }}
         run: |
           if [[ "${{ matrix.database }}" == "postgres" ]]; then
             export DB_URI="postgresql+psycopg2://postgres:pw@localhost:5432/postgres"
@@ -78,7 +82,7 @@ jobs:
           docker run -d --name rl-service \
             --network="host" \
             -e DB_URI=$DB_URI \
-            ghcr.io/${{ env.REPO }}/rl-service:latest  # Use the cached image
+            ghcr.io/${{ env.REPO }}/rl-service:pr-$PR_NUMBER  # Use the cached image
 
           # Wait for the RL Service to be healthy
           TRIES=5
