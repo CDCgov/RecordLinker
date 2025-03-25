@@ -22,6 +22,8 @@ class TestListAlgorithms:
                 "is_default": True,
                 "description": "First algorithm",
                 "include_multiple_matches": True,
+                "max_missing_allowed_proportion": 0.5,
+                "missing_field_points_proportion": 0.5,
                 "pass_count": 0,
             },
         ]
@@ -37,6 +39,8 @@ class TestGetAlgorithm:
             label="default",
             is_default=True,
             description="First algorithm",
+            max_missing_allowed_proportion=0.5,
+            missing_field_points_proportion=0.5,
             passes=[
                 models.AlgorithmPass(
                     blocking_keys=[
@@ -64,6 +68,8 @@ class TestGetAlgorithm:
             "is_default": True,
             "description": "First algorithm",
             "include_multiple_matches": True,
+            "max_missing_allowed_proportion": 0.5,
+            "missing_field_points_proportion": 0.5,
             "passes": [
                 {
                     "blocking_keys": ["BIRTHDATE"],
@@ -107,6 +113,8 @@ class TestCreateAlgorithm:
         payload = {
             "label": "created",
             "description": "Created algorithm",
+            "max_missing_allowed_proportion": 0.5,
+            "missing_field_points_proportion": 0.5,
             "passes": [
                 {
                     "blocking_keys": [
@@ -132,6 +140,8 @@ class TestCreateAlgorithm:
         assert algo.label == "created"
         assert algo.is_default is False
         assert algo.description == "Created algorithm"
+        assert algo.max_missing_allowed_proportion == 0.5
+        assert algo.missing_field_points_proportion == 0.5
         assert len(algo.passes) == 1
         assert algo.passes[0].blocking_keys == ["BIRTHDATE"]
         assert algo.passes[0].evaluators == [
@@ -150,6 +160,8 @@ class TestUpdateAlgorithm:
         payload = {
             "label": "bad",
             "description": "First algorithm",
+            "max_missing_allowed_proportion": 0.5,
+            "missing_field_points_proportion": 0.5,
             "passes": [],
         }
         response = client.put("/algorithm/unknown", json=payload)
@@ -188,6 +200,8 @@ class TestUpdateAlgorithm:
             "label": "default",
             "is_default": True,
             "description": "Updated algorithm",
+            "max_missing_allowed_proportion": 0.5,
+            "missing_field_points_proportion": 0.5,
             "passes": [
                 {
                     "blocking_keys": [
@@ -213,6 +227,8 @@ class TestUpdateAlgorithm:
         assert algo.label == "default"
         assert algo.is_default is True
         assert algo.description == "Updated algorithm"
+        assert algo.max_missing_allowed_proportion == 0.5
+        assert algo.missing_field_points_proportion == 0.5
         assert len(algo.passes) == 1
         assert algo.passes[0].blocking_keys == ["BIRTHDATE"]
         assert algo.passes[0].evaluators == [

@@ -3,6 +3,8 @@
     "description": "test algorithm configuration",
     "is_default": false,
     "include_multiple_matches": true,
+    "max_missing_allowed_proportion": 0.5,
+    "missing_field_points_proportion": 0.5,
     "passes": [
         {
             "blocking_keys": [

@@ -97,11 +97,38 @@ class LinkResult:
 
 
 def compare(
-    record: schemas.PIIRecord, patient: models.Patient, algorithm_pass: models.AlgorithmPass
-) -> float:
+    record: schemas.PIIRecord,
+    patient: models.Patient,
+    max_log_odds_points: float,
+    max_allowed_missingness_proportion: float,
+    missing_field_points_proportion: float,
+    algorithm_pass: models.AlgorithmPass,
+    log_odds_weights: dict[str, float]
+) -> bool:
     """
     Compare the incoming record to the linked patient and return the calculated
-    evaluation score.
+    evaluation score. If a proportion of score points is accumulated via comparisons
+    with missing fields that is above a user-defined threshold, automatically reject
+    the potential match candidacy of the linked patient.
+
+    :param record: The new, incoming record, as a PIIRecord data type.
+    :param patient: A candidate record returned by blocking from the MPI, whose 
+      match quality the function call will evaluate.
+    :param max_log_odds_points: The maximum available log odds points that can be
+      accumulated by a candidate pair during this pass of the algorithm.
+    :param max_allowed_missingness_proportion: The maximum proportion of log-odds
+      weights that can be missing across all fields used in evaluating this pass.
+    :param missing_field_points_proportion: The proportion of log-odds points
+      that a field missing data will earn during comparison (i.e. a fraction of
+      its regular log-odds weight value).
+    :algorithm_pass: A data structure containing information about the pass of
+      the algorithm in which this comparison is being run. Holds information 
+      like which fields to evaluate and how to total log-odds points.
+    :param log_odds_weights: A dictionary mapping Field names to float values,
+      which are the precomputed log-odds weights associated with that field.
+    :returns: A boolean indicating whether the incoming record and the supplied
+      candidate are a match, as determined by the specific matching rule 
+      contained in the algorithm_pass object.
     """
     # all the functions used for comparison
     evals: list[models.BoundEvaluator] = algorithm_pass.bound_evaluators()
@@ -110,6 +137,7 @@ def compare(
     # keyword arguments to pass to comparison functions and matching rule
     kwargs: dict[typing.Any, typing.Any] = algorithm_pass.kwargs
 
+    missing_field_weights = 0.0
     results: list[float] = []
     details: dict[str, typing.Any] = {"patient.reference_id": str(patient.reference_id)}
     for e in evals:
@@ -117,12 +145,24 @@ def compare(
         feature = schemas.Feature.parse(e.feature)
         if feature is None:
             raise ValueError(f"Invalid comparison field: {e.feature}")
-        # Evaluate the comparison function and append the result to the list
-        result: float = e.func(record, patient, feature, **kwargs)  # type: ignore
-        results.append(result)
+        
+        # Evaluate the comparison function, track missingness, and append the 
+        # score component to the list
+        result: tuple[float, bool] = e.func(
+            record, patient, feature, missing_field_points_proportion, **kwargs
+        )  # type: ignore
+        if result[1]:
+            # The field was missing, so update the running tally of how much
+            # the candidate is missing overall
+            missing_field_weights += log_odds_weights[str(feature.attribute)]
+        results.append(result[0])
         details[f"evaluator.{e.feature}.{e.func.__name__}.result"] = result
-    
-    rule_result = matching_rule(results, **kwargs)
+
+    # Make sure this score wasn't just accumulated with missing checks
+    if missing_field_weights <= max_allowed_missingness_proportion * max_log_odds_points:
+        rule_result = matching_rule(results, **kwargs)
+    else:
+        rule_result = 0.0
     details[f"rule.{matching_rule.__name__}.results"] = rule_result
     # TODO: this may add a lot of noise, consider moving to debug
     LOGGER.info("patient comparison", extra=details)
@@ -173,6 +213,10 @@ def link_record_against_mpi(
     # Membership scores need to persist across linkage passes so that we can
     # find the highest scoring match across all passes
     scores: dict[models.Person, LinkResult] = {}
+    # proportions for missingness calculation: points awarded, and max allowed
+    missing_field_points_proportion = algorithm.missing_field_points_proportion
+    max_missing_allowed_proportion = algorithm.max_missing_allowed_proportion
+
     # initialize counters to track evaluation results to log
     result_counts: dict[str, int] = {
         "persons_compared": 0,
@@ -211,7 +255,15 @@ def link_record_against_mpi(
                         with TRACER.start_as_current_span("link.compare"):
                             # track the accumulated points so we can eventually find
                             # the median and normalize it
-                            rule_result = compare(record, pat, algorithm_pass)
+                            rule_result = compare(
+                                    record,
+                                    pat,
+                                    max_points,
+                                    max_missing_allowed_proportion,
+                                    missing_field_points_proportion,
+                                    algorithm_pass,
+                                    log_odds_points
+                                )
                             log_odds_sums.append(rule_result)
 
                     result_counts["persons_compared"] += 1

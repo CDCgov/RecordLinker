@@ -96,7 +96,9 @@ class Algorithm(pydantic.BaseModel):
     is_default: bool = False
     include_multiple_matches: bool = True
     passes: typing.Sequence[AlgorithmPass]
-    
+    max_missing_allowed_proportion: float = pydantic.Field(ge=0.0, le=1.0)
+    missing_field_points_proportion: float = pydantic.Field(ge=0.0, le=1.0)
+
 
 class AlgorithmSummary(Algorithm):
     """

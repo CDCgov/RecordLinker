@@ -38,6 +38,8 @@ class Algorithm(Base):
     passes: orm.Mapped[list["AlgorithmPass"]] = orm.relationship(
         back_populates="algorithm", cascade="all, delete-orphan"
     )
+    max_missing_allowed_proportion: orm.Mapped[float] = orm.mapped_column(sqltypes.Float, default=0.5)
+    missing_field_points_proportion: orm.Mapped[float] = orm.mapped_column(sqltypes.Float, default=0.5)
 
     @classmethod
     def from_dict(cls, **data: dict) -> "Algorithm":
