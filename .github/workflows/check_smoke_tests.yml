@@ -13,7 +13,7 @@ jobs:
     strategy:
       fail-fast: true
       matrix:
-        database: [postgres:17, mysql:8, mssql/server:2022-latest]
+        database: [postgres:17.4, mysql:8.0.41, mssql/server:16.0.4175.1]
 
     steps:
       - name: Check out repository
@@ -32,9 +32,9 @@ jobs:
       - name: Pull and push db images to GHCR if necessary
         run: |
           # If mssql, use a slightly different strategy
-          if [[ "${{ matrix.database }}" == "mssql/server:2022-latest" ]]; then
-            TARGET_IMAGE="ghcr.io/${{ env.REPO }}/mssql:2022-latest"
-            SOURCE_IMAGE="mcr.microsoft.com/mssql/server:2022-latest"
+          if [[ "${{ matrix.database }}" == "mssql/server:16.0.4175.1" ]]; then
+            TARGET_IMAGE="ghcr.io/${{ env.REPO }}/mssql:16.0.4175.1"
+            SOURCE_IMAGE="mcr.microsoft.com/mssql/server:16.0.4175.1"
           else
             TARGET_IMAGE="ghcr.io/${{ env.REPO }}/${{ matrix.database }}"
             SOURCE_IMAGE="${{ matrix.database }}"
