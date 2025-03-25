@@ -381,7 +381,7 @@ class TestLinkRecordAgainstMpi:
         patients.append(duplicate)
 
         # Test whether we can successfully make a match if info is missing
-        default_algorithm.passes[0].kwargs["true_match_threshold"] = 9.5
+        default_algorithm.passes[0].possible_match_window = [0.7, 0.75]
         matches: list[bool] = []
         mapped_patients: dict[str, int] = collections.defaultdict(int)
         for data in patients[:2]:
@@ -441,8 +441,8 @@ class TestLinkRecordAgainstMpi:
         # violates the user missingness constraint.
         default_algorithm.max_missing_allowed_proportion = 0.0
         default_algorithm.missing_field_points_proportion = 0.0
-        default_algorithm.passes[0].kwargs["true_match_threshold"] = 4.0
-        default_algorithm.passes[1].kwargs["true_match_threshold"] = 4.0
+        default_algorithm.passes[0].possible_match_window = [0.2, 0.3]
+        default_algorithm.passes[1].possible_match_window = [0.2, 0.3]
         matches: list[bool] = []
         mapped_patients: dict[str, int] = collections.defaultdict(int)
         for data in patients[:2]:
@@ -486,9 +486,9 @@ class TestLinkRecordAgainstMpi:
         }
         default_algorithm.max_missing_allowed_proportion = 0.2
         default_algorithm.missing_field_points_proportion = 0.7
-        default_algorithm.passes[0].kwargs["true_match_threshold"] = 8.5
+        default_algorithm.passes[0].possible_match_window = [0.7, 0.8]
         default_algorithm.passes[0].kwargs["log_odds"] = log_odds
-        default_algorithm.passes[1].kwargs["true_match_threshold"] = 8.5
+        default_algorithm.passes[1].possible_match_window = [0.7, 0.8]
         default_algorithm.passes[1].kwargs["log_odds"] = log_odds
         matches: list[bool] = []
         mapped_patients: dict[str, int] = collections.defaultdict(int)
