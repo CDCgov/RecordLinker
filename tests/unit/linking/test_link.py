@@ -63,28 +63,36 @@ class TestInvoke:
             feature="FIRST_NAME",
             func="COMPARE_PROBABILISTIC_FUZZY_MATCH",
         )
-        assert link.invoke(evaluator, rec, pat, context) == pytest.approx(6.85, abs=0.01)
+        result, is_missing = link.invoke(evaluator, rec, pat, context)
+        assert result == pytest.approx(6.85, abs=0.01)
+        assert not is_missing
 
     def test_fuzzy_close(self, rec, pat, context):
         evaluator = schemas.Evaluator(
             feature="LAST_NAME",
             func="COMPARE_PROBABILISTIC_FUZZY_MATCH",
         )
-        assert link.invoke(evaluator, rec, pat, context) == pytest.approx(5.98, abs=0.01)
+        result, is_missing = link.invoke(evaluator, rec, pat, context)
+        assert result == pytest.approx(5.98, abs=0.01)
+        assert not is_missing
 
     def test_fuzzy_exact_match(self, rec, pat, context):
         evaluator = schemas.Evaluator(
             feature="FIRST_NAME",
             func="COMPARE_PROBABILISTIC_EXACT_MATCH",
         )
-        assert link.invoke(evaluator, rec, pat, context) == 6.85
+        result, is_missing = link.invoke(evaluator, rec, pat, context)
+        assert result == pytest.approx(6.85, abs=0.01)
+        assert not is_missing
 
     def test_fuzzy_exact_miss(self, rec, pat, context):
         evaluator = schemas.Evaluator(
             feature="LAST_NAME",
             func="COMPARE_PROBABILISTIC_EXACT_MATCH",
         )
-        assert link.invoke(evaluator, rec, pat, context) == 0.0
+        result, is_missing = link.invoke(evaluator, rec, pat, context)
+        assert result == 0.0
+        assert not is_missing
 
     def test_override_measure(self, rec, pat, context):
         evaluator = schemas.Evaluator(
@@ -93,7 +101,9 @@ class TestInvoke:
             fuzzy_match_measure="Levenshtein",
             fuzzy_match_threshold=0.5,
         )
-        assert link.invoke(evaluator, rec, pat, context) == pytest.approx(4.76, abs=0.01)
+        result, is_missing = link.invoke(evaluator, rec, pat, context)
+        assert result == pytest.approx(4.76, abs=0.01)
+        assert not is_missing
 
     def test_override_threshold(self, rec, pat, context):
         evaluator = schemas.Evaluator(
@@ -101,7 +111,9 @@ class TestInvoke:
             func="COMPARE_PROBABILISTIC_FUZZY_MATCH",
             fuzzy_match_threshold=0.99,
         )
-        assert link.invoke(evaluator, rec, pat, context) == 0.0
+        result, is_missing = link.invoke(evaluator, rec, pat, context)
+        assert result == 0.0
+        assert not is_missing
 
 
 class TestCompare:
@@ -271,7 +283,7 @@ class TestCompare:
             true_match_threshold=0.3,
         )
 
-        # should pass as MR is the same for both
+        #should pass as MR is the same for both
         assert link.compare(rec, pat, algorithm_pass, context) is True
 
         algorithm_pass = schemas.AlgorithmPass(
@@ -284,8 +296,7 @@ class TestCompare:
             ],
             true_match_threshold=0.3,
         )
-
-        # should fail as SS is different for both
+        #should fail as SS is different for both
         assert link.compare(rec, pat, algorithm_pass, context) is False
 
 
@@ -381,6 +392,143 @@ class TestLinkRecordAgainstMpi:
         #  finds greatest strength match and correctly assigns to larger cluster
         assert matches == [False, True, False, True, False, False, True]
         assert sorted(list(mapped_patients.values())) == [1, 1, 1, 4]
+    
+    def test_match_with_missing_field(
+            self,
+            session,
+            default_algorithm,
+            patients: list[schemas.PIIRecord]
+        ):
+        # Make a deep copy of the first patient, then delete some info
+        patients = [patients[0]]
+        duplicate = copy.deepcopy(patients[0])
+        duplicate.external_id = str(uuid.uuid4())
+        duplicate.name[0].family = ""
+        duplicate.address[0].line[0] = ""
+        patients.append(duplicate)
+
+        # Test whether we can successfully make a match if info is missing
+        default_algorithm.passes[0].true_match_threshold = 9.5
+        matches: list[bool] = []
+        mapped_patients: dict[str, int] = collections.defaultdict(int)
+        for data in patients[:2]:
+            (_, person, results, _) = link.link_record_against_mpi(data, session, default_algorithm)
+            matches.append(bool(person and results))
+            mapped_patients[person.reference_id] += 1
+
+        # First patient inserted into empty MPI, no match
+        # Second patient blocks in each pass, is missing a field, but is allowed to match
+        assert matches == [False, True]
+        assert sorted(list(mapped_patients.values())) == [2]
+
+    def test_reject_too_many_missing_field(
+            self,
+            session,
+            default_algorithm,
+            patients: list[schemas.PIIRecord]
+        ):
+        # Make a deep copy of the first patient, then delete some info
+        patients = [patients[0]]
+        duplicate = copy.deepcopy(patients[0])
+        duplicate.external_id = str(uuid.uuid4())
+        duplicate.name[0].given[0] = ""
+        duplicate.address[0].line[0] = ""
+        patients.append(duplicate)
+
+        # Test whether too many missing points causes failure
+        default_algorithm.evaluation_context.defaults.max_missing_allowed_proportion = 0.3
+        matches: list[bool] = []
+        mapped_patients: dict[str, int] = collections.defaultdict(int)
+        for data in patients[:2]:
+            (_, person, results, _) = link.link_record_against_mpi(data, session, default_algorithm)
+            matches.append(bool(person and results))
+            mapped_patients[person.reference_id] += 1
+
+        # First patient inserted into empty MPI, no match
+        # Second patient blocks in each pass but missing too much data, fails
+        assert matches == [False, False]
+
+    def test_both_missingness_params_zero(
+            self,
+            session,
+            default_algorithm,
+            patients: list[schemas.PIIRecord]
+        ):
+        # Make a deep copy of the first patient, then delete some info so
+        # that both blocks contain missing fields
+        patients = [patients[0]]
+        duplicate = copy.deepcopy(patients[0])
+        duplicate.external_id = str(uuid.uuid4())
+        duplicate.name[0].given[0] = ""
+        duplicate.address[0].line[0] = ""
+        patients.append(duplicate)
+
+        # We'll test lower log-odds cutoffs and show that even if a record
+        # would regularly have the points to match, it's disqualified if it
+        # violates the user missingness constraint.
+        default_algorithm.evaluation_context.defaults.max_missing_allowed_proportion = 0.0
+        default_algorithm.evaluation_context.defaults.missing_field_points_proportion = 0.0
+        default_algorithm.passes[0].true_match_threshold = 4.0
+        default_algorithm.passes[1].true_match_threshold = 4.0
+        matches: list[bool] = []
+        mapped_patients: dict[str, int] = collections.defaultdict(int)
+        for data in patients[:2]:
+            (_, person, results, _) = link.link_record_against_mpi(data, session, default_algorithm)
+            matches.append(bool(person and results))
+            mapped_patients[person.reference_id] += 1
+
+        # First patient inserted into empty MPI, no match
+        # Second patient blocks in each pass, has score to match, but missingness
+        # disqualifies it 
+        assert matches == [False, False]
+
+    def test_missing_field_points_exceed_max_missingness_fraction(
+            self,
+            session,
+            default_algorithm,
+            patients: list[schemas.PIIRecord]
+        ):
+        """
+        Tests for the edge case where missing_field_points_proportion is large
+        but max_missing_allowed_proportion is small. This could easily result
+        from a situation where a user trains an algorithm that has a number of
+        low-log-odds-weight fields (e.g. lots of points 2 or fewer) that they
+        don't wish to ignore, but they still want their comparison to be between
+        mostly complete records, e.g. not allowing more than 10% of field points
+        to be missing. 
+        """
+        # Make a deep copy of the first patient, then delete some info
+        patients = [patients[0]]
+        duplicate = copy.deepcopy(patients[0])
+        duplicate.external_id = str(uuid.uuid4())
+        duplicate.name[0].given[0] = ""
+        duplicate.address[0].line[0] = ""
+        patients.append(duplicate)
+
+        # Create scenario described above: each pass will have 10 total points,
+        # the missing field will represent a small number of these points, but
+        # the total result should still be disqualified
+        default_algorithm.evaluation_context.log_odds = [
+            {"feature": "FIRST_NAME", "value": 2.5},
+            {"feature": "LAST_NAME", "value": 7.5},
+            {"feature": "BIRTHDATE", "value": 7.5},
+            {"feature": "ADDRESS", "value": 2.5},
+        ]
+        default_algorithm.evaluation_context.defaults.max_missing_allowed_proportion = 0.2
+        default_algorithm.evaluation_context.defaults.missing_field_points_proportion = 0.7
+        default_algorithm.passes[0].true_match_threshold = 8.5
+        default_algorithm.passes[1].true_match_threshold = 8.5
+        matches: list[bool] = []
+        mapped_patients: dict[str, int] = collections.defaultdict(int)
+        for data in patients[:2]:
+            (_, person, results, _) = link.link_record_against_mpi(data, session, default_algorithm)
+            matches.append(bool(person and results))
+            mapped_patients[person.reference_id] += 1
+
+        # First patient inserted into empty MPI, no match
+        # Second patient blocks in each pass, only gets a tiny bump overall from
+        # low-value missing field, but fails user's overall completeness constraint
+        assert matches == [False, False]
 
     def test_default_possible_match(
         self, session, default_algorithm, possible_match_default_patients: list[schemas.PIIRecord]

@@ -153,7 +153,7 @@ class TestAlgorithm:
                         evaluators=[],
                         true_match_threshold=0,
                     )
-                ]
+                ],
             )
         with pytest.raises(pydantic.ValidationError):
             Algorithm(
@@ -161,10 +161,12 @@ class TestAlgorithm:
                 passes=[
                     AlgorithmPass(
                         blocking_keys=[],
-                        evaluators=[{"feature": "FIRST_NAME", "func": "COMPARE_PROBABILISTIC_FUZZY_MATCH"}],
+                        evaluators=[
+                            {"feature": "FIRST_NAME", "func": "COMPARE_PROBABILISTIC_FUZZY_MATCH"}
+                        ],
                         true_match_threshold=0,
                     )
-                ]
+                ],
             )
         Algorithm(
             label="test",
@@ -177,10 +179,12 @@ class TestAlgorithm:
             passes=[
                 AlgorithmPass(
                     blocking_keys=["BIRTHDATE"],
-                    evaluators=[{"feature": "FIRST_NAME", "func": "COMPARE_PROBABILISTIC_FUZZY_MATCH"}],
+                    evaluators=[
+                        {"feature": "FIRST_NAME", "func": "COMPARE_PROBABILISTIC_FUZZY_MATCH"}
+                    ],
                     true_match_threshold=0,
                 )
-            ]
+            ],
         )
 
     def test_validate_true_match_threshold(self):
@@ -196,10 +200,12 @@ class TestAlgorithm:
                 passes=[
                     AlgorithmPass(
                         blocking_keys=["BIRTHDATE"],
-                        evaluators=[{"feature": "FIRST_NAME", "func": "COMPARE_PROBABILISTIC_FUZZY_MATCH"}],
+                        evaluators=[
+                            {"feature": "FIRST_NAME", "func": "COMPARE_PROBABILISTIC_FUZZY_MATCH"}
+                        ],
                         true_match_threshold=7.3,
                     )
-                ]
+                ],
             )
         with pytest.raises(pydantic.ValidationError):
             Algorithm(
@@ -220,7 +226,7 @@ class TestAlgorithm:
                         ],
                         true_match_threshold=14,
                     )
-                ]
+                ],
             )
         Algorithm(
             label="test",
@@ -240,5 +246,5 @@ class TestAlgorithm:
                     ],
                     true_match_threshold=12.9,
                 )
-            ]
+            ],
         )

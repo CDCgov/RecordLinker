@@ -25,6 +25,8 @@ class Defaults(pydantic.BaseModel):
 
     fuzzy_match_threshold: Annotated[float, pydantic.Field(ge=0, le=1)] = 0.9
     fuzzy_match_measure: matchers.SIMILARITY_MEASURES = "JaroWinkler"
+    max_missing_allowed_proportion: Annotated[float, pydantic.Field(ge=0.0, le=1.0)] = 0.5
+    missing_field_points_proportion: Annotated[float, pydantic.Field(ge=0.0, le=1.0)] = 0.5
 
 
 class LogOdd(pydantic.BaseModel):

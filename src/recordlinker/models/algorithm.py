@@ -29,6 +29,8 @@ class Algorithm(Base):
     modified_at: orm.Mapped[datetime.datetime] = orm.mapped_column(
         sqltypes.DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
     )
+    max_missing_allowed_proportion: orm.Mapped[float] = orm.mapped_column(sqltypes.Float, default=0.5)
+    missing_field_points_proportion: orm.Mapped[float] = orm.mapped_column(sqltypes.Float, default=0.5)
 
 
 def check_only_one_default(mapping, connection, target):

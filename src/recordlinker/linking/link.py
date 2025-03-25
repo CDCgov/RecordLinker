@@ -39,13 +39,14 @@ def invoke(
     record: schemas.PIIRecord,
     patient: models.Patient,
     context: schemas.EvaluationContext,
-) -> float:
+) -> tuple[float, bool]:
     """
     Invoke the evaluator function and return the result
     """
     fn: typing.Callable = evaluator.func.callable()
     kwargs = {
         "log_odds": context.get_log_odds(evaluator.feature),
+        "missing_proportion": context.defaults.missing_field_points_proportion,
         "fuzzy_match_threshold": evaluator.fuzzy_match_threshold
         or context.defaults.fuzzy_match_threshold,
         "fuzzy_match_measure": evaluator.fuzzy_match_measure
@@ -61,16 +62,50 @@ def compare(
     context: schemas.EvaluationContext,
 ) -> bool:
     """
-    Compare the incoming record to the linked patient
+    Compare the incoming record to the linked patient and return the calculated
+    evaluation score. If a proportion of score points is accumulated via comparisons
+    with missing fields that is above a user-defined threshold, automatically reject
+    the potential match candidacy of the linked patient.
+
+    :param record: The new, incoming record, as a PIIRecord data type.
+    :param patient: A candidate record returned by blocking from the MPI, whose
+      match quality the function call will evaluate.
+    :param max_log_odds_points: The maximum available log odds points that can be
+      accumulated by a candidate pair during this pass of the algorithm.
+    :param max_allowed_missingness_proportion: The maximum proportion of log-odds
+      weights that can be missing across all fields used in evaluating this pass.
+    :param missing_field_points_proportion: The proportion of log-odds points
+      that a field missing data will earn during comparison (i.e. a fraction of
+      its regular log-odds weight value).
+    :algorithm_pass: A data structure containing information about the pass of
+      the algorithm in which this comparison is being run. Holds information
+      like which fields to evaluate and how to total log-odds points.
+    :param log_odds_weights: A dictionary mapping Field names to float values,
+      which are the precomputed log-odds weights associated with that field.
+    :returns: A boolean indicating whether the incoming record and the supplied
+      candidate are a match, as determined by the specific matching rule
+      contained in the algorithm_pass object.
     """
     results: list[float] = []
     details: dict[str, typing.Any] = {"patient.reference_id": str(patient.reference_id)}
+    missing_points: float = 0.0
+    max_points: float = 0.0
     for e in algorithm_pass.evaluators:
-        # Evaluate the comparison function and append the result to the list
-        result: float = invoke(e, record, patient, context)
+        log_odds = context.get_log_odds(e.feature) or 0.0
+        max_points += log_odds
+        result, is_missing = invoke(e, record, patient, context)
+        if is_missing:
+            # a field was missing, so update the running tally of how much
+            # the candidate is missing overall
+            missing_points += log_odds
         results.append(result)
         details[f"evaluator.{e.feature}.{e.func}.result"] = result
-    is_match: bool = sum(results) >= algorithm_pass.true_match_threshold
+
+    # check to see if we have enough points to make a decision
+    has_sufficent_points: bool = missing_points <= (
+        max_points * context.defaults.max_missing_allowed_proportion
+    )
+    is_match: bool = has_sufficent_points and sum(results) >= algorithm_pass.true_match_threshold
     details["rule.results"] = is_match
     # TODO: this may add a lot of noise, consider moving to debug
     LOGGER.info("patient comparison", extra=details)

@@ -13,7 +13,12 @@ linkage evaluation phase. The following features are supported:
 
 `BIRTHDATE`
 
-:   The patient's birthdate (normalized to `YYYY-MM-DD`).
+:   The patient's birthdate (normalized to `YYYY-MM-DD`). If a birthdate with an ambiguous (i.e. 
+given as a two-digit year, rather than as four digits) year is provided, RecordLinker parses the 
+birthdate as `19XX` if the given year is after the two-digit year of the current calendar year 
+(`47`, for example, would become `1947`), and parses the birthdate as `20XX` otherwise (`08` and
+`25` would become `2008` and `2025`, respectively). If a patient's birthdate is given as a date 
+in the future, parsing the birthdate will generate an error message and result in a failure.
 
 `SEX`
 
@@ -152,3 +157,13 @@ In that case we'd want to evaluate "123 Main St" against both "123 Main Street" 
     their predictive power (i.e., the log-odds ratio for a feature represents how powerful of a predictor
     that feature is in determining whether two patient records are a true match, as opposed to a match
     by random chance). 
+
+One important caveat for both of these Feature Functions is how they handle patient
+records with missing information in one or more fields.  RecordLinker provides the option 
+to match records that are missing some data, e.g., Field X, with other records for which that 
+data (Field X) is present. In order to enable this possibility, and to avoid overly penalizing 
+records which may be strong matches but simply have data omitted due to collection 
+methods, both of these feature functions include a partial log-odds weighting. If one or more 
+records being compared is missing data for a field, each of the above functions returns exactly 
+half the log-odds weight for the field overall, along with a boolean flag indicating that data was 
+missing during comparison.

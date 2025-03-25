@@ -41,13 +41,23 @@ jobs:
     - name: Check out repository
       uses: actions/checkout@v4
 
-    - name: Set up Docker Buildx
-      uses: docker/setup-buildx-action@v3
+    - name: Convert repository name to lowercase
+      run: echo "REPO=$(echo '${{ github.repository }}' | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
 
-    - name: Build RecordLinker Docker Image
-      run: |
-        docker build -t rl-service-image . 
-
+    - name: Log in to GitHub Container Registry
+      uses: docker/login-action@v3
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+      
+    - name: Build and push RecordLinker image
+      uses: docker/build-push-action@v3
+      with:
+          push: true
+          tags: |
+            ghcr.io/${{ env.REPO }}/rl-service:latest 
+    
     - name: Start RecordLinker Service and Run Smoke Tests
       run: |
         if [[ "${{ matrix.database }}" == "postgres" ]]; then
@@ -64,7 +74,7 @@ jobs:
         docker run -d --name rl-service \
           --network="host" \
           -e DB_URI=$DB_URI \
-          rl-service-image
+          ghcr.io/${{ env.REPO }}/rl-service:latest  # Use the cached image
 
         # Wait for the RL Service to be healthy
         TRIES=5
@@ -80,7 +90,7 @@ jobs:
         done
       
         # Run smoke tests and print the response
-        JSON_BODY_1='{"record": {"birth_date": "2053-11-07", "sex": "M", "identifiers":[{"value": "123456789", "type": "MR"}], "name":[{"family":"Shepard", "given":["John"]}]}}'
+        JSON_BODY_1='{"record": {"birth_date": "2013-11-07", "sex": "M", "identifiers":[{"value": "123456789", "type": "MR"}], "name":[{"family":"Shepard", "given":["John"]}]}}'
         JSON_BODY_2='{"algorithm": "dibbs-default", "record": {"birth_date": "2000-12-06", "sex": "M", "identifiers":[{"value": "9876543210", "type": "MR"}], "name":[{"family":"Smith", "given":["William"]}]}}'
 
         #basic tests
@@ -125,4 +135,4 @@ jobs:
         -H "Content-Type: application/json")
 
         echo "Response: $RESPONSE_5"
-        echo "$RESPONSE_5" | grep -q "No algorithm found" 
+        echo "$RESPONSE_5" | grep -q "No algorithm found"

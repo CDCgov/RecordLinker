@@ -72,6 +72,8 @@ class TestLoadAlgorithm:
                 "defaults": {
                     "fuzzy_match_threshold": 0.8,
                     "fuzzy_match_measure": "Levenshtein",
+                    "max_missing_allowed_proportion": 0.5,
+                    "missing_field_points_proportion": 0.5,
                 },
             },
             passes=[
@@ -103,7 +105,9 @@ class TestLoadAlgorithm:
             "defaults": {
                 "fuzzy_match_threshold": 0.8,
                 "fuzzy_match_measure": "Levenshtein",
-            }
+                "max_missing_allowed_proportion": 0.5,
+                "missing_field_points_proportion": 0.5,
+            },
         }
         assert len(obj.passes) == 1
         assert obj.passes[0] == {
@@ -133,6 +137,8 @@ class TestLoadAlgorithm:
                 "defaults": {
                     "fuzzy_match_threshold": 0.8,
                     "fuzzy_match_measure": "Levenshtein",
+                    "max_missing_allowed_proportion": 0.5,
+                    "missing_field_points_proportion": 0.5,
                 },
             },
             passes=[
@@ -169,7 +175,9 @@ class TestLoadAlgorithm:
             "defaults": {
                 "fuzzy_match_threshold": 0.85,
                 "fuzzy_match_measure": "Levenshtein",
-            }
+                "max_missing_allowed_proportion": 0.5,
+                "missing_field_points_proportion": 0.5,
+            },
         }
         assert len(obj.passes) == 1
         assert obj.passes[0] == {

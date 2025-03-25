@@ -28,6 +28,8 @@ class TestListAlgorithms:
                     "defaults": {
                         "fuzzy_match_threshold": 0.9,
                         "fuzzy_match_measure": "JaroWinkler",
+                        "max_missing_allowed_proportion": 0.5,
+                        "missing_field_points_proportion": 0.5,
                     },
                 },
                 "pass_count": 0,
@@ -50,7 +52,7 @@ class TestGetAlgorithm:
                 "belongingness_ratio": [0.25, 0.5],
                 "log_odds": [
                     {"feature": "BIRTHDATE", "value": 10.2},
-                    {"feature": "FIRST_NAME", "value": 6.8}
+                    {"feature": "FIRST_NAME", "value": 6.8},
                 ],
             },
             passes=[
@@ -85,6 +87,8 @@ class TestGetAlgorithm:
                 "defaults": {
                     "fuzzy_match_threshold": 0.9,
                     "fuzzy_match_measure": "JaroWinkler",
+                    "max_missing_allowed_proportion": 0.5,
+                    "missing_field_points_proportion": 0.5,
                 },
             },
             "passes": [
@@ -170,6 +174,8 @@ class TestCreateAlgorithm:
             "defaults": {
                 "fuzzy_match_threshold": 0.9,
                 "fuzzy_match_measure": "JaroWinkler",
+                "max_missing_allowed_proportion": 0.5,
+                "missing_field_points_proportion": 0.5,
             },
         }
         assert len(algo.passes) == 1
@@ -273,7 +279,9 @@ class TestUpdateAlgorithm:
             "defaults": {
                 "fuzzy_match_threshold": 0.9,
                 "fuzzy_match_measure": "JaroWinkler",
-            }
+                "max_missing_allowed_proportion": 0.5,
+                "missing_field_points_proportion": 0.5,
+            },
         }
         assert len(algo.passes) == 1
         assert algo.passes[0] == {
