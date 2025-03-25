@@ -1,12 +1,8 @@
 name: Build and push RL and database images on a monthly schedule
 
 on:
-  # schedule:
-  #   - cron: "0 8 1 * *"
-  push:
-    branches: [main]
-  pull_request:
-    branches: [main]
+  schedule:
+    - cron: "0 8 1 * *"
 
 jobs:
   service-set-up:
