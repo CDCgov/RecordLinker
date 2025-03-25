@@ -358,6 +358,7 @@ class TestPIIRecord:
             "NY",
             "CA",
             "CA",
+            "of mind",
         ]
 
     def test_blocking_keys_invalid(self):
@@ -576,5 +577,9 @@ class TestAddress:
         assert address.state == "OR"
         address = pii.Address(state="wa")
         assert address.state == "WA"
-        address = pii.Address(state= "district of  columbia")
+        address = pii.Address(state="district of  columbia")
         assert address.state == "DC"
+        address = pii.Address(state=" Armed Forces")
+        assert address.state == "Armed Forces"
+        address = pii.Address(state="Conneticut")
+        assert address.state == "Conneticut"

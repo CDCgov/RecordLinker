@@ -239,7 +239,7 @@ class Address(StrippedBaseModel):
 
             if state in _STATE_NAME_TO_CODE:
                 return _STATE_NAME_TO_CODE[state]
-        return None
+        return value
 
 
 class Telecom(StrippedBaseModel):
