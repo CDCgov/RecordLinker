@@ -12,7 +12,7 @@ import pydantic
 
 from recordlinker.schemas.pii import PIIRecord
 
-Prediction = typing.Literal["certain", "possible", "certainly-not"]
+MatchGrade = typing.Literal["certain", "possible", "certainly-not"]
 
 
 class LinkInput(pydantic.BaseModel):
@@ -44,6 +44,10 @@ class LinkResult(pydantic.BaseModel):
     accumulated_points: float = pydantic.Field(
         description="The median number of log-odds points accumulated by the blocked patients "
         "belonging to this Person Cluster when compared to an incoming record."
+    )
+    pass_number: int = pydantic.Field(
+        description="The number of the pass (1-indexed, so the first pass of an algorithm "
+        "is pass 1) captured by this LinkResult."
     )
     rms: typing.Annotated[float, pydantic.Field(ge=0, le=1)] = pydantic.Field(
         description="The Relative Match Strength (normalized between 0 and 1) of this "
@@ -79,15 +83,15 @@ class MatchResponse(pydantic.BaseModel):
     Schema for responses from the match endpoint.
     """
 
-    prediction: Prediction
+    match_grade: MatchGrade
     person_reference_id: uuid.UUID | None = pydantic.Field(
         description="The identifier for the person that the patient record has been matched to."
-        ' If prediction="possible_match", this value will be null.'
+        ' If match_grade="possible", this value will be null.'
     )
     results: list[LinkResult] = pydantic.Field(
-        description="A list of (possibly) matched Persons. If prediction='match', either the single"
-        "(include_multiple_matches=False) or multiple (include_multiple_matches=True) "
-        "Persons with which the Patient record matches. If prediction='possible_match',"
+        description="A list of (possibly) matched Persons. If match_grade='certain', either"
+        "the single (include_multiple_matches=False) or multiple (include_multiple_matches=True) "
+        "Persons with which the Patient record matches. If match_grade='possible',"
         "all Persons with which the Patient record possibly matches."
     )
 
@@ -129,8 +133,8 @@ class MatchFhirResponse(MatchResponse):
     """
 
     updated_bundle: dict | None = pydantic.Field(
-        description="If 'prediction' is 'match', returns the FHIR bundle with updated"
-        " references to existing Person resource. If 'prediction' is 'no_match' or"
+        description="If 'match_grade' is 'match', returns the FHIR bundle with updated"
+        " references to existing Person resource. If 'match_grade' is 'no_match' or"
         " 'possible_match', returns null."
     )
 
@@ -141,8 +145,8 @@ class LinkFhirResponse(LinkResponse):
     """
 
     updated_bundle: dict | None = pydantic.Field(
-        description="If 'prediction' is 'match', returns the FHIR bundle with updated"
-        " references to existing Person resource. If 'prediction' is 'no_match', "
+        description="If 'match_grade' is 'match', returns the FHIR bundle with updated"
+        " references to existing Person resource. If 'match_grade' is 'no_match', "
         "returns the FHIR bundle with a reference to a newly created "
-        "Person resource. If 'prediction' is 'possible_match', returns null."
+        "Person resource. If 'match_grade' is 'possible_match', returns null."
     )

@@ -41,51 +41,47 @@ class LinkResult:
     """
     person: models.Person
     accumulated_points: float
+    pass_number: int
     rms: float
     mmt: float
     cmt: float
     grade: str
 
-    def _do_update(self, earned_points, rms, mmt, cmt, grade):
+    def _update_score_tracking_row(
+            self, earned_points, pass_num, rms, mmt, cmt, grade
+        ):
         """
         Helper function to abstract variable update setting to leave
         case-based logic clearer.
         """
         self.accumulated_points = earned_points
+        self.pass_number = pass_num
         self.rms = rms
         self.grade = grade
         self.cmt = cmt
         self.mmt = mmt
     
-    def handle_update(self, earned_points, rms, mmt, cmt, grade):
+    def check_and_update_score(
+            self, earned_points, pass_num, rms, mmt, cmt, grade
+        ):
         """
         Dynamically perform and handle any updates that should be tracked for
         the results of this Person cluster in linking. Updates must consider
         both match grade and RMS.
 
         1. If both grades (previously seen and newly processed) are equal,
-        updating is easy: just take the result with the higher RMS.
+        we take the result with the higher RMS.
         2. If the existing grade is certain but the new grade is not, we
-        *don't* update: being above the Certain Match Threshold is a stricter
-        inequality than being within the Possible Match Window, so we don't 
-        want to overwrite with less information (Example: suppose the DIBBs
-        algorithm passes were switched. Suppose Cluster A had an RMS of 0.918.
-        This would be a match grade of 'certain'. If Pass 1 ran after Pass 2,
-        and Cluster A scored an RMS of 0.922, that would grade as 'possible'.
-        But despite the higher RMS, Cluster A actually accumualted more points
-        and stronger separation already, so we don't want to downgrade.)
+        *don't* update, since each pass is an indepedent match test.
         3. If the new grade is certain but the existing grade is not, we
-        *always* update. Being a 'certain' match is a stronger statement and
-        thus more worth saving. Consider the example above with the passes
-        as normal. It would be better to save the Pass 2 RMS of 0.918 that 
-        graded as 'Certain' than it would be to keep the Pass 1 RMS of 0.922
-        that only graded 'Possible,' since the user's previous profiling found
-        these matches higher quality.        
+        *always* update.
         """
         # Start with the easy case: both grades are the same, so use the RMS
         if grade == self.grade:
             if rms > self.rms:
-                self._do_update(earned_points, rms, mmt, cmt, grade)
+                self._update_score_tracking_row(
+                    earned_points, pass_num, rms, mmt, cmt, grade
+                )
         
         # Case 2: existing grade is certain, and since grades didn't enter
         # the equality if, new grade is only possible
@@ -95,7 +91,9 @@ class LinkResult:
         # Case 3: new grade is certain, and since grades didn't enter the 
         # equality if, existing grade is only possible
         elif grade == 'certain':
-            self._do_update(earned_points, rms, mmt, cmt, grade)
+            self._update_score_tracking_row(
+                earned_points, pass_num, rms, mmt, cmt, grade
+            )
 
 
 def compare(
@@ -131,7 +129,7 @@ def compare(
     return rule_result
 
 
-def grade_result(rms: float, mmt: float, cmt: float) -> str:
+def grade_rms(rms: float, mmt: float, cmt: float) -> str:
     """
     Helper function to assign a match-grade (derived from FHIR spec terminology)
     to a linkage result based on whether the result's match strength falls in 
@@ -150,7 +148,7 @@ def link_record_against_mpi(
     algorithm: models.Algorithm,
     external_person_id: typing.Optional[str] = None,
     persist: bool = True,
-) -> tuple[models.Patient | None, models.Person | None, list[LinkResult], schemas.Prediction]:
+) -> tuple[models.Patient | None, models.Person | None, list[LinkResult], schemas.MatchGrade]:
     """
     Runs record linkage on a single incoming record (extracted from a FHIR
     bundle) using an existing database as an MPI. Uses a flexible algorithm
@@ -180,8 +178,10 @@ def link_record_against_mpi(
         "persons_compared": 0,
         "patients_compared": 0,
     }
+    pass_number = 0
     for algorithm_pass in algorithm.passes:
         with TRACER.start_as_current_span("link.pass"):
+            pass_number += 1
             minimum_match_threshold, certain_match_threshold = algorithm_pass.possible_match_window
 
             # Determine the maximum possible number of log-odds points in this pass
@@ -219,7 +219,7 @@ def link_record_against_mpi(
                     # calculate the relative match score for this person cluster
                     cluster_median = statistics.median(log_odds_sums)
                     rms = cluster_median / max_points
-                    match_grade = grade_result(rms, minimum_match_threshold, certain_match_threshold)
+                    match_grade = grade_rms(rms, minimum_match_threshold, certain_match_threshold)
 
                     LOGGER.info(
                         "cluster statistics",
@@ -239,34 +239,36 @@ def link_record_against_mpi(
                             scores[person] = LinkResult(
                                 person,
                                 cluster_median,
+                                pass_number,
                                 rms,
                                 minimum_match_threshold,
                                 certain_match_threshold,
                                 match_grade
                             )
                         # Let the dynamic programming table track its own updates
-                        scores[person].handle_update(
-                            cluster_median, rms, minimum_match_threshold, certain_match_threshold, match_grade
+                        scores[person].check_and_update_score(
+                            cluster_median, pass_number, rms, minimum_match_threshold, certain_match_threshold, match_grade
                         )
     
     results: list[LinkResult] = sorted(scores.values(), reverse=True, key=lambda x: x.rms)
     certain_results = [x for x in results if x.grade == 'certain']
     # re-assign the results array since we already have the higher-priority
-    # 'certain' grades if we need them
+    # 'certain' grades if we need them; we return the `results` variable as 
+    # a placeholder later, so we need to keep this around for re-assignment
     results = [x for x in results if x.grade == 'possible']
-    prediction: schemas.Prediction = "possible"
+    match_grade: schemas.MatchGrade = "possible"
     matched_person: typing.Optional[models.Person] = None
 
     if not results and not certain_results:
         # No match
-        prediction = "certainly-not"
+        match_grade = "certainly-not"
         if persist:
             # Only create a new person cluster if we are persisting data
             matched_person = models.Person()
 
     elif certain_results and len(certain_results) > 0:
         # Match (1 or many)
-        prediction = "certain"
+        match_grade = "certain"
         matched_person = certain_results[0].person
         if not algorithm.include_multiple_matches:
             # reduce results to only the highest match
@@ -291,10 +293,10 @@ def link_record_against_mpi(
     # to the user; we don't save certainly-not grades in the dynamic table
     best_score_str: str = "n/a"
     reference_range: str = "n/a"
-    if prediction == "certain":
+    if match_grade == "certain":
         best_score_str = str(certain_results[0].rms)
         reference_range = "(" + str(certain_results[0].mmt) + ", " + str(certain_results[0].cmt) + ")"
-    elif prediction == "possible":
+    elif match_grade == "possible":
         best_score_str = str(results[0].rms)
         reference_range = "(" + str(results[0].mmt) + ", " + str(results[0].cmt) + ")"
     LOGGER.info(
@@ -302,11 +304,11 @@ def link_record_against_mpi(
         extra={
             "person.reference_id": matched_person and str(matched_person.reference_id),
             "patient.reference_id": patient and str(patient.reference_id),
-            "result.prediction": prediction,
+            "result.match_grade": match_grade,
             "result.best_match_score": best_score_str,
             "result.best_match_reference_window": reference_range,
             "result.count_patients_compared": result_counts["patients_compared"],
         },
     )
     # return a tuple indicating whether a match was found and the person ID
-    return (patient, matched_person, results, prediction)
+    return (patient, matched_person, results, match_grade)

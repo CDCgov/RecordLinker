@@ -8,7 +8,7 @@ from .link import LinkResponse
 from .link import LinkResult
 from .link import MatchFhirResponse
 from .link import MatchResponse
-from .link import Prediction
+from .link import MatchGrade
 from .mpi import ErrorDetail
 from .mpi import ErrorResponse
 from .mpi import PaginatedMetaData
@@ -37,7 +37,7 @@ __all__ = [
     "Feature",
     "FeatureAttribute",
     "PIIRecord",
-    "Prediction",
+    "MatchGrade",
     "LinkInput",
     "LinkResponse",
     "MatchResponse",

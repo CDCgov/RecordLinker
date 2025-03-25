@@ -89,7 +89,7 @@ jobs:
         -H "Content-Type: application/json")
 
         echo "Response: $RESPONSE_1"
-        echo "$RESPONSE_1" | jq -e '.prediction == "certainly-not"' 
+        echo "$RESPONSE_1" | jq -e '.match_grade == "certainly-not"' 
 
         PERSON_REFERENCE_ID=$(echo "$RESPONSE_1" | jq -r '.person_reference_id')
 
@@ -98,7 +98,7 @@ jobs:
         -H "Content-Type: application/json")
 
         echo "Response: $RESPONSE_2"
-        echo "$RESPONSE_2" | jq -e '.prediction == "certain"'  
+        echo "$RESPONSE_2" | jq -e '.match_grade == "certain"'  
         echo "$RESPONSE_2" | jq -e --arg id "$PERSON_REFERENCE_ID" '.person_reference_id == $id'
 
         #enhanced tests
@@ -107,7 +107,7 @@ jobs:
         -H "Content-Type: application/json")
 
         echo "Response: $RESPONSE_3"
-        echo "$RESPONSE_3" | jq -e '.prediction == "certainly-not"'  
+        echo "$RESPONSE_3" | jq -e '.match_grade == "certainly-not"'  
 
         PERSON_REFERENCE_ID=$(echo "$RESPONSE_3" | jq -r '.person_reference_id')
 
@@ -116,7 +116,7 @@ jobs:
         -H "Content-Type: application/json")
 
         echo "Response: $RESPONSE_4"
-        echo "$RESPONSE_4" | jq -e '.prediction == "certain"' 
+        echo "$RESPONSE_4" | jq -e '.match_grade == "certain"' 
         echo "$RESPONSE_4" | jq -e --arg id "$PERSON_REFERENCE_ID" '.person_reference_id == $id'     
       
         #invalid tests
