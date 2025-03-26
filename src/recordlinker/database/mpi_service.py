@@ -34,7 +34,7 @@ class GetBlockData:
         # to use when building the query, this will let us know when we have
         # too many missing values and need to abort the query
         self.total_odds: float = 0
-        self.found_odds: float = 0
+        self.missing_odds: float = 0
         self.blocking_values: dict[models.BlockingKey, list[str]] = {}
 
     def _check_skip_conditions(self) -> bool:
@@ -47,7 +47,7 @@ class GetBlockData:
         """
         minimum_percentage = self.kwargs.get("compare_minimum_percentage", 1.0)
         details: dict[str, float] = {
-            "found_blocking_odds": self.found_odds,
+            "missing_blocking_odds": self.missing_odds,
             "total_blocking_odds": self.total_odds,
             "minimum_percentage": minimum_percentage,
         }
@@ -55,8 +55,8 @@ class GetBlockData:
             # No log odds were specified and we had at least 1 missing blocking key
             LOGGER.info("skipping blocking query: no log odds", extra=details)
             return True
-        if self.total_odds and (self.found_odds / self.total_odds) < minimum_percentage:
-            # The log odds for the found blocking keys were below the minimum threshold
+        if self.total_odds and (self.missing_odds / self.total_odds) > (1-minimum_percentage):
+            # The log odds for the missing blocking keys were above the minimum threshold
             LOGGER.info("skipping blocking query: log odds too low", extra=details)
             return True
         return False
@@ -118,6 +118,9 @@ class GetBlockData:
 
         # Reset state before running
         self._reset(kwargs)
+        # Calculate the total possible log odds
+        for key_id in algorithm_pass.blocking_keys:
+            self.total_odds += kwargs.get("log_odds", {}).get(key_id, 0.0)
         # Build the join criteria, we are joining the Blocking Value table
         # multiple times, once for each Blocking Key.  If a Patient record
         # has a matching Blocking Value for all the Blocking Keys, then it
@@ -129,16 +132,15 @@ class GetBlockData:
             key = getattr(models.BlockingKey, key_id)
             # Get the log odds value for the key
             log_odds: float = kwargs.get("log_odds", {}).get(key_id, 0.0)
-            # Keep track of total log odds, for checking skip conditions
-            self.total_odds += log_odds
             # Get all the possible values from the data for this key
             self.blocking_values[key] = [v for v in record.blocking_keys(key)]
             if not self.blocking_values[key]:
-                # This blocking key doesn't have any possible values, so skip
-                # the joining query
+                # Add the missing log odds to the total and check if we should abort
+                self.missing_odds += log_odds
+                if self._check_skip_conditions():
+                    return []
+                # This key doesn't have values, skip the joining query
                 continue
-            # This blocking key does have values, track the found log odds for checking skip conditions
-            self.found_odds += log_odds
             # Create a dynamic alias for the Blocking Value table using the index
             # this is necessary since we are potentially joining the same table
             # multiple times with different conditions
@@ -154,10 +156,6 @@ class GetBlockData:
                     alias.value.in_(self.blocking_values[key]),
                 ),
             )
-
-        if self._check_skip_conditions():
-            # Too many missing blocking values
-            return []
 
         # Using the subquery of unique Patient IDs, select all the Patients
         expr = expression.select(models.Patient).where(models.Patient.person_id.in_(base))
