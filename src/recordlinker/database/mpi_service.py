@@ -37,11 +37,12 @@ class GetBlockData:
         self.missing_odds: float = 0
         self.blocking_values: dict[models.BlockingKey, list[str]] = {}
 
-    def _check_skip_conditions(self) -> bool:
+    def _should_continue_blocking(self) -> bool:
         """
         Analyze the log odds of the blocking keys found in the query.  If the number of
-        points collected is below the minimum threshold, return True to indicate this
-        blocking query should be skipped.
+        points missing is above the maximum allowed or no log odds were specified and
+        some blocking values are missing, return False to indicate this blocking
+        query should be skipped.
 
         :return: bool
         """
@@ -53,12 +54,12 @@ class GetBlockData:
         if self.total_odds == 0 and any(not v for v in self.blocking_values.values()):
             # No log odds were specified and we had at least 1 missing blocking key
             LOGGER.info("skipping blocking query: no log odds", extra=details)
-            return True
+            return False
         if self.total_odds and (self.missing_odds / self.total_odds) > self.max_missing_allowed_proportion:
             # The log odds for the missing blocking keys were above the minimum threshold
             LOGGER.info("skipping blocking query: log odds too low", extra=details)
-            return True
-        return False
+            return False
+        return True
 
     def _filter_incorrect_match(self, patient: models.Patient) -> bool:
         """
@@ -139,7 +140,7 @@ class GetBlockData:
             if not self.blocking_values[key]:
                 # Add the missing log odds to the total and check if we should abort
                 self.missing_odds += log_odds
-                if self._check_skip_conditions():
+                if not self._should_continue_blocking():
                     return []
                 # This key doesn't have values, skip the joining query
                 continue
