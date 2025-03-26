@@ -194,19 +194,43 @@ class Address(StrippedBaseModel):
     )
     model_config = pydantic.ConfigDict(extra="allow")
 
-    line: typing.List[str] = []
-    city: typing.Optional[str] = None
-    state: typing.Optional[str] = None
+    line: typing.List[str] = pydantic.Field(default_factory=list,
+        description=(
+            "A list of street name, number, direction & P.O. Box etc., "
+            "the order in which lines should appear in an address label."
+        )
+    )
+    city: typing.Optional[str] = pydantic.Field(
+        default=None,
+        description="Name of city, town etc."
+    )
+    state: typing.Optional[str] = pydantic.Field(
+        default=None,
+        description="US State or abbreviation"
+    )
     postal_code: typing.Optional[str] = pydantic.Field(
         default=None,
         validation_alias=pydantic.AliasChoices(
             "postal_code", "postalcode", "postalCode", "zip_code", "zipcode", "zipCode", "zip"
         ),
+        description="Postal code for area"
     )
-    county: typing.Optional[str] = None
-    country: typing.Optional[str] = None
-    latitude: typing.Optional[float] = None
-    longitude: typing.Optional[float] = None
+    county: typing.Optional[str] = pydantic.Field(
+        default=None,
+        description="Name of county"
+    )
+    country: typing.Optional[str] = pydantic.Field(
+        default=None,
+        description="Name of country"
+    )
+    latitude: typing.Optional[float] = pydantic.Field(
+        default=None,
+        description="Latitude of address"
+    )
+    longitude: typing.Optional[float] = pydantic.Field(
+        default=None,
+        description="Longitude of address"
+    )
 
     @pydantic.field_validator("line", mode="before")
     def parse_line(cls, value: list[str]) -> list[str]:
