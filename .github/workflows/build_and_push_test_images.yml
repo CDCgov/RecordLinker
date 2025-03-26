@@ -1,4 +1,4 @@
-name: Build and push RL and database images on a monthly schedule
+name: Build and push database images on a monthly schedule
 
 on:
   schedule:
