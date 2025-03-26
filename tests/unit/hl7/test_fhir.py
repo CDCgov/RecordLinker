@@ -59,7 +59,7 @@ def test_fhir_record_to_pii_record():
             },
         ],
         "name": [{"family": "Shepard", "given": ["John"], "use": "official"}],
-        "birthDate": "2053-11-07",
+        "birthDate": "2013-11-07",
         "gender": "male",
         "address": [
             {
@@ -98,8 +98,21 @@ def test_fhir_record_to_pii_record():
                         "url": "ombCategory",
                         "valueCoding": {
                             "system": "urn:oid:2.16.840.1.113883.6.238",
-                            "code": "2106-3",
-                            "display": "White",
+                            "code": "2028-9",
+                            "display": "Asian",
+                        },
+                    }
+                ],
+            },
+            {
+                "url": "http://hl7.org/fhir/us/core/StructureDefinition/us-core-race",
+                "extension": [
+                    {
+                        "url": "ombCategory",
+                        "valueCoding": {
+                            "system": "urn:oid:2.16.840.1.113883.6.238",
+                            "code": "2054-5",
+                            "display": "Black or African American",
                         },
                     }
                 ],
@@ -112,7 +125,7 @@ def test_fhir_record_to_pii_record():
     assert pii_record.external_id == "f6a16ff7-4a31-11eb-be7b-8344edc8f36b"
     assert pii_record.name[0].family == "Shepard"
     assert pii_record.name[0].given == ["John"]
-    assert str(pii_record.birth_date) == "2053-11-07"
+    assert str(pii_record.birth_date) == "2013-11-07"
     assert str(pii_record.sex) == "M"
     assert pii_record.address[0].line == ["1234 Silversun Strip"]
     assert pii_record.address[0].city == "Boston"
@@ -121,7 +134,7 @@ def test_fhir_record_to_pii_record():
     assert pii_record.address[0].county == "county"
     assert pii_record.telecom[0].value == "123-456-7890"
     assert pii_record.telecom[0].system == "phone"
-    assert str(pii_record.race) == "WHITE"
+    assert [str(r) for r in pii_record.race] == ["ASIAN", "BLACK"]
 
     # identifiers
     assert pii_record.identifiers[0].value == "1234567890"

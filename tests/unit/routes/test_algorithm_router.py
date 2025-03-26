@@ -23,6 +23,8 @@ class TestListAlgorithms:
                 "description": "First algorithm",
                 "include_multiple_matches": True,
                 "belongingness_ratio": [1.0, 1.0],
+                "max_missing_allowed_proportion": 0.5,
+                "missing_field_points_proportion": 0.5,
                 "pass_count": 0,
             },
         ]
@@ -39,6 +41,8 @@ class TestGetAlgorithm:
             is_default=True,
             description="First algorithm",
             belongingness_ratio=(0.25, 0.5),
+            max_missing_allowed_proportion=0.5,
+            missing_field_points_proportion=0.5,
             passes=[
                 models.AlgorithmPass(
                     blocking_keys=[
@@ -66,6 +70,8 @@ class TestGetAlgorithm:
             "description": "First algorithm",
             "include_multiple_matches": True,
             "belongingness_ratio": [0.25, 0.5],
+            "max_missing_allowed_proportion": 0.5,
+            "missing_field_points_proportion": 0.5,
             "passes": [
                 {
                     "blocking_keys": ["BIRTHDATE"],
@@ -124,6 +130,8 @@ class TestCreateAlgorithm:
             "label": "created",
             "description": "Created algorithm",
             "belongingness_ratio": (0.25, 0.5),
+            "max_missing_allowed_proportion": 0.5,
+            "missing_field_points_proportion": 0.5,
             "passes": [
                 {
                     "blocking_keys": [
@@ -149,6 +157,8 @@ class TestCreateAlgorithm:
         assert algo.is_default is False
         assert algo.description == "Created algorithm"
         assert algo.belongingness_ratio == (0.25, 0.5)
+        assert algo.max_missing_allowed_proportion == 0.5
+        assert algo.missing_field_points_proportion == 0.5
         assert len(algo.passes) == 1
         assert algo.passes[0].blocking_keys == ["BIRTHDATE"]
         assert algo.passes[0].evaluators == [
@@ -167,6 +177,8 @@ class TestUpdateAlgorithm:
             "label": "bad",
             "description": "First algorithm",
             "belongingness_ratio": (1.0, 1.0),
+            "max_missing_allowed_proportion": 0.5,
+            "missing_field_points_proportion": 0.5,
             "passes": [],
         }
         response = client.put("/algorithm/unknown", json=payload)
@@ -206,6 +218,8 @@ class TestUpdateAlgorithm:
             "is_default": True,
             "description": "Updated algorithm",
             "belongingness_ratio": (0.25, 0.5),
+            "max_missing_allowed_proportion": 0.5,
+            "missing_field_points_proportion": 0.5,
             "passes": [
                 {
                     "blocking_keys": [
@@ -231,6 +245,8 @@ class TestUpdateAlgorithm:
         assert algo.is_default is True
         assert algo.description == "Updated algorithm"
         assert algo.belongingness_ratio == (0.25, 0.5)
+        assert algo.max_missing_allowed_proportion == 0.5
+        assert algo.missing_field_points_proportion == 0.5
         assert len(algo.passes) == 1
         assert algo.passes[0].blocking_keys == ["BIRTHDATE"]
         assert algo.passes[0].evaluators == [

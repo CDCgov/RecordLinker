@@ -33,7 +33,7 @@ def fhir_record_to_pii_record(fhir_record: dict) -> schemas.PIIRecord:
         "birthDate": fhir_record.get("birthDate"),
         "sex": fhir_record.get("gender"),
         "address": fhir_record.get("address", []),
-        "race": None,
+        "race": [],
         "telecom": fhir_record.get("telecom", []),
         "identifiers": [],
     }
@@ -61,7 +61,7 @@ def fhir_record_to_pii_record(fhir_record: dict) -> schemas.PIIRecord:
         if extension.get("url") == "http://hl7.org/fhir/us/core/StructureDefinition/us-core-race":
             for ext in extension.get("extension", []):
                 if ext.get("url") == "ombCategory":
-                    val["race"] = ext.get("valueCoding", {}).get("display")
+                    val["race"].append(ext.get("valueCoding", {}).get("display"))
 
     return schemas.PIIRecord(**val)
 

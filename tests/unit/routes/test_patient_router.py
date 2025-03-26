@@ -164,7 +164,7 @@ class TestGetPatient:
                     {"family": "Doe", "given": ["John"], "use": None, "prefix": [], "suffix": []}
                 ],
                 "telecom": [],
-                "race": None,
+                "race": [],
                 "identifiers": [],
             },
             "external_patient_id": "123",
