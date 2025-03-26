@@ -99,6 +99,21 @@ class TestCreateAlgorithm:
             "label": "advanced",
             "is_default": True,
             "description": "Advanced algorithm",
+            "belongingness_ratio": (0.25, 0.5),
+            "passes": [],
+        }
+        response = client.post("/algorithm", json=payload)
+        assert response.status_code == 422
+
+    def test_existing_label(self, client):
+        algo = models.Algorithm(label="first", description="First algorithm")
+        client.session.add(algo)
+        client.session.commit()
+
+        payload = {
+            "label": "first",
+            "belongingness_ratio": (0.25, 0.5),
+            "description": "Second algorithm",
             "passes": [],
         }
         response = client.post("/algorithm", json=payload)
