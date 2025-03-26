@@ -66,6 +66,7 @@ class AvailableKwarg(enum.Enum):
     THRESHOLDS = "thresholds"
     LOG_ODDS = "log_odds"
     TRUE_MATCH_THRESHOLD = "true_match_threshold"
+    COMPARE_MINIMUM_PERCENTAGE = "compare_minimum_percentage"
 
 
 def _get_fuzzy_params(col: str, **kwargs) -> tuple[SIMILARITY_MEASURES, float]:
