@@ -143,6 +143,8 @@ def link_record_against_mpi(
     # proportions for missingness calculation: points awarded, and max allowed
     missing_field_points_proportion = algorithm.missing_field_points_proportion
     max_missing_allowed_proportion = algorithm.max_missing_allowed_proportion
+    # create a new GetBlockData object to use for blocking
+    blocker = mpi_service.GetBlockData()
     # initialize counters to track evaluation results to log
     result_counts: dict[str, int] = {
         "persons_compared": 0,
@@ -165,7 +167,6 @@ def link_record_against_mpi(
             with TRACER.start_as_current_span("link.block"):
                 # get all candidate Patient records identified in blocking
                 # and the remaining Patient records in their Person clusters
-                blocker = mpi_service.GetBlockData()
                 pats = blocker(session, record, algorithm_pass, max_missing_allowed_proportion)
                 for pat in pats:
                     clusters[pat.person].append(pat)
