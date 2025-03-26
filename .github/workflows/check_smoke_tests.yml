@@ -1,9 +1,10 @@
 name: check smoke tests
 
 on:
-  workflow_run:
-    workflows: ["Build RL Docker Image and Cache"]
-    types: [completed]
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
 
 jobs:
   smoke_tests:
