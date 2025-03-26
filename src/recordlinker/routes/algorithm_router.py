@@ -9,8 +9,8 @@ the algorithm configuration API endpoints.
 import typing
 
 import fastapi
-import sqlalchemy.orm as orm
 import sqlalchemy.exc as sqlexc
+import sqlalchemy.orm as orm
 
 from recordlinker import schemas
 from recordlinker.database import algorithm_service as service
