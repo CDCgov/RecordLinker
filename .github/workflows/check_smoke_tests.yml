@@ -24,6 +24,7 @@ jobs:
 
       mysql:
         image: ghcr.io/cdcgov/recordlinker/mysql:8
+        ports:
           - 3306:3306
         env:
           MYSQL_ROOT_PASSWORD: pw
