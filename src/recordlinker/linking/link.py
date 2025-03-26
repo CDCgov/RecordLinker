@@ -166,7 +166,7 @@ def link_record_against_mpi(
                 # get all candidate Patient records identified in blocking
                 # and the remaining Patient records in their Person clusters
                 blocker = mpi_service.GetBlockData()
-                pats = blocker(session, record, algorithm_pass)
+                pats = blocker(session, record, algorithm_pass, max_missing_allowed_proportion)
                 for pat in pats:
                     clusters[pat.person].append(pat)
 

@@ -22,14 +22,14 @@ LOGGER = logging.getLogger(__name__)
 
 
 class GetBlockData:
-    def _reset(self, kwargs: dict[str, typing.Any]) -> None:
+    def _reset(self, max_missing_allowed_proportion: float) -> None:
         """
         Reset the state of the class
 
-        :param kwargs: dict
+        :param max_missing_allowed_proportion: float
         :return: None
         """
-        self.kwargs: dict[str, typing.Any] = kwargs
+        self.max_missing_allowed_proportion: float = max_missing_allowed_proportion
         # Create a list of tuples of (BlockingKey, log_odds, has_value)
         # to use when building the query, this will let us know when we have
         # too many missing values and need to abort the query
@@ -45,17 +45,16 @@ class GetBlockData:
 
         :return: bool
         """
-        minimum_percentage = self.kwargs.get("compare_minimum_percentage", 1.0)
         details: dict[str, float] = {
             "missing_blocking_odds": self.missing_odds,
             "total_blocking_odds": self.total_odds,
-            "minimum_percentage": minimum_percentage,
+            "max_missing_allowed_proportion": self.max_missing_allowed_proportion,
         }
         if self.total_odds == 0 and any(not v for v in self.blocking_values.values()):
             # No log odds were specified and we had at least 1 missing blocking key
             LOGGER.info("skipping blocking query: no log odds", extra=details)
             return True
-        if self.total_odds and (self.missing_odds / self.total_odds) > (1-minimum_percentage):
+        if self.total_odds and (self.missing_odds / self.total_odds) > self.max_missing_allowed_proportion:
             # The log odds for the missing blocking keys were above the minimum threshold
             LOGGER.info("skipping blocking query: log odds too low", extra=details)
             return True
@@ -97,8 +96,10 @@ class GetBlockData:
         # and no true-value agreement, we exclude
         return agree_count == len(self.blocking_values)
 
+    # FIXME: after kwargs refactor, remove max_missing_allowed_proportion parameter
     def __call__(
-        self, session: orm.Session, record: schemas.PIIRecord, algorithm_pass: models.AlgorithmPass
+        self, session: orm.Session, record: schemas.PIIRecord, algorithm_pass: models.AlgorithmPass,
+        max_missing_allowed_proportion: float
     ) -> typing.Sequence[models.Patient]:
         """
         Get all of the matching Patients for the given data using the provided
@@ -109,6 +110,7 @@ class GetBlockData:
         :param session: The database session
         :param record: The PIIRecord to match
         :param algorithm_pass: The AlgorithmPass to use
+        :param max_missing_allowed_proportion: The maximum proportion of missing values allowed
         :return: The matching Patients
         """
         # Create the base query
@@ -117,7 +119,7 @@ class GetBlockData:
         kwargs: dict[str, typing.Any] = algorithm_pass.kwargs or {}
 
         # Reset state before running
-        self._reset(kwargs)
+        self._reset(max_missing_allowed_proportion)
         # Calculate the total possible log odds
         for key_id in algorithm_pass.blocking_keys:
             self.total_odds += kwargs.get("log_odds", {}).get(key_id, 0.0)

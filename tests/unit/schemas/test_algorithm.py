@@ -114,7 +114,6 @@ class TestAlgorithmPass:
                 "threshold": 0.9,
                 "log_odds": {"CITY": 12.0, "ADDRESS": 15.0},
                 "true_match_threshold": 0.8,
-                "compare_minimum_percentage": 0.7,
             },
         )
 
