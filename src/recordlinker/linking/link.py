@@ -169,7 +169,7 @@ def compare(
     return rule_result
 
 
-def grade_rms(rms: float, mmt: float, cmt: float) -> str:
+def grade_rms(rms: float, mmt: float, cmt: float) -> schemas.MatchGrade:
     """
     Helper function to assign a match-grade (derived from FHIR spec terminology)
     to a linkage result based on whether the result's match strength falls in 
