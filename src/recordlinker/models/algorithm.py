@@ -35,27 +35,11 @@ class Algorithm(Base):
     label: orm.Mapped[str] = orm.mapped_column(sqltypes.String(255), unique=True)
     description: orm.Mapped[str] = orm.mapped_column(sqltypes.Text(), nullable=True)
     include_multiple_matches: orm.Mapped[bool] = orm.mapped_column(sqltypes.Boolean, default=True)
-    belongingness_ratio_lower_bound: orm.Mapped[float] = orm.mapped_column(sqltypes.Float, default=1.0)
-    belongingness_ratio_upper_bound: orm.Mapped[float] = orm.mapped_column(sqltypes.Float, default=1.0)
     passes: orm.Mapped[list["AlgorithmPass"]] = orm.relationship(
         back_populates="algorithm", cascade="all, delete-orphan"
     )
     max_missing_allowed_proportion: orm.Mapped[float] = orm.mapped_column(sqltypes.Float, default=0.5)
     missing_field_points_proportion: orm.Mapped[float] = orm.mapped_column(sqltypes.Float, default=0.5)
-
-    @property
-    def belongingness_ratio(self) -> tuple[float, float]:
-        """
-        Get the Belongingness Ratio Threshold Range for this algorithm pass.
-        """
-        return (self.belongingness_ratio_lower_bound, self.belongingness_ratio_upper_bound)
-
-    @belongingness_ratio.setter  # type: ignore
-    def belongingness_ratio(self, value: tuple[float, float]):
-        """
-        Set the Belongingess Ratio for this algorithm pass.
-        """
-        self.belongingness_ratio_lower_bound, self.belongingness_ratio_upper_bound = value
 
     @classmethod
     def from_dict(cls, **data: dict) -> "Algorithm":
@@ -110,9 +94,27 @@ class AlgorithmPass(Base):
     )
     algorithm: orm.Mapped["Algorithm"] = orm.relationship(back_populates="passes")
     blocking_keys: orm.Mapped[list[str]] = orm.mapped_column(sqltypes.JSON)
+    minimum_match_threshold: orm.Mapped[float] = orm.mapped_column(sqltypes.Float, default=1.0)
+    certain_match_threshold: orm.Mapped[float] = orm.mapped_column(sqltypes.Float, default=1.0)
     _evaluators: orm.Mapped[list[dict]] = orm.mapped_column("evaluators", sqltypes.JSON)
     _rule: orm.Mapped[str] = orm.mapped_column("rule", sqltypes.String(255))
     kwargs: orm.Mapped[dict] = orm.mapped_column(sqltypes.JSON, default=dict)
+
+    @property
+    def possible_match_window(self) -> tuple[float, float]:
+        """
+        Get the Possible Match Window for this algorithm pass.
+        """
+        return (self.minimum_match_threshold, self.certain_match_threshold)
+
+    @possible_match_window.setter  # type: ignore
+    def possible_match_window(self, value: tuple[float, float]):
+        """
+        Set the Possible Match Window for this algorithm pass. The Possible Match Window
+        is made up of the interval between the Minimum Match Threshold and the Certain
+        Match Threshold.
+        """
+        self.minimum_match_threshold, self.certain_match_threshold = value
 
     @property
     def evaluators(self) -> list[dict]:

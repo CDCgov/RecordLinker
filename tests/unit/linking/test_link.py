@@ -19,7 +19,7 @@ from recordlinker.linking import link
 
 
 class TestCompare:
-    def test_compare_match(self):
+    def test_compare_match_worthy_score(self):
         rec = schemas.PIIRecord(
             **{
                 "name": [
@@ -60,13 +60,14 @@ class TestCompare:
             algorithm_id=1,
             blocking_keys=[1],
             evaluators=evaluators,
-            rule="func:recordlinker.linking.matchers.rule_probabilistic_match",
-            kwargs={"log_odds": log_odds, "true_match_threshold": 12},
+            rule="func:recordlinker.linking.matchers.rule_probabilistic_sum",
+            possible_match_window=(0.8, 0.925),
+            kwargs={"log_odds": log_odds},
         )
 
-        assert link.compare(rec, pat, max_points, max_allowed_missingness_proportion, missing_field_points_proportion, algorithm_pass, log_odds) is True
+        assert round(link.compare(rec, pat, max_points, max_allowed_missingness_proportion, missing_field_points_proportion, algorithm_pass, log_odds), 3) == 12.830
 
-    def test_compare_no_match(self):
+    def test_compare_non_match_worthy_score(self):
         rec = schemas.PIIRecord(
             **{
                 "name": [
@@ -84,9 +85,9 @@ class TestCompare:
                 "name": [
                     {
                         "given": [
-                            "John",
+                            "Jan",
                         ],
-                        "family": "Doey",
+                        "family": "Dortmunder",
                     }
                 ]
             }
@@ -105,11 +106,12 @@ class TestCompare:
             algorithm_id=1,
             blocking_keys=[1],
             evaluators=evaluators,
-            rule="func:recordlinker.linking.matchers.rule_probabilistic_match",
-            kwargs={"log_odds": log_odds, "true_match_threshold": 12.95},
+            rule="func:recordlinker.linking.matchers.rule_probabilistic_sum",
+            possible_match_window=(0.8, 0.925),
+            kwargs={"log_odds": log_odds},
         )
 
-        assert link.compare(rec, pat, max_points, max_allowed_missingness_proportion, missing_field_points_proportion, algorithm_pass, log_odds) is False
+        assert round(link.compare(rec, pat, max_points, max_allowed_missingness_proportion, missing_field_points_proportion, algorithm_pass, log_odds), 3) == 5.137
 
     def test_compare_identifier_match(self):
         rec = schemas.PIIRecord(
@@ -159,11 +161,12 @@ class TestCompare:
             algorithm_id=1,
             blocking_keys=[1],
             evaluators=evaluators,
-            rule="func:recordlinker.linking.matchers.rule_probabilistic_match",
-            kwargs={"log_odds": log_odds, "true_match_threshold": 0.3},
+            rule="func:recordlinker.linking.matchers.rule_probabilistic_sum",
+            possible_match_window=(0.8, 0.925),
+            kwargs={"log_odds": log_odds},
         )
 
-        assert link.compare(rec, pat, max_points, max_allowed_missingness_proportion, missing_field_points_proportion, algorithm_pass, log_odds) is True
+        assert link.compare(rec, pat, max_points, max_allowed_missingness_proportion, missing_field_points_proportion, algorithm_pass, log_odds) == algorithm_pass.kwargs["log_odds"]["IDENTIFIER"]
 
     def test_compare_identifier_with_suffix(self):
         rec = schemas.PIIRecord(
@@ -213,16 +216,17 @@ class TestCompare:
             algorithm_id=1,
             blocking_keys=[1],
             evaluators=evaluators,
-            rule="func:recordlinker.linking.matchers.rule_probabilistic_match",
-            kwargs={"log_odds": log_odds, "true_match_threshold": 0.3},
+            rule="func:recordlinker.linking.matchers.rule_probabilistic_sum",
+            possible_match_window=(0.8, 0.925),
+            kwargs={"log_odds": log_odds},
         )
 
         #should pass as MR is the same for both
-        assert link.compare(rec, pat, max_points, max_allowed_missingness_proportion, missing_field_points_proportion, algorithm_pass, log_odds) is True
+        assert link.compare(rec, pat, max_points, max_allowed_missingness_proportion, missing_field_points_proportion, algorithm_pass, log_odds) == algorithm_pass.kwargs["log_odds"]["IDENTIFIER"]
 
         algorithm_pass.evaluators = [{"feature": "IDENTIFIER:SS", "func": "func:recordlinker.linking.matchers.compare_probabilistic_fuzzy_match"}]
         #should fail as SS is different for both
-        assert link.compare(rec, pat, max_points, max_allowed_missingness_proportion, missing_field_points_proportion, algorithm_pass, log_odds) is False
+        assert link.compare(rec, pat, max_points, max_allowed_missingness_proportion, missing_field_points_proportion, algorithm_pass, log_odds) == 0.0
 
     def test_compare_invalid_feature(self):
         rec = schemas.PIIRecord(
@@ -257,7 +261,7 @@ class TestCompare:
             evaluators=[
                 {"feature": "FIRST_NAME:DL", "func": "func:recordlinker.linking.matchers.compare_probabilistic_fuzzy_match"},
             ],
-            rule="func:recordlinker.linking.matchers.rule_probabilistic_match",
+            rule="func:recordlinker.linking.matchers.rule_probabilistic_sum",
             kwargs={},
         )
 
@@ -313,10 +317,15 @@ class TestLinkRecordAgainstMpi:
 
     def test_default_match_two(self, session, default_algorithm, patients):
         matches: list[bool] = []
+        matching_passes: list[int] = []
         mapped_patients: dict[str, int] = collections.defaultdict(int)
         for data in patients:
             (_, person, results, _) = link.link_record_against_mpi(data, session, default_algorithm)
-            matches.append(bool(person and results))
+            made_match = bool(person and results)
+            matches.append(made_match)
+            if made_match:
+                matching_passes.append(results[0].pass_number)
+
             mapped_patients[person.reference_id] += 1
 
         # First patient inserted into empty MPI, no match
@@ -329,6 +338,7 @@ class TestLinkRecordAgainstMpi:
         # Sixth patient: fails blocking in first pass, blocks with fifth patient in second pass,
         # then matches on birthdate but fails on address, no match
         assert matches == [False, True, False, True, False, False]
+        assert matching_passes == [1, 2]
         assert sorted(list(mapped_patients.values())) == [1, 1, 1, 3]
 
     def test_default_match_three(self, session, default_algorithm, patients: list[schemas.PIIRecord]):
@@ -371,7 +381,7 @@ class TestLinkRecordAgainstMpi:
         patients.append(duplicate)
 
         # Test whether we can successfully make a match if info is missing
-        default_algorithm.passes[0].kwargs["true_match_threshold"] = 9.5
+        default_algorithm.passes[0].possible_match_window = [0.7, 0.75]
         matches: list[bool] = []
         mapped_patients: dict[str, int] = collections.defaultdict(int)
         for data in patients[:2]:
@@ -431,8 +441,8 @@ class TestLinkRecordAgainstMpi:
         # violates the user missingness constraint.
         default_algorithm.max_missing_allowed_proportion = 0.0
         default_algorithm.missing_field_points_proportion = 0.0
-        default_algorithm.passes[0].kwargs["true_match_threshold"] = 4.0
-        default_algorithm.passes[1].kwargs["true_match_threshold"] = 4.0
+        default_algorithm.passes[0].possible_match_window = [0.2, 0.3]
+        default_algorithm.passes[1].possible_match_window = [0.2, 0.3]
         matches: list[bool] = []
         mapped_patients: dict[str, int] = collections.defaultdict(int)
         for data in patients[:2]:
@@ -476,9 +486,9 @@ class TestLinkRecordAgainstMpi:
         }
         default_algorithm.max_missing_allowed_proportion = 0.2
         default_algorithm.missing_field_points_proportion = 0.7
-        default_algorithm.passes[0].kwargs["true_match_threshold"] = 8.5
+        default_algorithm.passes[0].possible_match_window = [0.7, 0.8]
         default_algorithm.passes[0].kwargs["log_odds"] = log_odds
-        default_algorithm.passes[1].kwargs["true_match_threshold"] = 8.5
+        default_algorithm.passes[1].possible_match_window = [0.7, 0.8]
         default_algorithm.passes[1].kwargs["log_odds"] = log_odds
         matches: list[bool] = []
         mapped_patients: dict[str, int] = collections.defaultdict(int)
@@ -498,25 +508,26 @@ class TestLinkRecordAgainstMpi:
             default_algorithm,
             possible_match_default_patients: list[schemas.PIIRecord]
         ):
-        predictions: dict[str, dict] = collections.defaultdict(dict)
-        # Decrease Belongingness Ratio lower bound to catch Possible Match when Belongingness Ratio = 0.5
-        for lower_bound in [0.5, 0.45]: # test >= lower bound
-            default_algorithm.belongingness_ratio_lower_bound = lower_bound
-            for i, data in enumerate(possible_match_default_patients):
-                (patient, person, results, prediction) = link.link_record_against_mpi(data, session, default_algorithm)
-                predictions[i] = {
-                    "patient": patient,
-                    "person": person,
-                    "results": results,
-                    "prediction": prediction
-                }
-            # 1 Possible Match
-            assert not predictions[2]["person"]
-            assert len(predictions[2]["results"]) == 1
-            assert predictions[2]["results"][0].person == predictions[0]["person"]
-            assert predictions[2]["results"][0].belongingness_ratio >= default_algorithm.belongingness_ratio_lower_bound
-            assert predictions[2]["results"][0].belongingness_ratio < default_algorithm.belongingness_ratio_upper_bound
-            assert predictions[2]["prediction"] == "possible_match"
+        match_grades: dict[str, dict] = collections.defaultdict(dict)
+        # Can just set the threshold for certainty higher to catch a possible match
+        default_algorithm.passes[0].certain_match_threshold = 0.95
+        for i, data in enumerate(possible_match_default_patients):
+            (patient, person, results, match_grade) = link.link_record_against_mpi(data, session, default_algorithm)
+            match_grades[i] = {
+                "patient": patient,
+                "person": person,
+                "results": results,
+                "match_grade": match_grade
+            }
+
+        # We'll have one match_grade of each type, matched in the order 
+        # certainly-not, certain, possible
+        assert match_grades[0]["match_grade"] == "certainly-not"
+        assert match_grades[1]["match_grade"] == "certain"
+        assert match_grades[2]["match_grade"] == "possible"
+        assert match_grades[2]["results"][0].person == match_grades[0]["person"]
+        assert match_grades[2]["results"][0].rms >= default_algorithm.passes[0].minimum_match_threshold
+        assert match_grades[2]["results"][0].rms < default_algorithm.passes[0].certain_match_threshold
 
     def test_include_multiple_matches_true(
             self,
@@ -524,25 +535,32 @@ class TestLinkRecordAgainstMpi:
             default_algorithm,
             multiple_matches_patients: list[schemas.PIIRecord]
         ):
-        predictions: dict[str, dict] = collections.defaultdict(dict)
-        # Adjust Belongingness Ratio bounds to catch Match when Belongingness Ratio = 0.5
-        default_algorithm.belongingness_ratio_lower_bound = 0.3
-        for upper_bound in [0.5, 0.45]: # test >= upper bound
-            default_algorithm.belongingness_ratio_upper_bound = upper_bound
-            for i, data in enumerate(multiple_matches_patients):
-                (patient, person, results, prediction) = link.link_record_against_mpi(data, session, default_algorithm)
-                predictions[i] = {
-                    "patient": patient,
-                    "person": person,
-                    "results": results,
-                    "prediction": prediction
-                }
-            # 2 Matches
-            assert len(predictions[3]["results"]) == 2
-            assert predictions[3]["person"] == predictions[1]["person"] # Assign to Person with highest Belongingness Ratio (1.0)
-            for match in predictions[2]["results"]:
-                assert match.belongingness_ratio >= default_algorithm.belongingness_ratio_upper_bound
-            assert predictions[3]["prediction"] == "match"
+        match_grades: dict[str, dict] = collections.defaultdict(dict)
+        for i, data in enumerate(multiple_matches_patients):
+            (patient, person, results, match_grade) = link.link_record_against_mpi(data, session, default_algorithm)
+            match_grades[i] = {
+                "patient": patient,
+                "person": person,
+                "results": results,
+                "match_grade": match_grade
+            }
+
+        # We'll have four match_grades: two 'certainly-not' followed by 
+        # two 'certain'
+        assert match_grades[0]["match_grade"] == "certainly-not"
+        assert match_grades[1]["match_grade"] == "certainly-not"
+        assert match_grades[2]["match_grade"] == "certain"
+        assert match_grades[3]["match_grade"] == "certain"
+
+        # The first 'certain' match is a 'Johnathan' matching to both a
+        # 'John' and a 'Jonathan' using different grades in different passes
+        assert len(match_grades[2]["results"]) == 2
+        for match in match_grades[2]["results"]:
+            assert match.rms >= match.cmt
+
+        # Since grades are the same, assign final match to one with higher RMS (1.0)
+        assert match_grades[2]["person"] == match_grades[0]["person"]
+        assert match_grades[2]["results"][0].rms == 1.0
 
     def test_include_multiple_matches_false(
             self,
@@ -550,46 +568,43 @@ class TestLinkRecordAgainstMpi:
             default_algorithm,
             multiple_matches_patients: list[schemas.PIIRecord]
         ):
-        predictions: dict[str, dict] = collections.defaultdict(dict)
+        match_grades: dict[str, dict] = collections.defaultdict(dict)
         default_algorithm.include_multiple_matches = False
-        # Adjust Belongingness Ratio bounds to catch Match when Belongingness Ratio = 0.5
-        default_algorithm.belongingness_ratio_lower_bound = 0.3
-        for upper_bound in [0.5, 0.45]: # test >= upper bound
-            default_algorithm.belongingness_ratio_upper_bound = upper_bound
-            for i, data in enumerate(multiple_matches_patients):
-                (patient, person, results, prediction) = link.link_record_against_mpi(data, session, default_algorithm)
-                predictions[i] = {
-                    "patient": patient,
-                    "person": person,
-                    "results": results,
-                    "prediction": prediction
-                }
-            # 2 Matches, but only include 1
-            assert len(predictions[3]["results"]) == 1
-            assert predictions[3]["person"] == predictions[1]["person"] # Assign to Person with highest Belongingness Ratio (1.0)
-            assert predictions[3]["results"][0].belongingness_ratio >= default_algorithm.belongingness_ratio_upper_bound
-            assert predictions[3]["prediction"] == "match"
+        for i, data in enumerate(multiple_matches_patients):
+            (patient, person, results, match_grade) = link.link_record_against_mpi(data, session, default_algorithm)
+            match_grades[i] = {
+                "patient": patient,
+                "person": person,
+                "results": results,
+                "match_grade": match_grade
+            }
+
+        # The match cases are as above, but we only include 1 result
+        assert len(match_grades[2]["results"]) == 1
+        assert match_grades[2]["match_grade"] == "certain"
+        assert match_grades[2]["results"][0].rms >= match_grades[2]["results"][0].cmt
+        assert match_grades[2]["person"] == match_grades[0]["person"]
 
     def test_no_persist(self, session, default_algorithm, patients):
         # First patient inserted into MPI, no match
         first = patients[0]
-        (pat1, per1, results, prediction) = link.link_record_against_mpi(first, session, default_algorithm, persist=True)
-        assert prediction == "no_match"
+        (pat1, per1, results, match_grade) = link.link_record_against_mpi(first, session, default_algorithm, persist=True)
+        assert match_grade == "certainly-not"
         assert pat1 is not None
         assert per1 is not None
         assert not results
         # Second patient not inserted into MPI, match first person
         second = patients[1]
-        (pat2, per2, results, prediction) = link.link_record_against_mpi(second, session, default_algorithm, persist=False)
-        assert prediction == "match"
+        (pat2, per2, results, match_grade) = link.link_record_against_mpi(second, session, default_algorithm, persist=False)
+        assert match_grade == "certain"
         assert pat2 is None
         assert per2 is not None
         assert per2.reference_id == per1.reference_id
         assert results
         # Third patient not inserted into MPI, no match
         third = patients[2]
-        (pat3, per3, results, prediction) = link.link_record_against_mpi(third, session, default_algorithm, persist=False)
-        assert prediction == "no_match"
+        (pat3, per3, results, match_grade) = link.link_record_against_mpi(third, session, default_algorithm, persist=False)
+        assert match_grade == "certainly-not"
         assert pat3 is None
         assert per3 is None
         assert not results

@@ -75,7 +75,7 @@ class TestLink:
             response_1.json()["patient_reference_id"]
         )
         assert person_1
-        assert response_1.json()["prediction"] == "no_match"
+        assert response_1.json()["match_grade"] == "certainly-not"
         assert not response_1.json()["results"]
 
         response_2 = client.post(
@@ -86,7 +86,7 @@ class TestLink:
             response_2.json()["patient_reference_id"]
         )
         assert person_2 == person_1
-        assert response_2.json()["prediction"] == "match"
+        assert response_2.json()["match_grade"] == "certain"
         assert len(response_2.json()["results"]) == 1
 
         response_3 = client.post(
@@ -97,7 +97,7 @@ class TestLink:
             response_3.json()["patient_reference_id"]
         )
         assert person_3
-        assert response_3.json()["prediction"] == "no_match"
+        assert response_3.json()["match_grade"] == "certainly-not"
         assert not response_3.json()["results"]
 
         # Cluster membership success--justified match
@@ -109,7 +109,7 @@ class TestLink:
             response_4.json()["patient_reference_id"]
         )
         assert person_4 == person_1
-        assert response_4.json()["prediction"] == "match"
+        assert response_4.json()["match_grade"] == "certain"
         assert len(response_2.json()["results"]) == 1
 
         response_5 = client.post(
@@ -120,7 +120,7 @@ class TestLink:
             response_5.json()["patient_reference_id"]
         )
         assert person_5
-        assert response_5.json()["prediction"] == "no_match"
+        assert response_5.json()["match_grade"] == "certainly-not"
         assert not response_3.json()["results"]
 
         response_6 = client.post(
@@ -131,7 +131,7 @@ class TestLink:
             response_6.json()["patient_reference_id"]
         )
         assert person_6
-        assert response_6.json()["prediction"] == "no_match"
+        assert response_6.json()["match_grade"] == "certainly-not"
         assert not response_6.json()["results"]
 
     @mock.patch("recordlinker.database.algorithm_service.get_algorithm")
@@ -211,7 +211,7 @@ class TestLinkFHIR:
             resp_1.json()["patient_reference_id"]
         )
         assert resp_1.json()["person_reference_id"] == person_1.get("id")
-        assert resp_1.json()["prediction"] == "no_match"
+        assert resp_1.json()["match_grade"] == "certainly-not"
         assert not resp_1.json()["results"]
 
         bundle_2 = test_bundle
@@ -228,7 +228,7 @@ class TestLinkFHIR:
         )
         assert resp_2.json()["person_reference_id"] == person_1.get("id")
         assert person_2.get("id") == person_1.get("id")
-        assert resp_2.json()["prediction"] == "match"
+        assert resp_2.json()["match_grade"] == "certain"
         assert len(resp_2.json()["results"]) == 1
 
         bundle_3 = test_bundle
@@ -244,7 +244,7 @@ class TestLinkFHIR:
             resp_3.json()["patient_reference_id"]
         )
         assert resp_3.json()["person_reference_id"] == person_3.get("id")
-        assert resp_3.json()["prediction"] == "no_match"
+        assert resp_3.json()["match_grade"] == "certainly-not"
         assert not resp_3.json()["results"]
 
         # Cluster membership success--justified match
@@ -262,7 +262,7 @@ class TestLinkFHIR:
         )
         assert resp_4.json()["person_reference_id"] == person_4.get("id")
         assert person_4.get("id") == person_1.get("id")
-        assert resp_4.json()["prediction"] == "match"
+        assert resp_4.json()["match_grade"] == "certain"
         assert len(resp_4.json()["results"]) == 1
 
         bundle_5 = test_bundle
@@ -278,7 +278,7 @@ class TestLinkFHIR:
             resp_5.json()["patient_reference_id"]
         )
         assert resp_5.json()["person_reference_id"] == person_5.get("id")
-        assert resp_5.json()["prediction"] == "no_match"
+        assert resp_5.json()["match_grade"] == "certainly-not"
         assert not resp_5.json()["results"]
 
         bundle_6 = test_bundle
@@ -294,7 +294,7 @@ class TestLinkFHIR:
             resp_6.json()["patient_reference_id"]
         )
         assert resp_6.json()["person_reference_id"] == person_6.get("id")
-        assert resp_6.json()["prediction"] == "no_match"
+        assert resp_6.json()["match_grade"] == "certainly-not"
         assert not resp_6.json()["results"]
 
     @mock.patch("recordlinker.database.algorithm_service.get_algorithm")
@@ -334,7 +334,7 @@ class TestMatch:
         resp = client.post("/match", json={"record": patients[0].to_dict(True)})
         assert resp.status_code == status.HTTP_200_OK
         payload = resp.json()
-        assert payload["prediction"] == "no_match"
+        assert payload["match_grade"] == "certainly-not"
         assert payload["person_reference_id"] is None
         assert payload["results"] == []
         assert payload.get("patient_reference_id") is None
@@ -348,7 +348,7 @@ class TestMatch:
         resp = client.post("/match", json={"record": patients[0].to_dict(True)})
         assert resp.status_code == status.HTTP_200_OK
         payload = resp.json()
-        assert payload["prediction"] == "match"
+        assert payload["match_grade"] == "certain"
         assert payload["person_reference_id"] == per1
         assert len(payload["results"]) == 1
         assert payload["results"][0]["person_reference_id"] == per1
@@ -376,7 +376,7 @@ class TestMatchFHIR:
         resp = client.post("/match/fhir", json={"bundle": patient_bundles[0]})
         assert resp.status_code == status.HTTP_200_OK
         payload = resp.json()
-        assert payload["prediction"] == "no_match"
+        assert payload["match_grade"] == "certainly-not"
         assert payload["person_reference_id"] is None
         assert payload["results"] == []
         assert payload.get("patient_reference_id") is None
@@ -391,7 +391,7 @@ class TestMatchFHIR:
         resp = client.post("/match/fhir", json={"bundle": patient_bundles[0]})
         assert resp.status_code == status.HTTP_200_OK
         payload = resp.json()
-        assert payload["prediction"] == "match"
+        assert payload["match_grade"] == "certain"
         assert payload["person_reference_id"] == per1
         assert len(payload["results"]) == 1
         assert payload["results"][0]["person_reference_id"] == per1
