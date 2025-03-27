@@ -45,7 +45,7 @@ class LinkResult:
     rms: float
     mmt: float
     cmt: float
-    grade: str
+    grade: schemas.MatchGrade
 
     def _update_score_tracking_row(
             self, earned_points, pass_num, rms, mmt, cmt, grade
@@ -347,10 +347,10 @@ def link_record_against_mpi(
     reference_range: str = "n/a"
     if final_grade == "certain":
         best_score_str = str(certain_results[0].rms)
-        reference_range = "(" + str(certain_results[0].mmt) + ", " + str(certain_results[0].cmt) + ")"
+        reference_range = f"({certain_results[0].mmt}, {certain_results[0].cmt})"
     elif final_grade == "possible":
         best_score_str = str(results[0].rms)
-        reference_range = "(" + str(results[0].mmt) + ", " + str(results[0].cmt) + ")"
+        reference_range = f"({results[0].mmt}, {results[0].cmt})"
     LOGGER.info(
         "final linkage results",
         extra={
