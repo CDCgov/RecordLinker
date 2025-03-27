@@ -29,11 +29,13 @@ services:
       args:
         ENVIRONMENT: dev
         PORT: 8080
+        WEBAPP_PORT: 3000
         USE_OTEL: ${USE_OTEL:-true}
         USE_MSSQL: ${USE_MSSQL:-false}
         LOG_CONFIG: ""
     ports:
         - "8080:8080"
+        - "3000:3000"
     environment:
       DB_URI: "postgresql+psycopg2://postgres:pw@db:5432/postgres"
       TEST_DB_URI: "sqlite:///:memory:"

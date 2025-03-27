@@ -76,3 +76,13 @@ __pycache__/
 
 # Test result files
 output.csv
+
+#webapp
+apps/webapp/.next
+apps/webapp/node_modules
+apps/webapp/coverage
+apps/webapp/build
+apps/webapp/npm-debug.log*
+apps/webapp/.env*
+apps/webapp/*.tsbuildinfo
+apps/webapp/next-env.d.ts

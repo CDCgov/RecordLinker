@@ -10,6 +10,7 @@ ENV ENVIRONMENT=${ENVIRONMENT}
 # Set the port variable to 8080 by default
 ARG PORT=8080
 ENV PORT=${PORT}
+
 # Set the USE_MSSQL env variable to true to enable SQL Server support
 ARG USE_MSSQL=true
 ENV USE_MSSQL=${USE_MSSQL}
@@ -55,9 +56,37 @@ COPY README.md /code/README.md
 
 EXPOSE ${PORT}
 
+# Web application - Record Linker user interface
+
+# Set the port variable to 3000 by default
+ARG WEBAPP_PORT=3000
+ENV WEBAPP_PORT=${WEBAPP_PORT}
+
+# Install Node.js and npm
+RUN apt-get update && apt-get install -y nodejs npm
+
+# Verify installations
+RUN node -v && npm -v
+
+# Install dependencies for webapp
+RUN mkdir -p /code/webapp
+COPY ./apps/webapp /code/webapp
+WORKDIR /code/webapp
+RUN npm install --legacy-peer-deps
+
+# Build and deploy webapp
+RUN npm run build
+
+EXPOSE ${WEBAPP_PORT}
+
+WORKDIR /code
+
 # Create an entrypoint script
 RUN echo '#!/bin/sh' > /entrypoint.sh && \
     echo 'exec uvicorn recordlinker.main:app --app-dir src --host 0 --port "$PORT"' >> /entrypoint.sh && \
     chmod +x /entrypoint.sh
 
+RUN cat /entrypoint.sh
+
+# add the  command to start the web application here 
 ENTRYPOINT ["/entrypoint.sh"]
