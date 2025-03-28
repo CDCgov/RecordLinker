@@ -36,8 +36,6 @@ app = fastapi.FastAPI(
     """.strip(),
 )
 
-#app.mount("/static", StaticFiles(directory="static"), name="static")
-
 app.add_middleware(middleware.CorrelationIdMiddleware)
 app.add_middleware(middleware.AccessLogMiddleware)
 
