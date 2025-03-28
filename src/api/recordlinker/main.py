@@ -82,5 +82,3 @@ app.include_router(algorithm_router, prefix="/algorithm", tags=["algorithm"])
 app.include_router(person_router, prefix="/person", tags=["mpi"])
 app.include_router(patient_router, prefix="/patient", tags=["mpi"])
 app.include_router(seed_router, prefix="/seed", tags=["mpi"])
-
-app.mount("/ui", StaticFiles(directory="wwwroot"), name="ui")

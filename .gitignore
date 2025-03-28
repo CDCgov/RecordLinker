@@ -78,6 +78,7 @@ __pycache__/
 output.csv
 
 #ui
+.next
 src/ui/.next
 src/ui/node_modules
 src/ui/coverage

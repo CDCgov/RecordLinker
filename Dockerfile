@@ -36,8 +36,7 @@ RUN if [ "$USE_MSSQL" = "true" ]; then \
 
 WORKDIR /code
 # Initialize the recordlinker directory
-RUN mkdir -p /code/api/recordlinker
-RUN mkdir -p /code/api/recordlinker/wwwroot
+RUN mkdir -p /code/src/api/recordlinker
 
 # Copy over just the pyproject.toml file and install the dependencies doing this
 # before copying the rest of the code allows for caching of the dependencies
@@ -60,7 +59,7 @@ EXPOSE ${PORT}
 # Web application - Record Linker user interface
 
 # Install Node.js and npm (will get removed after setting up docker steps)
-RUN apt-get update && apt-get install -y nodejs npm
+RUN apt-get install -y nodejs npm
 RUN node -v && npm -v
 
 # Install dependencies for webapp
@@ -81,7 +80,7 @@ WORKDIR /code/api
 
 # Create an entrypoint script
 RUN echo '#!/bin/sh' > /entrypoint.sh && \
-    echo 'exec uvicorn recordlinker.main:app --app-dir apps --host 0 --port "$PORT"' >> /entrypoint.sh && \
+    echo 'exec uvicorn recordlinker.main:app --app-dir api --host 0 --port "$PORT"' >> /entrypoint.sh && \
     chmod +x /entrypoint.sh
 
 # add the  command to start the web application here 
