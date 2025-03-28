@@ -41,7 +41,7 @@ def compare(
     max_allowed_missingness_proportion: float,
     missing_field_points_proportion: float,
     algorithm_pass: models.AlgorithmPass,
-    log_odds_weights: dict[str, float]
+    log_odds_weights: dict[str, float],
 ) -> bool:
     """
     Compare the incoming record to the linked patient and return the calculated
@@ -50,7 +50,7 @@ def compare(
     the potential match candidacy of the linked patient.
 
     :param record: The new, incoming record, as a PIIRecord data type.
-    :param patient: A candidate record returned by blocking from the MPI, whose 
+    :param patient: A candidate record returned by blocking from the MPI, whose
       match quality the function call will evaluate.
     :param max_log_odds_points: The maximum available log odds points that can be
       accumulated by a candidate pair during this pass of the algorithm.
@@ -60,12 +60,12 @@ def compare(
       that a field missing data will earn during comparison (i.e. a fraction of
       its regular log-odds weight value).
     :algorithm_pass: A data structure containing information about the pass of
-      the algorithm in which this comparison is being run. Holds information 
+      the algorithm in which this comparison is being run. Holds information
       like which fields to evaluate and how to total log-odds points.
     :param log_odds_weights: A dictionary mapping Field names to float values,
       which are the precomputed log-odds weights associated with that field.
     :returns: A boolean indicating whether the incoming record and the supplied
-      candidate are a match, as determined by the specific matching rule 
+      candidate are a match, as determined by the specific matching rule
       contained in the algorithm_pass object.
     """
     # all the functions used for comparison
@@ -83,8 +83,8 @@ def compare(
         feature = schemas.Feature.parse(e.feature)
         if feature is None:
             raise ValueError(f"Invalid comparison field: {e.feature}")
-        
-        # Evaluate the comparison function, track missingness, and append the 
+
+        # Evaluate the comparison function, track missingness, and append the
         # score component to the list
         result: tuple[float, bool] = e.func(
             record, patient, feature, missing_field_points_proportion, **kwargs
@@ -143,8 +143,6 @@ def link_record_against_mpi(
     # proportions for missingness calculation: points awarded, and max allowed
     missing_field_points_proportion = algorithm.missing_field_points_proportion
     max_missing_allowed_proportion = algorithm.max_missing_allowed_proportion
-    # create a new GetBlockData object to use for blocking
-    blocker = mpi_service.GetBlockData()
     # initialize counters to track evaluation results to log
     result_counts: dict[str, int] = {
         "persons_compared": 0,
@@ -154,7 +152,6 @@ def link_record_against_mpi(
     }
     for algorithm_pass in algorithm.passes:
         with TRACER.start_as_current_span("link.pass"):
-
             # Determine the maximum possible number of log-odds points in this pass
             evaluators: list[str] = [e["feature"] for e in algorithm_pass.evaluators]
             log_odds_points = algorithm_pass.kwargs["log_odds"]
@@ -167,7 +164,9 @@ def link_record_against_mpi(
             with TRACER.start_as_current_span("link.block"):
                 # get all candidate Patient records identified in blocking
                 # and the remaining Patient records in their Person clusters
-                pats = blocker(session, record, algorithm_pass, max_missing_allowed_proportion)
+                pats = mpi_service.BlockData.get(
+                    session, record, algorithm_pass, max_missing_allowed_proportion
+                )
                 for pat in pats:
                     clusters[pat.person].append(pat)
 
@@ -180,14 +179,14 @@ def link_record_against_mpi(
                         # increment our match count if the pii_record matches the patient
                         with TRACER.start_as_current_span("link.compare"):
                             if compare(
-                                    record,
-                                    pat,
-                                    max_points,
-                                    max_missing_allowed_proportion,
-                                    missing_field_points_proportion,
-                                    algorithm_pass,
-                                    log_odds_points
-                                ):
+                                record,
+                                pat,
+                                max_points,
+                                max_missing_allowed_proportion,
+                                missing_field_points_proportion,
+                                algorithm_pass,
+                                log_odds_points,
+                            ):
                                 matched_count += 1
                     result_counts["persons_compared"] += 1
                     result_counts["patients_compared"] += len(pats)

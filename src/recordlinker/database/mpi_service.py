@@ -21,47 +21,49 @@ from recordlinker import schemas
 LOGGER = logging.getLogger(__name__)
 
 
-class GetBlockData:
-    def _reset(self, max_missing_allowed_proportion: float) -> None:
+class BlockData:
+    @classmethod
+    def _ordered_odds(cls, key_ids: list[str], kwargs: typing.Any) -> dict[str, float]:
         """
-        Reset the state of the class
+        Return a dictionary of key_ids ordered by log_odds values from highest to lowest.
 
-        :param max_missing_allowed_proportion: float
-        :return: None
+        :param key_ids: list[str]
+        :param kwargs: typing.Any
+        :return: dict[str, float]
         """
-        self.max_missing_allowed_proportion: float = max_missing_allowed_proportion
-        # Create a list of tuples of (BlockingKey, log_odds, has_value)
-        # to use when building the query, this will let us know when we have
-        # too many missing values and need to abort the query
-        self.total_odds: float = 0
-        self.missing_odds: float = 0
-        self.blocking_values: dict[models.BlockingKey, list[str]] = {}
+        result: dict[str, float] = {k: kwargs.get("log_odds", {}).get(k, 0.0) for k in key_ids}
+        return dict(sorted(result.items(), key=lambda item: item[1], reverse=True))
 
-    def _should_continue_blocking(self) -> bool:
+    @classmethod
+    def _should_continue_blocking(
+        cls, total_odds: float, missing_odds: float, max_missing_allowed_proportion: float
+    ) -> bool:
         """
         Analyze the log odds of the blocking keys found in the query.  If the number of
-        points missing is above the maximum allowed or no log odds were specified and
-        some blocking values are missing, return False to indicate this blocking
-        query should be skipped.
+        points missing is above the maximum allowed or no log odds were specified, return
+        False to indicate this blocking query should be skipped.
 
+        :param total_odds: float
+        :param missing_odds: float
+        :param max_missing_allowed_proportion: float
         :return: bool
         """
-        details: dict[str, float] = {
-            "missing_blocking_odds": self.missing_odds,
-            "total_blocking_odds": self.total_odds,
-            "max_missing_allowed_proportion": self.max_missing_allowed_proportion,
-        }
-        if self.total_odds == 0 and any(not v for v in self.blocking_values.values()):
-            # No log odds were specified and we had at least 1 missing blocking key
-            LOGGER.info("skipping blocking query: no log odds", extra=details)
+        if total_odds == 0:
+            # No log odds were specified
+            fn_params={k: v for k, v in locals().items() if k != "cls"}
+            LOGGER.info("skipping blocking query: no log odds", extra=fn_params)
             return False
-        if self.total_odds and (self.missing_odds / self.total_odds) > self.max_missing_allowed_proportion:
+        if total_odds and (missing_odds / total_odds) > max_missing_allowed_proportion:
             # The log odds for the missing blocking keys were above the minimum threshold
-            LOGGER.info("skipping blocking query: log odds too low", extra=details)
+            fn_params={k: v for k, v in locals().items() if k != "cls"}
+            LOGGER.info("skipping blocking query: log odds too low", extra=fn_params)
             return False
         return True
 
-    def _filter_incorrect_match(self, patient: models.Patient) -> bool:
+    @classmethod
+    def _filter_incorrect_match(
+        cls, patient: models.Patient, blocking_values: dict[models.BlockingKey, list[str]]
+    ) -> bool:
         """
         Filter out patient records that have conflicting blocking values with the incoming
         record.  If either record is missing values for a blocking key, we can ignore,
@@ -69,10 +71,11 @@ class GetBlockData:
         the values.  Return False if the records are not in agreement.
 
         :param patient: models.Patient
+        :param blocking_values: dict
         :return: bool
         """
         agree_count = 0
-        for key, incoming_vals in self.blocking_values.items():
+        for key, incoming_vals in blocking_values.items():
             if not incoming_vals:
                 # The incoming record has no value for this blocking key, thus there
                 # is no reason to compare.  We can increment the counter to indicate
@@ -95,12 +98,16 @@ class GetBlockData:
 
         # If we get through all the blocking criteria with no missing entries
         # and no true-value agreement, we exclude
-        return agree_count == len(self.blocking_values)
+        return agree_count == len(blocking_values)
 
     # FIXME: after kwargs refactor, remove max_missing_allowed_proportion parameter
-    def __call__(
-        self, session: orm.Session, record: schemas.PIIRecord, algorithm_pass: models.AlgorithmPass,
-        max_missing_allowed_proportion: float
+    @classmethod
+    def get(
+        cls,
+        session: orm.Session,
+        record: schemas.PIIRecord,
+        algorithm_pass: models.AlgorithmPass,
+        max_missing_allowed_proportion: float,
     ) -> typing.Sequence[models.Patient]:
         """
         Get all of the matching Patients for the given data using the provided
@@ -118,29 +125,31 @@ class GetBlockData:
         base: expression.Select = expression.select(models.Patient.person_id).distinct()
         # Get the pass kwargs or create an empty dict
         kwargs: dict[str, typing.Any] = algorithm_pass.kwargs or {}
-
-        # Reset state before running
-        self._reset(max_missing_allowed_proportion)
-        # Calculate the total possible log odds
-        for key_id in algorithm_pass.blocking_keys:
-            self.total_odds += kwargs.get("log_odds", {}).get(key_id, 0.0)
+        # Get an ordered dict of blocking keys and their log odds
+        key_odds = cls._ordered_odds(algorithm_pass.blocking_keys, kwargs)
+        # Total log odds from all blocking keys
+        total_odds = sum(key_odds.values())
+        # Total log odds for keys with missing values
+        missing_odds: float = 0
+        # Blocking key values
+        blocking_values: dict[models.BlockingKey, list[str]] = {}
         # Build the join criteria, we are joining the Blocking Value table
         # multiple times, once for each Blocking Key.  If a Patient record
         # has a matching Blocking Value for all the Blocking Keys, then it
         # is considered a match.
-        for idx, key_id in enumerate(algorithm_pass.blocking_keys):
+        for idx, (key_id, log_odds) in enumerate(key_odds.items()):
             # get the BlockingKey obj from the id
             if not hasattr(models.BlockingKey, key_id):
                 raise ValueError(f"No BlockingKey with id {id} found.")
             key = getattr(models.BlockingKey, key_id)
-            # Get the log odds value for the key
-            log_odds: float = kwargs.get("log_odds", {}).get(key_id, 0.0)
             # Get all the possible values from the data for this key
-            self.blocking_values[key] = [v for v in record.blocking_keys(key)]
-            if not self.blocking_values[key]:
+            blocking_values[key] = [v for v in record.blocking_keys(key)]
+            if not blocking_values[key]:
                 # Add the missing log odds to the total and check if we should abort
-                self.missing_odds += log_odds
-                if not self._should_continue_blocking():
+                missing_odds += log_odds
+                if not cls._should_continue_blocking(
+                    total_odds, missing_odds, max_missing_allowed_proportion
+                ):
                     return []
                 # This key doesn't have values, skip the joining query
                 continue
@@ -156,7 +165,7 @@ class GetBlockData:
                 expression.and_(
                     models.Patient.id == alias.patient_id,
                     alias.blockingkey == key.id,
-                    alias.value.in_(self.blocking_values[key]),
+                    alias.value.in_(blocking_values[key]),
                 ),
             )
 
@@ -165,7 +174,7 @@ class GetBlockData:
         # Execute the query and collect all the Patients in matching Person clusters
         patients: typing.Sequence[models.Patient] = session.execute(expr).scalars().all()
         # Remove any Patient records that have incorrect blocking value matches
-        return [p for p in patients if self._filter_incorrect_match(p)]
+        return [p for p in patients if cls._filter_incorrect_match(p, blocking_values)]
 
 
 def insert_patient(
