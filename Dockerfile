@@ -36,7 +36,7 @@ RUN if [ "$USE_MSSQL" = "true" ]; then \
 
 WORKDIR /code
 # Initialize the recordlinker directory
-RUN mkdir -p /code/src/recordlinker
+RUN mkdir -p /code/apps/recordlinker
 
 # Copy over just the pyproject.toml file and install the dependencies doing this
 # before copying the rest of the code allows for caching of the dependencies
@@ -50,7 +50,7 @@ RUN if [ "$USE_OTEL" = "true" ]; then \
     fi
 
 # Copy over the rest of the code
-COPY ./src /code/src
+COPY ./apps/recordlinker /code/apps/recordlinker
 COPY ./docs /code/docs
 COPY README.md /code/README.md
 
@@ -74,19 +74,23 @@ COPY ./apps/webapp /code/webapp
 WORKDIR /code/webapp
 RUN npm install --legacy-peer-deps
 
+#NEXT_TELEMETRY_DISABLED=1
+
 # Build and deploy webapp
 RUN npm run build
 
-EXPOSE ${WEBAPP_PORT}
+# copy to the static file folder
 
 WORKDIR /code
 
 # Create an entrypoint script
 RUN echo '#!/bin/sh' > /entrypoint.sh && \
-    echo 'exec uvicorn recordlinker.main:app --app-dir src --host 0 --port "$PORT"' >> /entrypoint.sh && \
+    echo 'PORT=$WEBAPP_PORT nohup node webapp/.next/standalone/server.js &' >> /entrypoint.sh && \
+    echo 'PORT=$PORT' >> /entrypoint.sh && \
+    echo 'exec uvicorn recordlinker.main:app --app-dir apps --host 0 --port "$PORT"' >> /entrypoint.sh && \
+    echo 'wait -n' >> /entrypoint.sh && \
+    echo 'exit \$?' >> /entrypoint.sh && \
     chmod +x /entrypoint.sh
-
-RUN cat /entrypoint.sh
 
 # add the  command to start the web application here 
 ENTRYPOINT ["/entrypoint.sh"]

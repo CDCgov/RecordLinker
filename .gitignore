@@ -86,3 +86,4 @@ apps/webapp/npm-debug.log*
 apps/webapp/.env*
 apps/webapp/*.tsbuildinfo
 apps/webapp/next-env.d.ts
+apps/webapp/out
