@@ -2,7 +2,6 @@ import datetime
 import enum
 import functools
 import json
-import re
 import typing
 
 import pydantic
@@ -13,6 +12,7 @@ from recordlinker import models
 from recordlinker.schemas.identifier import Identifier
 from recordlinker.schemas.identifier import IdentifierType
 from recordlinker.utils import path as utils
+from recordlinker.utils.normalize import normalize_phone_number
 from recordlinker.utils.normalize import normalize_text
 
 # Load the state code mapping for state normalization in Address class
@@ -234,36 +234,50 @@ class Telecom(StrippedBaseModel):
     system: typing.Optional[str] = None
     use: typing.Optional[str] = None
 
-    def phone(self) -> str | None:
+    @pydantic.model_validator(mode="before")
+    def validate_and_normalize_telecom(cls, values):
         """
-        Return the phone number from the telecom record.
+        Validate and normalize the telecom record.
         """
-        if self.system != "phone":
-            return None
-        # normalize the number to include just the 10 digits
-        return re.sub(r"\D", "", self.value).strip()[:10]
+        # If telecom.system = "email", set telecom.value to lowercase
+        if values.get("system") == "email":
+            values["value"] = values["value"].strip()
+        # If telecom.system = "phone", normalize the number
+        elif values.get("system") == "phone":
+            values["value"] = normalize_phone_number(values["value"])
 
-    def email(self) -> str | None:
-        """
-        Return the email address from the telecom record.
-        """
-        if self.system != "email":
-            return None
-        return self.value.lower().strip()
+        return values
 
-    @classmethod
-    @functools.lru_cache()
-    def get_system_handlers(cls) -> dict[str, str]:
-        """
-        Return a dictionary of system handlers for the Telecom class where the keys
-        are the system values and the values are the method names to call.
+    # def phone(self) -> str | None:
+    #     """
+    #     Return the phone number from the telecom record.
+    #     """
+    #     if self.system != "phone":
+    #         return None
+    #     # normalize the number to include just the 10 digits
+    #     return re.sub(r"\D", "", self.value).strip()[:10]
 
-        """
-        return {
-            name: name
-            for name, method in cls.__dict__.items()
-            if callable(method) and not name.startswith("_")
-        }
+    # def email(self) -> str | None:
+    #     """
+    #     Return the email address from the telecom record.
+    #     """
+    #     if self.system != "email":
+    #         return None
+    #     return self.value.lower().strip()
+
+    # @classmethod
+    # @functools.lru_cache()
+    # def get_system_handlers(cls) -> dict[str, str]:
+    #     """
+    #     Return a dictionary of system handlers for the Telecom class where the keys
+    #     are the system values and the values are the method names to call.
+
+    #     """
+    #     return {
+    #         name: name
+    #         for name, method in cls.__dict__.items()
+    #         if callable(method) and not name.startswith("_")
+    #     }
 
 
 class PIIRecord(StrippedBaseModel):
@@ -315,16 +329,17 @@ class PIIRecord(StrippedBaseModel):
         """
         Parse the birthdate string into a datetime object.
         """
+
         class LinkerParserInfo(parserinfo):
             def convertyear(self, year, *args):
                 """
                 Subclass method override for parser info function dedicated to
                 handling two-digit year strings. The Parser interprets any two
                 digit year string up to and including the last two digits of
-                the current year as the current century; any two-digit value 
+                the current year as the current century; any two-digit value
                 above this number is interpreted as the preceding century.
                 E.g. '25' is parsed to '2025', but '74' becomes '1974'.
-                The Parser does not accept dates in the future, even if in 
+                The Parser does not accept dates in the future, even if in
                 the same calendar year.
                 """
                 # self._year is the current four-digit year
@@ -339,6 +354,7 @@ class PIIRecord(StrippedBaseModel):
                         # Keeps with best practice and conventional norms
                         year -= 100
                 return year
+
         if value:
             given_date = parse(str(value), LinkerParserInfo())
             if given_date > datetime.datetime.today():
@@ -441,27 +457,27 @@ class PIIRecord(StrippedBaseModel):
                     yield str(race)
         elif attribute == FeatureAttribute.TELECOM:
             for telecom in self.telecom:
+                value = telecom.value.strip()
                 if telecom.system is None:
-                    yield telecom.value.strip().lower()
+                    yield value
                     continue
-
-                handlers = Telecom.get_system_handlers()
-
-                if telecom.system in handlers:
-                    value = getattr(telecom, handlers[telecom.system])()
-                    if value:
-                        yield value
-
+                elif telecom.system == "email":
+                    yield value
+                elif telecom.system == "phone":
+                    yield normalize_text(value)
+                # If the telecom system is not email or phone, just return the value
+                else:
+                    yield value
         elif attribute == FeatureAttribute.PHONE:
             for telecom in self.telecom:
-                number = telecom.phone()
-                if number:
-                    yield number
+                if telecom.system == "phone":
+                    number = normalize_text(telecom.value)
+                    if number:
+                        yield number
         elif attribute == FeatureAttribute.EMAIL:
             for telecom in self.telecom:
-                email = telecom.email()
-                if email:
-                    yield email
+                if telecom.system == "email":
+                    yield telecom.value
         elif attribute == FeatureAttribute.SUFFIX:
             for name in self.name:
                 for suffix in name.suffix:

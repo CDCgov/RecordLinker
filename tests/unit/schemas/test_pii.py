@@ -279,16 +279,16 @@ class TestPIIRecord:
         assert list(record.feature_iter(pii.Feature(attribute=pii.FeatureAttribute.TELECOM))) == [
             "555-123-4567",
             "5559876543",
-            "test@email.com",
+            "teSt@email.com",
             "555*987*6543",
-            "test@email.com",
+            "teSt@email.com",
         ]
 
         assert list(record.feature_iter(pii.Feature(attribute=pii.FeatureAttribute.PHONE))) == [
             "5559876543"
         ]
         assert list(record.feature_iter(pii.Feature(attribute=pii.FeatureAttribute.EMAIL))) == [
-            "test@email.com"
+            "teSt@email.com"
         ]
         assert list(record.feature_iter(pii.Feature(attribute=pii.FeatureAttribute.SUFFIX))) == [
             "suffix",

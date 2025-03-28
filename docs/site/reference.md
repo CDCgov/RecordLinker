@@ -70,7 +70,7 @@ in the future, parsing the birthdate will generate an error message and result i
 
 `PHONE`
 
-:   The patient's phone number (normalized to 10 digits).
+:   The patient's phone number (normalized to the National Number from [phonenumbers.parse()](https://github.com/daviddrysdale/python-phonenumbers) , e.g., no country codes or extensions and white space is removed).
 
 `EMAIL`
 
