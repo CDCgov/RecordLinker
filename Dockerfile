@@ -85,7 +85,7 @@ WORKDIR /code
 
 # Create an entrypoint script
 RUN echo '#!/bin/sh' > /entrypoint.sh && \
-    echo 'PORT=$WEBAPP_PORT nohup node webapp/.next/standalone/server.js &' >> /entrypoint.sh && \
+    echo 'PORT=$WEBAPP_PORT nohup node webapp/.next/standalone/server.js > /tmp/out &' >> /entrypoint.sh && \
     echo 'PORT=$PORT' >> /entrypoint.sh && \
     echo 'exec uvicorn recordlinker.main:app --app-dir apps --host 0 --port "$PORT"' >> /entrypoint.sh && \
     echo 'wait -n' >> /entrypoint.sh && \
