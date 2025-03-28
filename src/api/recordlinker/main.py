@@ -11,6 +11,7 @@ from recordlinker.routes.link_router import router as link_router
 from recordlinker.routes.patient_router import router as patient_router
 from recordlinker.routes.person_router import router as person_router
 from recordlinker.routes.seed_router import router as seed_router
+from fastapi.staticfiles import StaticFiles
 
 app = fastapi.FastAPI(
     title="Record Linker",
@@ -38,7 +39,6 @@ app = fastapi.FastAPI(
 
 app.add_middleware(middleware.CorrelationIdMiddleware)
 app.add_middleware(middleware.AccessLogMiddleware)
-
 
 class HealthCheckResponse(pydantic.BaseModel):
     """
@@ -82,3 +82,5 @@ app.include_router(algorithm_router, prefix="/algorithm", tags=["algorithm"])
 app.include_router(person_router, prefix="/person", tags=["mpi"])
 app.include_router(patient_router, prefix="/patient", tags=["mpi"])
 app.include_router(seed_router, prefix="/seed", tags=["mpi"])
+
+app.mount("/ui", StaticFiles(directory="wwwroot"), name="ui")

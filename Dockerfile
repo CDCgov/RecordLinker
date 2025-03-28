@@ -37,6 +37,7 @@ RUN if [ "$USE_MSSQL" = "true" ]; then \
 WORKDIR /code
 # Initialize the recordlinker directory
 RUN mkdir -p /code/api/recordlinker
+RUN mkdir -p /code/api/recordlinker/wwwroot
 
 # Copy over just the pyproject.toml file and install the dependencies doing this
 # before copying the rest of the code allows for caching of the dependencies
@@ -74,7 +75,7 @@ RUN echo 'NEXT_TELEMETRY_DISABLED=1' > /.env
 RUN npm run build
 
 # copy to the static file folder
-RUN cp /code/ui/out /code/ui/out
+RUN cp -r /code/ui/out /code/api/recordlinker/wwwroot
 
 WORKDIR /code/api
 
