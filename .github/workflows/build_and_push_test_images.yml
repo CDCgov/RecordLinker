@@ -2,8 +2,8 @@ name: Build and push database images on a monthly schedule
 
 on:
   schedule:
-    # Run at 12:01 am PT on the 27th of every month
-    - cron: "1 7 27 * *"
+    # Run at 12:01 am PT on the 1st of every month
+    - cron: "1 7 1 * *"
 jobs:
   service-set-up:
     runs-on: ubuntu-latest
