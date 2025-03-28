@@ -36,7 +36,7 @@ RUN if [ "$USE_MSSQL" = "true" ]; then \
 
 WORKDIR /code
 # Initialize the recordlinker directory
-RUN mkdir -p /code/apps/recordlinker
+RUN mkdir -p /code/api/recordlinker
 
 # Copy over just the pyproject.toml file and install the dependencies doing this
 # before copying the rest of the code allows for caching of the dependencies
@@ -50,7 +50,7 @@ RUN if [ "$USE_OTEL" = "true" ]; then \
     fi
 
 # Copy over the rest of the code
-COPY ./apps/recordlinker /code/apps/recordlinker
+COPY ./src/api/recordlinker /code/api/recordlinker
 COPY ./docs /code/docs
 COPY README.md /code/README.md
 
@@ -58,38 +58,29 @@ EXPOSE ${PORT}
 
 # Web application - Record Linker user interface
 
-# Set the port variable to 3000 by default
-ARG WEBAPP_PORT=3000
-ENV WEBAPP_PORT=${WEBAPP_PORT}
-
-# Install Node.js and npm
+# Install Node.js and npm (will get removed after setting up docker steps)
 RUN apt-get update && apt-get install -y nodejs npm
-
-# Verify installations
 RUN node -v && npm -v
 
 # Install dependencies for webapp
-RUN mkdir -p /code/webapp
-COPY ./apps/webapp /code/webapp
-WORKDIR /code/webapp
+RUN mkdir -p /code/ui
+COPY ./src/ui /code/ui
+WORKDIR /code/ui
 RUN npm install --legacy-peer-deps
 
-#NEXT_TELEMETRY_DISABLED=1
+RUN echo 'NEXT_TELEMETRY_DISABLED=1' > /.env
 
-# Build and deploy webapp
+# Build and deploy nextjs
 RUN npm run build
 
 # copy to the static file folder
+RUN cp /code/ui/out /code/ui/out
 
-WORKDIR /code
+WORKDIR /code/api
 
 # Create an entrypoint script
 RUN echo '#!/bin/sh' > /entrypoint.sh && \
-    echo 'PORT=$WEBAPP_PORT nohup node webapp/.next/standalone/server.js >> /dev/stdout &' >> /entrypoint.sh && \
-    echo 'PORT=$PORT' >> /entrypoint.sh && \
     echo 'exec uvicorn recordlinker.main:app --app-dir apps --host 0 --port "$PORT"' >> /entrypoint.sh && \
-    echo 'wait -n' >> /entrypoint.sh && \
-    echo 'exit \$?' >> /entrypoint.sh && \
     chmod +x /entrypoint.sh
 
 # add the  command to start the web application here 

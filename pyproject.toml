@@ -61,23 +61,23 @@ prod = [
 ]
 
 [tool.setuptools]
-package-dir = {"" = "apps"}
+package-dir = {"" = "src/api"}
 
 [tool.setuptools.package-data]
 recordlinker = ["assets/*"]
 
 [tool.setuptools.packages.find]
-where = ["apps"]
+where = ["src/api"]
 namespaces = false
 
 [tool.setuptools_scm]
-write_to = "apps/recordlinker/_version.py"
+write_to = "src/api/recordlinker/_version.py"
 version_scheme = "post-release"
 local_scheme = "dirty-tag"
 fallback_version = "0.0.0"
 
 [tool.ruff]
-exclude = [".git", ".pytest_cache", "__pycache__", "docs", "apps/webapp"]
+exclude = [".git", ".pytest_cache", "__pycache__", "docs", "src/ui"]
 line-length = 100
 indent-width = 4
 target-version = "py310"
@@ -97,7 +97,7 @@ order-by-type = false
 
 [tool.pytest.ini_options]
 testpaths = ["tests/unit"]
-pythonpath = ["apps", "tests/unit"]
+pythonpath = ["src/api", "tests/unit"]
 filterwarnings = [
     "ignore:typing.io is deprecated, import directly from typing instead:DeprecationWarning"
 ]
@@ -109,10 +109,10 @@ env = [
 [tool.coverage.run]
 omit = [
     # Omit the generated version file from coverage
-    "apps/recordlinker/_version.py",
-    "apps/webapp",
+    "src/api/recordlinker/_version.py",
+    "src/ui",
     ]
 
 [tool.mypy]
-files = ["apps"]
-mypy_path = ["apps"]
+files = ["src/api"]
+mypy_path = ["src/api"]

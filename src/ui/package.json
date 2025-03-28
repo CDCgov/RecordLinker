@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev --turbopack",
-    "build": "next build && cp -r .next/static .next/standalone/.next && cp -r public .next/standalone/",
+    "build": "next build",
     "start": "next start",
     "lint": "next lint",
     "prettier": "prettier 'src/**/*.{js,ts,jsx,tsx,css}' --check",

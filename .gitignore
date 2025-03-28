@@ -77,13 +77,13 @@ __pycache__/
 # Test result files
 output.csv
 
-#webapp
-apps/webapp/.next
-apps/webapp/node_modules
-apps/webapp/coverage
-apps/webapp/build
-apps/webapp/npm-debug.log*
-apps/webapp/.env*
-apps/webapp/*.tsbuildinfo
-apps/webapp/next-env.d.ts
-apps/webapp/out
+#ui
+src/ui/.next
+src/ui/node_modules
+src/ui/coverage
+src/ui/build
+src/ui/npm-debug.log*
+src/ui/.env*
+src/ui/*.tsbuildinfo
+src/ui/next-env.d.ts
+src/ui/out
