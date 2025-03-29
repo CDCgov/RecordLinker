@@ -10,7 +10,6 @@ import unittest.mock
 import pytest
 
 from recordlinker import config
-from recordlinker.linking import matchers
 from recordlinker.models import algorithm as models
 
 
@@ -68,98 +67,6 @@ class TestAlgorithm:
 
         # should not raise any value errors
         session.commit()
-
-    def test_from_dict_no_passes(self):
-        data = {
-            "label": "Algorithm 1",
-            "description": "First algorithm",
-        }
-        algo = models.Algorithm.from_dict(**data)
-        assert algo.label == "Algorithm 1"
-        assert algo.description == "First algorithm"
-        assert algo.passes == []
-
-    def test_from_dict_with_passes(self):
-        data = {
-            "label": "Algorithm 1",
-            "description": "First algorithm",
-            "belongingness_ratio": (0.75, 1.0),
-            "passes": [
-                {
-                    "blocking_keys": ["ZIP"],
-                    "evaluators": [
-                        {
-                            "feature": "FIRST_NAME",
-                            "func": "func:recordlinker.linking.matchers.compare_probabilistic_fuzzy_match",
-                        },
-                        {
-                            "feature": "LAST_NAME",
-                            "func": "func:recordlinker.linking.matchers.compare_probabilistic_fuzzy_match",
-                        },
-                    ],
-                    "rule": "func:recordlinker.linking.matchers.rule_probabilistic_match",
-                }
-            ],
-        }
-        algo = models.Algorithm.from_dict(**data)
-        assert algo.label == "Algorithm 1"
-        assert algo.description == "First algorithm"
-        assert algo.belongingness_ratio == (0.75, 1.0)
-        assert len(algo.passes) == 1
-        assert algo.passes[0].blocking_keys == ["ZIP"]
-        assert algo.passes[0].evaluators == [
-            {
-                "feature": "FIRST_NAME",
-                "func": "func:recordlinker.linking.matchers.compare_probabilistic_fuzzy_match",
-            },
-            {
-                "feature": "LAST_NAME",
-                "func": "func:recordlinker.linking.matchers.compare_probabilistic_fuzzy_match",
-            },
-        ]
-        assert algo.passes[0].rule == "func:recordlinker.linking.matchers.rule_probabilistic_match"
-
-
-class TestAlgorithmPass:
-    def test_bound_evaluators(self):
-        """
-        Tests that the bound_evaluators method returns the correct functions
-        """
-        ap = models.AlgorithmPass(
-            evaluators=[
-                {
-                    "feature": "BIRTHDATE",
-                    "func": "func:recordlinker.linking.matchers.compare_probabilistic_fuzzy_match",
-                }
-            ]
-        )
-        assert ap.bound_evaluators() == [
-            models.BoundEvaluator("BIRTHDATE", matchers.compare_probabilistic_fuzzy_match)
-        ]
-        ap.evaluators = [
-            {
-                "feature": "BIRTHDATE",
-                "func": "func:recordlinker.linking.matchers.compare_probabilistic_fuzzy_match",
-            }
-        ]
-        assert ap.bound_evaluators() == [
-            models.BoundEvaluator("BIRTHDATE", matchers.compare_probabilistic_fuzzy_match)
-        ]
-        ap.evaluators = [
-            {"feature": "BIRTHDATE", "func": "func:recordlinker.linking.matchers.invalid"}
-        ]
-        with pytest.raises(ValueError, match="Failed to convert string to callable"):
-            ap.bound_evaluators()
-
-    def test_bound_rule(self):
-        """
-        Tests that the bound_rule method returns the correct function
-        """
-        ap = models.AlgorithmPass(rule="func:recordlinker.linking.matchers.rule_probabilistic_match")
-        assert ap.bound_rule() == matchers.rule_probabilistic_match
-        ap.rule = "func:recordlinker.linking.matchers.invalid"
-        with pytest.raises(ValueError, match="Failed to convert string to callable"):
-            ap.bound_rule()
 
 
 class TestCreateInitialAlgorithms:

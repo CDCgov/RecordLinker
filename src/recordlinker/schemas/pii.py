@@ -63,7 +63,11 @@ class StrippedBaseModel(pydantic.BaseModel):
 
 class Feature(StrippedBaseModel):
     """
-    The schema for a feature.
+    All the available features that can be used for comparison. IDENTIFIER
+    is a special case where a suffix is allowed that describes the specific
+    type of an identifier to compare. See the
+    [reference docs](https://cdcgov.github.io/RecordLinker/reference/)
+    for more information.
     """
 
     model_config = pydantic.ConfigDict(extra="allow")
@@ -108,6 +112,23 @@ class Feature(StrippedBaseModel):
                 for identifier in IdentifierType:
                     options.append(f"{feature}:{identifier}")
         return options
+
+    @pydantic.model_serializer()
+    def __str__(self):
+        """
+        Override the default model dump to create a single string for Feature.
+        """
+        if self.suffix:
+            return f"{self.attribute}:{self.suffix}"
+        return str(self.attribute)
+
+    def values_to_match(self) -> typing.Iterator[str]:
+        """
+        Return an iterator of all possible values for this feature that can be used for comparison.
+        """
+        yield str(self)
+        if self.suffix:
+            yield str(self.attribute)
 
 
 class Sex(enum.Enum):
