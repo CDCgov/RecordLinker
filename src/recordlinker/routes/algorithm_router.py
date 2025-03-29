@@ -9,6 +9,7 @@ the algorithm configuration API endpoints.
 import typing
 
 import fastapi
+import sqlalchemy.exc as sqlexc
 import sqlalchemy.orm as orm
 
 from recordlinker import schemas
@@ -58,10 +59,14 @@ def create_algorithm(
     :returns: The created algorithm
     """
     try:
-        service.load_algorithm(session, data)
+        service.load_algorithm(session, data, commit=True)
     except ValueError as exc:
         raise fastapi.HTTPException(
             status_code=fastapi.status.HTTP_422_UNPROCESSABLE_ENTITY, detail=str(exc)
+        )
+    except sqlexc.IntegrityError as exc:
+        raise fastapi.HTTPException(
+            status_code=fastapi.status.HTTP_422_UNPROCESSABLE_ENTITY, detail=str(exc.args[0])
         )
     return data
 
