@@ -46,7 +46,7 @@ in the future, parsing the birthdate will generate an error message and result i
 
 `ADDRESS`
 
-:   The patient's address.
+:   The patient's address (street suffixes normalized per [USPS rules](https://pe.usps.com/text/pub28/28apc_002.htm)).
 
 `CITY`
 

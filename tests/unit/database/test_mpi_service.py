@@ -16,6 +16,7 @@ from sqlalchemy.orm.session import Session
 from recordlinker import models
 from recordlinker import schemas
 from recordlinker.database import mpi_service
+from recordlinker.schemas.algorithm import Defaults
 
 
 class TestInsertBlockingValues:
@@ -392,7 +393,7 @@ class TestDeleteBlockingValuesForPatient:
         assert len(patient.blocking_values) == 0
 
 
-class TestGetBlockData:
+class TestBlockData:
     @pytest.fixture
     def prime_index(self, session: Session):
         person_1 = models.Person()
@@ -549,7 +550,10 @@ class TestGetBlockData:
         algorithm_pass = schemas.AlgorithmPass(
             blocking_keys=["BIRTHDATE"], evaluators=[], true_match_threshold=0
         )
-        matches = mpi_service.get_block_data(session, schemas.PIIRecord(**data), algorithm_pass)
+        context = schemas.EvaluationContext(defaults=Defaults(max_missing_allowed_proportion=0.3))
+        matches = mpi_service.BlockData.get(
+            session, schemas.PIIRecord(**data), algorithm_pass, context
+        )
         assert len(matches) == 0
 
     def test_block_empty_block_key(self, session: Session, prime_index: None):
@@ -567,7 +571,10 @@ class TestGetBlockData:
         algorithm_pass = schemas.AlgorithmPass(
             blocking_keys=["BIRTHDATE", "FIRST_NAME"], evaluators=[], true_match_threshold=0
         )
-        matches = mpi_service.get_block_data(session, schemas.PIIRecord(**data), algorithm_pass)
+        context = schemas.EvaluationContext(defaults=Defaults(max_missing_allowed_proportion=0.3))
+        matches = mpi_service.BlockData.get(
+            session, schemas.PIIRecord(**data), algorithm_pass, context
+        )
         assert len(matches) == 0
 
     def test_block_filter_mpi_candidates(self, session: Session, prime_index: None):
@@ -590,10 +597,13 @@ class TestGetBlockData:
         algorithm_pass = schemas.AlgorithmPass(
             blocking_keys=["BIRTHDATE", "FIRST_NAME"], evaluators=[], true_match_threshold=0
         )
+        context = schemas.EvaluationContext(defaults=Defaults(max_missing_allowed_proportion=0.3))
         # Will initially be 3 patients in this person cluster
         # One agrees on blocking, one has missing values, and one
         # is wrong, so we should throw away that one
-        matches = mpi_service.get_block_data(session, schemas.PIIRecord(**data), algorithm_pass)
+        matches = mpi_service.BlockData.get(
+            session, schemas.PIIRecord(**data), algorithm_pass, context
+        )
         assert len(matches) == 2
 
     def test_block_on_birthdate(self, session: Session, prime_index: None):
@@ -612,8 +622,10 @@ class TestGetBlockData:
         algorithm_pass = schemas.AlgorithmPass(
             blocking_keys=["BIRTHDATE"], evaluators=[], true_match_threshold=0
         )
-
-        matches = mpi_service.get_block_data(session, schemas.PIIRecord(**data), algorithm_pass)
+        context = schemas.EvaluationContext(defaults=Defaults(max_missing_allowed_proportion=0.3))
+        matches = mpi_service.BlockData.get(
+            session, schemas.PIIRecord(**data), algorithm_pass, context
+        )
         assert len(matches) == 4
         data = {
             "name": [
@@ -627,7 +639,9 @@ class TestGetBlockData:
             ],
             "birthdate": "11/12/1985",
         }
-        matches = mpi_service.get_block_data(session, schemas.PIIRecord(**data), algorithm_pass)
+        matches = mpi_service.BlockData.get(
+            session, schemas.PIIRecord(**data), algorithm_pass, context
+        )
         assert len(matches) == 1
 
     def test_block_on_first_name(self, session: Session, prime_index: None):
@@ -646,7 +660,10 @@ class TestGetBlockData:
         algorithm_pass = schemas.AlgorithmPass(
             blocking_keys=["FIRST_NAME"], evaluators=[], true_match_threshold=0
         )
-        matches = mpi_service.get_block_data(session, schemas.PIIRecord(**data), algorithm_pass)
+        context = schemas.EvaluationContext(defaults=Defaults(max_missing_allowed_proportion=0.3))
+        matches = mpi_service.BlockData.get(
+            session, schemas.PIIRecord(**data), algorithm_pass, context
+        )
         # One candidate in MPI person_1 is a Bill, will be ruled out
         assert len(matches) == 4
 
@@ -666,7 +683,10 @@ class TestGetBlockData:
         algorithm_pass = schemas.AlgorithmPass(
             blocking_keys=["BIRTHDATE", "FIRST_NAME"], evaluators=[], true_match_threshold=0
         )
-        matches = mpi_service.get_block_data(session, schemas.PIIRecord(**data), algorithm_pass)
+        context = schemas.EvaluationContext(defaults=Defaults(max_missing_allowed_proportion=0.3))
+        matches = mpi_service.BlockData.get(
+            session, schemas.PIIRecord(**data), algorithm_pass, context
+        )
         # One candidate in MPI person_1 is just a Bill, ruled out
         assert len(matches) == 3
 
@@ -688,7 +708,10 @@ class TestGetBlockData:
             evaluators=[],
             true_match_threshold=0,
         )
-        matches = mpi_service.get_block_data(session, schemas.PIIRecord(**data), algorithm_pass)
+        context = schemas.EvaluationContext(defaults=Defaults(max_missing_allowed_proportion=0.3))
+        matches = mpi_service.BlockData.get(
+            session, schemas.PIIRecord(**data), algorithm_pass, context
+        )
         # One person in MPI person_1 is just a Bill, ruled out
         assert len(matches) == 2
         data = {
@@ -702,7 +725,9 @@ class TestGetBlockData:
             ],
             "birthdate": "Jan 1 1980",
         }
-        matches = mpi_service.get_block_data(session, schemas.PIIRecord(**data), algorithm_pass)
+        matches = mpi_service.BlockData.get(
+            session, schemas.PIIRecord(**data), algorithm_pass, context
+        )
         # Blocking uses feature_iter, which yields only the first `given` for a
         # single name object, so only the patient with 'Bill' is caught
         assert len(matches) == 1
@@ -718,7 +743,71 @@ class TestGetBlockData:
             ],
             "birthdate": "Jan 1 1980",
         }
-        matches = mpi_service.get_block_data(session, schemas.PIIRecord(**data), algorithm_pass)
+        matches = mpi_service.BlockData.get(
+            session, schemas.PIIRecord(**data), algorithm_pass, context
+        )
+        assert len(matches) == 0
+
+    def test_block_missing_some_values(self, session: Session, prime_index: None):
+        data = {
+            "name": [
+                {
+                    "given": [
+                        "Johnathon",
+                        "Bill",
+                    ],
+                    "family": "",
+                }
+            ],
+            "birthdate": "01/01/1980",
+        }
+        algorithm_pass = schemas.AlgorithmPass(
+            blocking_keys=["BIRTHDATE", "FIRST_NAME", "LAST_NAME"],
+            evaluators=[],
+            true_match_threshold=0
+        )
+        context = schemas.EvaluationContext(
+            defaults=Defaults(max_missing_allowed_proportion=0.3),
+            log_odds=[
+                {"feature": "FIRST_NAME", "value": 6.8},
+                {"feature": "LAST_NAME", "value": 6.3},
+                {"feature": "BIRTHDATE", "value": 10.1},
+            ],
+        )
+        matches = mpi_service.BlockData.get(
+            session, schemas.PIIRecord(**data), algorithm_pass, context
+        )
+        assert len(matches) == 3
+
+    def test_block_missing_too_many_values(self, session: Session, prime_index: None):
+        data = {
+            "name": [
+                {
+                    "given": [
+                        "Johnathon",
+                        "Bill",
+                    ],
+                    "family": "",
+                }
+            ],
+            "birthdate": "01/01/1980",
+        }
+        algorithm_pass = schemas.AlgorithmPass(
+            blocking_keys=["BIRTHDATE", "FIRST_NAME", "LAST_NAME"],
+            evaluators=[],
+            true_match_threshold=0
+        )
+        context = schemas.EvaluationContext(
+            defaults=Defaults(max_missing_allowed_proportion=0.2),
+            log_odds=[
+                {"feature": "FIRST_NAME", "value": 6.8},
+                {"feature": "LAST_NAME", "value": 6.3},
+                {"feature": "BIRTHDATE", "value": 10.1},
+            ],
+        )
+        matches = mpi_service.BlockData.get(
+            session, schemas.PIIRecord(**data), algorithm_pass, context
+        )
         assert len(matches) == 0
 
     def test_block_on_multiple_names(self, session: Session, prime_index: None):
@@ -733,7 +822,8 @@ class TestGetBlockData:
             evaluators=[],
             true_match_threshold=0,
         )
-        matches = mpi_service.get_block_data(session, schemas.PIIRecord(**data), algorithm_pass)
+        context = schemas.EvaluationContext(defaults=Defaults(max_missing_allowed_proportion=0.3))
+        matches = mpi_service.BlockData.get(session, schemas.PIIRecord(**data), algorithm_pass, context)
         # One of patients in MPI person_1 is a Bill, so is excluded
         assert len(matches) == 4
 
@@ -742,7 +832,10 @@ class TestGetBlockData:
         algorithm_pass = schemas.AlgorithmPass(
             blocking_keys=["BIRTHDATE", "LAST_NAME"], evaluators=[], true_match_threshold=0
         )
-        matches = mpi_service.get_block_data(session, schemas.PIIRecord(**data), algorithm_pass)
+        context = schemas.EvaluationContext(defaults=Defaults(max_missing_allowed_proportion=0.3))
+        matches = mpi_service.BlockData.get(
+            session, schemas.PIIRecord(**data), algorithm_pass, context
+        )
         assert len(matches) == 0
 
     def test_block_on_duplicates(self, session: Session):
@@ -790,7 +883,10 @@ class TestGetBlockData:
             true_match_threshold=0,
         )
 
-        matches = mpi_service.get_block_data(session, schemas.PIIRecord(**data), algorithm_pass)
+        context = schemas.EvaluationContext(defaults=Defaults(max_missing_allowed_proportion=0.3))
+        matches = mpi_service.BlockData.get(
+            session, schemas.PIIRecord(**data), algorithm_pass, context
+        )
         assert len(matches) == 3
 
 

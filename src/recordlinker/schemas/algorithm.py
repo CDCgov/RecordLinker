@@ -110,18 +110,19 @@ class EvaluationContext(pydantic.BaseModel):
         self._log_odds_mapping: dict[str, float] = {str(o.feature): o.value for o in self.log_odds}
         return self
 
-    def get_log_odds(self, feature: Feature) -> float | None:
+    def get_log_odds(self, value: Feature | BlockingKey) -> float | None:
         """
-        Get the log odds for a specific feature.
+        Get the log odds for a specific Feature or BlockingKey.
         """
-        key = str(feature)
+        key = str(value)
         result: float | None = None
 
         result = self._log_odds_cache.get(key, None)
         if result:
             return result
 
-        for val in feature.values_to_match():
+        vals = value.values_to_match() if isinstance(value, Feature) else [str(value)]
+        for val in vals:
             result = self._log_odds_mapping.get(val, None)
             if result:
                 break
@@ -235,7 +236,7 @@ class Algorithm(pydantic.BaseModel):
         for pass_ in self.passes:
             # NOTE: this is a future use case, as we may want to use log odds in our blocking calls
             for blocking_key in pass_.blocking_keys:
-                if not self.evaluation_context.get_log_odds(Feature.parse(str(blocking_key))):
+                if not self.evaluation_context.get_log_odds(blocking_key):
                     raise ValueError("Log odds must be defined for all blocking keys.")
             for evaluator in pass_.evaluators:
                 if not self.evaluation_context.get_log_odds(evaluator.feature):
