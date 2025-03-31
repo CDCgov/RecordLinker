@@ -241,7 +241,7 @@ class Telecom(StrippedBaseModel):
         """
         # If telecom.system = "email", set telecom.value to lowercase
         if values.get("system") == "email":
-            values["value"] = values["value"].strip()
+            values["value"] = values["value"].strip().lower()
         # If telecom.system = "phone", normalize the number
         elif values.get("system") == "phone":
             try:
@@ -438,18 +438,12 @@ class PIIRecord(StrippedBaseModel):
                     yield str(race)
         elif attribute == FeatureAttribute.TELECOM:
             for telecom in self.telecom:
-                value = telecom.value.strip()
-                if telecom.system is None:
-                    yield value
-                    continue
-                elif telecom.system == "email":
-                    yield value
-                elif telecom.system == "phone":
+                value = telecom.value
+                if telecom.system == "phone":
                     # Use national number for comparison
                     phone = normalize_text(str(phonenumbers.parse(telecom.value).national_number))
                     if phone:
                         yield phone
-                # If the telecom system is not email or phone, just return the value
                 else:
                     yield value
         elif attribute == FeatureAttribute.PHONE:
