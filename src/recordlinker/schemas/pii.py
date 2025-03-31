@@ -438,14 +438,13 @@ class PIIRecord(StrippedBaseModel):
                     yield str(race)
         elif attribute == FeatureAttribute.TELECOM:
             for telecom in self.telecom:
-                value = telecom.value
                 if telecom.system == "phone":
                     # Use national number for comparison
                     phone = normalize_text(str(phonenumbers.parse(telecom.value).national_number))
                     if phone:
                         yield phone
                 else:
-                    yield value
+                    yield telecom.value
         elif attribute == FeatureAttribute.PHONE:
             for telecom in self.telecom:
                 if telecom.system == "phone":
