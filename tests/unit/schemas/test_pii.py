@@ -220,7 +220,7 @@ class TestPIIRecord:
             ],
             telecom=[
                 pii.Telecom(value="555-123-4567"),
-                pii.Telecom(value="(555) 987-6543", system="phone"),
+                pii.Telecom(value="+44 (555) 987-6543 ext 123", system="phone"),
                 pii.Telecom(value=" teSt@email.com", system="email"),
                 pii.Telecom(value="555*987*6543"),
                 pii.Telecom(value=" teSt@email.com"),
