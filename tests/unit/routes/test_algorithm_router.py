@@ -74,6 +74,8 @@ class TestGetAlgorithm:
             "missing_field_points_proportion": 0.5,
             "passes": [
                 {
+                    "label": "FIRST_NAME-match",
+                    "description": None,
                     "blocking_keys": ["BIRTHDATE"],
                     "evaluators": [
                         {
