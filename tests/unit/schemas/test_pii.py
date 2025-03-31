@@ -42,7 +42,7 @@ class TestPIIRecord:
                     "county": "county2",
                 },
             ],
-            "telecom": [{"value": " 555-123-4567"}, {"value": "555-987-6543"}],
+            "telecom": [{"value": " 555-123-4567"}, {"value": "+1 555-987-6543 ext 123"}],
             "identifiers": [
                 {
                     "type": "MR",
@@ -220,7 +220,7 @@ class TestPIIRecord:
             ],
             telecom=[
                 pii.Telecom(value="555-123-4567"),
-                pii.Telecom(value="(555) 987-6543", system="phone"),
+                pii.Telecom(value="+44 (555) 987-6543 ext 123", system="phone"),
                 pii.Telecom(value=" teSt@email.com", system="email"),
                 pii.Telecom(value="555*987*6543"),
                 pii.Telecom(value=" teSt@email.com"),
@@ -281,7 +281,7 @@ class TestPIIRecord:
             "5559876543",
             "test@email.com",
             "555*987*6543",
-            "test@email.com",
+            "teSt@email.com",
         ]
 
         assert list(record.feature_iter(pii.Feature(attribute=pii.FeatureAttribute.PHONE))) == [
@@ -359,6 +359,23 @@ class TestPIIRecord:
             "CA",
             "CA",
             "of mind",
+        ]
+
+    def test_feature_iter_telecom_phone(self):
+        record = pii.PIIRecord(
+            telecom=[
+                pii.Telecom(value="+1 555-123-4567", system="phone"),
+                pii.Telecom(value="+15551234567", system="phone"),
+                pii.Telecom(value="555-987-6543 ext 123", system="phone"),
+                pii.Telecom(value="555", system="phone"),
+            ]
+        )
+
+        assert list(record.feature_iter(pii.Feature(attribute=pii.FeatureAttribute.TELECOM))) == [
+            "5551234567",
+            "5551234567",
+            "5559876543",
+            "555",
         ]
 
     def test_blocking_keys_invalid(self):
