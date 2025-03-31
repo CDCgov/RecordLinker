@@ -435,7 +435,7 @@ class PIIRecord(StrippedBaseModel):
                     yield value
                 elif telecom.system == "phone":
                     phone = str(phonenumbers.parse(telecom.value).national_number)
-                    yield normalize_text(phone)
+                    yield phone
                 # If the telecom system is not email or phone, just return the value
                 else:
                     yield value
@@ -443,8 +443,7 @@ class PIIRecord(StrippedBaseModel):
             for telecom in self.telecom:
                 if telecom.system == "phone":
                     # Remove country code and extension from the phone number
-                    parsed_phone = phonenumbers.parse(telecom.value)
-                    phone = normalize_text(str(parsed_phone.national_number))
+                    phone = str(phonenumbers.parse(telecom.value).national_number)
                     if phone:
                         yield phone
         elif attribute == FeatureAttribute.EMAIL:
