@@ -86,6 +86,8 @@ class Algorithm(pydantic.BaseModel):
         Annotated[float, pydantic.Field(ge=0, le=1)], Annotated[float, pydantic.Field(ge=0, le=1)]
     ]
     passes: typing.Sequence[AlgorithmPass]
+    max_missing_allowed_proportion: float = pydantic.Field(ge=0.0, le=1.0)
+    missing_field_points_proportion: float = pydantic.Field(ge=0.0, le=1.0)
 
     @pydantic.field_validator("belongingness_ratio", mode="before")
     def validate_belongingness_ratio(cls, value):
@@ -96,7 +98,6 @@ class Algorithm(pydantic.BaseModel):
         if lower_bound > upper_bound:
             raise ValueError(f"Invalid range. Lower bound must be less than upper bound: {value}")
         return (lower_bound, upper_bound)
-
 
 class AlgorithmSummary(Algorithm):
     """

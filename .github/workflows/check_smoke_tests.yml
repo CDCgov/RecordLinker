@@ -12,25 +12,25 @@ jobs:
 
     strategy:
       matrix:
-        database: [postgres, sqlite, mysql, sqlserver]  # Matrix for database types
+        database: [postgres, sqlite, mysql, sqlserver]
 
     services:
       postgres:
-        image: postgres:17
+        image: ghcr.io/cdcgov/recordlinker/postgres:17
         ports:
           - 5432:5432
         env:
           POSTGRES_PASSWORD: pw
 
       mysql:
-        image: mysql:8
+        image: ghcr.io/cdcgov/recordlinker/mysql:8
         ports:
           - 3306:3306
         env:
           MYSQL_ROOT_PASSWORD: pw
 
       sqlserver:
-        image: mcr.microsoft.com/mssql/server:2022-latest
+        image: ghcr.io/cdcgov/recordlinker/mssql:2022-latest
         ports:
           - 1433:1433
         env:
@@ -38,91 +38,89 @@ jobs:
           SA_PASSWORD: "YourStrong!Passw0rd"
 
     steps:
-    - name: Check out repository
-      uses: actions/checkout@v4
+      - name: Check out repository
+        uses: actions/checkout@v4
 
-    - name: Set up Docker Buildx
-      uses: docker/setup-buildx-action@v3
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
 
-    - name: Build RecordLinker Docker Image
-      run: |
-        docker build -t rl-service-image . 
+      - name: Build RecordLinker Docker Image
+        run: |
+          docker build -t rl-service-image .
 
-    - name: Start RecordLinker Service and Run Smoke Tests
-      run: |
-        if [[ "${{ matrix.database }}" == "postgres" ]]; then
-          export DB_URI="postgresql+psycopg2://postgres:pw@localhost:5432/postgres"
-        elif [[ "${{ matrix.database }}" == "sqlite" ]]; then
-          export DB_URI="sqlite:///testdb.sqlite3"
-        elif [[ "${{ matrix.database }}" == "mysql" ]]; then
-          export DB_URI="mysql+pymysql://root:pw@localhost:3306/mysql"
-        elif [[ "${{ matrix.database }}" == "sqlserver" ]]; then
-          export DB_URI="mssql+pyodbc://sa:YourStrong!Passw0rd@localhost:1433/master?driver=ODBC+Driver+18+for+SQL+Server&TrustServerCertificate=yes"
-        fi
-
-        # Start Record Linker Service
-        docker run -d --name rl-service \
-          --network="host" \
-          -e DB_URI=$DB_URI \
-          rl-service-image
-
-        # Wait for the RL Service to be healthy
-        TRIES=5
-        COUNT=0
-        until curl -s http://localhost:8080/ | grep "OK"; do
-          echo "Waiting for RL Service to become healthy... Attempt $((COUNT+1)) of $TRIES"
-          sleep 5
-          COUNT=$((COUNT+1))
-          if [ "$COUNT" -ge "$TRIES" ]; then
-            echo "RL Service did not become healthy in time."
-            exit 1
+      - name: Start RecordLinker Service and Run Smoke Tests
+        run: |
+          if [[ "${{ matrix.database }}" == "postgres" ]]; then
+            export DB_URI="postgresql+psycopg2://postgres:pw@localhost:5432/postgres"
+          elif [[ "${{ matrix.database }}" == "sqlite" ]]; then
+            export DB_URI="sqlite:///testdb.sqlite3"
+          elif [[ "${{ matrix.database }}" == "mysql" ]]; then
+            export DB_URI="mysql+pymysql://root:pw@localhost:3306/mysql"
+          elif [[ "${{ matrix.database }}" == "sqlserver" ]]; then
+            export DB_URI="mssql+pyodbc://sa:YourStrong!Passw0rd@localhost:1433/master?driver=ODBC+Driver+18+for+SQL+Server&TrustServerCertificate=yes"
           fi
-        done
-      
-        # Run smoke tests and print the response
-        JSON_BODY_1='{"record": {"birth_date": "2013-11-07", "sex": "M", "identifiers":[{"value": "123456789", "type": "MR"}], "name":[{"family":"Shepard", "given":["John"]}]}}'
-        JSON_BODY_2='{"algorithm": "dibbs-default", "record": {"birth_date": "2000-12-06", "sex": "M", "identifiers":[{"value": "9876543210", "type": "MR"}], "name":[{"family":"Smith", "given":["William"]}]}}'
 
-        #basic tests
-        RESPONSE_1=$(curl -s -X POST http://localhost:8080/link \
-        -d "$JSON_BODY_1" \
-        -H "Content-Type: application/json")
+          # Start Record Linker Service
+          docker run -d --name rl-service \
+            --network="host" \
+            -e DB_URI=$DB_URI \
+            rl-service-image
 
-        echo "Response: $RESPONSE_1"
-        echo "$RESPONSE_1" | jq -e '.prediction == "no_match"' 
+          # Wait for the RL Service to be healthy
+          TRIES=5
+          COUNT=0
+          until curl -s http://localhost:8080/ | grep "OK"; do
+            echo "Waiting for RL Service to become healthy... Attempt $((COUNT+1)) of $TRIES"
+            sleep 5
+            COUNT=$((COUNT+1))
+            if [ "$COUNT" -ge "$TRIES" ]; then
+              echo "RL Service did not become healthy in time."
+              exit 1
+            fi
+          done
 
-        PERSON_REFERENCE_ID=$(echo "$RESPONSE_1" | jq -r '.person_reference_id')
+          # Run smoke tests and print the response
+          RECORD='{"record": {"birth_date": "2013-11-07", "sex": "M", "identifiers":[{"value": "123456789", "type": "MR"}], "name":[{"family":"Shepard", "given":["John"]}]}}'
+          ALGORITHM='{"algorithm": "dibbs-default", "record": {"birth_date": "2000-12-06", "sex": "M", "identifiers":[{"value": "9876543210", "type": "MR"}], "name":[{"family":"Smith", "given":["William"]}]}}'
 
-        RESPONSE_2=$(curl -s -X POST http://localhost:8080/link \
-        -d "$JSON_BODY_1" \
-        -H "Content-Type: application/json")
+          RESPONSE_1=$(curl -s -X POST http://localhost:8080/link \
+          -d "$RECORD" \
+          -H "Content-Type: application/json")
 
-        echo "Response: $RESPONSE_2"
-        echo "$RESPONSE_2" | jq -e '.prediction == "match"'  
-        echo "$RESPONSE_2" | jq -e --arg id "$PERSON_REFERENCE_ID" '.person_reference_id == $id'
+          echo "Response: $RESPONSE_1"
+          echo "$RESPONSE_1" | jq -e '.prediction == "no_match"' 
 
-        #enhanced tests
-        RESPONSE_3=$(curl -s -X POST http://localhost:8080/link \
-        -d "$JSON_BODY_2" \
-        -H "Content-Type: application/json")
+          PERSON_REFERENCE_ID=$(echo "$RESPONSE_1" | jq -r '.person_reference_id')
 
-        echo "Response: $RESPONSE_3"
-        echo "$RESPONSE_3" | jq -e '.prediction == "no_match"'  
+          RESPONSE_2=$(curl -s -X POST http://localhost:8080/link \
+          -d "$RECORD" \
+          -H "Content-Type: application/json")
 
-        PERSON_REFERENCE_ID=$(echo "$RESPONSE_3" | jq -r '.person_reference_id')
+          echo "Response: $RESPONSE_2"
+          echo "$RESPONSE_2" | jq -e '.prediction == "match"'  
+          echo "$RESPONSE_2" | jq -e --arg id "$PERSON_REFERENCE_ID" '.person_reference_id == $id'
 
-        RESPONSE_4=$(curl -s -X POST http://localhost:8080/link \
-        -d "$JSON_BODY_2" \
-        -H "Content-Type: application/json")
+          RESPONSE_3=$(curl -s -X POST http://localhost:8080/link \
+          -d "$ALGORITHM" \
+          -H "Content-Type: application/json")
 
-        echo "Response: $RESPONSE_4"
-        echo "$RESPONSE_4" | jq -e '.prediction == "match"' 
-        echo "$RESPONSE_4" | jq -e --arg id "$PERSON_REFERENCE_ID" '.person_reference_id == $id'     
-      
-        #invalid tests
-        RESPONSE_5=$(curl -s -X POST http://localhost:8080/link \
-        -d '{"algorithm": "invalid", "record": {}}' \
-        -H "Content-Type: application/json")
+          echo "Response: $RESPONSE_3"
+          echo "$RESPONSE_3" | jq -e '.prediction == "no_match"'  
 
-        echo "Response: $RESPONSE_5"
-        echo "$RESPONSE_5" | grep -q "No algorithm found" 
+          PERSON_REFERENCE_ID=$(echo "$RESPONSE_3" | jq -r '.person_reference_id')
+
+          RESPONSE_4=$(curl -s -X POST http://localhost:8080/link \
+          -d "$ALGORITHM" \
+          -H "Content-Type: application/json")
+
+          echo "Response: $RESPONSE_4"
+          echo "$RESPONSE_4" | jq -e '.prediction == "match"' 
+          echo "$RESPONSE_4" | jq -e --arg id "$PERSON_REFERENCE_ID" '.person_reference_id == $id'     
+
+          #invalid tests
+          RESPONSE_5=$(curl -s -X POST http://localhost:8080/link \
+          -d '{"algorithm": "invalid", "record": {}}' \
+          -H "Content-Type: application/json")
+
+          echo "Response: $RESPONSE_5"
+          echo "$RESPONSE_5" | grep -q "No algorithm found"

@@ -8,6 +8,8 @@
             0.75,
             0.9
         ],
+        "max_missing_allowed_proportion": 0.5,
+        "missing_field_points_proportion": 0.5,
         "passes": [
             {
                 "blocking_keys": [
@@ -48,6 +50,7 @@
                         "STATE": 0.022376768992488694,
                         "ZIP": 4.975031471124867
                     }
+
                 }
             },
             {

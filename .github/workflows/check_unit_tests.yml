@@ -12,25 +12,25 @@ jobs:
 
     strategy:
       matrix:
-        database: [postgres, sqlite, mysql, sqlserver]  # Matrix for database types
+        database: [postgres, sqlite, mysql, sqlserver] # Matrix for database types
 
     services:
       postgres:
-        image: postgres:17
+        image: ghcr.io/cdcgov/recordlinker/postgres:17
         ports:
           - 5432:5432
         env:
           POSTGRES_PASSWORD: pw
 
       mysql:
-        image: mysql:8
+        image: ghcr.io/cdcgov/recordlinker/mysql:8
         ports:
           - 3306:3306
         env:
           MYSQL_ROOT_PASSWORD: pw
 
       sqlserver:
-        image: mcr.microsoft.com/mssql/server:2022-latest
+        image: ghcr.io/cdcgov/recordlinker/mssql:2022-latest
         ports:
           - 1433:1433
         env:
@@ -44,8 +44,8 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.11'
-          cache: 'pip'
+          python-version: "3.11"
+          cache: "pip"
 
       - name: Install dependencies
         run: |
@@ -57,13 +57,13 @@ jobs:
         run: |
           # Add Microsoft repository keys
           curl https://packages.microsoft.com/keys/microsoft.asc | sudo apt-key add -
-          
+
           # Add the Microsoft SQL Server repository for Ubuntu
           curl https://packages.microsoft.com/config/ubuntu/$(lsb_release -rs)/prod.list | sudo tee /etc/apt/sources.list.d/mssql-release.list
-          
+
           # Update package lists
           sudo apt-get update
-          
+
           # Accept the EULA and install msodbcsql18
           sudo ACCEPT_EULA=Y apt-get install -y msodbcsql18 unixodbc-dev
 
