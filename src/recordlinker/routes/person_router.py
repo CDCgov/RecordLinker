@@ -21,46 +21,28 @@ from recordlinker.database import mpi_service as service
 router = fastapi.APIRouter()
 
 
-def patients_by_id_or_422(
-    session: orm.Session, reference_ids: typing.Sequence[uuid.UUID]
-) -> typing.Sequence[models.Patient]:
+def entity_by_id_or_422(
+    session: orm.Session,
+    entity_reference_ids: typing.Sequence[uuid.UUID],
+    entity_type: typing.Literal["patient", "person"],
+    entity_fetch_function: typing.Callable[..., typing.Sequence[typing.Any]],
+) -> typing.Sequence[models.Patient] | typing.Sequence[models.Person]:
     """
-    Retrieve the Patients by their reference ids or raise a 422 error response.
+    Retrieve the Patients or Persons by their reference ids or raise a 422 error response.
     """
-    patients = service.get_patients_by_reference_ids(session, *reference_ids)
-    if None in patients:
+    entities = entity_fetch_function(session, *entity_reference_ids)
+    if None in entities:
         raise fastapi.HTTPException(
             status_code=fastapi.status.HTTP_422_UNPROCESSABLE_ENTITY,
             detail=[
                 {
-                    "loc": ["body", "patients"],
-                    "msg": "Invalid patient reference id",
+                    "loc": ["body", f"{entity_type}_reference_ids"],
+                    "msg": f"Invalid {entity_type} reference id",
                     "type": "value_error",
                 }
             ],
         )
-    return patients  # type: ignore
-
-
-def persons_by_reference_id_or_422(
-    session: orm.Session, person_reference_ids: typing.Sequence[uuid.UUID]
-) -> typing.Sequence[models.Patient]:
-    """
-    Retrieve the Patients by their reference ids or raise a 422 error response.
-    """
-    persons = service.get_persons_by_reference_ids(session, *person_reference_ids)
-    if None in persons:
-        raise fastapi.HTTPException(
-            status_code=fastapi.status.HTTP_422_UNPROCESSABLE_ENTITY,
-            detail=[
-                {
-                    "loc": ["body", "person_reference_ids"],
-                    "msg": "Invalid person reference id",
-                    "type": "value_error",
-                }
-            ],
-        )
-    return persons  # type: ignore
+    return entities  # type: ignore
 
 
 @router.post(
@@ -75,7 +57,12 @@ def create_person(
     """
     Create a new Person in the MPI database and link the Patients to them.
     """
-    patients = patients_by_id_or_422(session, data.patients)
+    patients = entity_by_id_or_422(
+        session,
+        data.patients,
+        entity_type="patient",
+        entity_fetch_function=service.get_patients_by_reference_ids,
+    )
 
     person = service.update_person_cluster(session, patients, commit=False)
     return schemas.PersonRef(person_reference_id=person.reference_id)
@@ -97,7 +84,12 @@ def update_person(
     person = service.get_person_by_reference_id(session, person_reference_id)
     if person is None:
         raise fastapi.HTTPException(status_code=fastapi.status.HTTP_404_NOT_FOUND)
-    patients = patients_by_id_or_422(session, data.patients)
+    patients = entity_by_id_or_422(
+        session,
+        data.patients,
+        entity_type="patient",
+        entity_fetch_function=service.get_patients_by_reference_ids,
+    )
 
     person = service.update_person_cluster(session, patients, person, commit=False)
     return schemas.PersonRef(person_reference_id=person.reference_id)
@@ -214,7 +206,13 @@ def merge_person_clusters(
         raise fastapi.HTTPException(status_code=fastapi.status.HTTP_404_NOT_FOUND)
 
     # Get all persons by person_reference_id that will be merged
-    persons = persons_by_reference_id_or_422(session, data.person_reference_ids)
+    # persons = persons_by_reference_id_or_422(session, data.person_reference_ids)
+    persons = entity_by_id_or_422(
+        session,
+        data.person_reference_ids,
+        entity_type="person",
+        entity_fetch_function=service.get_persons_by_reference_ids,
+    )
     person_ids = [person.id for person in persons]
 
     # Update all of the patients from the person clusters to be merged
