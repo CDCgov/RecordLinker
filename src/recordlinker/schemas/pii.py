@@ -13,7 +13,6 @@ from recordlinker import models
 from recordlinker.schemas.identifier import Identifier
 from recordlinker.schemas.identifier import IdentifierType
 from recordlinker.utils import path as utils
-from recordlinker.utils.normalize import normalize_phone_number
 from recordlinker.utils.normalize import normalize_text
 
 # Load the state code mapping for state normalization in Address class
@@ -245,8 +244,20 @@ class Telecom(StrippedBaseModel):
             values["value"] = values["value"].strip()
         # If telecom.system = "phone", normalize the number
         elif values.get("system") == "phone":
-            values["value"] = normalize_phone_number(values["value"])
+            try:
+                # Attempt to parse with country code
+                if values["value"].startswith("+"):
+                    parsed_number = phonenumbers.parse(values["value"])
+                else:
+                    # Default to US if no country code is provided
+                    parsed_number = phonenumbers.parse(values["value"], "US")
+                values["value"] = phonenumbers.format_number(
+                    parsed_number, phonenumbers.PhoneNumberFormat.E164
+                )
 
+            except phonenumbers.NumberParseException:
+                # If parsing fails, return the original phone number
+                pass
         return values
 
 

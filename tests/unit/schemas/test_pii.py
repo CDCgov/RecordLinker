@@ -42,7 +42,7 @@ class TestPIIRecord:
                     "county": "county2",
                 },
             ],
-            "telecom": [{"value": " 555-123-4567"}, {"value": "555-987-6543"}],
+            "telecom": [{"value": " 555-123-4567"}, {"value": "+1 555-987-6543 ext 123"}],
             "identifiers": [
                 {
                     "type": "MR",
