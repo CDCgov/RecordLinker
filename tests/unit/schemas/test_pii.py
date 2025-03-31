@@ -360,6 +360,23 @@ class TestPIIRecord:
             "CA",
         ]
 
+    def test_feature_iter_telecom_phone(self):
+        record = pii.PIIRecord(
+            telecom=[
+                pii.Telecom(value="+1 555-123-4567", system="phone"),
+                pii.Telecom(value="+15551234567", system="phone"),
+                pii.Telecom(value="555-987-6543 ext 123", system="phone"),
+                pii.Telecom(value="555", system="phone"),
+            ]
+        )
+
+        assert list(record.feature_iter(pii.Feature(attribute=pii.FeatureAttribute.TELECOM))) == [
+            "5551234567",
+            "5551234567",
+            "5559876543",
+            "555",
+        ]
+
     def test_blocking_keys_invalid(self):
         rec = pii.PIIRecord()
         with pytest.raises(ValueError):
