@@ -25,8 +25,7 @@ def normalize_phone_number(phone_number: str) -> str:
         else:
             # Default to US if no country code is provided
             parsed_number = phonenumbers.parse(phone_number, "US")
-        # Return the national phone number only
-        return str(parsed_number.national_number)
+        return phonenumbers.format_number(parsed_number, phonenumbers.PhoneNumberFormat.E164)
 
     except phonenumbers.NumberParseException:
         # If parsing fails, return the original phone number

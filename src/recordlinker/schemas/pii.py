@@ -4,6 +4,7 @@ import functools
 import json
 import typing
 
+import phonenumbers
 import pydantic
 from dateutil.parser import parse
 from dateutil.parser import parserinfo
@@ -248,37 +249,6 @@ class Telecom(StrippedBaseModel):
 
         return values
 
-    # def phone(self) -> str | None:
-    #     """
-    #     Return the phone number from the telecom record.
-    #     """
-    #     if self.system != "phone":
-    #         return None
-    #     # normalize the number to include just the 10 digits
-    #     return re.sub(r"\D", "", self.value).strip()[:10]
-
-    # def email(self) -> str | None:
-    #     """
-    #     Return the email address from the telecom record.
-    #     """
-    #     if self.system != "email":
-    #         return None
-    #     return self.value.lower().strip()
-
-    # @classmethod
-    # @functools.lru_cache()
-    # def get_system_handlers(cls) -> dict[str, str]:
-    #     """
-    #     Return a dictionary of system handlers for the Telecom class where the keys
-    #     are the system values and the values are the method names to call.
-
-    #     """
-    #     return {
-    #         name: name
-    #         for name, method in cls.__dict__.items()
-    #         if callable(method) and not name.startswith("_")
-    #     }
-
 
 class PIIRecord(StrippedBaseModel):
     """
@@ -464,16 +434,19 @@ class PIIRecord(StrippedBaseModel):
                 elif telecom.system == "email":
                     yield value
                 elif telecom.system == "phone":
-                    yield normalize_text(value)
+                    phone = str(phonenumbers.parse(telecom.value).national_number)
+                    yield normalize_text(phone)
                 # If the telecom system is not email or phone, just return the value
                 else:
                     yield value
         elif attribute == FeatureAttribute.PHONE:
             for telecom in self.telecom:
                 if telecom.system == "phone":
-                    number = normalize_text(telecom.value)
-                    if number:
-                        yield number
+                    # Remove country code and extension from the phone number
+                    parsed_phone = phonenumbers.parse(telecom.value)
+                    phone = normalize_text(str(parsed_phone.national_number))
+                    if phone:
+                        yield phone
         elif attribute == FeatureAttribute.EMAIL:
             for telecom in self.telecom:
                 if telecom.system == "email":
