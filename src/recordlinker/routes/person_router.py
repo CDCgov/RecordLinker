@@ -42,7 +42,7 @@ def entity_by_id_or_422(
                 }
             ],
         )
-    return entities  # type: ignore
+    return entities
 
 
 @router.post(
