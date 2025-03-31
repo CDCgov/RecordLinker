@@ -12,6 +12,7 @@
         "missing_field_points_proportion": 0.5,
         "passes": [
             {
+                "label": "name-match",
                 "blocking_keys": [
                     "BIRTHDATE",
                     "IDENTIFIER",
@@ -54,6 +55,7 @@
                 }
             },
             {
+                "label": "address-birthdate-match",
                 "blocking_keys": [
                     "ZIP",
                     "FIRST_NAME",
