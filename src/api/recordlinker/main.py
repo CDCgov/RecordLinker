@@ -1,5 +1,3 @@
-import os
-
 import fastapi
 import pydantic
 import sqlalchemy
@@ -9,8 +7,8 @@ from sqlalchemy import orm
 from starlette.responses import FileResponse
 
 from recordlinker import middleware
-from recordlinker.config import settings
 from recordlinker._version import __version__
+from recordlinker.config import settings
 from recordlinker.database import get_session
 from recordlinker.routes.algorithm_router import router as algorithm_router
 from recordlinker.routes.link_router import router as link_router
@@ -121,10 +119,10 @@ app.mount(
 
 # Page routes
 @app.get("/wizard")
-async def read_page():
+async def read_wizard_page():
     return FileResponse("src/api/recordlinker/wwwroot/wizard.html")
 
 
 @app.get("/")
-async def read_page():
+async def read_index_page():
     return FileResponse("src/api/recordlinker/wwwroot/index.html")
