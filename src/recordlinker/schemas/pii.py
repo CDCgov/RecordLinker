@@ -234,31 +234,32 @@ class Telecom(StrippedBaseModel):
     system: typing.Optional[str] = None
     use: typing.Optional[str] = None
 
-    @pydantic.model_validator(mode="before")
-    def validate_and_normalize_telecom(cls, values):
+    @pydantic.model_validator(mode="after")
+    def validate_and_normalize_telecom(self):
         """
         Validate and normalize the telecom record.
         """
         # If telecom.system = "email", set telecom.value to lowercase
-        if values.get("system") == "email":
-            values["value"] = values["value"].strip().lower()
+        #
+        if self.system == "email":
+            self.value = self.value.strip().lower()
         # If telecom.system = "phone", normalize the number
-        elif values.get("system") == "phone":
+        elif self.system == "phone":
             try:
                 # Attempt to parse with country code
-                if values["value"].startswith("+"):
-                    parsed_number = phonenumbers.parse(values["value"])
+                if self.value.startswith("+"):
+                    parsed_number = phonenumbers.parse(self.value)
                 else:
                     # Default to US if no country code is provided
-                    parsed_number = phonenumbers.parse(values["value"], "US")
-                values["value"] = phonenumbers.format_number(
-                    parsed_number, phonenumbers.PhoneNumberFormat.E164
-                )
+                    parsed_number = phonenumbers.parse(self.value, "US")
+                    self.value = phonenumbers.format_number(
+                        parsed_number, phonenumbers.PhoneNumberFormat.E164
+                    )
 
             except phonenumbers.NumberParseException:
                 # If parsing fails, return the original phone number
                 pass
-        return values
+        return self
 
 
 class PIIRecord(StrippedBaseModel):
