@@ -114,8 +114,8 @@ app.mount("/_next", StaticFiles(directory="src/api/recordlinker/wwwroot/_next"),
 
 # Page routes
 @app.get("/wizard")
-async def read_index_page():
+async def read_wizard_page():
     return FileResponse('src/api/recordlinker/wwwroot/wizard.html')
 @app.get("/")
-async def read_wizard_page():
+async def read_index_page():
     return FileResponse('src/api/recordlinker/wwwroot/index.html')
