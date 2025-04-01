@@ -1,7 +1,12 @@
+import os
+
 import fastapi
 import pydantic
 import sqlalchemy
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 from sqlalchemy import orm
+from starlette.responses import FileResponse
 
 from recordlinker import middleware
 from recordlinker._version import __version__
@@ -11,10 +16,7 @@ from recordlinker.routes.link_router import router as link_router
 from recordlinker.routes.patient_router import router as patient_router
 from recordlinker.routes.person_router import router as person_router
 from recordlinker.routes.seed_router import router as seed_router
-from fastapi.staticfiles import StaticFiles
-from starlette.responses import FileResponse
-from fastapi.middleware.cors import CORSMiddleware
-import os
+
 
 async def not_found(request, exc):
     return FileResponse('src/api/recordlinker/wwwroot/404.html')
@@ -112,8 +114,8 @@ app.mount("/_next", StaticFiles(directory="src/api/recordlinker/wwwroot/_next"),
 
 # Page routes
 @app.get("/wizard")
-async def read_page():
+async def read_index_page():
     return FileResponse('src/api/recordlinker/wwwroot/wizard.html')
 @app.get("/")
-async def read_page():
+async def read_wizard_page():
     return FileResponse('src/api/recordlinker/wwwroot/index.html')

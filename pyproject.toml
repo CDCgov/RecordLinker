@@ -64,7 +64,7 @@ prod = [
 package-dir = {"" = "src/api"}
 
 [tool.setuptools.package-data]
-recordlinker = ["assets/*","static/*"]
+recordlinker = ["assets/*"]
 
 [tool.setuptools.packages.find]
 where = ["src/api"]
