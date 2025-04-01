@@ -56,6 +56,10 @@ class Settings(pydantic_settings.BaseSettings):
         ),
         default="assets/initial_algorithms.json",
     )
+    ui_host: typing.Optional[str] = pydantic.Field(
+        description="The hostname and port for the development UI server",
+        default="",
+    )
 
     def default_log_config(self) -> dict:
         """

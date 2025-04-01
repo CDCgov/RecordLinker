@@ -1,9 +1,15 @@
+import os
+
 import fastapi
 import pydantic
 import sqlalchemy
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 from sqlalchemy import orm
+from starlette.responses import FileResponse
 
 from recordlinker import middleware
+from recordlinker.config import settings
 from recordlinker._version import __version__
 from recordlinker.database import get_session
 from recordlinker.routes.algorithm_router import router as algorithm_router
@@ -11,13 +17,11 @@ from recordlinker.routes.link_router import router as link_router
 from recordlinker.routes.patient_router import router as patient_router
 from recordlinker.routes.person_router import router as person_router
 from recordlinker.routes.seed_router import router as seed_router
-from fastapi.staticfiles import StaticFiles
-from starlette.responses import FileResponse
-from fastapi.middleware.cors import CORSMiddleware
-import os
+
 
 async def not_found(request, exc):
-    return FileResponse('src/api/recordlinker/wwwroot/404.html')
+    return FileResponse("src/api/recordlinker/wwwroot/404.html")
+
 
 app = fastapi.FastAPI(
     title="Record Linker",
@@ -48,16 +52,15 @@ app = fastapi.FastAPI(
 
 app.add_middleware(middleware.CorrelationIdMiddleware)
 app.add_middleware(middleware.AccessLogMiddleware)
-
-# Add CORS for local development
-spaLocalDevelopment = os.environ.get("SPA_DEVELOPMENT")
-
-if spaLocalDevelopment == 'true' :
-    app.add_middleware(CORSMiddleware,
-        allow_origins=["http://localhost:3000"],
+if settings.ui_host:
+    # Add CORS for local development
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=[settings.ui_host],
         allow_credentials=True,
         allow_methods=["*"],
-        allow_headers=["*"])
+        allow_headers=["*"],
+    )
 
 # API sub app
 
@@ -69,12 +72,14 @@ subapi.include_router(person_router, prefix="/person", tags=["mpi"])
 subapi.include_router(patient_router, prefix="/patient", tags=["mpi"])
 subapi.include_router(seed_router, prefix="/seed", tags=["mpi"])
 
+
 class HealthCheckResponse(pydantic.BaseModel):
     """
     The schema for the response from the health check endpoint.
     """
 
     status: str
+
 
 @subapi.get(
     "/",
@@ -104,16 +109,22 @@ async def health_check(
             detail="Service Unavailable",
         )
 
+
 app.mount("/api", subapi)
 
 # SPA
 # Bundles integration
-app.mount("/_next", StaticFiles(directory="src/api/recordlinker/wwwroot/_next"), name="SpaStaticAssets")
+app.mount(
+    "/_next", StaticFiles(directory="src/api/recordlinker/wwwroot/_next"), name="SpaStaticAssets"
+)
+
 
 # Page routes
 @app.get("/wizard")
 async def read_page():
-    return FileResponse('src/api/recordlinker/wwwroot/wizard.html')
+    return FileResponse("src/api/recordlinker/wwwroot/wizard.html")
+
+
 @app.get("/")
 async def read_page():
-    return FileResponse('src/api/recordlinker/wwwroot/index.html')
+    return FileResponse("src/api/recordlinker/wwwroot/index.html")
