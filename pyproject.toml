@@ -77,7 +77,7 @@ local_scheme = "dirty-tag"
 fallback_version = "0.0.0"
 
 [tool.ruff]
-exclude = [".git", ".pytest_cache", "__pycache__", "docs", "src/ui"]
+exclude = [".git", ".pytest_cache", "__pycache__", "docs", "src/ui", "src/api/recordlinker/wwwroot"]
 line-length = 100
 indent-width = 4
 target-version = "py310"
@@ -110,6 +110,7 @@ env = [
 omit = [
     # Omit the generated version file from coverage
     "src/api/recordlinker/_version.py",
+    "src/api/recordlinker/wwwroot",
     "src/ui",
     ]
 
