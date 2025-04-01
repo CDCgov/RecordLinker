@@ -44,7 +44,7 @@ To run the API locally, use the following command:
 ./scripts/local_server.sh
 ```
 
-The API will be available at `http://localhost:8000`. Visit `http://localhost:8000/redoc` to view the API documentation.
+The API will be available at `http://localhost:8000/api`. Visit `http://localhost:8000/api/redoc` to view the API documentation.
 
 ## Testing
 

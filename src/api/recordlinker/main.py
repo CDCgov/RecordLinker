@@ -12,6 +12,11 @@ from recordlinker.routes.patient_router import router as patient_router
 from recordlinker.routes.person_router import router as person_router
 from recordlinker.routes.seed_router import router as seed_router
 from fastapi.staticfiles import StaticFiles
+from starlette.responses import FileResponse
+from fastapi.middleware.cors import CORSMiddleware
+
+async def not_found(request, exc):
+    return FileResponse('src/api/recordlinker/wwwroot/404.html')
 
 app = fastapi.FastAPI(
     title="Record Linker",
@@ -35,10 +40,31 @@ app = fastapi.FastAPI(
         configuring the record linkage process, and retrieving the results of the record
         linkage process.
     """.strip(),
+    exception_handlers={
+        404: not_found,
+    },
 )
 
 app.add_middleware(middleware.CorrelationIdMiddleware)
 app.add_middleware(middleware.AccessLogMiddleware)
+
+# Add CORS for local development 
+# TODO add conditional based on environment, this should only apply when running in localhost
+app.add_middleware(CORSMiddleware,
+    allow_origins=["http://localhost:3000"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"])
+
+# API sub app
+
+subapi = fastapi.FastAPI()
+
+subapi.include_router(link_router, tags=["link"])
+subapi.include_router(algorithm_router, prefix="/algorithm", tags=["algorithm"])
+subapi.include_router(person_router, prefix="/person", tags=["mpi"])
+subapi.include_router(patient_router, prefix="/patient", tags=["mpi"])
+subapi.include_router(seed_router, prefix="/seed", tags=["mpi"])
 
 class HealthCheckResponse(pydantic.BaseModel):
     """
@@ -47,8 +73,7 @@ class HealthCheckResponse(pydantic.BaseModel):
 
     status: str
 
-
-@app.get(
+@subapi.get(
     "/",
     responses={
         200: {
@@ -76,9 +101,16 @@ async def health_check(
             detail="Service Unavailable",
         )
 
+app.mount("/api", subapi)
 
-app.include_router(link_router, tags=["link"])
-app.include_router(algorithm_router, prefix="/algorithm", tags=["algorithm"])
-app.include_router(person_router, prefix="/person", tags=["mpi"])
-app.include_router(patient_router, prefix="/patient", tags=["mpi"])
-app.include_router(seed_router, prefix="/seed", tags=["mpi"])
+# SPA
+# Bundles integration
+app.mount("/_next", StaticFiles(directory="src/api/recordlinker/wwwroot/_next"), name="SpaStaticAssets")
+
+# Page routes
+@app.get("/wizard")
+async def read_page():
+    return FileResponse('src/api/recordlinker/wwwroot/wizard.html')
+@app.get("/")
+async def read_page():
+    return FileResponse('src/api/recordlinker/wwwroot/index.html')

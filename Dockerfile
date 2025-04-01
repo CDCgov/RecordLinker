@@ -10,7 +10,6 @@ ENV ENVIRONMENT=${ENVIRONMENT}
 # Set the port variable to 8080 by default
 ARG PORT=8080
 ENV PORT=${PORT}
-
 # Set the USE_MSSQL env variable to true to enable SQL Server support
 ARG USE_MSSQL=true
 ENV USE_MSSQL=${USE_MSSQL}
@@ -27,11 +26,11 @@ RUN pip install --upgrade pip
 
 # Conditionally install ODBC driver for SQL Server.
 RUN if [ "$USE_MSSQL" = "true" ]; then \
-        apt-get install -y gnupg2 apt-transport-https && \
-        curl https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor -o /etc/apt/trusted.gpg.d/microsoft.gpg && \
-        curl https://packages.microsoft.com/config/debian/11/prod.list | tee /etc/apt/sources.list.d/mssql-release.list && \
-        apt-get update && \
-        ACCEPT_EULA=Y apt-get install -y msodbcsql18 unixodbc-dev; \
+    apt-get install -y gnupg2 apt-transport-https && \
+    curl https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor -o /etc/apt/trusted.gpg.d/microsoft.gpg && \
+    curl https://packages.microsoft.com/config/debian/11/prod.list | tee /etc/apt/sources.list.d/mssql-release.list && \
+    apt-get update && \
+    ACCEPT_EULA=Y apt-get install -y msodbcsql18 unixodbc-dev; \
     fi
 
 WORKDIR /code
@@ -45,12 +44,12 @@ RUN pip install "$(printf '%s' ".[${ENVIRONMENT}]")"
 
 # Conditionally install OpenTelemetry packages if USE_OTEL is true
 RUN if [ "$USE_OTEL" = "true" ]; then \
-        pip install opentelemetry-distro opentelemetry-exporter-otlp && \
-        opentelemetry-bootstrap -a install; \
+    pip install opentelemetry-distro opentelemetry-exporter-otlp && \
+    opentelemetry-bootstrap -a install; \
     fi
 
 # Copy over the rest of the code
-COPY ./src/api/recordlinker /code/api/recordlinker
+COPY ./src /code/src
 COPY ./docs /code/docs
 COPY README.md /code/README.md
 
@@ -62,26 +61,27 @@ EXPOSE ${PORT}
 RUN apt-get install -y nodejs npm
 RUN node -v && npm -v
 
+# create wwwroot folder
+RUN mkdir -p /code/src/api/recordlinker/wwwroot
+
 # Install dependencies for webapp
-RUN mkdir -p /code/ui
-COPY ./src/ui /code/ui
-WORKDIR /code/ui
+WORKDIR /code/src/ui
 RUN npm install --legacy-peer-deps
 
+# Disable next telemetry
 RUN echo 'NEXT_TELEMETRY_DISABLED=1' > /.env
 
 # Build and deploy nextjs
 RUN npm run build
 
-# copy to the static file folder
-RUN cp -r /code/ui/out /code/api/recordlinker/wwwroot
+# copy static assets to the static file folder
+RUN cp -r /code/src/ui/out/. /code/src/api/recordlinker/wwwroot
 
-WORKDIR /code/api
+WORKDIR /code
 
 # Create an entrypoint script
 RUN echo '#!/bin/sh' > /entrypoint.sh && \
-    echo 'exec uvicorn recordlinker.main:app --app-dir api --host 0 --port "$PORT"' >> /entrypoint.sh && \
+    echo 'exec uvicorn recordlinker.main:app --app-dir src/api --host 0 --port "$PORT"' >> /entrypoint.sh && \
     chmod +x /entrypoint.sh
 
-# add the  command to start the web application here 
 ENTRYPOINT ["/entrypoint.sh"]

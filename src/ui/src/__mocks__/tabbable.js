@@ -1,6 +1,6 @@
 // __mocks__/tabbable.js
 
-const lib = jest.requireActual('tabbable');
+const lib = jest.requireActual("tabbable");
 
 const tabbable = {
   ...lib,
@@ -9,25 +9,29 @@ const tabbable = {
    * @param node
    * @param options
    */
-  tabbable: (node, options) => lib.tabbable(node, { ...options, displayCheck: 'none' }),
+  tabbable: (node, options) =>
+    lib.tabbable(node, { ...options, displayCheck: "none" }),
   /**
    *
    * @param node
    * @param options
    */
-  focusable: (node, options) => lib.focusable(node, { ...options, displayCheck: 'none' }),
+  focusable: (node, options) =>
+    lib.focusable(node, { ...options, displayCheck: "none" }),
   /**
    *
    * @param node
    * @param options
    */
-  isFocusable: (node, options) => lib.isFocusable(node, { ...options, displayCheck: 'none' }),
+  isFocusable: (node, options) =>
+    lib.isFocusable(node, { ...options, displayCheck: "none" }),
   /**
    *
    * @param node
    * @param options
    */
-  isTabbable: (node, options) => lib.isTabbable(node, { ...options, displayCheck: 'none' }),
+  isTabbable: (node, options) =>
+    lib.isTabbable(node, { ...options, displayCheck: "none" }),
 };
 
 module.exports = tabbable;

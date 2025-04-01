@@ -1,9 +1,9 @@
-import type { Metadata } from 'next';
-import '../styles/index.scss';
+import type { Metadata } from "next";
+import "../styles/index.scss";
 
 export const metadata: Metadata = {
-  title: 'Record Linker',
-  description: '',
+  title: "Record Linker",
+  description: "",
 };
 
 export default function RootLayout({
