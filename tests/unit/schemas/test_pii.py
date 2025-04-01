@@ -572,3 +572,20 @@ class TestPIIRecord:
                 assert val == "doe"
             else:
                 raise AssertionError(f"Unexpected key: {key}")
+
+
+@pytest.mark.parametrize(
+    "input_value, input_system, expected_value",
+    [
+        ("555-123-4567", "phone", "+15551234567"),  # US phone number w/o country code
+        ("+1 555-123-4567", "phone", "+15551234567"),  # US country code
+        ("+44 555 123 4567", "phone", "+445551234567"),  # Non-US country code
+        ("555-123-4567 ext 123", "phone", "+15551234567"),  # Extension (excluded)
+        ("555", "phone", "+1555"),  # Invalid phone (still be formatted)
+        ("abc", "phone", "abc"),  # Unparsable phone (should remain unchanged)
+        ("555-123-4567", None, "555-123-4567"),  # No system provided
+    ],
+)
+def test_telecom_model_validator(input_value, input_system, expected_value):
+    record = pii.PIIRecord(telecom=[pii.Telecom(value=input_value, system=input_system)])
+    assert record.telecom[0].value == expected_value
