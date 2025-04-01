@@ -252,13 +252,13 @@ class Telecom(StrippedBaseModel):
                 else:
                     # Default to US if no country code is provided
                     parsed_number = phonenumbers.parse(self.value, "US")
-                    self.value = phonenumbers.format_number(
-                        parsed_number, phonenumbers.PhoneNumberFormat.E164
-                    )
-
+                self.value = phonenumbers.format_number(
+                    parsed_number, phonenumbers.PhoneNumberFormat.E164
+                )
             except phonenumbers.NumberParseException:
                 # If parsing fails, return the original phone number
                 pass
+
         return self
 
 
