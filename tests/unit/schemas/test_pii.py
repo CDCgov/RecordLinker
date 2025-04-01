@@ -42,7 +42,7 @@ class TestPIIRecord:
                     "county": "county2",
                 },
             ],
-            "telecom": [{"value": " 555-123-4567"}, {"value": "555-987-6543"}],
+            "telecom": [{"value": " 555-123-4567"}, {"value": "+1 555-987-6543 ext 123"}],
             "identifiers": [
                 {
                     "type": "MR",
@@ -220,7 +220,7 @@ class TestPIIRecord:
             ],
             telecom=[
                 pii.Telecom(value="555-123-4567"),
-                pii.Telecom(value="(555) 987-6543", system="phone"),
+                pii.Telecom(value="+44 (555) 987-6543 ext 123", system="phone"),
                 pii.Telecom(value=" teSt@email.com", system="email"),
                 pii.Telecom(value="555*987*6543"),
                 pii.Telecom(value=" teSt@email.com"),
@@ -281,7 +281,7 @@ class TestPIIRecord:
             "5559876543",
             "test@email.com",
             "555*987*6543",
-            "test@email.com",
+            "teSt@email.com",
         ]
 
         assert list(record.feature_iter(pii.Feature(attribute=pii.FeatureAttribute.PHONE))) == [
@@ -359,6 +359,23 @@ class TestPIIRecord:
             "CA",
             "CA",
             "of mind",
+        ]
+
+    def test_feature_iter_telecom_phone(self):
+        record = pii.PIIRecord(
+            telecom=[
+                pii.Telecom(value="+1 555-123-4567", system="phone"),
+                pii.Telecom(value="+15551234567", system="phone"),
+                pii.Telecom(value="555-987-6543 ext 123", system="phone"),
+                pii.Telecom(value="555", system="phone"),
+            ]
+        )
+
+        assert list(record.feature_iter(pii.Feature(attribute=pii.FeatureAttribute.TELECOM))) == [
+            "5551234567",
+            "5551234567",
+            "5559876543",
+            "555",
         ]
 
     def test_blocking_keys_invalid(self):
@@ -557,6 +574,7 @@ class TestPIIRecord:
             else:
                 raise AssertionError(f"Unexpected key: {key}")
 
+
 class TestAddress:
     def test_parse_line(self):
         address = pii.Address(line=["123 Main St.", "Apt 2"])
@@ -571,7 +589,7 @@ class TestAddress:
         assert address.line[0] == "123 Main AVE"
 
     def test_parse_state(self):
-        address = pii.Address(state=" New York") 
+        address = pii.Address(state=" New York")
         assert address.state == "NY"
         address = pii.Address(state="oregon")
         assert address.state == "OR"
@@ -583,3 +601,20 @@ class TestAddress:
         assert address.state == "Armed Forces"
         address = pii.Address(state="Conneticut")
         assert address.state == "Conneticut"
+
+
+@pytest.mark.parametrize(
+    "input_value, input_system, expected_value",
+    [
+        ("555-123-4567", "phone", "+15551234567"),  # US phone number w/o country code
+        ("+1 555-123-4567", "phone", "+15551234567"),  # US country code
+        ("+44 555 123 4567", "phone", "+445551234567"),  # Non-US country code
+        ("555-123-4567 ext 123", "phone", "+15551234567"),  # Extension (excluded)
+        ("555", "phone", "+1555"),  # Invalid phone (still be formatted)
+        ("abc", "phone", "abc"),  # Unparsable phone (should remain unchanged)
+        ("555-123-4567", None, "555-123-4567"),  # No system provided
+    ],
+)
+def test_telecom_model_validator(input_value, input_system, expected_value):
+    record = pii.PIIRecord(telecom=[pii.Telecom(value=input_value, system=input_system)])
+    assert record.telecom[0].value == expected_value
