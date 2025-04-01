@@ -63,7 +63,7 @@ def test_fhir_record_to_pii_record():
         "gender": "male",
         "address": [
             {
-                "line": ["1234 Silversun Strip"],
+                "line": ["1234 Silversun Court"],
                 "buildingNumber": "1234",
                 "city": "Boston",
                 "state": "Massachusetts",
@@ -130,9 +130,9 @@ def test_fhir_record_to_pii_record():
     assert pii_record.name[0].given == ["John"]
     assert str(pii_record.birth_date) == "2013-11-07"
     assert str(pii_record.sex) == "M"
-    assert pii_record.address[0].line == ["1234 Silversun Strip"]
+    assert pii_record.address[0].line == ["1234 Silversun CT"]
     assert pii_record.address[0].city == "Boston"
-    assert pii_record.address[0].state == "Massachusetts"
+    assert pii_record.address[0].state == "MA"
     assert pii_record.address[0].postal_code == "99999"
     assert pii_record.address[0].county == "county"
     assert pii_record.telecom[0].value == "+11234567890"

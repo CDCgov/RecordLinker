@@ -358,6 +358,24 @@ class TestPIIRecord:
             "NY",
             "CA",
             "CA",
+            "of mind",
+        ]
+
+    def test_feature_iter_telecom_phone(self):
+        record = pii.PIIRecord(
+            telecom=[
+                pii.Telecom(value="+1 555-123-4567", system="phone"),
+                pii.Telecom(value="+15551234567", system="phone"),
+                pii.Telecom(value="555-987-6543 ext 123", system="phone"),
+                pii.Telecom(value="555", system="phone"),
+            ]
+        )
+
+        assert list(record.feature_iter(pii.Feature(attribute=pii.FeatureAttribute.TELECOM))) == [
+            "5551234567",
+            "5551234567",
+            "5559876543",
+            "555",
         ]
 
     def test_feature_iter_telecom_phone(self):
@@ -572,6 +590,34 @@ class TestPIIRecord:
                 assert val == "doe"
             else:
                 raise AssertionError(f"Unexpected key: {key}")
+
+
+class TestAddress:
+    def test_parse_line(self):
+        address = pii.Address(line=["123 Main St.", "Apt 2"])
+        assert address.line[0] == "123 Main ST"
+        assert address.line[1] == "Apt 2"
+
+        address = pii.Address(line=["123 Main Jctn", "Suite"])
+        assert address.line[0] == "123 Main JCT"
+        assert address.line[1] == "Suite"
+
+        address = pii.Address(line=[" 123 Main avenue "])
+        assert address.line[0] == "123 Main AVE"
+
+    def test_parse_state(self):
+        address = pii.Address(state=" New York")
+        assert address.state == "NY"
+        address = pii.Address(state="oregon")
+        assert address.state == "OR"
+        address = pii.Address(state="wa")
+        assert address.state == "WA"
+        address = pii.Address(state="district of  columbia")
+        assert address.state == "DC"
+        address = pii.Address(state=" Armed Forces")
+        assert address.state == "Armed Forces"
+        address = pii.Address(state="Conneticut")
+        assert address.state == "Conneticut"
 
 
 @pytest.mark.parametrize(
