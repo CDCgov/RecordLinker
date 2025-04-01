@@ -1,3 +1,20 @@
+# Stage 1: Build the Next.js frontend
+FROM node:20 AS frontend-builder
+
+WORKDIR /code/src/ui
+
+# Install dependencies
+COPY src/ui/package.json src/ui/package-lock.json ./
+RUN npm install --legacy-peer-deps
+
+# Disable Next.js telemetry
+ENV NEXT_TELEMETRY_DISABLED=1
+
+# Copy source files and build the app
+COPY src/ui ./
+RUN npm run build
+
+# Stage 2: Build the Python backend
 FROM python:3.12-slim
 
 LABEL org.opencontainers.image.source=https://github.com/CDCgov/RecordLinker
@@ -49,35 +66,14 @@ RUN if [ "$USE_OTEL" = "true" ]; then \
     fi
 
 # Copy over the rest of the code
-COPY ./src /code/src
+COPY ./src /code/src/api
 COPY ./docs /code/docs
 COPY README.md /code/README.md
 
+# Copy built frontend assets from the first stage
+COPY --from=frontend-builder /code/src/ui/out /code/src/api/recordlinker/wwwroot
+
 EXPOSE ${PORT}
-
-# Web application - Record Linker user interface
-
-# Install Node.js and npm (will get removed after setting up docker steps)
-RUN apt-get install -y nodejs npm
-RUN node -v && npm -v
-
-# create wwwroot folder
-RUN mkdir -p /code/src/api/recordlinker/wwwroot
-
-# Install dependencies for webapp
-WORKDIR /code/src/ui
-RUN npm install --legacy-peer-deps
-
-# Disable next telemetry
-RUN echo 'NEXT_TELEMETRY_DISABLED=1' > /.env
-
-# Build and deploy nextjs
-RUN npm run build
-
-# copy static assets to the static file folder
-RUN cp -r /code/src/ui/out/. /code/src/api/recordlinker/wwwroot
-
-WORKDIR /code
 
 # Create an entrypoint script
 RUN echo '#!/bin/sh' > /entrypoint.sh && \
