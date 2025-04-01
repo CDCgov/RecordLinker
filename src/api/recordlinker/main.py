@@ -14,6 +14,7 @@ from recordlinker.routes.seed_router import router as seed_router
 from fastapi.staticfiles import StaticFiles
 from starlette.responses import FileResponse
 from fastapi.middleware.cors import CORSMiddleware
+import os
 
 async def not_found(request, exc):
     return FileResponse('src/api/recordlinker/wwwroot/404.html')
@@ -48,13 +49,15 @@ app = fastapi.FastAPI(
 app.add_middleware(middleware.CorrelationIdMiddleware)
 app.add_middleware(middleware.AccessLogMiddleware)
 
-# Add CORS for local development 
-# TODO add conditional based on environment, this should only apply when running in localhost
-app.add_middleware(CORSMiddleware,
-    allow_origins=["http://localhost:3000"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"])
+# Add CORS for local development
+spaLocalDevelopment = os.environ.get("SPA_DEVELOPMENT")
+
+if spaLocalDevelopment == 'true' :
+    app.add_middleware(CORSMiddleware,
+        allow_origins=["http://localhost:3000"],
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"])
 
 # API sub app
 
