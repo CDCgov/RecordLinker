@@ -90,6 +90,6 @@ if settings.ui_static_dir:
         """
         Route to handle custom HTML pages for the UI
         """
-        path = request.url.path.strip("/") or "index"
-        view = path if path.endswith(".ico") else f"{path}.html"
+        path: str = request.url.path.strip("/") or "index"
+        view: str = path if path.endswith(".ico") else f"{path}.html"
         return FileResponse(os.path.join(settings.ui_static_dir, view))
