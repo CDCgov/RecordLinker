@@ -36,6 +36,9 @@ ENV USE_OTEL=${USE_OTEL}
 # Set default log config
 ARG LOG_CONFIG=assets/production_log_config.json
 ENV LOG_CONFIG=${LOG_CONFIG}
+# Set the UI static files directory
+ARG UI_STATIC_DIR=/code/build/static
+ENV UI_STATIC_DIR=${UI_STATIC_DIR}
 
 # Updgrade system packages and install curl
 RUN apt-get update && apt-get upgrade -y && apt-get install curl -y
@@ -71,7 +74,7 @@ COPY ./docs /code/docs
 COPY README.md /code/README.md
 
 # Copy built frontend assets from the first stage
-COPY --from=frontend-builder /code/src/ui/out /code/src/api/recordlinker/wwwroot
+COPY --from=frontend-builder /code/src/ui/out "$UI_STATIC_DIR"
 
 EXPOSE ${PORT}
 

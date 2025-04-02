@@ -1,28 +1,24 @@
+import os.path
+
 import fastapi
-import pydantic
-import sqlalchemy
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
-from sqlalchemy import orm
+from starlette.exceptions import HTTPException as StarletteHTTPException
 from starlette.responses import FileResponse
 
 from recordlinker import middleware
 from recordlinker._version import __version__
 from recordlinker.config import settings
-from recordlinker.database import get_session
 from recordlinker.routes.algorithm_router import router as algorithm_router
+from recordlinker.routes.health_router import router as health_router
 from recordlinker.routes.link_router import router as link_router
 from recordlinker.routes.patient_router import router as patient_router
 from recordlinker.routes.person_router import router as person_router
 from recordlinker.routes.seed_router import router as seed_router
 
-
-async def not_found(request, exc):
-    return FileResponse("src/api/recordlinker/wwwroot/404.html")
-
-
-app = fastapi.FastAPI(
-    title="Record Linker",
+app = fastapi.FastAPI(title="Record Linker", version=__version__)
+api = fastapi.FastAPI(
+    title="Record Linker API",
     version=__version__,
     contact={
         "name": "CDC Public Health Data Infrastructure",
@@ -43,16 +39,13 @@ app = fastapi.FastAPI(
         configuring the record linkage process, and retrieving the results of the record
         linkage process.
     """.strip(),
-    exception_handlers={
-        404: not_found,
-    },
 )
 
-app.add_middleware(middleware.CorrelationIdMiddleware)
-app.add_middleware(middleware.AccessLogMiddleware)
+api.add_middleware(middleware.CorrelationIdMiddleware)
+api.add_middleware(middleware.AccessLogMiddleware)
 if settings.ui_host:
     # Add CORS for local development
-    app.add_middleware(
+    api.add_middleware(
         CORSMiddleware,
         allow_origins=[settings.ui_host],
         allow_credentials=True,
@@ -60,69 +53,42 @@ if settings.ui_host:
         allow_headers=["*"],
     )
 
-# API sub app
 
-subapi = fastapi.FastAPI()
+# TODO: Change health check endpoint to /api/health
+api.include_router(health_router)
+api.include_router(link_router, tags=["link"])
+api.include_router(algorithm_router, prefix="/algorithm", tags=["algorithm"])
+api.include_router(person_router, prefix="/person", tags=["mpi"])
+api.include_router(patient_router, prefix="/patient", tags=["mpi"])
+api.include_router(seed_router, prefix="/seed", tags=["mpi"])
 
-subapi.include_router(link_router, tags=["link"])
-subapi.include_router(algorithm_router, prefix="/algorithm", tags=["algorithm"])
-subapi.include_router(person_router, prefix="/person", tags=["mpi"])
-subapi.include_router(patient_router, prefix="/patient", tags=["mpi"])
-subapi.include_router(seed_router, prefix="/seed", tags=["mpi"])
+app.mount("/api", api)
 
-
-class HealthCheckResponse(pydantic.BaseModel):
-    """
-    The schema for the response from the health check endpoint.
-    """
-
-    status: str
-
-
-@subapi.get(
-    "/",
-    responses={
-        200: {
-            "description": "Successful response with status OK",
-            "content": {"application/json": {"example": {"status": "OK"}}},
-        },
-        503: {
-            "description": "Service Unavailable",
-            "content": {"application/json": {"example": {"detail": "Service Unavailable"}}},
-        },
-    },
-)
-async def health_check(
-    db_session: orm.Session = fastapi.Depends(get_session),
-) -> HealthCheckResponse:
-    """
-    Check the status of this service and its connection to the database.
-    """
-    try:
-        db_session.execute(sqlalchemy.text("SELECT 1")).all()
-        return HealthCheckResponse(status="OK")
-    except Exception:
-        raise fastapi.HTTPException(
-            status_code=fastapi.status.HTTP_503_SERVICE_UNAVAILABLE,
-            detail="Service Unavailable",
-        )
+if settings.ui_static_dir:
+    # Bundles integration
+    app.mount(
+        "/_next",
+        StaticFiles(directory=os.path.join(settings.ui_static_dir, "_next")),
+        name="SpaStaticAssets",
+    )
 
 
-app.mount("/api", subapi)
-
-# SPA
-# Bundles integration
-app.mount(
-    "/_next", StaticFiles(directory="src/api/recordlinker/wwwroot/_next"), name="SpaStaticAssets"
-)
-
-
-# Page routes
-@app.get("/wizard")
-async def read_wizard_page():
-    return FileResponse("src/api/recordlinker/wwwroot/wizard.html")
+    # Custom 404 page
+    @app.exception_handler(StarletteHTTPException)
+    async def not_found_handler(request, exc):
+        ""
+        if exc.status_code == fastapi.status.HTTP_404_NOT_FOUND:
+            return FileResponse(os.path.join(settings.ui_static_dir, "404.html"), status_code=404)
+        raise exc
 
 
-@app.get("/")
-async def read_index_page():
-    return FileResponse("src/api/recordlinker/wwwroot/index.html")
+    @app.get("/")
+    @app.get("/wizard")
+    @app.get("/favicon.ico")
+    async def page(request: fastapi.Request):
+        ""
+        path = request.url.path.strip("/")
+        if path == "favicon.ico":
+            return FileResponse(os.path.join(settings.ui_static_dir, "favicon.ico"))
+        view = f"{path}.html" if path else "index.html"
+        return FileResponse(os.path.join(settings.ui_static_dir, view))
