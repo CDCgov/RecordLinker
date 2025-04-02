@@ -2,9 +2,9 @@ import datetime
 import enum
 import functools
 import json
-import re
 import typing
 
+import phonenumbers
 import pydantic
 from dateutil.parser import parse
 from dateutil.parser import parserinfo
@@ -298,36 +298,32 @@ class Telecom(StrippedBaseModel):
     system: typing.Optional[str] = None
     use: typing.Optional[str] = None
 
-    def phone(self) -> str | None:
+    @pydantic.model_validator(mode="after")
+    def validate_and_normalize_telecom(self):
         """
-        Return the phone number from the telecom record.
+        Validate and normalize the telecom record.
         """
-        if self.system != "phone":
-            return None
-        # normalize the number to include just the 10 digits
-        return re.sub(r"\D", "", self.value).strip()[:10]
+        # If telecom.system = "email", set telecom.value to lowercase
+        #
+        if self.system == "email":
+            self.value = self.value.strip().lower()
+        # If telecom.system = "phone", normalize the number
+        elif self.system == "phone":
+            try:
+                # Attempt to parse with country code
+                if self.value.startswith("+"):
+                    parsed_number = phonenumbers.parse(self.value)
+                else:
+                    # Default to US if no country code is provided
+                    parsed_number = phonenumbers.parse(self.value, "US")
+                self.value = phonenumbers.format_number(
+                    parsed_number, phonenumbers.PhoneNumberFormat.E164
+                )
+            except phonenumbers.NumberParseException:
+                # If parsing fails, return the original phone number
+                pass
 
-    def email(self) -> str | None:
-        """
-        Return the email address from the telecom record.
-        """
-        if self.system != "email":
-            return None
-        return self.value.lower().strip()
-
-    @classmethod
-    @functools.lru_cache()
-    def get_system_handlers(cls) -> dict[str, str]:
-        """
-        Return a dictionary of system handlers for the Telecom class where the keys
-        are the system values and the values are the method names to call.
-
-        """
-        return {
-            name: name
-            for name, method in cls.__dict__.items()
-            if callable(method) and not name.startswith("_")
-        }
+        return self
 
 
 class PIIRecord(StrippedBaseModel):
@@ -505,27 +501,24 @@ class PIIRecord(StrippedBaseModel):
                     yield str(race)
         elif attribute == FeatureAttribute.TELECOM:
             for telecom in self.telecom:
-                if telecom.system is None:
-                    yield telecom.value.strip().lower()
-                    continue
-
-                handlers = Telecom.get_system_handlers()
-
-                if telecom.system in handlers:
-                    value = getattr(telecom, handlers[telecom.system])()
-                    if value:
-                        yield value
-
+                if telecom.system == "phone":
+                    # Use national number for comparison
+                    phone = normalize_text(str(phonenumbers.parse(telecom.value).national_number))
+                    if phone:
+                        yield phone
+                else:
+                    yield telecom.value
         elif attribute == FeatureAttribute.PHONE:
             for telecom in self.telecom:
-                number = telecom.phone()
-                if number:
-                    yield number
+                if telecom.system == "phone":
+                    # Use national number for comparison
+                    phone = normalize_text(str(phonenumbers.parse(telecom.value).national_number))
+                    if phone:
+                        yield phone
         elif attribute == FeatureAttribute.EMAIL:
             for telecom in self.telecom:
-                email = telecom.email()
-                if email:
-                    yield email
+                if telecom.system == "email":
+                    yield telecom.value
         elif attribute == FeatureAttribute.SUFFIX:
             for name in self.name:
                 for suffix in name.suffix:
