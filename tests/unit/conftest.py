@@ -9,6 +9,7 @@ import pytest
 import sqlalchemy
 import sqlalchemy.event
 from fastapi.testclient import TestClient
+
 from recordlinker import database
 from recordlinker import main
 from recordlinker import models

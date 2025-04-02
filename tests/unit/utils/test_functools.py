@@ -1,4 +1,5 @@
 import pytest
+
 from recordlinker.linking import matchers
 from recordlinker.utils import functools as utils
 

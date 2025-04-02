@@ -11,10 +11,11 @@ import pytest
 import sqlalchemy.exc
 from conftest import count_queries
 from conftest import db_dialect
+from sqlalchemy.orm.session import Session
+
 from recordlinker import models
 from recordlinker import schemas
 from recordlinker.database import mpi_service
-from sqlalchemy.orm.session import Session
 
 
 class TestInsertBlockingValues:

@@ -8,6 +8,7 @@ This module contains the unit tests for the recordlinker.models.algorithm module
 import unittest.mock
 
 import pytest
+
 from recordlinker import config
 from recordlinker.linking import matchers
 from recordlinker.models import algorithm as models

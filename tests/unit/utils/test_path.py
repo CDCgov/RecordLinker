@@ -3,6 +3,7 @@ import tempfile
 import unittest.mock
 
 import pytest
+
 from recordlinker.utils import path as utils
 
 
