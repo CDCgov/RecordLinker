@@ -14,6 +14,7 @@ authors = [
     {name = "Alex Hayward", email = "alex.hayward@skylight.digital"},
     {name = "Cason Brinson", email = "cbrinson@rise8.us"},
     {name = "Derek Dombek", email = "ddombek@rise8.us"},
+    {name = "Johanna Del Pino", email = "johanna@skylight.digital"},
 ]
 license = { file = "LICENSE" }
 readme = {file = "README.md", content-type = "text/markdown"}
@@ -110,7 +111,6 @@ env = [
 omit = [
     # Omit the generated version file from coverage
     "src/api/recordlinker/_version.py",
-    "src/api/recordlinker/wwwroot",
     "src/ui",
     ]
 

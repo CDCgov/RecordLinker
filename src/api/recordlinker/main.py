@@ -54,7 +54,7 @@ if settings.ui_host:
     )
 
 
-# TODO: Change health check endpoint to /api/health
+# FIXME: Change health check endpoint to /api/health
 api.include_router(health_router)
 api.include_router(link_router, tags=["link"])
 api.include_router(algorithm_router, prefix="/algorithm", tags=["algorithm"])
@@ -62,33 +62,34 @@ api.include_router(person_router, prefix="/person", tags=["mpi"])
 api.include_router(patient_router, prefix="/patient", tags=["mpi"])
 api.include_router(seed_router, prefix="/seed", tags=["mpi"])
 
+# FIXME: This is going to break the NBS integration, we need to communicate this
+# well in advance
 app.mount("/api", api)
 
 if settings.ui_static_dir:
-    # Bundles integration
+    # static files for the UI
     app.mount(
         "/_next",
         StaticFiles(directory=os.path.join(settings.ui_static_dir, "_next")),
         name="SpaStaticAssets",
     )
 
-
-    # Custom 404 page
     @app.exception_handler(StarletteHTTPException)
     async def not_found_handler(request, exc):
-        ""
+        """
+        Custom 404 page
+        """
         if exc.status_code == fastapi.status.HTTP_404_NOT_FOUND:
             return FileResponse(os.path.join(settings.ui_static_dir, "404.html"), status_code=404)
         raise exc
-
 
     @app.get("/")
     @app.get("/wizard")
     @app.get("/favicon.ico")
     async def page(request: fastapi.Request):
-        ""
-        path = request.url.path.strip("/")
-        if path == "favicon.ico":
-            return FileResponse(os.path.join(settings.ui_static_dir, "favicon.ico"))
-        view = f"{path}.html" if path else "index.html"
+        """
+        Route to handle custom HTML pages for the UI
+        """
+        path = request.url.path.strip("/") or "index"
+        view = path if path.endswith(".ico") else f"{path}.html"
         return FileResponse(os.path.join(settings.ui_static_dir, view))
