@@ -7,6 +7,10 @@
 
 cd "$(dirname "$0")/.."
 
+# Install the npm packages
+echo "Installing the npm packages..."
+npm install --force --prefix "src/ui"
+
 # Create a default .env file if it doesn't exist
 if [ ! -f .env ]; then
     echo "Creating a default .env file..."
