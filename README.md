@@ -65,7 +65,7 @@ pytest
 To run a single unit test, use the following command:
 
 ```bash
-pytest tests/unit/test_utils.py::test_bind_functions
+pytest tests/unit/test_normalize.py::TestNormalize::test_normalize
 ```
 
 ### Running type checks

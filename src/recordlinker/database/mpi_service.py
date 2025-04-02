@@ -23,15 +23,17 @@ LOGGER = logging.getLogger(__name__)
 
 class BlockData:
     @classmethod
-    def _ordered_odds(cls, key_ids: list[str], kwargs: typing.Any) -> dict[str, float]:
+    def _ordered_odds(
+        cls, keys: list[models.BlockingKey], context: schemas.EvaluationContext
+    ) -> dict[models.BlockingKey, float]:
         """
         Return a dictionary of key_ids ordered by log_odds values from highest to lowest.
 
-        :param key_ids: list[str]
-        :param kwargs: typing.Any
-        :return: dict[str, float]
+        :param keys: list[models.BlockingKey]
+        :param context: schemas.EvaluationContext
+        :return: dict[models.BlockingKey, float]
         """
-        result: dict[str, float] = {k: kwargs.get("log_odds", {}).get(k, 0.0) for k in key_ids}
+        result = {k: context.get_log_odds(k) or 0.0 for k in keys}
         return dict(sorted(result.items(), key=lambda item: item[1], reverse=True))
 
     @classmethod
@@ -50,12 +52,12 @@ class BlockData:
         """
         if total_odds == 0:
             # No log odds were specified
-            fn_params={k: v for k, v in locals().items() if k != "cls"}
+            fn_params = {k: v for k, v in locals().items() if k != "cls"}
             LOGGER.info("skipping blocking query: no log odds", extra=fn_params)
             return False
         if total_odds and (missing_odds / total_odds) > max_missing_allowed_proportion:
             # The log odds for the missing blocking keys were above the minimum threshold
-            fn_params={k: v for k, v in locals().items() if k != "cls"}
+            fn_params = {k: v for k, v in locals().items() if k != "cls"}
             LOGGER.info("skipping blocking query: log odds too low", extra=fn_params)
             return False
         return True
@@ -100,14 +102,13 @@ class BlockData:
         # and no true-value agreement, we exclude
         return agree_count == len(blocking_values)
 
-    # FIXME: after kwargs refactor, remove max_missing_allowed_proportion parameter
     @classmethod
     def get(
         cls,
         session: orm.Session,
         record: schemas.PIIRecord,
-        algorithm_pass: models.AlgorithmPass,
-        max_missing_allowed_proportion: float,
+        algorithm_pass: schemas.AlgorithmPass,
+        context: schemas.EvaluationContext,
     ) -> typing.Sequence[models.Patient]:
         """
         Get all of the matching Patients for the given data using the provided
@@ -118,17 +119,17 @@ class BlockData:
         :param session: The database session
         :param record: The PIIRecord to match
         :param algorithm_pass: The AlgorithmPass to use
-        :param max_missing_allowed_proportion: The maximum proportion of missing values allowed
+        :param context: The EvaluationContext to use
         :return: The matching Patients
         """
         # Create the base query
         base: expression.Select = expression.select(models.Patient.person_id).distinct()
-        # Get the pass kwargs or create an empty dict
-        kwargs: dict[str, typing.Any] = algorithm_pass.kwargs or {}
         # Get an ordered dict of blocking keys and their log odds
-        key_odds = cls._ordered_odds(algorithm_pass.blocking_keys, kwargs)
+        key_odds: dict[models.BlockingKey, float] = cls._ordered_odds(
+            algorithm_pass.blocking_keys, context
+        )
         # Total log odds from all blocking keys
-        total_odds = sum(key_odds.values())
+        total_odds: float = sum(key_odds.values())
         # Total log odds for keys with missing values
         missing_odds: float = 0
         # Blocking key values
@@ -137,18 +138,14 @@ class BlockData:
         # multiple times, once for each Blocking Key.  If a Patient record
         # has a matching Blocking Value for all the Blocking Keys, then it
         # is considered a match.
-        for idx, (key_id, log_odds) in enumerate(key_odds.items()):
-            # get the BlockingKey obj from the id
-            if not hasattr(models.BlockingKey, key_id):
-                raise ValueError(f"No BlockingKey with id {id} found.")
-            key = getattr(models.BlockingKey, key_id)
+        for idx, (key, log_odds) in enumerate(key_odds.items()):
             # Get all the possible values from the data for this key
             blocking_values[key] = [v for v in record.blocking_keys(key)]
             if not blocking_values[key]:
                 # Add the missing log odds to the total and check if we should abort
                 missing_odds += log_odds
                 if not cls._should_continue_blocking(
-                    total_odds, missing_odds, max_missing_allowed_proportion
+                    total_odds, missing_odds, context.defaults.max_missing_allowed_proportion
                 ):
                     return []
                 # This key doesn't have values, skip the joining query

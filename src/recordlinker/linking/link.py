@@ -34,14 +34,32 @@ class LinkResult:
     belongingness_ratio: float
 
 
+def invoke(
+    evaluator: schemas.Evaluator,
+    record: schemas.PIIRecord,
+    patient: models.Patient,
+    context: schemas.EvaluationContext,
+) -> tuple[float, bool]:
+    """
+    Invoke the evaluator function and return the result
+    """
+    fn: typing.Callable = evaluator.func.callable()
+    kwargs = {
+        "log_odds": context.get_log_odds(evaluator.feature),
+        "missing_proportion": context.defaults.missing_field_points_proportion,
+        "fuzzy_match_threshold": evaluator.fuzzy_match_threshold
+        or context.defaults.fuzzy_match_threshold,
+        "fuzzy_match_measure": evaluator.fuzzy_match_measure
+        or context.defaults.fuzzy_match_measure,
+    }
+    return fn(record, patient, evaluator.feature, **kwargs)
+
+
 def compare(
     record: schemas.PIIRecord,
     patient: models.Patient,
-    max_log_odds_points: float,
-    max_allowed_missingness_proportion: float,
-    missing_field_points_proportion: float,
-    algorithm_pass: models.AlgorithmPass,
-    log_odds_weights: dict[str, float],
+    algorithm_pass: schemas.AlgorithmPass,
+    context: schemas.EvaluationContext,
 ) -> bool:
     """
     Compare the incoming record to the linked patient and return the calculated
@@ -52,56 +70,35 @@ def compare(
     :param record: The new, incoming record, as a PIIRecord data type.
     :param patient: A candidate record returned by blocking from the MPI, whose
       match quality the function call will evaluate.
-    :param max_log_odds_points: The maximum available log odds points that can be
-      accumulated by a candidate pair during this pass of the algorithm.
-    :param max_allowed_missingness_proportion: The maximum proportion of log-odds
-      weights that can be missing across all fields used in evaluating this pass.
-    :param missing_field_points_proportion: The proportion of log-odds points
-      that a field missing data will earn during comparison (i.e. a fraction of
-      its regular log-odds weight value).
     :algorithm_pass: A data structure containing information about the pass of
       the algorithm in which this comparison is being run. Holds information
       like which fields to evaluate and how to total log-odds points.
-    :param log_odds_weights: A dictionary mapping Field names to float values,
-      which are the precomputed log-odds weights associated with that field.
+    :context: The evaluation context object.
     :returns: A boolean indicating whether the incoming record and the supplied
       candidate are a match, as determined by the specific matching rule
       contained in the algorithm_pass object.
     """
-    # all the functions used for comparison
-    evals: list[models.BoundEvaluator] = algorithm_pass.bound_evaluators()
-    # a function to determine a match based on the comparison results
-    matching_rule: typing.Callable = algorithm_pass.bound_rule()
-    # keyword arguments to pass to comparison functions and matching rule
-    kwargs: dict[typing.Any, typing.Any] = algorithm_pass.kwargs
-
-    missing_field_weights = 0.0
     results: list[float] = []
     details: dict[str, typing.Any] = {"patient.reference_id": str(patient.reference_id)}
-    for e in evals:
-        # TODO: can we do this check earlier?
-        feature = schemas.Feature.parse(e.feature)
-        if feature is None:
-            raise ValueError(f"Invalid comparison field: {e.feature}")
-
-        # Evaluate the comparison function, track missingness, and append the
-        # score component to the list
-        result: tuple[float, bool] = e.func(
-            record, patient, feature, missing_field_points_proportion, **kwargs
-        )  # type: ignore
-        if result[1]:
-            # The field was missing, so update the running tally of how much
+    missing_points: float = 0.0
+    max_points: float = 0.0
+    for e in algorithm_pass.evaluators:
+        log_odds = context.get_log_odds(e.feature) or 0.0
+        max_points += log_odds
+        result, is_missing = invoke(e, record, patient, context)
+        if is_missing:
+            # a field was missing, so update the running tally of how much
             # the candidate is missing overall
-            missing_field_weights += log_odds_weights[str(feature.attribute)]
-        results.append(result[0])
-        details[f"evaluator.{e.feature}.{e.func.__name__}.result"] = result
+            missing_points += log_odds
+        results.append(result)
+        details[f"evaluator.{e.feature}.{e.func}.result"] = result
 
-    # Make sure this score wasn't just accumulated with missing checks
-    if missing_field_weights <= max_allowed_missingness_proportion * max_log_odds_points:
-        is_match = matching_rule(results, **kwargs)
-    else:
-        is_match = False
-    details[f"rule.{matching_rule.__name__}.results"] = is_match
+    # check to see if we have enough points to make a decision
+    has_sufficent_points: bool = missing_points <= (
+        max_points * context.defaults.max_missing_allowed_proportion
+    )
+    is_match: bool = has_sufficent_points and sum(results) >= algorithm_pass.true_match_threshold
+    details["rule.results"] = is_match
     # TODO: this may add a lot of noise, consider moving to debug
     LOGGER.info("patient comparison", extra=details)
     return is_match
@@ -110,7 +107,7 @@ def compare(
 def link_record_against_mpi(
     record: schemas.PIIRecord,
     session: orm.Session,
-    algorithm: models.Algorithm,
+    algorithm: schemas.Algorithm,
     external_person_id: typing.Optional[str] = None,
     persist: bool = True,
 ) -> tuple[models.Patient | None, models.Person | None, list[LinkResult], schemas.Prediction]:
@@ -138,11 +135,8 @@ def link_record_against_mpi(
     # Membership scores need to persist across linkage passes so that we can
     # find the highest scoring match across all passes
     scores: dict[models.Person, float] = collections.defaultdict(float)
-    # the minimum ratio of matches needed to be considered a cluster member
-    belongingness_ratio_lower_bound, belongingness_ratio_upper_bound = algorithm.belongingness_ratio
-    # proportions for missingness calculation: points awarded, and max allowed
-    missing_field_points_proportion = algorithm.missing_field_points_proportion
-    max_missing_allowed_proportion = algorithm.max_missing_allowed_proportion
+    # Retrieve the evaluation context
+    context: schemas.EvaluationContext = algorithm.evaluation_context
     # initialize counters to track evaluation results to log
     result_counts: dict[str, int] = {
         "persons_compared": 0,
@@ -152,11 +146,6 @@ def link_record_against_mpi(
     }
     for algorithm_pass in algorithm.passes:
         with TRACER.start_as_current_span("link.pass"):
-            # Determine the maximum possible number of log-odds points in this pass
-            evaluators: list[str] = [e["feature"] for e in algorithm_pass.evaluators]
-            log_odds_points = algorithm_pass.kwargs["log_odds"]
-            max_points = sum([log_odds_points[e] for e in evaluators])
-
             # initialize a dictionary to hold the clusters of patients for each person
             clusters: dict[models.Person, list[models.Patient]] = collections.defaultdict(list)
             # block on the pii_record and the algorithm's blocking criteria, then
@@ -165,7 +154,7 @@ def link_record_against_mpi(
                 # get all candidate Patient records identified in blocking
                 # and the remaining Patient records in their Person clusters
                 pats = mpi_service.BlockData.get(
-                    session, record, algorithm_pass, max_missing_allowed_proportion
+                    session, record, algorithm_pass, context
                 )
                 for pat in pats:
                     clusters[pat.person].append(pat)
@@ -178,15 +167,7 @@ def link_record_against_mpi(
                     for pat in pats:
                         # increment our match count if the pii_record matches the patient
                         with TRACER.start_as_current_span("link.compare"):
-                            if compare(
-                                record,
-                                pat,
-                                max_points,
-                                max_missing_allowed_proportion,
-                                missing_field_points_proportion,
-                                algorithm_pass,
-                                log_odds_points,
-                            ):
+                            if compare(record, pat, algorithm_pass, context):
                                 matched_count += 1
                     result_counts["persons_compared"] += 1
                     result_counts["patients_compared"] += len(pats)
@@ -199,11 +180,11 @@ def link_record_against_mpi(
                             "person.reference_id": str(person.reference_id),
                             "matched": matched_count,
                             "total": len(pats),
-                            "algorithm.belongingness_ratio_lower": belongingness_ratio_lower_bound,
-                            "algorithm.belongingness_ratio_upper": belongingness_ratio_upper_bound,
+                            "algorithm.belongingness_ratio_lower": context.belongingness_ratio_lower_bound,
+                            "algorithm.belongingness_ratio_upper": context.belongingness_ratio_upper_bound,
                         },
                     )
-                    if belongingness_ratio >= belongingness_ratio_lower_bound:
+                    if belongingness_ratio >= context.belongingness_ratio_lower_bound:
                         # The match ratio is larger than the minimum cluster threshold,
                         # optionally update the max score for this person
                         scores[person] = max(scores[person], belongingness_ratio)
@@ -220,14 +201,16 @@ def link_record_against_mpi(
         if persist:
             # Only create a new person cluster if we are persisting data
             matched_person = models.Person()
-    elif results[0].belongingness_ratio >= belongingness_ratio_upper_bound:
+    elif results[0].belongingness_ratio >= context.belongingness_ratio_upper_bound:
         # Match (1 or many)
         prediction = "match"
         matched_person = results[0].person
         # reduce results to only those that meet the upper bound threshold
-        results = [x for x in results if x.belongingness_ratio >= belongingness_ratio_upper_bound]
+        results = [
+            x for x in results if x.belongingness_ratio >= context.belongingness_ratio_upper_bound
+        ]
         result_counts["above_upper_bound"] = len(results)
-        if not algorithm.include_multiple_matches:
+        if not context.include_multiple_matches:
             # reduce results to only the highest match
             results = [results[0]]
 
