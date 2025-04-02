@@ -21,7 +21,7 @@ class TestCorrelationIdMiddleware:
 class TestAccessLogMiddleware:
     def test_dispatch(self, client):
         with unittest.mock.patch("recordlinker.middleware.ACCESS_LOGGER") as mock_logger:
-             response = client.get("/")
+             response = client.get("/api")
         # Verify the response
         assert response.status_code == 200
         assert response.json() == {"status": "OK"}

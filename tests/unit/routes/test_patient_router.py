@@ -12,12 +12,12 @@ from recordlinker import models
 
 class TestCreatePatient:
     def test_missing_data(self, client):
-        response = client.post("/patient")
+        response = client.post("/api/patient")
         assert response.status_code == 422
 
     def test_invalid_person(self, client):
         data = {"person_reference_id": str(uuid.uuid4()), "record": {}}
-        response = client.post("/patient", json=data)
+        response = client.post("/api/patient", json=data)
         assert response.status_code == 422
         assert response.json() == {
             "detail": [
@@ -38,7 +38,7 @@ class TestCreatePatient:
             "person_reference_id": str(person.reference_id),
             "record": {"name": [{"given": ["John"], "family": "Doe"}], "external_id": "123"},
         }
-        response = client.post("/patient", json=data)
+        response = client.post("/api/patient", json=data)
         assert response.status_code == 201
         patient = client.session.query(models.Patient).first()
         assert response.json() == {
@@ -52,12 +52,12 @@ class TestCreatePatient:
 
 class TestUpdatePatient:
     def test_missing_data(self, client):
-        response = client.patch(f"/patient/{uuid.uuid4()}")
+        response = client.patch(f"/api/patient/{uuid.uuid4()}")
         assert response.status_code == 422
 
     def test_invalid_reference_id(self, client):
         data = {"person_reference_id": str(uuid.uuid4())}
-        response = client.patch(f"/patient/{uuid.uuid4()}", json=data)
+        response = client.patch(f"/api/patient/{uuid.uuid4()}", json=data)
         assert response.status_code == 404
 
     def test_invalid_person(self, client):
@@ -66,7 +66,7 @@ class TestUpdatePatient:
         client.session.flush()
 
         data = {"person_reference_id": str(uuid.uuid4())}
-        response = client.patch(f"/patient/{patient.reference_id}", json=data)
+        response = client.patch(f"/api/patient/{patient.reference_id}", json=data)
         assert response.status_code == 422
         assert response.json() == {
             "detail": [
@@ -83,7 +83,7 @@ class TestUpdatePatient:
         client.session.add(patient)
         client.session.flush()
 
-        response = client.patch(f"/patient/{patient.reference_id}", json={})
+        response = client.patch(f"/api/patient/{patient.reference_id}", json={})
         assert response.status_code == 422
 
     def test_update_patient(self, client):
@@ -97,7 +97,7 @@ class TestUpdatePatient:
             "person_reference_id": str(person.reference_id),
             "record": {"name": [{"given": ["John"], "family": "Doe"}], "external_id": "123"},
         }
-        response = client.patch(f"/patient/{patient.reference_id}", json=data)
+        response = client.patch(f"/api/patient/{patient.reference_id}", json=data)
         assert response.status_code == 200
         assert response.json() == {
             "patient_reference_id": str(patient.reference_id),
@@ -111,7 +111,7 @@ class TestUpdatePatient:
 
 class TestDeletePatient:
     def test_invalid_reference_id(self, client):
-        response = client.delete(f"/patient/{uuid.uuid4()}")
+        response = client.delete(f"/api/patient/{uuid.uuid4()}")
         assert response.status_code == 404
 
     def test_delete_patient(self, client):
@@ -119,7 +119,7 @@ class TestDeletePatient:
         client.session.add(patient)
         client.session.flush()
 
-        resp = client.delete(f"/patient/{patient.reference_id}")
+        resp = client.delete(f"/api/patient/{patient.reference_id}")
         assert resp.status_code == 204
 
         patient = (
@@ -132,11 +132,11 @@ class TestDeletePatient:
 
 class TestGetPatient:
     def test_invalid_reference_id(self, client):
-        response = client.get("/patient/123")
+        response = client.get("/api/patient/123")
         assert response.status_code == 422
 
     def test_invalid_patient(self, client):
-        response = client.get(f"/patient/{uuid.uuid4()}")
+        response = client.get(f"/api/patient/{uuid.uuid4()}")
         assert response.status_code == 404
 
     def test_get_patient(self, client):
@@ -150,7 +150,7 @@ class TestGetPatient:
         )
         client.session.add(patient)
         client.session.flush()
-        response = client.get(f"/patient/{patient.reference_id}")
+        response = client.get(f"/api/patient/{patient.reference_id}")
         assert response.status_code == 200
         assert response.json() == {
             "patient_reference_id": str(patient.reference_id),
@@ -179,7 +179,7 @@ class TestGetOrphanedPatients:
         patient2 = models.Patient(person=person2)
         client.session.add_all([patient1, person2, patient2])
         client.session.flush()
-        response = client.get("/patient/orphaned")
+        response = client.get("/api/patient/orphaned")
         assert response.status_code == 200
         assert response.json() == {
             "data": [str(patient1.reference_id)],
@@ -187,7 +187,7 @@ class TestGetOrphanedPatients:
         }
 
     def test_no_orphaned_patients(self, client):
-        response = client.get("/patient/orphaned")
+        response = client.get("/api/patient/orphaned")
         assert response.status_code == 200
         assert response.json() == {
             "data": [],
@@ -200,22 +200,22 @@ class TestGetOrphanedPatients:
         client.session.add_all([patient1, patient2])
         client.session.flush()
 
-        response = client.get("/patient/orphaned?limit=1")
+        response = client.get("/api/patient/orphaned?limit=1")
         assert response.status_code == 200
         assert response.json() == {
             "data": [str(patient1.reference_id)],
             "meta": {
                 "next_cursor": str(patient1.reference_id),
-                "next": f"http://testserver/patient/orphaned?limit=1&cursor={str(patient1.reference_id)}",
+                "next": f"http://testserver/api/patient/orphaned?limit=1&cursor={str(patient1.reference_id)}",
             },
         }
 
-        response = client.get("/patient/orphaned?limit=2")
+        response = client.get("/api/patient/orphaned?limit=2")
         assert response.json() == {
             "data": [str(patient1.reference_id), str(patient2.reference_id)],
             "meta": {
                 "next_cursor": str(patient2.reference_id),
-                "next": f"http://testserver/patient/orphaned?limit=2&cursor={str(patient2.reference_id)}",
+                "next": f"http://testserver/api/patient/orphaned?limit=2&cursor={str(patient2.reference_id)}",
             },
         }
 
@@ -227,29 +227,29 @@ class TestGetOrphanedPatients:
         client.session.flush()
 
         # Retrieve 1 patient after patient1, return cursor for patient2
-        response = client.get(f"/patient/orphaned?limit=1&cursor={patient1.reference_id}")
+        response = client.get(f"/api/patient/orphaned?limit=1&cursor={patient1.reference_id}")
         assert response.status_code == 200
 
         assert response.json() == {
             "data": [str(patient2.reference_id)],
             "meta": {
                 "next_cursor": str(patient2.reference_id),
-                "next": f"http://testserver/patient/orphaned?limit=1&cursor={str(patient2.reference_id)}",
+                "next": f"http://testserver/api/patient/orphaned?limit=1&cursor={str(patient2.reference_id)}",
             },
         }
 
         # Retrieve 2 patients after patient1, return cursor for patient3
-        response = client.get(f"/patient/orphaned?limit=2&cursor={patient1.reference_id}")
+        response = client.get(f"/api/patient/orphaned?limit=2&cursor={patient1.reference_id}")
         assert response.json() == {
             "data": [str(patient2.reference_id), str(patient3.reference_id)],
             "meta": {
                 "next_cursor": str(patient3.reference_id),
-                "next": f"http://testserver/patient/orphaned?limit=2&cursor={str(patient3.reference_id)}",
+                "next": f"http://testserver/api/patient/orphaned?limit=2&cursor={str(patient3.reference_id)}",
             },
         }
 
         # Retrieve the 2 orphaned patients after patient1, return no cursor
-        response = client.get(f"/patient/orphaned?limit=5&cursor={patient1.reference_id}")
+        response = client.get(f"/api/patient/orphaned?limit=5&cursor={patient1.reference_id}")
         assert response.json() == {
             "data": [
                 str(patient2.reference_id),
@@ -259,7 +259,7 @@ class TestGetOrphanedPatients:
         }
 
         # Return 422 if bad patient reference_id is provided as cursor
-        response = client.get(f"/patient/orphaned?limit=1&cursor={uuid.uuid4()}")
+        response = client.get(f"/api/patient/orphaned?limit=1&cursor={uuid.uuid4()}")
         assert response.status_code == 422
         assert response.json() == {
             "detail": [
