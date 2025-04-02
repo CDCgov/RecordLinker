@@ -41,10 +41,20 @@ Note: If you are running in WSL on a Windows machine, will need to run the boots
 To run the API locally, use the following command:
 
 ```bash
-./scripts/local_server.sh
+./scripts/local_server.sh --api-only
 ```
 
 The API will be available at `http://localhost:8000/api`. Visit `http://localhost:8000/api/redoc` to view the API documentation.
+
+### Running the application
+
+To run the UI locally, use the following command:
+
+```bash
+./scripts/local_server.sh
+```
+
+The application will be available at `http://localhost:3000/`.
 
 ## Testing
 
