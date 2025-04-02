@@ -7,11 +7,10 @@ This module contains the unit tests for the recordlinker.database.algorithm_serv
 
 import pytest
 import sqlalchemy.exc
-from sqlalchemy.sql import select
-
 from recordlinker import models
 from recordlinker import schemas
 from recordlinker.database import algorithm_service
+from sqlalchemy.sql import select
 
 
 def test_list_algorithms(session):

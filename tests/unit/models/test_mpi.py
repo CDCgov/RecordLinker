@@ -6,7 +6,6 @@ This module contains the unit tests for the recordlinker.models.mpi module.
 """
 
 import pytest
-
 from recordlinker import models
 from recordlinker.schemas import pii
 
