@@ -78,7 +78,7 @@ local_scheme = "dirty-tag"
 fallback_version = "0.0.0"
 
 [tool.ruff]
-exclude = [".git", ".pytest_cache", "__pycache__", "docs", "src/ui", "src/api/recordlinker/wwwroot"]
+exclude = [".git", ".pytest_cache", "__pycache__", "docs", "src/ui"]
 line-length = 100
 indent-width = 4
 target-version = "py310"
