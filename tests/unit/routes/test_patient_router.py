@@ -206,7 +206,7 @@ class TestGetOrphanedPatients:
             "data": [str(patient1.reference_id)],
             "meta": {
                 "next_cursor": str(patient1.reference_id),
-                "next": f"http://testserver/api/patient/orphaned?limit=1&cursor={str(patient1.reference_id)}",
+                "next": f"http://testserver/patient/orphaned?limit=1&cursor={str(patient1.reference_id)}",
             },
         }
 
@@ -215,7 +215,7 @@ class TestGetOrphanedPatients:
             "data": [str(patient1.reference_id), str(patient2.reference_id)],
             "meta": {
                 "next_cursor": str(patient2.reference_id),
-                "next": f"http://testserver/api/patient/orphaned?limit=2&cursor={str(patient2.reference_id)}",
+                "next": f"http://testserver/patient/orphaned?limit=2&cursor={str(patient2.reference_id)}",
             },
         }
 
@@ -234,7 +234,7 @@ class TestGetOrphanedPatients:
             "data": [str(patient2.reference_id)],
             "meta": {
                 "next_cursor": str(patient2.reference_id),
-                "next": f"http://testserver/api/patient/orphaned?limit=1&cursor={str(patient2.reference_id)}",
+                "next": f"http://testserver/patient/orphaned?limit=1&cursor={str(patient2.reference_id)}",
             },
         }
 
@@ -244,7 +244,7 @@ class TestGetOrphanedPatients:
             "data": [str(patient2.reference_id), str(patient3.reference_id)],
             "meta": {
                 "next_cursor": str(patient3.reference_id),
-                "next": f"http://testserver/api/patient/orphaned?limit=2&cursor={str(patient3.reference_id)}",
+                "next": f"http://testserver/patient/orphaned?limit=2&cursor={str(patient3.reference_id)}",
             },
         }
 

@@ -122,7 +122,7 @@ class TestCreateAlgorithm:
             "description": "Second algorithm",
             "passes": [],
         }
-        response = client.post("/algorithm", json=payload)
+        response = client.post("/api/algorithm", json=payload)
         assert response.status_code == 422
 
     def test_create(self, client):

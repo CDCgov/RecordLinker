@@ -11,7 +11,6 @@ import uuid
 
 import pydantic
 import pytest
-
 from recordlinker.models import BlockingKey
 from recordlinker.schemas import pii
 
