@@ -70,7 +70,7 @@ in the future, parsing the birthdate will generate an error message and result i
 
 `PHONE`
 
-:   The patient's phone number (normalized to 10 digits).
+:   The patient's phone number normalized to an E164 string, although only national numbers (i.e., no country codes) are used for comparison purposes.
 
 `EMAIL`
 
@@ -116,7 +116,7 @@ patient data and used during query retrieval. The following blocking key types a
 
 `PHONE` (ID: **8**)
 
-:   The last 4 digits of the patient's phone number.
+:   The last 4 digits of the patient's phone number (excluding extensions).
 
 `EMAIL` (ID: **9**)
 

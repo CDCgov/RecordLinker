@@ -13,7 +13,6 @@ import typing
 
 import rapidfuzz
 
-from recordlinker.models.mpi import Patient
 from recordlinker.schemas.pii import Feature
 from recordlinker.schemas.pii import PIIRecord
 
@@ -117,10 +116,10 @@ def rule_probabilistic_match(feature_comparisons: list[float], **kwargs: typing.
 
 def compare_probabilistic_exact_match(
     record: PIIRecord,
-    patient: Patient,
+    mpi_record: PIIRecord,
     key: Feature,
     missing_field_points_proportion: float,
-    **kwargs: typing.Any
+    **kwargs: typing.Any,
 ) -> tuple[float, bool]:
     """
     Compare the same Feature Field in two patient records, one incoming and one
@@ -134,7 +133,7 @@ def compare_probabilistic_exact_match(
     had missing information.
 
     :param record: The incoming record to evaluate.
-    :param patient: The patient record to compare against.
+    :param mpi_record: The MPI record to compare against.
     :param key: The name of the column being evaluated (e.g. "city").
     :param missing_field_points_proportion: The proportion of log-odds points to
       award if one of the records is missing information in the given field.
@@ -149,8 +148,8 @@ def compare_probabilistic_exact_match(
         raise ValueError(f"Log odds not found for feature {key}")
 
     # Return early if a field is missing, and log that was the case
-    incoming_record_fields = list(patient.record.feature_iter(key))
-    mpi_record_fields = list(record.feature_iter(key))
+    incoming_record_fields = list(record.feature_iter(key))
+    mpi_record_fields = list(mpi_record.feature_iter(key))
     if len(incoming_record_fields) == 0 or len(mpi_record_fields) == 0:
         return (missing_field_points_proportion * log_odds, True)
 
@@ -158,7 +157,7 @@ def compare_probabilistic_exact_match(
     for x in incoming_record_fields:
         for y in mpi_record_fields:
             # for each permutation of values, check whether the values agree
-            if (x == y):
+            if x == y:
                 agree = 1.0
                 break
     return (agree * log_odds, False)
@@ -166,10 +165,10 @@ def compare_probabilistic_exact_match(
 
 def compare_probabilistic_fuzzy_match(
     record: PIIRecord,
-    patient: Patient,
+    mpi_record: PIIRecord,
     key: Feature,
     missing_field_points_proportion: float,
-    **kwargs: typing.Any
+    **kwargs: typing.Any,
 ) -> tuple[float, bool]:
     """
     Compare the same Feature Field in two patient records, one incoming and one
@@ -185,7 +184,7 @@ def compare_probabilistic_fuzzy_match(
     had missing information.
 
     :param record: The incoming record to evaluate.
-    :param patient: The patient record to compare against.
+    :param mpi_record: The MPI record to compare against.
     :param key: The name of the column being evaluated (e.g. "city").
     :param missing_field_points_proportion: The proportion of log-odds points
       to award if one of the records is missing information in the given field.
@@ -198,10 +197,10 @@ def compare_probabilistic_fuzzy_match(
     log_odds = kwargs.get("log_odds", {}).get(str(key.attribute))
     if log_odds is None:
         raise ValueError(f"Log odds not found for feature {key}")
-    
+
     # Return early if a field is missing, and log that was the case
-    incoming_record_fields = list(patient.record.feature_iter(key))
-    mpi_record_fields = list(record.feature_iter(key))
+    incoming_record_fields = list(record.feature_iter(key))
+    mpi_record_fields = list(mpi_record.feature_iter(key))
     if len(incoming_record_fields) == 0 or len(mpi_record_fields) == 0:
         return (missing_field_points_proportion * log_odds, True)
 
