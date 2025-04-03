@@ -324,22 +324,23 @@ class PIIRecord(StrippedBaseModel):
     identifiers: typing.List[Identifier] = []
 
     @classmethod
-    def model_construct(
-        cls, _fields_set: set[str] | None = None, **values: typing.Any
-    ) -> typing.Self:
+    def from_patient(cls, patient: models.Patient) -> typing.Self:
         """
-        Construct a PIIRecord object from a dictionary. This is similar to the
-        `pydantic.BaseModel.models_construct` method, but allows for additional parsing
-        of nested objects.  The key difference between this and the __init__ constructor
-        is this method will not parse and validate the data, thus should only be used
-        when the data is already cleaned and validated.
+        Construct a PIIRecord from a Patient model.
         """
-        obj = super(PIIRecord, cls).model_construct(_fields_set=_fields_set, **values)
-        obj.address = [Address.model_construct(**a) for a in values.get("address", [])]
-        obj.name = [Name.model_construct(**n) for n in values.get("name", [])]
-        obj.telecom = [Telecom.model_construct(**t) for t in values.get("telecom", [])]
-        obj.identifiers = [Identifier.model_construct(**i) for i in values.get("identifiers", [])]
+        obj = cls.model_construct(**patient.data)
+        obj.address = [Address.model_construct(**a) for a in patient.data.get("address", [])]
+        obj.name = [Name.model_construct(**n) for n in patient.data.get("name", [])]
+        obj.telecom = [Telecom.model_construct(**t) for t in patient.data.get("telecom", [])]
+        obj.identifiers = [Identifier.model_construct(**i) for i in patient.data.get("identifiers", [])]
         return obj
+
+    def to_data(self) -> dict[str, typing.Any]:
+        """
+        Convert this PIIRecord into a data dict.
+        """
+        return self.to_dict(prune_empty=True)
+
 
     @pydantic.field_validator("external_id", mode="before")
     def parse_external_id(cls, value):
