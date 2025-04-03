@@ -70,9 +70,7 @@ def compare(
     """
     # all the functions used for comparison
     evals: list[models.BoundEvaluator] = algorithm_pass.bound_evaluators()
-    # a function to determine a match based on the comparison results
-    matching_rule: typing.Callable = algorithm_pass.bound_rule()
-    # keyword arguments to pass to comparison functions and matching rule
+    # keyword arguments to pass to comparison functions
     kwargs: dict[typing.Any, typing.Any] = algorithm_pass.kwargs
 
     missing_field_weights = 0.0
@@ -97,11 +95,13 @@ def compare(
         details[f"evaluator.{e.feature}.{e.func.__name__}.result"] = result
 
     # Make sure this score wasn't just accumulated with missing checks
+    is_match: bool = False
     if missing_field_weights <= max_allowed_missingness_proportion * max_log_odds_points:
-        is_match = matching_rule(results, **kwargs)
-    else:
-        is_match = False
-    details[f"rule.{matching_rule.__name__}.results"] = is_match
+        threshold = kwargs.get("true_match_threshold")
+        if threshold is None:
+            raise KeyError("Cutoff threshold for true matches must be passed.")
+        is_match = sum(results) >= float(threshold)
+    details["rule.results"] = is_match
     # TODO: this may add a lot of noise, consider moving to debug
     LOGGER.info("patient comparison", extra=details)
     return is_match

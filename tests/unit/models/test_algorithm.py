@@ -90,14 +90,13 @@ class TestAlgorithm:
                     "evaluators": [
                         {
                             "feature": "FIRST_NAME",
-                            "func": "func:recordlinker.linking.matchers.compare_probabilistic_fuzzy_match",
+                            "func": "COMPARE_PROBABILISTIC_FUZZY_MATCH",
                         },
                         {
                             "feature": "LAST_NAME",
-                            "func": "func:recordlinker.linking.matchers.compare_probabilistic_fuzzy_match",
+                            "func": "COMPARE_PROBABILISTIC_FUZZY_MATCH",
                         },
                     ],
-                    "rule": "func:recordlinker.linking.matchers.rule_probabilistic_match",
                 }
             ],
         }
@@ -110,14 +109,13 @@ class TestAlgorithm:
         assert algo.passes[0].evaluators == [
             {
                 "feature": "FIRST_NAME",
-                "func": "func:recordlinker.linking.matchers.compare_probabilistic_fuzzy_match",
+                "func": "COMPARE_PROBABILISTIC_FUZZY_MATCH",
             },
             {
                 "feature": "LAST_NAME",
-                "func": "func:recordlinker.linking.matchers.compare_probabilistic_fuzzy_match",
+                "func": "COMPARE_PROBABILISTIC_FUZZY_MATCH",
             },
         ]
-        assert algo.passes[0].rule == "func:recordlinker.linking.matchers.rule_probabilistic_match"
 
 
 class TestAlgorithmPass:
@@ -129,7 +127,7 @@ class TestAlgorithmPass:
             evaluators=[
                 {
                     "feature": "BIRTHDATE",
-                    "func": "func:recordlinker.linking.matchers.compare_probabilistic_fuzzy_match",
+                    "func": "COMPARE_PROBABILISTIC_FUZZY_MATCH",
                 }
             ]
         )
@@ -139,7 +137,7 @@ class TestAlgorithmPass:
         ap.evaluators = [
             {
                 "feature": "BIRTHDATE",
-                "func": "func:recordlinker.linking.matchers.compare_probabilistic_fuzzy_match",
+                "func": "COMPARE_PROBABILISTIC_FUZZY_MATCH",
             }
         ]
         assert ap.bound_evaluators() == [
@@ -150,16 +148,6 @@ class TestAlgorithmPass:
         ]
         with pytest.raises(ValueError, match="Failed to convert string to callable"):
             ap.bound_evaluators()
-
-    def test_bound_rule(self):
-        """
-        Tests that the bound_rule method returns the correct function
-        """
-        ap = models.AlgorithmPass(rule="func:recordlinker.linking.matchers.rule_probabilistic_match")
-        assert ap.bound_rule() == matchers.rule_probabilistic_match
-        ap.rule = "func:recordlinker.linking.matchers.invalid"
-        with pytest.raises(ValueError, match="Failed to convert string to callable"):
-            ap.bound_rule()
 
 
 class TestCreateInitialAlgorithms:

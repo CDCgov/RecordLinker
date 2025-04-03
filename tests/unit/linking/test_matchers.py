@@ -12,26 +12,12 @@ import pytest
 from recordlinker import models
 from recordlinker import schemas
 from recordlinker.linking import matchers
-from recordlinker.utils import functools as utils
-
-
-class TestRuleFunc:
-    def test_correct_signatures(self):
-        for rule in matchers.RuleFunc:
-            fn = utils.str_to_callable(rule.value)
-            assert callable(fn)
-            signature = inspect.signature(fn)
-            params = list(signature.parameters.values())
-            assert len(params) == 2
-            assert params[0].annotation == list[float]
-            assert params[1].annotation == typing.Any
-            assert signature.return_annotation is bool
 
 
 class TestFeatureFunc:
     def test_correct_signatures(self):
         for rule in matchers.FeatureFunc:
-            fn = utils.str_to_callable(rule.value)
+            fn = rule.callable()
             assert callable(fn)
             signature = inspect.signature(fn)
             params = list(signature.parameters.values())
