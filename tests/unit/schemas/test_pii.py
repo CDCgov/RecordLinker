@@ -12,12 +12,13 @@ import uuid
 import pydantic
 import pytest
 from recordlinker.models import BlockingKey
+from recordlinker.models import Patient
 from recordlinker.schemas import pii
 
 
 class TestPIIRecord:
-    def test_model_construct(self):
-        data = {
+    def test_from_patient(self):
+        pat = Patient(data={
             "birth_date": "1980-2-1",
             "name": [
                 {"family": "Doe", "given": ["John", "L"]},
@@ -53,8 +54,8 @@ class TestPIIRecord:
                     "authority": "VA",
                 },
             ],
-        }
-        record = pii.PIIRecord.model_construct(**data)
+        })
+        record = pii.PIIRecord.from_patient(pat)
         assert record.birth_date == "1980-2-1"
         assert record.name[0].family == "Doe"
         assert record.name[0].given == ["John", "L"]
@@ -78,6 +79,38 @@ class TestPIIRecord:
         assert str(record.identifiers[1].type) == "DL"
         assert record.identifiers[1].value == "D1234567"
         assert record.identifiers[1].authority == "VA"
+
+    def test_to_data(self):
+        record = pii.PIIRecord(
+            birth_date="1980-2-1",
+            name=[
+                {"family": "Doe", "given": ["John", "L"]},
+            ],
+            sex="",
+            address=[
+                {
+                    "line": ["123 Main St"],
+                    "postalCode": "12345",
+                    "country": None,
+                },
+            ],
+            telecom=[
+                {"value": "555-123-4567"},
+            ],
+            identifiers=[
+                {
+                    "type": "MR",
+                    "value": "99",
+                },
+            ],
+        )
+        assert record.to_data() == {
+            "birth_date": "1980-02-01",
+            "name": [{"family": "Doe", "given": ["John", "L"]}],
+            "address": [{"line": ["123 Main ST"], "postal_code": "12345"}],
+            "telecom": [{"value": "555-123-4567"}],
+            "identifiers": [{"type": "MR", "value": "99"}],
+        }
 
     def test_parse_external_id(self):
         record = pii.PIIRecord(external_id=uuid.UUID("7ca699d9-1986-4c0c-a0fd-ac4ae0dfa297"))

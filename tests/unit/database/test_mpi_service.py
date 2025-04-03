@@ -263,11 +263,11 @@ class TestBulkInsertPatients:
         person = models.Person()
         session.add(person)
         session.flush()
-        rec1 = schemas.PIIRecord(
-            **{"birthdate": "1950-01-01", "name": [{"given": ["George"], "family": "Harrison"}]}
+        rec1 = schemas.PIIRecord.model_validate(
+            {"birthdate": "1950-01-01", "name": [{"given": ["George"], "family": "Harrison"}]}
         )
-        rec2 = schemas.PIIRecord(
-            **{
+        rec2 = schemas.PIIRecord.model_validate(
+            {
                 "birthdate": "1950-01-01",
                 "name": [{"given": ["George", "Harold"], "family": "Harrison"}],
             }
