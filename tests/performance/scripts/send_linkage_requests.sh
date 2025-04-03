@@ -41,7 +41,7 @@ for ((i=1; i<=ITERATIONS; i++)); do
                 -X POST -d "$payload" "${API_URL}/link/fhir")
             status_code="${response: -3}"
             # parse the response to see if a MPI match was found
-            match=$(jq '.found_match' response.txt)
+            match=$(jq '.prediction' response.txt)
             # print the status code, match and file name
             echo -e "STATUS:${status_code}\tMATCH:${match}\tFILE:${file}"
         fi

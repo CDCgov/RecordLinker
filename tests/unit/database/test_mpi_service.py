@@ -780,7 +780,6 @@ class TestBlockData:
             algorithm_id=1,
             blocking_keys=["FIRST_NAME", "LAST_NAME"],
             evaluators={},
-            rule="",
             kwargs={},
         )
         matches = mpi_service.BlockData.get(session, schemas.PIIRecord(**data), algorithm_pass, 0.3)

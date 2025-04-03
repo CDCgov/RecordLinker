@@ -71,10 +71,9 @@ class TestLoadAlgorithm:
                     evaluators=[
                         {
                             "feature": "ZIP",
-                            "func": "func:recordlinker.linking.matchers.compare_probabilistic_fuzzy_match",
+                            "func": "COMPARE_PROBABILISTIC_FUZZY_MATCH",
                         }
-                    ],
-                    rule="func:recordlinker.linking.matchers.rule_probabilistic_match",
+                    ]
                 )
             ],
             
@@ -92,9 +91,8 @@ class TestLoadAlgorithm:
         assert obj.passes[0].algorithm_id == 1
         assert obj.passes[0].blocking_keys == ["FIRST_NAME"]
         assert obj.passes[0].evaluators == [
-            {"feature": "ZIP", "func": "func:recordlinker.linking.matchers.compare_probabilistic_fuzzy_match"}
+            {"feature": "ZIP", "func": "COMPARE_PROBABILISTIC_FUZZY_MATCH"}
         ]
-        assert obj.passes[0].rule == "func:recordlinker.linking.matchers.rule_probabilistic_match"
 
     def test_load_algorithm_updated(self, session):
         data = schemas.Algorithm(
@@ -109,10 +107,9 @@ class TestLoadAlgorithm:
                     evaluators=[
                         {
                             "feature": "ZIP",
-                            "func": "func:recordlinker.linking.matchers.compare_probabilistic_fuzzy_match",
+                            "func": "COMPARE_PROBABILISTIC_FUZZY_MATCH",
                         }
-                    ],
-                    rule="func:recordlinker.linking.matchers.rule_probabilistic_match",
+                    ]
                 )
             ],
         )
@@ -133,9 +130,8 @@ class TestLoadAlgorithm:
         assert obj.passes[0].algorithm_id == 1
         assert obj.passes[0].blocking_keys == ["LAST_NAME"]
         assert obj.passes[0].evaluators == [
-            {"feature": "ZIP", "func": "func:recordlinker.linking.matchers.compare_probabilistic_fuzzy_match"}
+            {"feature": "ZIP", "func": "COMPARE_PROBABILISTIC_FUZZY_MATCH"}
         ]
-        assert obj.passes[0].rule == "func:recordlinker.linking.matchers.rule_probabilistic_match"
 
 
 def test_delete_algorithm(session):
@@ -147,9 +143,8 @@ def test_delete_algorithm(session):
         algorithm=algo1,
         blocking_keys=["FIRST_NAME"],
         evaluators=[
-            {"feature": "ZIP", "func": "func:recordlinker.linking.matchers.compare_probabilistic_fuzzy_match"}
+            {"feature": "ZIP", "func": "COMPARE_PROBABILISTIC_FUZZY_MATCH"}
         ],
-        rule="func:recordlinker.linking.matchers.rule_probabilistic_match",
     )
     session.add(pass1)
     session.commit()
@@ -166,9 +161,8 @@ def test_clear_algorithms(session):
         algorithm=algo1,
         blocking_keys=["FIRST_NAME"],
         evaluators=[
-            {"feature": "ZIP", "func": "func:recordlinker.linking.matchers.compare_probabilistic_match"}
+            {"feature": "ZIP", "func": "COMPARE_PROBABILISTIC_FUZZY_MATCH"}
         ],
-        rule="func:recordlinker.linking.matchers.rule_probabilistic_match",
     )
     session.add(pass1)
     session.commit()

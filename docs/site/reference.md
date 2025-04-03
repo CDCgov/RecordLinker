@@ -127,19 +127,6 @@ patient data and used during query retrieval. The following blocking key types a
 :  A colon separated string of the last 4 characters of the value and the identifier type.
 
 
-### Evaluation Functions
-
-These are the functions that can be used to evaluate the matching results as a collection, thus
-determining it the incoming payload is a match or not to an existing Patient record.
-
-`func:recordlinker.linking.matchers.rule_probabilistic_match`
-
-:   Determines whether a given set of feature comparisons matches enough to be the
-    result of a true patient link instead of just random chance. This is represented
-    using previously computed log-odds ratios. A `true_match_threshold` needs to be set
-    in the `kwargs` parameter to determine the minimum log-odds ratio that is considered
-    a match. Example: `{"kwargs": {"true_match_threshold": 12.5}}`
-
 ### Feature Matching Functions
 
 These are the functions that can be used to compare the values of two features to determine
@@ -154,7 +141,7 @@ that to an existing Patient with the ADDRESS of
 [{"address": ["123 Main Street"], "city": "Springfield", "state": "IL"}, {"address": ["456 Elm St"], "state": "IL"}].
 In that case we'd want to evaluate "123 Main St" against both "123 Main Street" and "456 Elm St".
 
-`func:recordlinker.linking.matchers.compare_probabilistic_exact_match`
+`COMPARE_PROBABILISTIC_EXACT_MATCH`
 
 :   Determines if a Feature Field has the same value in two different patient records. If the two fields agree
     exactly (i.e. are exactly the same), then the function returns the full extent of the log-odds weights for 
@@ -164,7 +151,7 @@ In that case we'd want to evaluate "123 Main St" against both "123 Main Street" 
     defined by an enum (e.g. Sex). Use the kwargs parameter to specify the log-odds ratios based on training.
     Example: `{"kwargs": {"log_odds": {"SEX": 6.8}}}`
 
-`func:recordlinker.linking.matchers.compare_probabilistic_fuzzy_match`
+`COMPARE_PROBABILISTIC_FUZZY_MATCH`
 
 :   Similar to the above function, but uses a log-odds ratio to determine if the features are a match 
     probabilistically. This is useful when wanting to more robustly compare features by incorporating
