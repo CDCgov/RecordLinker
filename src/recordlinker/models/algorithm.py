@@ -9,7 +9,6 @@ from sqlalchemy import types as sqltypes
 
 from recordlinker.config import ConfigurationError
 from recordlinker.config import settings
-from recordlinker.utils import functools as func_utils
 from recordlinker.utils import path as path_utils
 
 from .base import Base
@@ -35,13 +34,21 @@ class Algorithm(Base):
     label: orm.Mapped[str] = orm.mapped_column(sqltypes.String(255), unique=True)
     description: orm.Mapped[str] = orm.mapped_column(sqltypes.Text(), nullable=True)
     include_multiple_matches: orm.Mapped[bool] = orm.mapped_column(sqltypes.Boolean, default=True)
-    belongingness_ratio_lower_bound: orm.Mapped[float] = orm.mapped_column(sqltypes.Float, default=1.0)
-    belongingness_ratio_upper_bound: orm.Mapped[float] = orm.mapped_column(sqltypes.Float, default=1.0)
+    belongingness_ratio_lower_bound: orm.Mapped[float] = orm.mapped_column(
+        sqltypes.Float, default=1.0
+    )
+    belongingness_ratio_upper_bound: orm.Mapped[float] = orm.mapped_column(
+        sqltypes.Float, default=1.0
+    )
     passes: orm.Mapped[list["AlgorithmPass"]] = orm.relationship(
         back_populates="algorithm", cascade="all, delete-orphan"
     )
-    max_missing_allowed_proportion: orm.Mapped[float] = orm.mapped_column(sqltypes.Float, default=0.5)
-    missing_field_points_proportion: orm.Mapped[float] = orm.mapped_column(sqltypes.Float, default=0.5)
+    max_missing_allowed_proportion: orm.Mapped[float] = orm.mapped_column(
+        sqltypes.Float, default=0.5
+    )
+    missing_field_points_proportion: orm.Mapped[float] = orm.mapped_column(
+        sqltypes.Float, default=0.5
+    )
 
     @property
     def belongingness_ratio(self) -> tuple[float, float]:
@@ -111,7 +118,6 @@ class AlgorithmPass(Base):
     algorithm: orm.Mapped["Algorithm"] = orm.relationship(back_populates="passes")
     blocking_keys: orm.Mapped[list[str]] = orm.mapped_column(sqltypes.JSON)
     _evaluators: orm.Mapped[list[dict]] = orm.mapped_column("evaluators", sqltypes.JSON)
-    _rule: orm.Mapped[str] = orm.mapped_column("rule", sqltypes.String(255))
     kwargs: orm.Mapped[dict] = orm.mapped_column(sqltypes.JSON, default=dict)
 
     @property
@@ -134,36 +140,21 @@ class AlgorithmPass(Base):
         """
         Get the evaluators for this algorithm pass, bound to the algorithm.
         """
+        # NOTE: This is a temp fix to avoid circular import,
+        # this will be removed when issue #223 is completed
+        from recordlinker.linking import matchers
+
         if not hasattr(self, "_bound_evaluators"):
-            self._bound_evaluators = [
-                BoundEvaluator(**func_utils.bind_functions(e))
-                for e in self.evaluators
-            ]
+            self._bound_evaluators: list[BoundEvaluator] = []
+            for e in self.evaluators:
+                try:
+                    fn = getattr(matchers.FeatureFunc, e["func"]).callable()
+                except AttributeError:
+                    raise ValueError("Failed to convert string to callable")
+                self._bound_evaluators.append(
+                    BoundEvaluator(**{"feature": e["feature"], "func": fn})
+                )
         return self._bound_evaluators
-
-    @property
-    def rule(self) -> str:
-        """
-        Get the rule for this algorithm pass.
-        """
-        return self._rule
-
-    @rule.setter  # type: ignore
-    def rule(self, value: str):
-        """
-        Set the rule for this algorithm pass.
-        """
-        self._rule = value
-        if hasattr(self, "_bound_rule"):
-            del self._bound_rule
-
-    def bound_rule(self) -> typing.Callable:
-        """
-        Get the rule for this algorithm pass, bound to the algorithm.
-        """
-        if not hasattr(self, "_bound_rule"):
-            self._bound_rule = func_utils.str_to_callable(self.rule)
-        return self._bound_rule
 
 
 @event.listens_for(schema.MetaData, "after_create")
