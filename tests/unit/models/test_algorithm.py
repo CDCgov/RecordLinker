@@ -144,7 +144,7 @@ class TestAlgorithmPass:
             models.BoundEvaluator("BIRTHDATE", matchers.compare_probabilistic_fuzzy_match)
         ]
         ap.evaluators = [
-            {"feature": "BIRTHDATE", "func": "func:recordlinker.linking.matchers.invalid"}
+            {"feature": "BIRTHDATE", "func": "INVALID"}
         ]
         with pytest.raises(ValueError, match="Failed to convert string to callable"):
             ap.bound_evaluators()
