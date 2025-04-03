@@ -71,7 +71,7 @@ jobs:
           COUNT=0
           until curl -s http://localhost:8080/api/ | grep "OK"; do
             echo "Waiting for RL Service to become healthy... Attempt $((COUNT+1)) of $TRIES"
-            sleep 5
+            sleep 7
             COUNT=$((COUNT+1))
             if [ "$COUNT" -ge "$TRIES" ]; then
               echo "RL Service did not become healthy in time."
