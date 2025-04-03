@@ -44,11 +44,7 @@ class Patient(Base):
         schema.ForeignKey(f"{Person.__tablename__}.id"), nullable=True
     )
     person: orm.Mapped["Person"] = orm.relationship(back_populates="patients")
-    # NOTE: We're using a protected attribute here to store the data string, as we
-    # want getter/setter access to the data dictionary to trigger updating the
-    # calculated record property.  Mainly this is to ensure that the cached record
-    # property, self._record, is cleared when the data is updated.
-    _data: orm.Mapped[dict] = orm.mapped_column("data", sqltypes.JSON, default=dict)
+    data: orm.Mapped[dict] = orm.mapped_column(sqltypes.JSON, default=dict)
     external_patient_id: orm.Mapped[str] = orm.mapped_column(sqltypes.String(255), nullable=True)
     external_person_id: orm.Mapped[str] = orm.mapped_column(sqltypes.String(255), nullable=True)
     external_person_source: orm.Mapped[str] = orm.mapped_column(sqltypes.String(100), nullable=True)
@@ -56,54 +52,6 @@ class Patient(Base):
     reference_id: orm.Mapped[uuid.UUID] = orm.mapped_column(
         default=uuid.uuid4, unique=True, index=True
     )
-
-    @property
-    def data(self) -> dict:
-        """
-        Return the data dictionary for this patient record.
-        """
-        return self._data
-
-    @data.setter  # type: ignore
-    def data(self, value: dict):
-        """
-        Set the Patient data from a dictionary.
-
-        """
-        self._data = value
-        if hasattr(self, "_record"):
-            # if the record property is cached, delete it
-            del self._record
-
-    # TODO: remove references to PIIRecord
-    @property
-    def record(self):
-        """
-        Return a PIIRecord object with the data from this patient record.
-        """
-        from recordlinker.schemas import pii
-
-        if not hasattr(self, "_record"):
-            # caching the result of the record property for performance
-            self._record = pii.PIIRecord.model_construct(**(self._data or {}))
-        return self._record
-
-    # TODO: remove references to PIIRecord
-    @record.setter  # type: ignore
-    def record(self, value):
-        """
-        Set the Patient data from a PIIRecord object.
-        """
-        from recordlinker.schemas import pii
-
-        assert isinstance(value, pii.PIIRecord), "Expected a PIIRecord object"
-        # recursively remove all None and unset values from the data
-        # this is an optimization to reduce the amount of data stored in the
-        # database, if a value is empty, no need to store it
-        self._data = value.to_dict(prune_empty=True)
-        if hasattr(self, "_record"):
-            # if the record property is cached, delete it
-            del self._record
 
 
 class BlockingKey(enum.Enum):

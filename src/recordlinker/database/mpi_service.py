@@ -50,12 +50,12 @@ class BlockData:
         """
         if total_odds == 0:
             # No log odds were specified
-            fn_params={k: v for k, v in locals().items() if k != "cls"}
+            fn_params = {k: v for k, v in locals().items() if k != "cls"}
             LOGGER.info("skipping blocking query: no log odds", extra=fn_params)
             return False
         if total_odds and (missing_odds / total_odds) > max_missing_allowed_proportion:
             # The log odds for the missing blocking keys were above the minimum threshold
-            fn_params={k: v for k, v in locals().items() if k != "cls"}
+            fn_params = {k: v for k, v in locals().items() if k != "cls"}
             LOGGER.info("skipping blocking query: log odds too low", extra=fn_params)
             return False
         return True
@@ -74,7 +74,8 @@ class BlockData:
         :param blocking_values: dict
         :return: bool
         """
-        agree_count = 0
+        agree_count: int = 0
+        mpi_record: schemas.PIIRecord = schemas.PIIRecord.from_patient(patient)
         for key, incoming_vals in blocking_values.items():
             if not incoming_vals:
                 # The incoming record has no value for this blocking key, thus there
@@ -83,7 +84,7 @@ class BlockData:
                 agree_count += 1
                 continue
             # Calculate the blocking values for the patient
-            patient_vals = patient.record.blocking_keys(key)
+            patient_vals = mpi_record.blocking_keys(key)
             if not patient_vals:
                 # The patient record has no value for this blocking key, thus there
                 # is no reason to compare.  We can increment the counter to indicate
@@ -198,7 +199,9 @@ def insert_patient(
     :returns: The inserted Patient record
     """
 
-    patient = models.Patient(person=person, record=record, external_patient_id=external_patient_id)
+    patient = models.Patient(
+        person=person, data=record.to_data(), external_patient_id=external_patient_id
+    )
 
     if external_person_id is not None:
         patient.external_person_id = external_person_id
@@ -247,7 +250,7 @@ def bulk_insert_patients(
     pat_data = [
         {
             "person_id": person and person.id,
-            "_data": record.to_dict(prune_empty=True),
+            "data": record.to_data(),
             "external_patient_id": record.external_id,
             "external_person_id": external_person_id,
             "external_person_source": "IRIS" if external_person_id else None,
@@ -290,7 +293,7 @@ def update_patient(
         raise ValueError("Patient has not yet been inserted into the database")
 
     if record:
-        patient.record = record
+        patient.data = record.to_data()
         delete_blocking_values_for_patient(session, patient, commit=False)
         insert_blocking_values(session, [patient], commit=False)
 
@@ -328,7 +331,7 @@ def insert_blocking_values(
 
     data: list[dict] = []
     for idx, patient in enumerate(patients):
-        record = records[idx] if records else patient.record
+        record = records[idx] if records else schemas.PIIRecord.from_patient(patient)
         for key, val in record.blocking_values():
             data.append({"patient_id": patient.id, "blockingkey": key.id, "value": val})
     if not data:

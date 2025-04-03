@@ -72,6 +72,8 @@ def compare(
     evals: list[models.BoundEvaluator] = algorithm_pass.bound_evaluators()
     # keyword arguments to pass to comparison functions
     kwargs: dict[typing.Any, typing.Any] = algorithm_pass.kwargs
+    # convert the Patient model into a PIIRecord for comparison
+    mpi_record: schemas.PIIRecord = schemas.PIIRecord.from_patient(patient)
 
     missing_field_weights = 0.0
     results: list[float] = []
@@ -85,7 +87,7 @@ def compare(
         # Evaluate the comparison function, track missingness, and append the
         # score component to the list
         result: tuple[float, bool] = e.func(
-            record, patient, feature, missing_field_points_proportion, **kwargs
+            record, mpi_record, feature, missing_field_points_proportion, **kwargs
         )  # type: ignore
         if result[1]:
             # The field was missing, so update the running tally of how much

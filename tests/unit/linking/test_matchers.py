@@ -22,7 +22,7 @@ class TestFeatureFunc:
             params = list(signature.parameters.values())
             assert len(params) == 5
             assert params[0].annotation == schemas.PIIRecord
-            assert params[1].annotation == models.Patient
+            assert params[1].annotation == schemas.PIIRecord
             assert params[2].annotation == schemas.Feature
             assert params[3].annotation is float
             assert params[4].annotation == typing.Any
@@ -91,7 +91,7 @@ def test_compare_probabilistic_exact_match():
 
     assert matchers.compare_probabilistic_exact_match(
         rec,
-        pat,
+        schemas.PIIRecord.from_patient(pat),
         schemas.Feature(attribute=schemas.FeatureAttribute.FIRST_NAME),
         missing_points_proportion,
         log_odds=log_odds,
@@ -99,7 +99,7 @@ def test_compare_probabilistic_exact_match():
 
     assert matchers.compare_probabilistic_exact_match(
         rec,
-        pat,
+        schemas.PIIRecord.from_patient(pat),
         schemas.Feature(attribute=schemas.FeatureAttribute.LAST_NAME),
         missing_points_proportion,
         log_odds=log_odds,
@@ -107,7 +107,7 @@ def test_compare_probabilistic_exact_match():
 
     assert matchers.compare_probabilistic_exact_match(
         rec,
-        pat,
+        schemas.PIIRecord.from_patient(pat),
         schemas.Feature(attribute=schemas.FeatureAttribute.BIRTHDATE),
         missing_points_proportion,
         log_odds=log_odds,
@@ -119,7 +119,7 @@ def test_compare_probabilistic_exact_match():
     )
     assert matchers.compare_probabilistic_exact_match(
         rec,
-        pat,
+        schemas.PIIRecord.from_patient(pat),
         schemas.Feature(attribute=schemas.FeatureAttribute.BIRTHDATE),
         missing_points_proportion,
         log_odds=log_odds,
@@ -158,7 +158,7 @@ def test_compare_probabilistic_fuzzy_match():
 
     assert matchers.compare_probabilistic_fuzzy_match(
         rec,
-        pat,
+        schemas.PIIRecord.from_patient(pat),
         schemas.Feature(attribute=schemas.FeatureAttribute.FIRST_NAME),
         missing_points_proportion,
         log_odds=log_odds,
@@ -166,7 +166,7 @@ def test_compare_probabilistic_fuzzy_match():
 
     result = matchers.compare_probabilistic_fuzzy_match(
         rec,
-        pat,
+        schemas.PIIRecord.from_patient(pat),
         schemas.Feature(attribute=schemas.FeatureAttribute.LAST_NAME),
         missing_points_proportion,
         log_odds=log_odds,
@@ -176,7 +176,7 @@ def test_compare_probabilistic_fuzzy_match():
 
     result = matchers.compare_probabilistic_fuzzy_match(
         rec,
-        pat,
+        schemas.PIIRecord.from_patient(pat),
         schemas.Feature(attribute=schemas.FeatureAttribute.BIRTHDATE),
         missing_points_proportion,
         log_odds=log_odds,
@@ -186,7 +186,7 @@ def test_compare_probabilistic_fuzzy_match():
 
     result = matchers.compare_probabilistic_fuzzy_match(
         rec,
-        pat,
+        schemas.PIIRecord.from_patient(pat),
         schemas.Feature(attribute=schemas.FeatureAttribute.ADDRESS),
         missing_points_proportion,
         log_odds=log_odds,
@@ -202,7 +202,7 @@ def test_compare_probabilistic_fuzzy_match():
     )
     result = matchers.compare_probabilistic_fuzzy_match(
         rec,
-        pat,
+        schemas.PIIRecord.from_patient(pat),
         schemas.Feature(attribute=schemas.FeatureAttribute.FIRST_NAME),
         missing_points_proportion,
         log_odds=log_odds,
