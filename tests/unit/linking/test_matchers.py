@@ -37,10 +37,6 @@ class TestFeatureFunc:
             matchers.FeatureFunc["COMPARE_PROBABILISTIC_FUZZY_MATCH"].callable()
             == matchers.compare_probabilistic_fuzzy_match
         )
-        assert (
-            str(matchers.FeatureFunc["COMPARE_PROBABILISTIC_EXACT_MATCH"])
-            == "COMPARE_PROBABILISTIC_EXACT_MATCH"
-        )
 
     def test_str(self):
         assert (
