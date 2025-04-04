@@ -22,3 +22,11 @@ def test_health_check_unavailable(client):
 def test_openapi(client):
     actual_response = client.get("/api/openapi.json")
     assert actual_response.status_code == 200
+
+def test_static_assets_not_found_when_ui_static_dir_unset(client):
+    static_bundles_response = client.get("/_next/dummy_bundle.css")
+    assert static_bundles_response.status_code == 404
+    landing_page_response = client.get("/index.html")
+    assert landing_page_response.status_code == 404
+    wizard_page_response = client.get("/wizard.html")
+    assert wizard_page_response.status_code == 404
