@@ -19,7 +19,7 @@ from recordlinker.database import get_session
 router = fastapi.APIRouter()
 
 
-@router.get("", status_code=fastapi.status.HTTP_200_OK)
+@router.get("", status_code=fastapi.status.HTTP_200_OK, name="list-algorithms")
 def list_algorithms(
     session: orm.Session = fastapi.Depends(get_session),
 ) -> typing.Sequence[schemas.AlgorithmSummary]:
@@ -31,7 +31,7 @@ def list_algorithms(
     return [schemas.AlgorithmSummary.model_validate(a) for a in service.list_algorithms(session)]
 
 
-@router.get("/{label}", status_code=fastapi.status.HTTP_200_OK)
+@router.get("/{label}", status_code=fastapi.status.HTTP_200_OK, name="get-algorithm")
 def get_algorithm(
     label: str,
     session: orm.Session = fastapi.Depends(get_session),
@@ -48,7 +48,7 @@ def get_algorithm(
     return schemas.Algorithm.model_validate(obj)
 
 
-@router.post("", status_code=fastapi.status.HTTP_201_CREATED)
+@router.post("", status_code=fastapi.status.HTTP_201_CREATED, name="create-algorithm")
 def create_algorithm(
     data: schemas.Algorithm, session: orm.Session = fastapi.Depends(get_session)
 ) -> schemas.Algorithm:
@@ -71,7 +71,7 @@ def create_algorithm(
     return data
 
 
-@router.put("/{label}", status_code=fastapi.status.HTTP_200_OK)
+@router.put("/{label}", status_code=fastapi.status.HTTP_200_OK, name="update-algorithm")
 def update_algorithm(
     label: str, data: schemas.Algorithm, session: orm.Session = fastapi.Depends(get_session)
 ) -> schemas.Algorithm:
@@ -94,7 +94,7 @@ def update_algorithm(
     return data
 
 
-@router.delete("/{label}", status_code=fastapi.status.HTTP_204_NO_CONTENT)
+@router.delete("/{label}", status_code=fastapi.status.HTTP_204_NO_CONTENT, name="delete-algorithm")
 def delete_algorithm(label: str, session: orm.Session = fastapi.Depends(get_session)) -> None:
     """
     Delete an algorithm from the MPI database.

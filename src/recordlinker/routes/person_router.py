@@ -67,6 +67,7 @@ def persons_by_reference_id_or_422(
     "",
     summary="Create a new Person cluster",
     status_code=fastapi.status.HTTP_201_CREATED,
+    name="create-person",
 )
 def create_person(
     data: typing.Annotated[schemas.PatientRefs, fastapi.Body()],
@@ -85,6 +86,7 @@ def create_person(
     "/{person_reference_id}",
     summary="Assign Patients to existing Person",
     status_code=fastapi.status.HTTP_200_OK,
+    name="update-person",
 )
 def update_person(
     person_reference_id: uuid.UUID,
@@ -104,7 +106,10 @@ def update_person(
 
 
 @router.get(
-    "/orphaned", summary="Retrieve orphaned persons", status_code=fastapi.status.HTTP_200_OK
+    "/orphaned",
+    summary="Retrieve orphaned persons",
+    status_code=fastapi.status.HTTP_200_OK,
+    name="get-orphaned-persons",
 )
 def get_orphaned_persons(
     request: fastapi.Request,
@@ -161,6 +166,7 @@ def get_orphaned_persons(
     "/{person_reference_id}",
     summary="Retrieve a person cluster",
     status_code=fastapi.status.HTTP_200_OK,
+    name="get-person",
 )
 def get_person(
     person_reference_id: uuid.UUID,
@@ -183,6 +189,7 @@ def get_person(
     "/{merge_into_id}/merge",
     summary="Merge Person clusters",
     status_code=fastapi.status.HTTP_200_OK,
+    name="merge-person-clusters",
 )
 def merge_person_clusters(
     merge_into_id: uuid.UUID,
@@ -231,6 +238,7 @@ def merge_person_clusters(
     "/{person_reference_id}",
     summary="Delete an empty Person",
     status_code=fastapi.status.HTTP_204_NO_CONTENT,
+    name="delete-empty-person",
     responses={
         404: {"description": "Not Found", "model": schemas.ErrorResponse},
         403: {
@@ -242,6 +250,7 @@ def merge_person_clusters(
 def delete_empty_person(
     person_reference_id: uuid.UUID,
     session: orm.Session = fastapi.Depends(get_session),
+    name="delete-empty-person",
 ):
     """
     Delete an empty Person from the MPI database.
