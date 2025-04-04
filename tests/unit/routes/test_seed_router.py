@@ -13,14 +13,17 @@ from recordlinker import models
 
 
 class TestBatch:
+    def path(self, client):
+        return client.app.url_path_for("seed-batch")
+
     def test_empty_clusters(self, client):
-        response = client.post("/seed", json={"clusters": []})
+        response = client.post(self.path(client), json={"clusters": []})
         assert response.status_code == 422
         assert response.json()["detail"][0]["msg"] == "Value error, Clusters must not be empty"
 
     def test_too_many_clusters(self, client):
         data = {"clusters": [{"records": []} for _ in range(101)]}
-        response = client.post("/seed", json=data)
+        response = client.post(self.path(client), json=data)
         assert response.status_code == 422
         assert (
             response.json()["detail"][0]["msg"]
@@ -31,7 +34,7 @@ class TestBatch:
         # NOTE: The seed_test.json file was generated with scripts/gen_seed_test_data.py
         # rerun that script and adjust these values if the data format needs to change.
         data = load_test_json_asset("seed_test.json.gz")
-        response = client.post("/seed", json=data)
+        response = client.post(self.path(client), json=data)
         assert response.status_code == 201
         persons = response.json()["persons"]
         assert len(persons) == 100
@@ -56,7 +59,7 @@ class TestBatch:
                 }
             ],
         }
-        seed_resp = client.post("/seed", json={"clusters": [{"records": [record]}]})
+        seed_resp = client.post(self.path(client), json={"clusters": [{"records": [record]}]})
         assert seed_resp.status_code == 201
         persons = seed_resp.json()["persons"]
         assert len(persons) == 1
@@ -65,6 +68,9 @@ class TestBatch:
 
 
 class TestReset:
+    def path(self, client):
+        return client.app.url_path_for("seed-reset")
+
     def test_reset(self, client):
         person = models.Person()
         patient = models.Patient(person=person, data={})
@@ -76,7 +82,7 @@ class TestReset:
         assert client.session.query(models.Person).count() == 1
         assert client.session.query(models.Patient).count() == 1
         assert client.session.query(models.BlockingValue).count() == 1
-        response = client.delete("/seed")
+        response = client.delete(self.path(client))
         assert response.status_code == 204
         assert client.session.query(models.Person).count() == 0
         assert client.session.query(models.Patient).count() == 0
