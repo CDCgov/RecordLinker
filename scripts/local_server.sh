@@ -2,7 +2,7 @@
 #
 # Run the UI and API server locally.
 #
-# # Usage: scripts/local_server_ui.sh --ui-port=<port> --api-port=<port> [--api-only]
+# # Usage: scripts/local_server.sh --ui-port=<port> --api-port=<port> [--api-only]
 #
 # --ui-port=<port>: Specifies the UI server port (default: 3000).
 # --api-port=<port>: Specifies the API server port (default: 8000).

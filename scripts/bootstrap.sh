@@ -3,7 +3,7 @@
 # Use this script to initialize the development environment.
 #
 # Usage: source bootstrap.sh
-# Requires: python3, npm
+# Requires: python3, node v20+
 
 cd "$(dirname "$0")/.."
 
