@@ -11,16 +11,19 @@ from recordlinker import models
 
 
 class TestCreatePerson:
+    def path(self, client):
+        return client.app.url_path_for("create-person")
+
     def test_invalid_patient_id(self, client):
-        response = client.post("/person", json={"patients": ["123"]})
+        response = client.post(self.path(client), json={"patients": ["123"]})
         assert response.status_code == 422
 
     def test_empty_patients(self, client):
-        response = client.post("/person", json={"patients": []})
+        response = client.post(self.path(client), json={"patients": []})
         assert response.status_code == 422
 
     def test_invalid_patient(self, client):
-        response = client.post("/person", json={"patients": [str(uuid.uuid4())]})
+        response = client.post(self.path(client), json={"patients": [str(uuid.uuid4())]})
         assert response.status_code == 422
 
     def test_create_person(self, client):
@@ -29,18 +32,21 @@ class TestCreatePerson:
         client.session.add(patient)
         client.session.flush()
 
-        resp = client.post("/person", json={"patients": [str(patient.reference_id)]})
+        resp = client.post(self.path(client), json={"patients": [str(patient.reference_id)]})
         assert resp.status_code == 201
         assert resp.json()["person_reference_id"] != str(person.reference_id)
 
 
 class TestUpdatePerson:
+    def path(self, client, _id):
+        return client.app.url_path_for("update-person", person_reference_id=_id)
+
     def test_invalid_person_id(self, client):
-        response = client.patch("/person/123")
+        response = client.patch(self.path(client, "123"))
         assert response.status_code == 422
 
     def test_invalid_person(self, client):
-        response = client.patch(f"/person/{uuid.uuid4()}", json={"patients": [str(uuid.uuid4())]})
+        response = client.patch(self.path(client, uuid.uuid4()), json={"patients": [str(uuid.uuid4())]})
         assert response.status_code == 404
 
     def test_empty_patients(self, client):
@@ -48,7 +54,7 @@ class TestUpdatePerson:
         client.session.add(person)
         client.session.flush()
 
-        response = client.patch(f"/person/{person.reference_id}", json={"patients": []})
+        response = client.patch(self.path(client, person.reference_id), json={"patients": []})
         assert response.status_code == 422
 
     def test_invalid_patient(self, client):
@@ -57,7 +63,7 @@ class TestUpdatePerson:
         client.session.flush()
 
         response = client.patch(
-            f"/person/{person.reference_id}", json={"patients": [str(uuid.uuid4())]}
+            self.path(client, person.reference_id), json={"patients": [str(uuid.uuid4())]}
         )
         assert response.status_code == 422
 
@@ -73,7 +79,7 @@ class TestUpdatePerson:
         client.session.flush()
 
         resp = client.patch(
-            f"/person/{new_person.reference_id}",
+            self.path(client, new_person.reference_id),
             json={"patients": [str(pat1.reference_id), str(pat2.reference_id)]},
         )
         assert resp.status_code == 200
@@ -83,12 +89,15 @@ class TestUpdatePerson:
 
 
 class TestGetPerson:
+    def path(self, client, _id):
+        return client.app.url_path_for("get-person", person_reference_id=_id)
+
     def test_invalid_person_id(self, client):
-        response = client.get("/person/123")
+        response = client.get(self.path(client, "123"))
         assert response.status_code == 422
 
     def test_invalid_person(self, client):
-        response = client.get(f"/person/{uuid.uuid4()}")
+        response = client.get(self.path(client, uuid.uuid4()))
         assert response.status_code == 404
 
     def test_empty_patients(self, client):
@@ -96,7 +105,7 @@ class TestGetPerson:
         client.session.add(person)
         client.session.flush()
 
-        response = client.get(f"/person/{person.reference_id}")
+        response = client.get(self.path(client, person.reference_id))
         assert response.status_code == 200
         assert response.json() == {
             "person_reference_id": str(person.reference_id),
@@ -111,7 +120,7 @@ class TestGetPerson:
         client.session.add(pat2)
         client.session.flush()
 
-        response = client.get(f"/person/{person.reference_id}")
+        response = client.get(self.path(client, person.reference_id))
         assert response.status_code == 200
         assert response.json() == {
             "person_reference_id": str(person.reference_id),
@@ -120,6 +129,9 @@ class TestGetPerson:
 
 
 class TestMergePersonClusters:
+    def path(self, client, _id):
+        return client.app.url_path_for("merge-person-clusters", merge_into_id=_id)
+
     def testMergePersonClustersSuccess(self, client):
         person1 = models.Person()
         patient1 = models.Patient(person=person1, data={})
@@ -131,7 +143,7 @@ class TestMergePersonClusters:
         client.session.flush()
 
         response = client.post(
-            f"/person/{person1.reference_id}/merge/",
+            self.path(client, person1.reference_id),
             json={"person_reference_ids": [str(person2.reference_id)]},
         )
 
@@ -140,7 +152,7 @@ class TestMergePersonClusters:
 
     def testInvalidPersonIdType(self, client):
         response = client.post(
-            "/person/123/merge/",
+            self.path(client, "123"),
             json={"person_reference_ids": [str(uuid.uuid4())]},
         )
         assert response.status_code == 422
@@ -157,7 +169,7 @@ class TestMergePersonClusters:
         client.session.flush()
 
         response = client.post(
-            f"/person/{person1.reference_id}/merge/",
+            self.path(client, person1.reference_id),
             json={"person_reference_ids": [str(person2.reference_id), str(uuid.uuid4())]},
         )
         assert response.status_code == 422
@@ -167,7 +179,7 @@ class TestMergePersonClusters:
         person1 = models.Person(reference_id=uuid.uuid4())
 
         response = client.post(
-            f"/person/{person1.reference_id}/merge/",
+            self.path(client, person1.reference_id),
             json={"person_reference_ids": [str(person1.reference_id)]},
         )
 
@@ -175,7 +187,7 @@ class TestMergePersonClusters:
 
     def testNoPersontoMergeInto(self, client):
         response = client.post(
-            f"/person/{uuid.uuid4()}/merge/",
+            self.path(client, uuid.uuid4()),
             json={
                 "person_reference_ids": [str(uuid.uuid4())],
             },
@@ -193,7 +205,7 @@ class TestMergePersonClusters:
         client.session.flush()
 
         response = client.post(
-            f"/person/{person1.reference_id}/merge?delete_person_clusters=true",
+            f"{self.path(client, person1.reference_id)}?delete_person_clusters=true",
             json={"person_reference_ids": [str(person2.reference_id)]},
         )
 
@@ -202,12 +214,15 @@ class TestMergePersonClusters:
 
 
 class TestDeleteEmptyPerson:
+    def path(self, client, _id):
+        return client.app.url_path_for("delete-empty-person", person_reference_id=_id)
+
     def testDeleteEmptyPerson(self, client):
         person = models.Person()
         client.session.add(person)
         client.session.flush()
 
-        response = client.delete(f"/person/{person.reference_id}")
+        response = client.delete(self.path(client, person.reference_id))
         assert response.status_code == 204
 
     def testDeletePersonWithPatients(self, client):
@@ -216,19 +231,22 @@ class TestDeleteEmptyPerson:
         client.session.add(patient)
         client.session.flush()
 
-        response = client.delete(f"/person/{person.reference_id}")
+        response = client.delete(self.path(client, person.reference_id))
         assert response.status_code == 403
 
     def testInvalidPersonId(self, client):
-        response = client.delete("/person/123")
+        response = client.delete(self.path(client, "123"))
         assert response.status_code == 422
 
     def testInvalidPerson(self, client):
-        response = client.delete(f"/person/{uuid.uuid4()}")
+        response = client.delete(self.path(client, uuid.uuid4()))
         assert response.status_code == 404
 
 
 class TestGetOrphanedPersons:
+    def path(self, client):
+        return client.app.url_path_for("get-orphaned-persons")
+
     def testGetOrphanedPersons(self, client):
         person1 = models.Person()
         patient1 = models.Patient(person=person1, data={})
@@ -237,7 +255,7 @@ class TestGetOrphanedPersons:
         client.session.add_all([patient1, person2])
         client.session.flush()
 
-        response = client.get("/person/orphaned")
+        response = client.get(self.path(client))
         assert response.status_code == 200
         assert response.json() == {
             "data": [str(person2.reference_id)],
@@ -245,7 +263,7 @@ class TestGetOrphanedPersons:
         }
 
     def test_no_orphaned_persons(self, client):
-        response = client.get("/person/orphaned")
+        response = client.get(self.path(client))
         assert response.status_code == 200
         assert response.json() == {
             "data": [],
@@ -260,26 +278,26 @@ class TestGetOrphanedPersons:
         client.session.add_all([person1, person2, person3, person4])
         client.session.flush()
 
-        response = client.get("/person/orphaned?limit=2")
+        response = client.get(f"{self.path(client)}?limit=2")
         assert response.status_code == 200
         assert response.json() == {
             "data": [str(person1.reference_id), str(person2.reference_id)],
             "meta": {
                 "next_cursor": str(person2.reference_id),
-                "next": f"http://testserver/person/orphaned?limit=2&cursor={str(person2.reference_id)}",
+                "next": f"http://testserver{self.path(client)}?limit=2&cursor={str(person2.reference_id)}",
             },
         }
 
-        response = client.get(f"/person/orphaned?limit=2&cursor={person2.reference_id}")
+        response = client.get(f"{self.path(client)}?limit=2&cursor={person2.reference_id}")
         assert response.json() == {
             "data": [str(person3.reference_id), str(person4.reference_id)],
             "meta": {
                 "next_cursor": str(person4.reference_id),
-                "next": f"http://testserver/person/orphaned?limit=2&cursor={str(person4.reference_id)}",
+                "next": f"http://testserver{self.path(client)}?limit=2&cursor={str(person4.reference_id)}",
             },
         }
 
-        response = client.get(f"/person/orphaned?limit=5&cursor={person2.reference_id}")
+        response = client.get(f"{self.path(client)}?limit=5&cursor={person2.reference_id}")
         assert response.json() == {
             "data": [str(person3.reference_id), str(person4.reference_id)],
             "meta": {"next_cursor": None, "next": None},
@@ -295,7 +313,7 @@ class TestGetOrphanedPersons:
         client.session.flush()
 
         # Retrieve 1 person after person 1, return no cursor
-        response = client.get(f"/person/orphaned?&cursor={person3.reference_id}")
+        response = client.get(f"{self.path(client)}?&cursor={person3.reference_id}")
         assert response.status_code == 200
         assert response.json() == {
             "data": [str(person4.reference_id)],
@@ -306,28 +324,28 @@ class TestGetOrphanedPersons:
         }
 
         # Retrieve 1 person after person 1, return cursor for person 3
-        response = client.get(f"/person/orphaned?limit=1&cursor={person1.reference_id}")
+        response = client.get(f"{self.path(client)}?limit=1&cursor={person1.reference_id}")
         assert response.json() == {
             "data": [str(person3.reference_id)],
             "meta": {
                 "next_cursor": str(person3.reference_id),
-                "next": f"http://testserver/person/orphaned?limit=1&cursor={str(person3.reference_id)}",
+                "next": f"http://testserver{self.path(client)}?limit=1&cursor={str(person3.reference_id)}",
             },
         }
 
         # Retrieve 2 persons after person 2, return cursor for person 4
-        response = client.get(f"/person/orphaned?limit=2&cursor={person1.reference_id}")
+        response = client.get(f"{self.path(client)}?limit=2&cursor={person1.reference_id}")
         assert response.json() == {
             "data": [str(person3.reference_id), str(person4.reference_id)],
             "meta": {
                 "next_cursor": str(person4.reference_id),
-                "next": f"http://testserver/person/orphaned?limit=2&cursor={str(person4.reference_id)}",
+                "next": f"http://testserver{self.path(client)}?limit=2&cursor={str(person4.reference_id)}",
             },
         }
 
     def test_invalid_cursor(self, client):
         # Return 422 if bad patient reference_id is provided as cursor
-        response = client.get(f"/person/orphaned?limit=1&cursor={uuid.uuid4()}")
+        response = client.get(f"{self.path(client)}?limit=1&cursor={uuid.uuid4()}")
         assert response.status_code == 422
         assert response.json() == {
             "detail": [

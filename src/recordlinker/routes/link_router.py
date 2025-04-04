@@ -58,7 +58,7 @@ def fhir_record_or_422(bundle: dict) -> schemas.PIIRecord:
         )
 
 
-@router.post("/link", summary="Link Record")
+@router.post("/link", summary="Link Record", name="link-record")
 def link_piirecord(
     request: fastapi.Request,
     input: typing.Annotated[schemas.LinkInput, fastapi.Body()],
@@ -88,7 +88,7 @@ def link_piirecord(
     )
 
 
-@router.post("/link/fhir", summary="Link FHIR")
+@router.post("/link/fhir", summary="Link FHIR", name="link-fhir")
 def link_fhir(
     request: fastapi.Request,
     input: typing.Annotated[schemas.LinkFhirInput, fastapi.Body()],
@@ -123,7 +123,7 @@ def link_fhir(
     )
 
 
-@router.post("/match", summary="Match Record")
+@router.post("/match", summary="Match Record", name="match-record")
 def match_piirecord(
     request: fastapi.Request,
     input: typing.Annotated[schemas.LinkInput, fastapi.Body()],
@@ -150,7 +150,7 @@ def match_piirecord(
     )
 
 
-@router.post("/match/fhir", summary="Match FHIR")
+@router.post("/match/fhir", summary="Match FHIR", name="match-fhir")
 def match_fhir(
     request: fastapi.Request,
     input: typing.Annotated[schemas.LinkFhirInput, fastapi.Body()],

@@ -19,7 +19,7 @@ from recordlinker.database import mpi_service as service
 router = fastapi.APIRouter()
 
 
-@router.post("", summary="Batch seed records", status_code=fastapi.status.HTTP_201_CREATED)
+@router.post("", summary="Batch seed records", status_code=fastapi.status.HTTP_201_CREATED, name="seed-batch")
 def batch(
     data: schemas.ClusterGroup, session: orm.Session = fastapi.Depends(get_session)
 ) -> schemas.PersonGroup:
@@ -83,7 +83,7 @@ def batch(
     return schemas.PersonGroup(persons=results)
 
 
-@router.delete("", summary="Reset the MPI database", status_code=fastapi.status.HTTP_204_NO_CONTENT)
+@router.delete("", summary="Reset the MPI database", status_code=fastapi.status.HTTP_204_NO_CONTENT, name="seed-reset")
 def reset(session: orm.Session = fastapi.Depends(get_session)):
     """
     Reset the MPI database by deleting all Person and Patient records.

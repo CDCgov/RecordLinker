@@ -55,6 +55,9 @@ def test_fhir_record_or_422():
 
 
 class TestLink:
+    def path(self, client):
+        return client.app.url_path_for("link-record")
+
     @pytest.fixture
     def patients(self):
         bundle = load_test_json_asset("simple_patient_bundle_to_link_with_mpi.json")
@@ -68,7 +71,7 @@ class TestLink:
     def test_link_success(self, patched_subprocess, default_algorithm, patients, client):
         patched_subprocess.return_value = default_algorithm
         response_1 = client.post(
-            "/link", json={"record": json.loads(patients[0].model_dump_json(exclude_none=True))}
+            self.path(client), json={"record": json.loads(patients[0].model_dump_json(exclude_none=True))}
         )
         person_1 = response_1.json()["person_reference_id"]
         assert response_1.json()["patient_reference_id"] and uuid.UUID(
@@ -79,7 +82,7 @@ class TestLink:
         assert not response_1.json()["results"]
 
         response_2 = client.post(
-            "/link", json={"record": json.loads(patients[1].model_dump_json(exclude_none=True))}
+            self.path(client), json={"record": json.loads(patients[1].model_dump_json(exclude_none=True))}
         )
         person_2 = response_2.json()["person_reference_id"]
         assert response_2.json()["patient_reference_id"] and uuid.UUID(
@@ -90,7 +93,7 @@ class TestLink:
         assert len(response_2.json()["results"]) == 1
 
         response_3 = client.post(
-            "/link", json={"record": json.loads(patients[2].model_dump_json(exclude_none=True))}
+            self.path(client), json={"record": json.loads(patients[2].model_dump_json(exclude_none=True))}
         )
         person_3 = response_3.json()["person_reference_id"]
         assert response_3.json()["patient_reference_id"] and uuid.UUID(
@@ -102,7 +105,7 @@ class TestLink:
 
         # Cluster membership success--justified match
         response_4 = client.post(
-            "/link", json={"record": json.loads(patients[3].model_dump_json(exclude_none=True))}
+            self.path(client), json={"record": json.loads(patients[3].model_dump_json(exclude_none=True))}
         )
         person_4 = response_4.json()["person_reference_id"]
         assert response_4.json()["patient_reference_id"] and uuid.UUID(
@@ -113,7 +116,7 @@ class TestLink:
         assert len(response_2.json()["results"]) == 1
 
         response_5 = client.post(
-            "/link", json={"record": json.loads(patients[4].model_dump_json(exclude_none=True))}
+            self.path(client), json={"record": json.loads(patients[4].model_dump_json(exclude_none=True))}
         )
         person_5 = response_5.json()["person_reference_id"]
         assert response_5.json()["patient_reference_id"] and uuid.UUID(
@@ -124,7 +127,7 @@ class TestLink:
         assert not response_3.json()["results"]
 
         response_6 = client.post(
-            "/link", json={"record": json.loads(patients[5].model_dump_json(exclude_none=True))}
+            self.path(client), json={"record": json.loads(patients[5].model_dump_json(exclude_none=True))}
         )
         person_6 = response_6.json()["person_reference_id"]
         assert response_6.json()["patient_reference_id"] and uuid.UUID(
@@ -138,7 +141,7 @@ class TestLink:
     def test_link_invalid_algorithm_param(self, patched_subprocess, patients, client):
         patched_subprocess.return_value = None
         actual_response = client.post(
-            "/link",
+            self.path(client),
             json={
                 "record": json.loads(patients[0].model_dump_json(exclude_none=True)),
                 "algorithm": "INVALID",
@@ -152,7 +155,7 @@ class TestLink:
     def test_link_no_default_algorithm(self, patched_subprocess, patients, client):
         patched_subprocess.return_value = None
         actual_response = client.post(
-            "/link",
+            self.path(client),
             json={
                 "record": json.loads(patients[0].model_dump_json(exclude_none=True)),
                 "algorithm": "INVALID",
@@ -164,6 +167,9 @@ class TestLink:
 
 
 class TestLinkFHIR:
+    def path(self, client):
+        return client.app.url_path_for("link-fhir")
+
     @mock.patch("recordlinker.database.algorithm_service.default_algorithm")
     def test_bundle_with_no_patient(self, patched_subprocess, default_algorithm, client):
         patched_subprocess.return_value = default_algorithm
@@ -172,7 +178,7 @@ class TestLinkFHIR:
             "detail": "Supplied bundle contains no Patient resource",
         }
         actual_response = client.post(
-            "/link/fhir",
+            self.path(client),
             json={"bundle": bad_bundle},
         )
         assert actual_response.json() == expected_response
@@ -186,7 +192,7 @@ class TestLinkFHIR:
             "detail": "Invalid Patient resource",
         }
         actual_response = client.post(
-            "/link/fhir",
+            self.path(client),
             json={"bundle": bad_bundle},
         )
         assert actual_response.json() == expected_response
@@ -200,7 +206,7 @@ class TestLinkFHIR:
 
         bundle_1 = test_bundle
         bundle_1["entry"] = [entry_list[0]]
-        resp_1 = client.post("/link/fhir", json={"bundle": bundle_1})
+        resp_1 = client.post(self.path(client), json={"bundle": bundle_1})
         new_bundle = resp_1.json()["updated_bundle"]
         person_1 = [
             r.get("resource")
@@ -216,7 +222,7 @@ class TestLinkFHIR:
 
         bundle_2 = test_bundle
         bundle_2["entry"] = [entry_list[1]]
-        resp_2 = client.post("/link/fhir", json={"bundle": bundle_2})
+        resp_2 = client.post(self.path(client), json={"bundle": bundle_2})
         new_bundle = resp_2.json()["updated_bundle"]
         person_2 = [
             r.get("resource")
@@ -233,7 +239,7 @@ class TestLinkFHIR:
 
         bundle_3 = test_bundle
         bundle_3["entry"] = [entry_list[2]]
-        resp_3 = client.post("/link/fhir", json={"bundle": bundle_3})
+        resp_3 = client.post(self.path(client), json={"bundle": bundle_3})
         new_bundle = resp_3.json()["updated_bundle"]
         person_3 = [
             r.get("resource")
@@ -250,7 +256,7 @@ class TestLinkFHIR:
         # Cluster membership success--justified match
         bundle_4 = test_bundle
         bundle_4["entry"] = [entry_list[3]]
-        resp_4 = client.post("/link/fhir", json={"bundle": bundle_4})
+        resp_4 = client.post(self.path(client), json={"bundle": bundle_4})
         new_bundle = resp_4.json()["updated_bundle"]
         person_4 = [
             r.get("resource")
@@ -267,7 +273,7 @@ class TestLinkFHIR:
 
         bundle_5 = test_bundle
         bundle_5["entry"] = [entry_list[4]]
-        resp_5 = client.post("/link/fhir", json={"bundle": bundle_5})
+        resp_5 = client.post(self.path(client), json={"bundle": bundle_5})
         new_bundle = resp_5.json()["updated_bundle"]
         person_5 = [
             r.get("resource")
@@ -283,7 +289,7 @@ class TestLinkFHIR:
 
         bundle_6 = test_bundle
         bundle_6["entry"] = [entry_list[5]]
-        resp_6 = client.post("/link/fhir", json={"bundle": bundle_6})
+        resp_6 = client.post(self.path(client), json={"bundle": bundle_6})
         new_bundle = resp_6.json()["updated_bundle"]
         person_6 = [
             r.get("resource")
@@ -306,7 +312,7 @@ class TestLinkFHIR:
         }
 
         actual_response = client.post(
-            "/link/fhir", json={"bundle": test_bundle, "algorithm": "INVALID"}
+            self.path(client), json={"bundle": test_bundle, "algorithm": "INVALID"}
         )
 
         assert actual_response.json() == expected_response
@@ -314,6 +320,9 @@ class TestLinkFHIR:
 
 
 class TestMatch:
+    def path(self, client):
+        return client.app.url_path_for("match-record")
+
     @pytest.fixture
     def patients(self) -> list[schemas.PIIRecord]:
         bundle = load_test_json_asset("simple_patient_bundle_to_link_with_mpi.json")
@@ -324,14 +333,14 @@ class TestMatch:
         return patients
 
     def test_invalid_algorithm(self, client):
-        resp = client.post("/match", json={"record": {}})
+        resp = client.post(self.path(client), json={"record": {}})
         assert resp.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
         assert resp.json()["detail"] == "No algorithm found"
 
     def test_no_match(self, client, default_algorithm, patients):
         client.session.add(default_algorithm)
         client.session.commit()
-        resp = client.post("/match", json={"record": patients[0].to_dict(True)})
+        resp = client.post(self.path(client), json={"record": patients[0].to_dict(True)})
         assert resp.status_code == status.HTTP_200_OK
         payload = resp.json()
         assert payload["prediction"] == "no_match"
@@ -343,9 +352,9 @@ class TestMatch:
     def test_match(self, client, default_algorithm, patients):
         client.session.add(default_algorithm)
         client.session.commit()
-        per1 = client.post("/link", json={"record": patients[0].to_dict(True)}).json()["person_reference_id"]
+        per1 = client.post(client.app.url_path_for("link-record"), json={"record": patients[0].to_dict(True)}).json()["person_reference_id"]
 
-        resp = client.post("/match", json={"record": patients[0].to_dict(True)})
+        resp = client.post(self.path(client), json={"record": patients[0].to_dict(True)})
         assert resp.status_code == status.HTTP_200_OK
         payload = resp.json()
         assert payload["prediction"] == "match"
@@ -357,6 +366,9 @@ class TestMatch:
 
 
 class TestMatchFHIR:
+    def path(self, client):
+        return client.app.url_path_for("match-fhir")
+
     @pytest.fixture
     def patient_bundles(self) -> list[dict]:
         bundles: list[dict] = []
@@ -366,14 +378,14 @@ class TestMatchFHIR:
         return bundles
 
     def test_invalid_algorithm(self, client):
-        resp = client.post("/match/fhir", json={"bundle": {}})
+        resp = client.post(self.path(client), json={"bundle": {}})
         assert resp.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
         assert resp.json()["detail"] == "No algorithm found"
 
     def test_no_match(self, client, default_algorithm, patient_bundles):
         client.session.add(default_algorithm)
         client.session.commit()
-        resp = client.post("/match/fhir", json={"bundle": patient_bundles[0]})
+        resp = client.post(self.path(client), json={"bundle": patient_bundles[0]})
         assert resp.status_code == status.HTTP_200_OK
         payload = resp.json()
         assert payload["prediction"] == "no_match"
@@ -386,9 +398,9 @@ class TestMatchFHIR:
     def test_match(self, client, default_algorithm, patient_bundles):
         client.session.add(default_algorithm)
         client.session.commit()
-        per1 = client.post("/link/fhir", json={"bundle": patient_bundles[0]}).json()["person_reference_id"]
+        per1 = client.post(client.app.url_path_for("link-fhir"), json={"bundle": patient_bundles[0]}).json()["person_reference_id"]
 
-        resp = client.post("/match/fhir", json={"bundle": patient_bundles[0]})
+        resp = client.post(self.path(client), json={"bundle": patient_bundles[0]})
         assert resp.status_code == status.HTTP_200_OK
         payload = resp.json()
         assert payload["prediction"] == "match"
