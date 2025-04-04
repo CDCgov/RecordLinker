@@ -69,7 +69,7 @@ RUN if [ "$USE_OTEL" = "true" ]; then \
     fi
 
 # Copy over the rest of the code
-COPY ./src /code/src/api
+COPY ./src/api /code/src/api
 COPY ./docs /code/docs
 COPY README.md /code/README.md
 
