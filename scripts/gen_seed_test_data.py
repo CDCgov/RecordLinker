@@ -14,7 +14,6 @@ import argparse
 import random
 
 from faker import Faker
-
 from recordlinker import schemas
 from recordlinker.schemas.identifier import Identifier
 from recordlinker.schemas.pii import Address

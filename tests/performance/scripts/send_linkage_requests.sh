@@ -10,7 +10,7 @@ set -e
 cd "$(dirname "$0")/.."
 
 DATA=${1:-"data/"}
-API_URL=${2:-"http://localhost:8080"}
+API_URL=${2:-"http://localhost:8080/api"}
 ITERATIONS=${3:-"1"}
 
 # Loop over the synthetic patient data N times, this will help

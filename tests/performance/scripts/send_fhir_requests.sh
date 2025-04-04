@@ -10,7 +10,7 @@ set -e
 cd "$(dirname "$0")/.."
 
 DATA=${1:-"data/"}
-API_URL=${2:-"http://localhost:8080"}
+API_URL=${2:-"http://localhost:8080/api"}
 OUTPUT_DIR=${3:-"output/"}
 
 

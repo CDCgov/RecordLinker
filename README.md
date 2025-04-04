@@ -23,6 +23,7 @@ The RecordLinker is a service that links records from two datasets based on a se
 
 - Python 3.11 or higher
 - [Docker](https://docs.docker.com/get-docker/)
+- Node v20 or higher
 
 ### Initial Setup
 
@@ -41,10 +42,20 @@ Note: If you are running in WSL on a Windows machine, will need to run the boots
 To run the API locally, use the following command:
 
 ```bash
+./scripts/local_server.sh --api-only
+```
+
+The API will be available at `http://localhost:8000/api`. Visit `http://localhost:8000/api/redoc` to view the API documentation.
+
+### Running the application
+
+To run the UI locally, use the following command:
+
+```bash
 ./scripts/local_server.sh
 ```
 
-The API will be available at `http://localhost:8000`. Visit `http://localhost:8000/redoc` to view the API documentation.
+The application will be available at `http://localhost:3000/`.
 
 ## Testing
 
@@ -82,6 +93,18 @@ To run code formatting checks, use the following command:
 
 ```bash
 ruff check
+```
+
+To run linting checks on the ui code, use the following command in the `ui` folder:
+
+```bash
+npm run lint
+```
+
+To run auto formatting on the ui code, use the following command in the `ui` folder:
+
+```bash
+npm run prettier:fix
 ```
 
 For more information on developer workflows, see the [Developer Guide](docs/developer_guide.md).

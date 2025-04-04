@@ -11,7 +11,6 @@ import uuid
 
 import pytest
 from conftest import load_test_json_asset
-
 from recordlinker import models
 from recordlinker import schemas
 from recordlinker.hl7 import fhir

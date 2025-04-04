@@ -22,11 +22,10 @@ import argparse
 import json
 import sys
 
-from sqlalchemy import orm
-
 from recordlinker import database
 from recordlinker import schemas
 from recordlinker.database import algorithm_service as service
+from sqlalchemy import orm
 
 # ANSI escape codes for colors
 RED = "\033[91m"

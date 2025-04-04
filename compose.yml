@@ -43,7 +43,7 @@ services:
       - ./src:/code/src
     command: >
       opentelemetry-instrument --service_name recordlinker
-      uvicorn recordlinker.main:app --app-dir src
+      uvicorn recordlinker.main:app --app-dir src/api
       --host 0 --port 8080
     depends_on:
       db:
@@ -51,7 +51,7 @@ services:
       jaeger:
         condition: service_healthy
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8080/"]
+      test: ["CMD", "curl", "-f", "http://localhost:8080/api"]
 
   perf-runner:
     # The orchestration container of the environment that is used to initialize
@@ -67,7 +67,7 @@ services:
       - tests/performance/rlpt.env
     environment:
       DB_URL: "postgres://postgres:pw@db:5432/postgres"
-      LINKAGE_API_URL: "http://api:8080"
+      LINKAGE_API_URL: "http://api:8080/api"
       SYNTHEA_OUTPUT_DIR: "results/synthea_output/"
       POSTGRES_LOG: "/code/results/psql/postgresql.log"
       PGBADGER_REPORT: "/code/results/psql/pgbadger.html"
@@ -87,7 +87,7 @@ services:
         - tests/algorithm/algo.env
       environment:
         DB_URI: "postgresql+psycopg2://postgres:pw@db:5432/postgres"
-        API_URL: "http://api:8080"
+        API_URL: "http://api:8080/api"
       volumes:
         - ./tests/algorithm/scripts:/app/scripts
         - ./tests/algorithm/data:/app/data

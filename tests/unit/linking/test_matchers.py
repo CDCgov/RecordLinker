@@ -9,7 +9,6 @@ import inspect
 import typing
 
 import pytest
-
 from recordlinker import models
 from recordlinker import schemas
 from recordlinker.linking import matchers
