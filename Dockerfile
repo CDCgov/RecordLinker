@@ -79,8 +79,8 @@ COPY --from=frontend-builder /code/src/ui/out "$UI_STATIC_DIR"
 EXPOSE ${PORT}
 
 # Create an entrypoint script
-RUN echo '#!/bin/sh' > /entrypoint.sh && \
-    echo 'exec uvicorn recordlinker.main:app --app-dir src/api --host 0 --port "$PORT"' >> /entrypoint.sh && \
-    chmod +x /entrypoint.sh
+RUN echo '#!/bin/sh' > /code/entrypoint.sh && \
+    echo 'exec uvicorn recordlinker.main:app --app-dir src/api --host 0 --port "$PORT"' >> /code/entrypoint.sh && \
+    chmod +x /code/entrypoint.sh
 
-ENTRYPOINT ["/entrypoint.sh"]
+ENTRYPOINT ["/code/entrypoint.sh"]

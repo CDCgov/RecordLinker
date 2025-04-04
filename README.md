@@ -23,6 +23,7 @@ The RecordLinker is a service that links records from two datasets based on a se
 
 - Python 3.11 or higher
 - [Docker](https://docs.docker.com/get-docker/)
+- Node v20 or higher
 
 ### Initial Setup
 
@@ -92,6 +93,18 @@ To run code formatting checks, use the following command:
 
 ```bash
 ruff check
+```
+
+To run linting checks on the ui code, use the following command in the `ui` folder:
+
+```bash
+npm run lint
+```
+
+To run auto formatting on the ui code, use the following command in the `ui` folder:
+
+```bash
+npm run prettier:fix
 ```
 
 For more information on developer workflows, see the [Developer Guide](docs/developer_guide.md).

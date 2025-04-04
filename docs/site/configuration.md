@@ -88,6 +88,14 @@ Each setting can be configured as follows:
 
     **Development Default**: `http://localhost:3000`
 
+`UI_STATIC_DIR (Optional)`
+
+:   Path to the directory that contains the application pages and static assets (js bundles, css, images, etc) of the user interface. 
+
+    **Docker Default**: `"/code/build/static"`
+
+    **Development Default**: `""`
+
 
 ### Database Options
 
