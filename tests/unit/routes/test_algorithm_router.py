@@ -74,7 +74,7 @@ class TestGetAlgorithm:
             "missing_field_points_proportion": 0.5,
             "passes": [
                 {
-                    "label": "FIRST_NAME-match",
+                    "label": "BLOCK_birthdate_MATCH_first_name",
                     "description": None,
                     "blocking_keys": ["BIRTHDATE"],
                     "evaluators": [

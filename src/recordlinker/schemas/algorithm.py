@@ -65,8 +65,9 @@ class AlgorithmPass(pydantic.BaseModel):
         Create a default label for the algorithm based on the keys used in the evaluation step.
         """
         if not self.label:
-            keys = [str(e.feature) for e in self.evaluators] + ["match"]
-            self.label = "-".join(keys)
+            blocks = ["BLOCK"] + [str(b).lower() for b in self.blocking_keys]
+            matches = ["MATCH"] + [str(e.feature).lower() for e in self.evaluators]
+            self.label = "_".join(blocks + matches)
         return self
 
     @pydantic.field_validator("kwargs", mode="before")

@@ -125,16 +125,16 @@ class TestAlgorithmPass:
             ],
             rule="func:recordlinker.linking.matchers.rule_probabilistic_match",
         )
-        assert apass.label == "LAST_NAME-match"
+        assert apass.label == "BLOCK_MATCH_last_name"
         apass = AlgorithmPass(
-            blocking_keys=[],
+            blocking_keys=["ADDRESS"],
             evaluators=[
                 {"feature": "LAST_NAME", "func": "func:recordlinker.linking.matchers.compare_probabilistic_fuzzy_match"},
                 {"feature": "FIRST_NAME", "func": "func:recordlinker.linking.matchers.compare_probabilistic_fuzzy_match"},
             ],
             rule="func:recordlinker.linking.matchers.rule_probabilistic_match",
         )
-        assert apass.label == "LAST_NAME-FIRST_NAME-match"
+        assert apass.label == "BLOCK_address_MATCH_last_name_first_name"
         apass = AlgorithmPass(
             label="custom-label",
             blocking_keys=[],
