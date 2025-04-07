@@ -105,6 +105,8 @@ class AlgorithmPass(Base):
     __tablename__ = "algorithm_pass"
 
     id: orm.Mapped[int] = orm.mapped_column(primary_key=True)
+    label: orm.Mapped[str] = orm.mapped_column(sqltypes.String(255), nullable=True)
+    description: orm.Mapped[str] = orm.mapped_column(sqltypes.Text(), nullable=True)
     algorithm_id: orm.Mapped[int] = orm.mapped_column(
         schema.ForeignKey(f"{Algorithm.__tablename__}.id", ondelete="CASCADE")
     )

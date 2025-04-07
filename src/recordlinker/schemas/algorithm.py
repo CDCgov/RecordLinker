@@ -37,6 +37,7 @@ class Evaluator(pydantic.BaseModel):
             raise ValueError(f"Invalid feature: '{value}'. {e}")
         return value
 
+
 class AlgorithmPass(pydantic.BaseModel):
     """
     The schema for an algorithm pass record.
@@ -44,6 +45,10 @@ class AlgorithmPass(pydantic.BaseModel):
 
     model_config = pydantic.ConfigDict(from_attributes=True, use_enum_values=True)
 
+    label: typing.Optional[str] = pydantic.Field(
+        None, pattern=r"^[a-z0-9]+(?:-[a-z0-9]+)*$", max_length=255
+    )
+    description: typing.Optional[str] = None
     blocking_keys: list[BlockingKey] = pydantic.Field(
         ...,
         json_schema_extra={
@@ -53,6 +58,17 @@ class AlgorithmPass(pydantic.BaseModel):
     evaluators: list[Evaluator]
     rule: matchers.RuleFunc
     kwargs: dict[str, typing.Any] = {}
+
+    @pydantic.model_validator(mode="after")
+    def default_label(self) -> "AlgorithmPass":
+        """
+        Create a default label for the algorithm based on the keys used in the evaluation step.
+        """
+        if not self.label:
+            blocks = ["BLOCK"] + [str(b).lower() for b in self.blocking_keys]
+            matches = ["MATCH"] + [str(e.feature).lower() for e in self.evaluators]
+            self.label = "_".join(blocks + matches)
+        return self
 
     @pydantic.field_validator("kwargs", mode="before")
     def validate_kwargs(cls, value):
@@ -78,7 +94,7 @@ class Algorithm(pydantic.BaseModel):
 
     model_config = pydantic.ConfigDict(from_attributes=True, use_enum_values=True)
 
-    label: str = pydantic.Field(pattern=r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
+    label: str = pydantic.Field(pattern=r"^[a-z0-9]+(?:-[a-z0-9]+)*$", max_length=255)
     description: typing.Optional[str] = None
     is_default: bool = False
     include_multiple_matches: bool = True
@@ -98,6 +114,17 @@ class Algorithm(pydantic.BaseModel):
         if lower_bound > upper_bound:
             raise ValueError(f"Invalid range. Lower bound must be less than upper bound: {value}")
         return (lower_bound, upper_bound)
+
+    @pydantic.model_validator(mode="after")
+    def validate_passes(self) -> "Algorithm":
+        """
+        Validate that each pass has a unique label.
+        """
+        labels = {p.label for p in self.passes}
+        if len(labels) != len(self.passes):
+            raise ValueError("Each pass must have a unique label.")
+        return self
+
 
 class AlgorithmSummary(Algorithm):
     """

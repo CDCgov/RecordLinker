@@ -117,6 +117,34 @@ class TestAlgorithmPass:
             },
         )
 
+    def test_default_label(self):
+        apass = AlgorithmPass(
+            blocking_keys=[],
+            evaluators=[
+                {"feature": "LAST_NAME", "func": "func:recordlinker.linking.matchers.compare_probabilistic_fuzzy_match"}
+            ],
+            rule="func:recordlinker.linking.matchers.rule_probabilistic_match",
+        )
+        assert apass.label == "BLOCK_MATCH_last_name"
+        apass = AlgorithmPass(
+            blocking_keys=["ADDRESS"],
+            evaluators=[
+                {"feature": "LAST_NAME", "func": "func:recordlinker.linking.matchers.compare_probabilistic_fuzzy_match"},
+                {"feature": "FIRST_NAME", "func": "func:recordlinker.linking.matchers.compare_probabilistic_fuzzy_match"},
+            ],
+            rule="func:recordlinker.linking.matchers.rule_probabilistic_match",
+        )
+        assert apass.label == "BLOCK_address_MATCH_last_name_first_name"
+        apass = AlgorithmPass(
+            label="custom-label",
+            blocking_keys=[],
+            evaluators=[
+                {"feature": "LAST_NAME", "func": "func:recordlinker.linking.matchers.compare_probabilistic_fuzzy_match"},
+            ],
+            rule="func:recordlinker.linking.matchers.rule_probabilistic_match",
+        )
+        assert apass.label == "custom-label"
+
 
 class TestAlgorithm:
     def test_validate_belongingness_ratio(self):
@@ -157,6 +185,49 @@ class TestAlgorithm:
             missing_field_points_proportion=0.5,
             passes=[
                 AlgorithmPass(
+                    blocking_keys=[],
+                    evaluators=[],
+                    rule="func:recordlinker.linking.matchers.rule_probabilistic_match",
+                )
+            ],
+        )
+
+    def test_validate_pass_labels(self):
+        with pytest.raises(pydantic.ValidationError):
+            Algorithm(
+                label="label",
+                belongingness_ratio=(0.9, 0.9),
+                max_missing_allowed_proportion=0.5,
+                missing_field_points_proportion=0.5,
+                passes=[
+                    AlgorithmPass(
+                        label="pass",
+                        blocking_keys=[],
+                        evaluators=[],
+                        rule="func:recordlinker.linking.matchers.rule_probabilistic_match",
+                    ),
+                    AlgorithmPass(
+                        label="pass",
+                        blocking_keys=[],
+                        evaluators=[],
+                        rule="func:recordlinker.linking.matchers.rule_probabilistic_match",
+                    )
+                ],
+            )
+        Algorithm(
+            label="label",
+            belongingness_ratio=(0.9, 0.9),
+            max_missing_allowed_proportion=0.5,
+            missing_field_points_proportion=0.5,
+            passes=[
+                AlgorithmPass(
+                    label="pass1",
+                    blocking_keys=[],
+                    evaluators=[],
+                    rule="func:recordlinker.linking.matchers.rule_probabilistic_match",
+                ),
+                AlgorithmPass(
+                    label="pass2",
                     blocking_keys=[],
                     evaluators=[],
                     rule="func:recordlinker.linking.matchers.rule_probabilistic_match",
