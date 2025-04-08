@@ -1,4 +1,4 @@
-import Image from "next/image";
+import Image from "@/components/image/image";
 import styles from "./header.module.scss";
 
 const Header: React.FC = () => {

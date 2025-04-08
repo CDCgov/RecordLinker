@@ -1,5 +1,5 @@
 import Link from "next/link";
-import Image from "next/image";
+import Image from "@/components/image/image";
 import classNames from "classnames";
 import style from "./page.module.scss";
 import {
@@ -67,7 +67,7 @@ const Home: React.FC = () => {
           placerat ac ipsum non, lobortis maximus dui. Suspendisse at tincidunt
           sapien.
         </p>
-        <img
+        <Image
           className="margin-y-5"
           src="/record-linker-diagram-2.png"
           alt="multiple health data sources convey into a single one"
