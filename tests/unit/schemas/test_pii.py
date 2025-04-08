@@ -181,6 +181,9 @@ class TestPIIRecord:
         record = pii.PIIRecord()
         assert record.identifiers == []
 
+        with pytest.raises(ValueError):
+            pii.PIIRecord(identifiers=[pii.Identifier(type=None, value="123-45-6789")])
+
     def test_parse_race(self):
         # testing verbose races
         record = pii.PIIRecord(race=["american indian or alaska native"])
