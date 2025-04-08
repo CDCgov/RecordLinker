@@ -21,14 +21,13 @@
                 "evaluators": [
                     {
                         "feature": "FIRST_NAME",
-                        "func": "func:recordlinker.linking.matchers.compare_probabilistic_fuzzy_match"
+                        "func": "COMPARE_PROBABILISTIC_FUZZY_MATCH"
                     },
                     {
                         "feature": "LAST_NAME",
-                        "func": "func:recordlinker.linking.matchers.compare_probabilistic_fuzzy_match"
+                        "func": "COMPARE_PROBABILISTIC_FUZZY_MATCH"
                     }
                 ],
-                "rule": "func:recordlinker.linking.matchers.rule_probabilistic_match",
                 "kwargs": {
                     "similarity_measure": "JaroWinkler",
                     "thresholds": {
@@ -65,14 +64,13 @@
                 "evaluators": [
                     {
                         "feature": "ADDRESS",
-                        "func": "func:recordlinker.linking.matchers.compare_probabilistic_fuzzy_match"
+                        "func": "COMPARE_PROBABILISTIC_FUZZY_MATCH"
                     },
                     {
                         "feature": "BIRTHDATE",
-                        "func": "func:recordlinker.linking.matchers.compare_probabilistic_fuzzy_match"
+                        "func": "COMPARE_PROBABILISTIC_FUZZY_MATCH"
                     }
                 ],
-                "rule": "func:recordlinker.linking.matchers.rule_probabilistic_match",
                 "kwargs": {
                     "similarity_measure": "JaroWinkler",
                     "thresholds": {

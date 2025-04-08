@@ -56,7 +56,6 @@ class AlgorithmPass(pydantic.BaseModel):
         },
     )
     evaluators: list[Evaluator]
-    rule: matchers.RuleFunc
     kwargs: dict[str, typing.Any] = {}
 
     @pydantic.model_validator(mode="after")
