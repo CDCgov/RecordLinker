@@ -41,28 +41,28 @@ class LinkResult:
     """
     person: models.Person
     accumulated_points: float
-    pass_number: int
+    pass_label: str
     rms: float
     mmt: float
     cmt: float
-    grade: schemas.MatchGrade
+    match_grade: schemas.MatchGrade
 
     def _update_score_tracking_row(
-            self, earned_points, pass_num, rms, mmt, cmt, grade
+            self, earned_points, pass_lbl, rms, mmt, cmt, grade
         ):
         """
         Helper function to abstract variable update setting to leave
         case-based logic clearer.
         """
         self.accumulated_points = earned_points
-        self.pass_number = pass_num
+        self.pass_label = pass_lbl
         self.rms = rms
-        self.grade = grade
+        self.match_grade = grade
         self.cmt = cmt
         self.mmt = mmt
     
     def check_and_update_score(
-            self, earned_points, pass_num, rms, mmt, cmt, grade
+            self, earned_points, pass_lbl, rms, mmt, cmt, grade
         ):
         """
         Dynamically perform and handle any updates that should be tracked for
@@ -77,22 +77,22 @@ class LinkResult:
         *always* update.
         """
         # Start with the easy case: both grades are the same, so use the RMS
-        if grade == self.grade:
+        if grade == self.match_grade:
             if rms > self.rms:
                 self._update_score_tracking_row(
-                    earned_points, pass_num, rms, mmt, cmt, grade
+                    earned_points, pass_lbl, rms, mmt, cmt, grade
                 )
         
         # Case 2: existing grade is certain, and since grades didn't enter
         # the equality if, new grade is only possible
-        elif self.grade == 'certain':
+        elif self.match_grade == 'certain':
             pass
 
         # Case 3: new grade is certain, and since grades didn't enter the 
         # equality if, existing grade is only possible
         elif grade == 'certain':
             self._update_score_tracking_row(
-                earned_points, pass_num, rms, mmt, cmt, grade
+                earned_points, pass_lbl, rms, mmt, cmt, grade
             )
 
 
@@ -227,7 +227,7 @@ def link_record_against_mpi(
     pass_number = 0
     for algorithm_pass in algorithm.passes:
         with TRACER.start_as_current_span("link.pass"):
-            pass_number += 1
+            pass_label = algorithm_pass.label
             minimum_match_threshold, certain_match_threshold = algorithm_pass.possible_match_window
 
             # Determine the maximum possible number of log-odds points in this pass
@@ -294,7 +294,7 @@ def link_record_against_mpi(
                             scores[person] = LinkResult(
                                 person,
                                 cluster_median,
-                                pass_number,
+                                pass_label,
                                 rms,
                                 minimum_match_threshold,
                                 certain_match_threshold,
@@ -306,11 +306,11 @@ def link_record_against_mpi(
                         )
     
     results: list[LinkResult] = sorted(scores.values(), reverse=True, key=lambda x: x.rms)
-    certain_results = [x for x in results if x.grade == 'certain']
+    certain_results = [x for x in results if x.match_grade == 'certain']
     # re-assign the results array since we already have the higher-priority
     # 'certain' grades if we need them; we return the `results` variable as 
     # a placeholder later, so we need to keep this around for re-assignment
-    results = [x for x in results if x.grade == 'possible']
+    results = [x for x in results if x.match_grade == 'possible']
     final_grade: schemas.MatchGrade = "possible"
     matched_person: typing.Optional[models.Person] = None
 
@@ -348,12 +348,15 @@ def link_record_against_mpi(
     # to the user; we don't save certainly-not grades in the dynamic table
     best_score_str: str = "n/a"
     reference_range: str = "n/a"
+    matching_pass_label: str = "n/a"
     if final_grade == "certain":
         best_score_str = str(certain_results[0].rms)
         reference_range = f"({certain_results[0].mmt}, {certain_results[0].cmt})"
+        matching_pass_label = certain_results[0].pass_label
     elif final_grade == "possible":
         best_score_str = str(results[0].rms)
         reference_range = f"({results[0].mmt}, {results[0].cmt})"
+        matching_pass_label = results[0].pass_label
     LOGGER.info(
         "final linkage results",
         extra={
@@ -361,6 +364,7 @@ def link_record_against_mpi(
             "patient.reference_id": patient and str(patient.reference_id),
             "result.match_grade": final_grade,
             "result.best_match_score": best_score_str,
+            "result.label_of_matching_pass": matching_pass_label,
             "result.best_match_reference_window": reference_range,
             "result.count_patients_compared": result_counts["patients_compared"],
         },

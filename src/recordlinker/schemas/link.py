@@ -45,9 +45,9 @@ class LinkResult(pydantic.BaseModel):
         description="The median number of log-odds points accumulated by the blocked patients "
         "belonging to this Person Cluster when compared to an incoming record."
     )
-    pass_number: int = pydantic.Field(
-        description="The number of the pass (1-indexed, so the first pass of an algorithm "
-        "is pass 1) captured by this LinkResult."
+    pass_label: str = pydantic.Field(
+        description="The label associated with the algorithm pass that generated this "
+        "link result."
     )
     rms: typing.Annotated[float, pydantic.Field(ge=0, le=1)] = pydantic.Field(
         description="The Relative Match Strength (normalized between 0 and 1) of this "
@@ -61,7 +61,7 @@ class LinkResult(pydantic.BaseModel):
         description="The Certain Match Threshold (normalized between 0 and 1) used "
         "in the linkage pass whose score this Result captures."
     )
-    grade: str = pydantic.Field(
+    match_grade: MatchGrade = pydantic.Field(
         description="The FHIR-corresponding Match-Grade assigned to the pass-specific "
         "score measured by this Result."
     )
@@ -89,9 +89,9 @@ class MatchResponse(pydantic.BaseModel):
         ' If match_grade="possible", this value will be null.'
     )
     results: list[LinkResult] = pydantic.Field(
-        description="A list of (possibly) matched Persons. If match_grade='certain', either"
+        description="A list of (possibly) matched Persons. If match_grade='certain', either "
         "the single (include_multiple_matches=False) or multiple (include_multiple_matches=True) "
-        "Persons with which the Patient record matches. If match_grade='possible',"
+        "Persons with which the Patient record matches. If match_grade='possible', "
         "all Persons with which the Patient record possibly matches."
     )
 
