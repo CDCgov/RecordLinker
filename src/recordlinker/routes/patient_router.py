@@ -99,13 +99,8 @@ def get_orphaned_patients(
             data=[], meta=schemas.PaginatedMetaData(next_cursor=None, next=None)
         )
     # Prepare the meta data
-    next_cursor = patients[-1].reference_id if len(patients) == limit else None
-    next_url = (
-        f"{request.base_url}patient/orphaned?limit={limit}&cursor={next_cursor}"
-        if next_cursor
-        else None
-    )
-
+    next_cursor: uuid.UUID | None = patients[-1].reference_id if len(patients) == limit else None
+    next_url: str | None = str(request.url.include_query_params(cursor=next_cursor)) if next_cursor else None
     return schemas.PaginatedRefs(
         data=[p.reference_id for p in patients if p.reference_id],
         meta=schemas.PaginatedMetaData(

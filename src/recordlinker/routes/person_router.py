@@ -146,12 +146,8 @@ def get_orphaned_persons(
         )
 
     # Prepare the meta data
-    next_cursor = persons[-1].reference_id if len(persons) == limit else None
-    next_url = (
-        f"{request.base_url}person/orphaned?limit={limit}&cursor={next_cursor}"
-        if next_cursor
-        else None
-    )
+    next_cursor: uuid.UUID | None = persons[-1].reference_id if len(persons) == limit else None
+    next_url: str | None = str(request.url.include_query_params(cursor=next_cursor)) if next_cursor else None
 
     return schemas.PaginatedRefs(
         data=[p.reference_id for p in persons if p.reference_id],
