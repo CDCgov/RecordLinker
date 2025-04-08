@@ -177,7 +177,7 @@ class TestPIIRecord:
         record = pii.PIIRecord(identifiers=[pii.Identifier(type="SS", value="123456789")])
         assert record.identifiers[0].value == "123-45-6789"
         record = pii.PIIRecord(identifiers=[pii.Identifier(type="SS", value="1-2-3")])
-        assert record.identifiers[0].value == ""
+        assert record.identifiers[0].value == "1-2-3"
         record = pii.PIIRecord()
         assert record.identifiers == []
 
@@ -222,6 +222,10 @@ class TestPIIRecord:
 
         # testing none result
         record = pii.PIIRecord()
+        assert record.race == []
+
+        # testing null race
+        record = pii.PIIRecord(race=None)
         assert record.race == []
 
     def test_feature_iter(self):
@@ -620,6 +624,10 @@ class TestAddress:
 
         address = pii.Address(line=[" 123 Main avenue "])
         assert address.line[0] == "123 Main AVE"
+
+        address = pii.Address(line=None, postal_code="12345")
+        assert address.line == []
+        assert address.postal_code == "12345"
 
     def test_parse_state(self):
         address = pii.Address(state=" New York")
