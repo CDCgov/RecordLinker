@@ -324,7 +324,7 @@ class TestLinkRecordAgainstMpi:
             made_match = bool(person and results)
             matches.append(made_match)
             if made_match:
-                matching_passes.append(results[0].pass_number)
+                matching_passes.append(results[0].pass_label)
 
             mapped_patients[person.reference_id] += 1
 

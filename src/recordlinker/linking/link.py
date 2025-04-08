@@ -224,7 +224,6 @@ def link_record_against_mpi(
         "persons_compared": 0,
         "patients_compared": 0,
     }
-    pass_number = 0
     for algorithm_pass in algorithm.passes:
         with TRACER.start_as_current_span("link.pass"):
             pass_label = algorithm_pass.label
@@ -302,7 +301,7 @@ def link_record_against_mpi(
                             )
                         # Let the dynamic programming table track its own updates
                         scores[person].check_and_update_score(
-                            cluster_median, pass_number, rms, minimum_match_threshold, certain_match_threshold, match_grade
+                            cluster_median, pass_label, rms, minimum_match_threshold, certain_match_threshold, match_grade
                         )
     
     results: list[LinkResult] = sorted(scores.values(), reverse=True, key=lambda x: x.rms)
