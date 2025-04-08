@@ -1,0 +1,21 @@
+@use "uswds-core" as *;
+
+// record linker colors
+$blue-cool-blue-cool-5:#e7f2f5;
+$blue-cool-blue-cool-90: #0f191c;
+$blue-cool-blue-cool-80: #14333D;
+$violet-warm-violet-warm-60: #864381;
+
+// uswds fonts
+$serif-font: family("heading");
+$sans-serif-font: "Public Sans Web", family("body");
+$mono-font: "Consolas", family("mono");
+
+// app specific
+$record-linker-body-font:$sans-serif-font;
+$record-linker-bg-color:$blue-cool-blue-cool-5;
+$record-linker-header-footer-color:$blue-cool-blue-cool-80;
+$record-linker-paragraph-color: $blue-cool-blue-cool-90;
+$record-linker-heading-color: $blue-cool-blue-cool-80;
+$record-linker-subheading-color: $blue-cool-blue-cool-80;
+$record-linker-primary-color: $violet-warm-violet-warm-60;
