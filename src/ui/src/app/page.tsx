@@ -3,15 +3,16 @@ import Image from "next/image";
 import classNames from "classnames";
 import style from "./page.module.scss";
 import {
+  Button,
   ProcessList,
   ProcessListHeading,
   ProcessListItem,
 } from "@trussworks/react-uswds";
 
-export default function Home() {
+const Home: React.FC = () => {
   return (
     <>
-      <div className={style.overview}>
+      <div className={style.hero}>
         <div
           className={classNames(
             "page-container--lg",
@@ -148,4 +149,10 @@ export default function Home() {
       </div>
     </>
   );
-}
+};
+
+export const metadata = {
+  title: "Record linker | Home",
+};
+
+export default Home;

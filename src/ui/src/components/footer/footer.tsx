@@ -4,7 +4,7 @@ import styles from "./footer.module.scss";
 const Footer: React.FC = () => {
   return (
     <footer
-      className={`padding-x-10 padding-y-2 grid-row flex-row flex-align-center flex-justify ${styles.footer}`}
+      className={`padding-x-10 padding-y-3 grid-row flex-row flex-align-center flex-justify ${styles.footer}`}
     >
       <Image
         src="/cdc-logo.svg"

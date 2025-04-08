@@ -3,7 +3,7 @@ import styles from "./header.module.scss";
 
 const Header: React.FC = () => {
   return (
-    <header className={`padding-x-10 padding-y-3 ${styles.header}`}>
+    <header className={`padding-x-10 padding-y-6 ${styles.header}`}>
       <Image
         src="/record-linker-logo.svg"
         width={30}

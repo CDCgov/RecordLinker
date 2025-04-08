@@ -4,6 +4,7 @@
   box-sizing: border-box;
   padding: 0;
   margin: 0;
+  line-height: 150%;
 }
 
 body {
@@ -32,9 +33,34 @@ h1,h2,h2,h4,h5{
 
 .usa-button{
   background-color: $record-linker-primary-color;
+  min-height: 46px;
 
   &:hover{
     background-color: $record-linker-primary-color-darker;
+  }
+
+  &:disabled{
+    background-color: $gray-bg-disabled;
+    color: $gray-text-disabled;
+  }
+
+  &--outline{
+    @extend .usa-button;
+    background-color: transparent;
+    box-shadow: inset 0 0 0 2px $record-linker-primary-color;
+    color: $record-linker-primary-color;
+
+    &:hover{
+      background-color: transparent;
+      box-shadow: inset 0 0 0 2px $record-linker-primary-color-darker;
+      color:  $record-linker-primary-color-darker;
+    }
+
+    &:disabled, &:disabled:hover{
+      box-shadow: inset 0 0 0 2px $gray-bg-disabled;
+      background-color: transparent;
+      color: $gray-text-disabled;
+    }
   }
 }
 
