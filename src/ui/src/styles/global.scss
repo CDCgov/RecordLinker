@@ -6,7 +6,6 @@
   margin: 0;
 }
 
-
 body {
   color: $record-linker-paragraph-color;
   background-color: $record-linker-bg-color;
@@ -15,10 +14,31 @@ body {
   font-family: $record-linker-body-font;
 }
 
+// USWDS overwrites
 h1,h2,h2,h4,h5{
   color: $record-linker-heading-color;
 }
 
+.usa-process-list__item{
+  border-color:$blue-cool-blue-cool-20;
+
+  &:before{
+    background-color: $record-linker-bg-color;
+    box-shadow: 0 0 0 .25rem $record-linker-bg-color;
+    border-color:$blue-cool-blue-cool-70;
+    color:$blue-cool-blue-cool-70;
+  }
+}
+
+.usa-button{
+  background-color: $record-linker-primary-color;
+
+  &:hover{
+    background-color: $record-linker-primary-color-darker;
+  }
+}
+
+// record linker
 .page-container{
   margin: 0 auto;
 
@@ -33,6 +53,4 @@ h1,h2,h2,h4,h5{
   }
 }
 
-.usa-button{
-  background-color: $record-linker-primary-color;
-}
+

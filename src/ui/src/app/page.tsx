@@ -1,15 +1,29 @@
 import Link from "next/link";
 import Image from "next/image";
+import classNames from "classnames";
 import style from "./page.module.scss";
+import {
+  ProcessList,
+  ProcessListHeading,
+  ProcessListItem,
+} from "@trussworks/react-uswds";
 
 export default function Home() {
   return (
     <>
-      <div className={`${style.overview}`}>
+      <div className={style.overview}>
         <div
-          className={`page-container--lg padding-y-10 grid-row flex-row flex-align-center flex-justify ${style.section}`}
+          className={classNames(
+            "page-container--lg",
+            "padding-y-10",
+            "grid-row",
+            "flex-row",
+            "flex-align-center",
+            "flex-justify",
+            style.section,
+          )}
         >
-          <div className={`grid-col-6`}>
+          <div className="grid-col-6">
             <h1 className="font-alt-xl margin-bottom-3">Lorem ipsum title</h1>
             <p>
               Short overview description of Record Linker, Lorem ipsum dolor sit
@@ -33,7 +47,12 @@ export default function Home() {
         </div>
       </div>
       <div
-        className={`page-container--lg padding-y-7 padding-x-6 ${style.section}`}
+        className={classNames(
+          "page-container--lg",
+          "padding-top-7",
+          "padding-x-6",
+          style.section,
+        )}
       >
         <h2 className="font-sans-xl">What is it?</h2>
         <p className="margin-top-2">
@@ -66,13 +85,59 @@ export default function Home() {
           placerat ac ipsum non, lobortis maximus dui. Suspendisse at tincidunt
           sapien.
         </p>
+
+        <ProcessList className="margin-y-3">
+          <ProcessListItem>
+            <ProcessListHeading type="h3">Frame the problem</ProcessListHeading>
+            <p>
+              Lorem ipsum dolor sit amet, consectetur adipiscing elit. Etiam sed
+              condimentum mauris.
+            </p>
+          </ProcessListItem>
+          <ProcessListItem>
+            <ProcessListHeading type="h3">
+              Determine data sources
+            </ProcessListHeading>
+            <p>
+              Lorem ipsum dolor sit amet, consectetur adipiscing elit. Etiam sed
+              condimentum mauris.
+            </p>
+          </ProcessListItem>
+          <ProcessListItem>
+            <ProcessListHeading type="h3">
+              Configure the algorithm
+            </ProcessListHeading>
+            <p>
+              Lorem ipsum dolor sit amet, consectetur adipiscing elit. Etiam sed
+              condimentum mauris.
+            </p>
+          </ProcessListItem>
+          <ProcessListItem>
+            <ProcessListHeading type="h3">
+              Test (and adjust as needed)
+            </ProcessListHeading>
+            <p>
+              Lorem ipsum dolor sit amet, consectetur adipiscing elit. Etiam sed
+              condimentum mauris.
+            </p>
+          </ProcessListItem>
+        </ProcessList>
       </div>
       <div
-        className={`page-container--lg padding-top-4 padding-bottom-6 border-top-1px grid-row flex-column flex-align-center ${style.section} ${style.footnotes}`}
-        style={{ gap: "15px" }}
+        className={classNames(
+          "page-container--lg",
+          "padding-top-4",
+          "padding-bottom-6",
+          "border-top-1px",
+          "grid-row",
+          "flex-column",
+          "flex-align-center",
+          style.section,
+          style.footnotes,
+        )}
       >
         <h2>Footer header title lorem ipsum</h2>
-        <p className="font-body-md text-center text-thin">
+        <p className="text-center">
           Check out the Record Linker demo to try
           <br />
           out features using sample data.
