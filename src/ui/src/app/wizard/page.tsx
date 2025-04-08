@@ -1,9 +1,6 @@
 "use client";
 
-import {
-  Textarea,
-  Button
-} from "@trussworks/react-uswds";
+import { Textarea } from "@trussworks/react-uswds";
 import { useEffect, useState } from "react";
 import { getAlgoDibbsDefault } from "@/data/algorithm";
 
