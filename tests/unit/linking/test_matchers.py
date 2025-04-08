@@ -12,28 +12,12 @@ import pytest
 from recordlinker import models
 from recordlinker import schemas
 from recordlinker.linking import matchers
-from recordlinker.utils import functools as utils
-
-
-class TestRuleFunc:
-    def test_correct_signatures(self):
-        for rule in matchers.RuleFunc:
-            fn = utils.str_to_callable(rule.value)
-            assert callable(fn)
-            signature = inspect.signature(fn)
-            params = list(signature.parameters.values())
-            assert len(params) == 2
-            assert params[0].annotation == list[float]
-            assert params[1].annotation == typing.Any
-            assert signature.return_annotation is bool
 
 
 class TestFeatureFunc:
     def test_correct_signatures(self):
         for rule in matchers.FeatureFunc:
-            fn = utils.str_to_callable(rule.value)
-            assert callable(fn)
-            signature = inspect.signature(fn)
+            signature = inspect.signature(rule.callable())
             params = list(signature.parameters.values())
             assert len(params) == 5
             assert params[0].annotation == schemas.PIIRecord
@@ -42,6 +26,26 @@ class TestFeatureFunc:
             assert params[3].annotation is float
             assert params[4].annotation == typing.Any
             assert signature.return_annotation == tuple[float, bool]
+
+    def test_callable(self):
+        assert (
+            matchers.FeatureFunc["COMPARE_PROBABILISTIC_EXACT_MATCH"].callable()
+            == matchers.compare_probabilistic_exact_match
+        )
+        assert (
+            matchers.FeatureFunc["COMPARE_PROBABILISTIC_FUZZY_MATCH"].callable()
+            == matchers.compare_probabilistic_fuzzy_match
+        )
+
+    def test_str(self):
+        assert (
+            str(matchers.FeatureFunc["COMPARE_PROBABILISTIC_EXACT_MATCH"])
+            == "COMPARE_PROBABILISTIC_EXACT_MATCH"
+        )
+        assert (
+            str(matchers.FeatureFunc["COMPARE_PROBABILISTIC_FUZZY_MATCH"])
+            == "COMPARE_PROBABILISTIC_FUZZY_MATCH"
+        )
 
 
 def test_get_fuzzy_params():
