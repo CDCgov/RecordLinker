@@ -338,7 +338,10 @@ class TestLinkRecordAgainstMpi:
         # Sixth patient: fails blocking in first pass, blocks with fifth patient in second pass,
         # then matches on birthdate but fails on address, no match
         assert matches == [False, True, False, True, False, False]
-        assert matching_passes == [1, 2]
+        assert matching_passes == [
+            "BLOCK_birthdate_identifier_sex_MATCH_first_name_last_name",
+            "BLOCK_zip_first_name_last_name_sex_MATCH_address_birthdate"
+        ]
         assert sorted(list(mapped_patients.values())) == [1, 1, 1, 3]
 
     def test_default_match_three(self, session, default_algorithm, patients: list[schemas.PIIRecord]):
