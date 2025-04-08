@@ -42,6 +42,7 @@ class Algorithm(Base):
     )
     max_missing_allowed_proportion: orm.Mapped[float] = orm.mapped_column(sqltypes.Float, default=0.5)
     missing_field_points_proportion: orm.Mapped[float] = orm.mapped_column(sqltypes.Float, default=0.5)
+    skip_values: orm.Mapped[list[dict]] = orm.mapped_column(sqltypes.JSON, default=list)
 
     @property
     def belongingness_ratio(self) -> tuple[float, float]:

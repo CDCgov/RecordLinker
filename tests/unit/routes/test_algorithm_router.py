@@ -25,6 +25,7 @@ class TestListAlgorithms:
                 "belongingness_ratio": [1.0, 1.0],
                 "max_missing_allowed_proportion": 0.5,
                 "missing_field_points_proportion": 0.5,
+                "skip_values": [],
                 "pass_count": 0,
             },
         ]
@@ -43,6 +44,9 @@ class TestGetAlgorithm:
             belongingness_ratio=(0.25, 0.5),
             max_missing_allowed_proportion=0.5,
             missing_field_points_proportion=0.5,
+            skip_values=[
+                {"feature": "*", "values": ["unknown"]},
+            ],
             passes=[
                 models.AlgorithmPass(
                     blocking_keys=[
@@ -72,6 +76,9 @@ class TestGetAlgorithm:
             "belongingness_ratio": [0.25, 0.5],
             "max_missing_allowed_proportion": 0.5,
             "missing_field_points_proportion": 0.5,
+            "skip_values": [
+                {"feature": "*", "values": ["unknown"]},
+            ],
             "passes": [
                 {
                     "label": "BLOCK_birthdate_MATCH_first_name",
