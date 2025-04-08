@@ -103,7 +103,7 @@ def compare(
     max_allowed_missingness_proportion: float,
     missing_field_points_proportion: float,
     algorithm_pass: models.AlgorithmPass,
-    log_odds_weights: dict[str, float]
+    log_odds_weights: dict[str, float],
 ) -> bool:
     """
     Compare the incoming record to the linked patient and return the calculated
@@ -112,7 +112,7 @@ def compare(
     the potential match candidacy of the linked patient.
 
     :param record: The new, incoming record, as a PIIRecord data type.
-    :param patient: A candidate record returned by blocking from the MPI, whose 
+    :param patient: A candidate record returned by blocking from the MPI, whose
       match quality the function call will evaluate.
     :param max_log_odds_points: The maximum available log odds points that can be
       accumulated by a candidate pair during this pass of the algorithm.
@@ -122,12 +122,12 @@ def compare(
       that a field missing data will earn during comparison (i.e. a fraction of
       its regular log-odds weight value).
     :algorithm_pass: A data structure containing information about the pass of
-      the algorithm in which this comparison is being run. Holds information 
+      the algorithm in which this comparison is being run. Holds information
       like which fields to evaluate and how to total log-odds points.
     :param log_odds_weights: A dictionary mapping Field names to float values,
       which are the precomputed log-odds weights associated with that field.
     :returns: A boolean indicating whether the incoming record and the supplied
-      candidate are a match, as determined by the specific matching rule 
+      candidate are a match, as determined by the specific matching rule
       contained in the algorithm_pass object.
     """
     # all the functions used for comparison
@@ -136,6 +136,8 @@ def compare(
     matching_rule: typing.Callable = algorithm_pass.bound_rule()
     # keyword arguments to pass to comparison functions and matching rule
     kwargs: dict[typing.Any, typing.Any] = algorithm_pass.kwargs
+    # convert the Patient model into a PIIRecord for comparison
+    mpi_record: schemas.PIIRecord = schemas.PIIRecord.from_patient(patient)
 
     missing_field_weights = 0.0
     results: list[float] = []
@@ -145,11 +147,11 @@ def compare(
         feature = schemas.Feature.parse(e.feature)
         if feature is None:
             raise ValueError(f"Invalid comparison field: {e.feature}")
-        
-        # Evaluate the comparison function, track missingness, and append the 
+
+        # Evaluate the comparison function, track missingness, and append the
         # score component to the list
         result: tuple[float, bool] = e.func(
-            record, patient, feature, missing_field_points_proportion, **kwargs
+            record, mpi_record, feature, missing_field_points_proportion, **kwargs
         )  # type: ignore
         if result[1]:
             # The field was missing, so update the running tally of how much
@@ -241,8 +243,9 @@ def link_record_against_mpi(
             with TRACER.start_as_current_span("link.block"):
                 # get all candidate Patient records identified in blocking
                 # and the remaining Patient records in their Person clusters
-                # NOTE: need to remove patients with non-empty wrong blocking fields
-                pats = mpi_service.get_block_data(session, record, algorithm_pass)
+                pats = mpi_service.BlockData.get(
+                    session, record, algorithm_pass, max_missing_allowed_proportion
+                )
                 for pat in pats:
                     clusters[pat.person].append(pat)
 

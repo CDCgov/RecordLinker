@@ -8,6 +8,7 @@
         "missing_field_points_proportion": 0.5,
         "passes": [
             {
+                "label": "BLOCK_birthdate_identifier_sex_MATCH_first_name_last_name",
                 "blocking_keys": [
                     "BIRTHDATE",
                     "IDENTIFIER",
@@ -49,9 +50,11 @@
                         "STATE": 0.022376768992488694,
                         "ZIP": 4.975031471124867
                     }
+
                 }
             },
             {
+                "label": "BLOCK_zip_first_name_last_name_sex_MATCH_address_birthdate",
                 "blocking_keys": [
                     "ZIP",
                     "FIRST_NAME",

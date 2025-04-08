@@ -13,12 +13,13 @@ import pydantic
 import pytest
 
 from recordlinker.models import BlockingKey
+from recordlinker.models import Patient
 from recordlinker.schemas import pii
 
 
 class TestPIIRecord:
-    def test_model_construct(self):
-        data = {
+    def test_from_patient(self):
+        pat = Patient(data={
             "birth_date": "1980-2-1",
             "name": [
                 {"family": "Doe", "given": ["John", "L"]},
@@ -42,7 +43,7 @@ class TestPIIRecord:
                     "county": "county2",
                 },
             ],
-            "telecom": [{"value": " 555-123-4567"}, {"value": "555-987-6543"}],
+            "telecom": [{"value": " 555-123-4567"}, {"value": "+1 555-987-6543 ext 123"}],
             "identifiers": [
                 {
                     "type": "MR",
@@ -54,8 +55,8 @@ class TestPIIRecord:
                     "authority": "VA",
                 },
             ],
-        }
-        record = pii.PIIRecord.model_construct(**data)
+        })
+        record = pii.PIIRecord.from_patient(pat)
         assert record.birth_date == "1980-2-1"
         assert record.name[0].family == "Doe"
         assert record.name[0].given == ["John", "L"]
@@ -79,6 +80,38 @@ class TestPIIRecord:
         assert str(record.identifiers[1].type) == "DL"
         assert record.identifiers[1].value == "D1234567"
         assert record.identifiers[1].authority == "VA"
+
+    def test_to_data(self):
+        record = pii.PIIRecord(
+            birth_date="1980-2-1",
+            name=[
+                {"family": "Doe", "given": ["John", "L"]},
+            ],
+            sex="",
+            address=[
+                {
+                    "line": ["123 Main St"],
+                    "postalCode": "12345",
+                    "country": None,
+                },
+            ],
+            telecom=[
+                {"value": "555-123-4567"},
+            ],
+            identifiers=[
+                {
+                    "type": "MR",
+                    "value": "99",
+                },
+            ],
+        )
+        assert record.to_data() == {
+            "birth_date": "1980-02-01",
+            "name": [{"family": "Doe", "given": ["John", "L"]}],
+            "address": [{"line": ["123 Main ST"], "postal_code": "12345"}],
+            "telecom": [{"value": "555-123-4567"}],
+            "identifiers": [{"type": "MR", "value": "99"}],
+        }
 
     def test_parse_external_id(self):
         record = pii.PIIRecord(external_id=uuid.UUID("7ca699d9-1986-4c0c-a0fd-ac4ae0dfa297"))
@@ -220,7 +253,7 @@ class TestPIIRecord:
             ],
             telecom=[
                 pii.Telecom(value="555-123-4567"),
-                pii.Telecom(value="(555) 987-6543", system="phone"),
+                pii.Telecom(value="+44 (555) 987-6543 ext 123", system="phone"),
                 pii.Telecom(value=" teSt@email.com", system="email"),
                 pii.Telecom(value="555*987*6543"),
                 pii.Telecom(value=" teSt@email.com"),
@@ -281,7 +314,7 @@ class TestPIIRecord:
             "5559876543",
             "test@email.com",
             "555*987*6543",
-            "test@email.com",
+            "teSt@email.com",
         ]
 
         assert list(record.feature_iter(pii.Feature(attribute=pii.FeatureAttribute.PHONE))) == [
@@ -358,6 +391,24 @@ class TestPIIRecord:
             "NY",
             "CA",
             "CA",
+            "of mind",
+        ]
+
+    def test_feature_iter_telecom_phone(self):
+        record = pii.PIIRecord(
+            telecom=[
+                pii.Telecom(value="+1 555-123-4567", system="phone"),
+                pii.Telecom(value="+15551234567", system="phone"),
+                pii.Telecom(value="555-987-6543 ext 123", system="phone"),
+                pii.Telecom(value="555", system="phone"),
+            ]
+        )
+
+        assert list(record.feature_iter(pii.Feature(attribute=pii.FeatureAttribute.TELECOM))) == [
+            "5551234567",
+            "5551234567",
+            "5559876543",
+            "555",
         ]
 
     def test_blocking_keys_invalid(self):
@@ -555,3 +606,48 @@ class TestPIIRecord:
                 assert val == "doe"
             else:
                 raise AssertionError(f"Unexpected key: {key}")
+
+
+class TestAddress:
+    def test_parse_line(self):
+        address = pii.Address(line=["123 Main St.", "Apt 2"])
+        assert address.line[0] == "123 Main ST"
+        assert address.line[1] == "Apt 2"
+
+        address = pii.Address(line=["123 Main Jctn", "Suite"])
+        assert address.line[0] == "123 Main JCT"
+        assert address.line[1] == "Suite"
+
+        address = pii.Address(line=[" 123 Main avenue "])
+        assert address.line[0] == "123 Main AVE"
+
+    def test_parse_state(self):
+        address = pii.Address(state=" New York")
+        assert address.state == "NY"
+        address = pii.Address(state="oregon")
+        assert address.state == "OR"
+        address = pii.Address(state="wa")
+        assert address.state == "WA"
+        address = pii.Address(state="district of  columbia")
+        assert address.state == "DC"
+        address = pii.Address(state=" Armed Forces")
+        assert address.state == "Armed Forces"
+        address = pii.Address(state="Conneticut")
+        assert address.state == "Conneticut"
+
+
+@pytest.mark.parametrize(
+    "input_value, input_system, expected_value",
+    [
+        ("555-123-4567", "phone", "+15551234567"),  # US phone number w/o country code
+        ("+1 555-123-4567", "phone", "+15551234567"),  # US country code
+        ("+44 555 123 4567", "phone", "+445551234567"),  # Non-US country code
+        ("555-123-4567 ext 123", "phone", "+15551234567"),  # Extension (excluded)
+        ("555", "phone", "+1555"),  # Invalid phone (still be formatted)
+        ("abc", "phone", "abc"),  # Unparsable phone (should remain unchanged)
+        ("555-123-4567", None, "555-123-4567"),  # No system provided
+    ],
+)
+def test_telecom_model_validator(input_value, input_system, expected_value):
+    record = pii.PIIRecord(telecom=[pii.Telecom(value=input_value, system=input_system)])
+    assert record.telecom[0].value == expected_value

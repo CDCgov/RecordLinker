@@ -162,3 +162,31 @@ class TestAlgorithmPass:
                 "log_odds": {"CITY": 12.0, "ADDRESS": 15.0},
             },
         )
+
+    def test_default_label(self):
+        apass = AlgorithmPass(
+            blocking_keys=[],
+            evaluators=[
+                {"feature": "LAST_NAME", "func": "func:recordlinker.linking.matchers.compare_probabilistic_fuzzy_match"}
+            ],
+            rule="func:recordlinker.linking.matchers.rule_probabilistic_match",
+        )
+        assert apass.label == "BLOCK_MATCH_last_name"
+        apass = AlgorithmPass(
+            blocking_keys=["ADDRESS"],
+            evaluators=[
+                {"feature": "LAST_NAME", "func": "func:recordlinker.linking.matchers.compare_probabilistic_fuzzy_match"},
+                {"feature": "FIRST_NAME", "func": "func:recordlinker.linking.matchers.compare_probabilistic_fuzzy_match"},
+            ],
+            rule="func:recordlinker.linking.matchers.rule_probabilistic_match",
+        )
+        assert apass.label == "BLOCK_address_MATCH_last_name_first_name"
+        apass = AlgorithmPass(
+            label="custom-label",
+            blocking_keys=[],
+            evaluators=[
+                {"feature": "LAST_NAME", "func": "func:recordlinker.linking.matchers.compare_probabilistic_fuzzy_match"},
+            ],
+            rule="func:recordlinker.linking.matchers.rule_probabilistic_match",
+        )
+        assert apass.label == "custom-label"

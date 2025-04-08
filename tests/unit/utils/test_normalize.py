@@ -1,8 +1,8 @@
 from recordlinker.utils import normalize as utils
 
 
-class TestNormalize:
-    def test_normalize(self):
+class TestNormalizeText:
+    def test_normalize_text(self):
         text = " José O'Hara"
         assert utils.normalize_text(text) == "joseohara"
 
