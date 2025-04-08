@@ -55,7 +55,7 @@ const Home: React.FC = () => {
         )}
       >
         <h2 className="font-sans-xl">What is it?</h2>
-        <p className="margin-top-2">
+        <p className="margin-top-1">
           Nunc hendrerit efficitur lorem ut molestie. Suspendisse eleifend eros
           mi, congue varius nibh sagittis sed. Phasellus quis ex non odio
           sollicitudin convallis. Pellentesque libero nulla, fermentum non erat
@@ -73,7 +73,7 @@ const Home: React.FC = () => {
           alt="multiple health data sources convey into a single one"
         />
         <h2>How does it work?</h2>
-        <p className="margin-top-2">
+        <p className="margin-top-1">
           Nunc hendrerit efficitur lorem ut molestie. Suspendisse eleifend eros
           mi, congue varius nibh sagittis sed. Phasellus quis ex non odio
           sollicitudin convallis. Pellentesque libero nulla, fermentum non erat
