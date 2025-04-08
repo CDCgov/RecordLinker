@@ -33,7 +33,7 @@ h1,h2,h2,h4,h5{
 
 .usa-button{
   background-color: $record-linker-primary-color;
-  min-height: 46px;
+  min-height: 2.875rem;
 
   &:hover{
     background-color: $record-linker-primary-color-darker;
@@ -47,17 +47,17 @@ h1,h2,h2,h4,h5{
   &--outline{
     @extend .usa-button;
     background-color: transparent;
-    box-shadow: inset 0 0 0 2px $record-linker-primary-color;
+    box-shadow: inset 0 0 0 0.125rem $record-linker-primary-color;
     color: $record-linker-primary-color;
 
     &:hover{
       background-color: transparent;
-      box-shadow: inset 0 0 0 2px $record-linker-primary-color-darker;
+      box-shadow: inset 0 0 0 0.125rem $record-linker-primary-color-darker;
       color:  $record-linker-primary-color-darker;
     }
 
     &:disabled, &:disabled:hover{
-      box-shadow: inset 0 0 0 2px $gray-bg-disabled;
+      box-shadow: inset 0 0 0 0.125rem $gray-bg-disabled;
       background-color: transparent;
       color: $gray-text-disabled;
     }
@@ -70,12 +70,12 @@ h1,h2,h2,h4,h5{
 
   &--lg{
     @extend .page-container;
-    max-width: 800px;
+    max-width: 50rem;
   }
 
   &--xl{
     @extend .page-container;
-    max-width: 1200px;
+    max-width: 75rem;
   }
 }
 
