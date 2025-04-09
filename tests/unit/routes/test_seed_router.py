@@ -8,6 +8,7 @@ This module contains the unit tests for the recordlinker.routes.seed_router modu
 import unittest.mock as mock
 
 from conftest import load_test_json_asset
+
 from recordlinker import models
 
 

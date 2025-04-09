@@ -1,6 +1,7 @@
 import unittest.mock
 
 import starlette.applications
+
 from recordlinker import middleware
 
 
