@@ -85,7 +85,7 @@ class TestAlgorithmPass:
         apass = AlgorithmPass(
             blocking_keys=[],
             evaluators=[
-                {"feature": "LAST_NAME", "func": "func:recordlinker.linking.matchers.compare_probabilistic_fuzzy_match"}
+                {"feature": "LAST_NAME", "func": "COMPARE_PROBABILISTIC_FUZZY_MATCH"}
             ],
             rule="func:recordlinker.linking.matchers.rule_probabilistic_match",
         )
@@ -93,8 +93,8 @@ class TestAlgorithmPass:
         apass = AlgorithmPass(
             blocking_keys=["ADDRESS"],
             evaluators=[
-                {"feature": "LAST_NAME", "func": "func:recordlinker.linking.matchers.compare_probabilistic_fuzzy_match"},
-                {"feature": "FIRST_NAME", "func": "func:recordlinker.linking.matchers.compare_probabilistic_fuzzy_match"},
+                {"feature": "LAST_NAME", "func": "COMPARE_PROBABILISTIC_FUZZY_MATCH"},
+                {"feature": "FIRST_NAME", "func": "COMPARE_PROBABILISTIC_FUZZY_MATCH"},
             ],
             rule="func:recordlinker.linking.matchers.rule_probabilistic_match",
         )
@@ -103,7 +103,7 @@ class TestAlgorithmPass:
             label="custom-label",
             blocking_keys=[],
             evaluators=[
-                {"feature": "LAST_NAME", "func": "func:recordlinker.linking.matchers.compare_probabilistic_fuzzy_match"},
+                {"feature": "LAST_NAME", "func": "COMPARE_PROBABILISTIC_FUZZY_MATCH"},
             ],
             rule="func:recordlinker.linking.matchers.rule_probabilistic_match",
         )
