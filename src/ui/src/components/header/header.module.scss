@@ -3,8 +3,8 @@
 .header {
   background-color: $record-linker-header-footer-color;
 
-  span{
+  a{
     font-size: 1.5rem;
-    vertical-align: super;
+    width:fit-content;
   }
 }

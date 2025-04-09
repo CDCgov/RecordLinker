@@ -1,18 +1,23 @@
 import Image from "@/components/image/image";
 import styles from "./header.module.scss";
+import Link from "next/link";
 
 const Header: React.FC = () => {
   return (
     <header className={`padding-x-10 padding-y-6 ${styles.header}`}>
-      <Image
-        src="/record-linker-logo.svg"
-        width={30}
-        height={30}
-        alt="record linker logo"
-      />
-      <span className={`font-serif-xl margin-left-105 text-white `}>
+      <Link
+        href="/"
+        className="text-no-underline font-serif-xl text-white grid-row flex-row flex-align-center"
+      >
+        <Image
+          src="/record-linker-logo.svg"
+          width={30}
+          height={30}
+          alt="record linker logo"
+          className="margin-right-105 "
+        />
         Record Linker - Demo Site
-      </span>
+      </Link>
     </header>
   );
 };
