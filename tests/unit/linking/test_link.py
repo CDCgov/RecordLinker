@@ -45,8 +45,8 @@ class TestCompare:
         )
 
         evaluators = [
-            {"feature": "FIRST_NAME", "func": "func:recordlinker.linking.matchers.compare_probabilistic_fuzzy_match"},
-            {"feature": "LAST_NAME", "func": "func:recordlinker.linking.matchers.compare_probabilistic_fuzzy_match"},
+            {"feature": "FIRST_NAME", "func": "COMPARE_PROBABILISTIC_FUZZY_MATCH"},
+            {"feature": "LAST_NAME", "func": "COMPARE_PROBABILISTIC_FUZZY_MATCH"},
         ]
         log_odds = {"FIRST_NAME": 6.85, "LAST_NAME": 6.35}
         eval_fields = [e["feature"] for e in evaluators]
@@ -59,7 +59,6 @@ class TestCompare:
             algorithm_id=1,
             blocking_keys=[1],
             evaluators=evaluators,
-            rule="func:recordlinker.linking.matchers.rule_probabilistic_match",
             kwargs={"log_odds": log_odds, "true_match_threshold": 12},
         )
 
@@ -91,8 +90,8 @@ class TestCompare:
             }
         )
         evaluators = [
-            {"feature": "FIRST_NAME", "func": "func:recordlinker.linking.matchers.compare_probabilistic_fuzzy_match"},
-            {"feature": "LAST_NAME", "func": "func:recordlinker.linking.matchers.compare_probabilistic_fuzzy_match"},
+            {"feature": "FIRST_NAME", "func": "COMPARE_PROBABILISTIC_FUZZY_MATCH"},
+            {"feature": "LAST_NAME", "func": "COMPARE_PROBABILISTIC_FUZZY_MATCH"},
         ]
         log_odds = {"FIRST_NAME": 6.85, "LAST_NAME": 6.35}
         eval_fields = [e["feature"] for e in evaluators]
@@ -104,7 +103,6 @@ class TestCompare:
             algorithm_id=1,
             blocking_keys=[1],
             evaluators=evaluators,
-            rule="func:recordlinker.linking.matchers.rule_probabilistic_match",
             kwargs={"log_odds": log_odds, "true_match_threshold": 12.95},
         )
 
@@ -145,7 +143,7 @@ class TestCompare:
         )
 
         evaluators = [
-            {"feature": "IDENTIFIER", "func": "func:recordlinker.linking.matchers.compare_probabilistic_fuzzy_match"}
+            {"feature": "IDENTIFIER", "func": "COMPARE_PROBABILISTIC_FUZZY_MATCH"}
         ]
         log_odds = {"IDENTIFIER": 0.35}
         eval_fields = [e["feature"] for e in evaluators]
@@ -158,7 +156,6 @@ class TestCompare:
             algorithm_id=1,
             blocking_keys=[1],
             evaluators=evaluators,
-            rule="func:recordlinker.linking.matchers.rule_probabilistic_match",
             kwargs={"log_odds": log_odds, "true_match_threshold": 0.3},
         )
 
@@ -199,7 +196,7 @@ class TestCompare:
         )
 
         evaluators = [
-            {"feature": "IDENTIFIER", "func": "func:recordlinker.linking.matchers.compare_probabilistic_fuzzy_match"}
+            {"feature": "IDENTIFIER", "func": "COMPARE_PROBABILISTIC_FUZZY_MATCH"}
         ]
         log_odds = {"IDENTIFIER": 0.35}
         eval_fields = [e["feature"] for e in evaluators]
@@ -212,41 +209,22 @@ class TestCompare:
             algorithm_id=1,
             blocking_keys=[1],
             evaluators=evaluators,
-            rule="func:recordlinker.linking.matchers.rule_probabilistic_match",
             kwargs={"log_odds": log_odds, "true_match_threshold": 0.3},
         )
 
         #should pass as MR is the same for both
         assert link.compare(rec, pat, max_points, max_allowed_missingness_proportion, missing_field_points_proportion, algorithm_pass, log_odds) is True
 
-        algorithm_pass.evaluators = [{"feature": "IDENTIFIER:SS", "func": "func:recordlinker.linking.matchers.compare_probabilistic_fuzzy_match"}]
+        algorithm_pass.evaluators = [{"feature": "IDENTIFIER:SS", "func": "COMPARE_PROBABILISTIC_FUZZY_MATCH"}]
         #should fail as SS is different for both
         assert link.compare(rec, pat, max_points, max_allowed_missingness_proportion, missing_field_points_proportion, algorithm_pass, log_odds) is False
 
     def test_compare_invalid_feature(self):
         rec = schemas.PIIRecord(
-            **{
-                "name": [
-                    {
-                        "given": [
-                            "John",
-                        ],
-                        "family": "Doe",
-                    }
-                ]
-            }
+            **{"name": [{"given": ["John"], "family": "Doe"}]}
         )
         pat = models.Patient(
-            data={
-                "name": [
-                    {
-                        "given": [
-                            "John",
-                        ],
-                        "family": "Doey",
-                    }
-                ]
-            }
+            data={"name": [{"given": ["John"], "family": "Doey"}]}
         )
 
         algorithm_pass = models.AlgorithmPass(
@@ -254,13 +232,33 @@ class TestCompare:
             algorithm_id=1,
             blocking_keys=[1],
             evaluators=[
-                {"feature": "FIRST_NAME:DL", "func": "func:recordlinker.linking.matchers.compare_probabilistic_fuzzy_match"},
+                {"feature": "FIRST_NAME:DL", "func": "COMPARE_PROBABILISTIC_FUZZY_MATCH"},
             ],
-            rule="func:recordlinker.linking.matchers.rule_probabilistic_match",
             kwargs={},
         )
 
         with pytest.raises(ValueError):
+            link.compare(rec, pat, 0.0, 0.5, 0.5, algorithm_pass, {})
+
+    def test_compare_missing_threshold(self):
+        rec = schemas.PIIRecord(
+            **{"name": [{"given": ["John"], "family": "Doe"}]}
+        )
+        pat = models.Patient(
+            data={"name": [{"given": ["John"], "family": "Doey"}]}
+        )
+
+        algorithm_pass = models.AlgorithmPass(
+            id=1,
+            algorithm_id=1,
+            blocking_keys=[1],
+            evaluators=[
+                {"feature": "FIRST_NAME", "func": "COMPARE_PROBABILISTIC_FUZZY_MATCH"},
+            ],
+            kwargs={"log_odds": {"FIRST_NAME": 6.35}}
+        )
+
+        with pytest.raises(KeyError):
             link.compare(rec, pat, 0.0, 0.5, 0.5, algorithm_pass, {})
 
 

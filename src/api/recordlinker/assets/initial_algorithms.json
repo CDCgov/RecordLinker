@@ -12,6 +12,7 @@
         "missing_field_points_proportion": 0.5,
         "passes": [
             {
+                "label": "BLOCK_birthdate_identifier_sex_MATCH_first_name_last_name",
                 "blocking_keys": [
                     "BIRTHDATE",
                     "IDENTIFIER",
@@ -20,14 +21,13 @@
                 "evaluators": [
                     {
                         "feature": "FIRST_NAME",
-                        "func": "func:recordlinker.linking.matchers.compare_probabilistic_fuzzy_match"
+                        "func": "COMPARE_PROBABILISTIC_FUZZY_MATCH"
                     },
                     {
                         "feature": "LAST_NAME",
-                        "func": "func:recordlinker.linking.matchers.compare_probabilistic_fuzzy_match"
+                        "func": "COMPARE_PROBABILISTIC_FUZZY_MATCH"
                     }
                 ],
-                "rule": "func:recordlinker.linking.matchers.rule_probabilistic_match",
                 "kwargs": {
                     "similarity_measure": "JaroWinkler",
                     "thresholds": {
@@ -54,6 +54,7 @@
                 }
             },
             {
+                "label": "BLOCK_zip_first_name_last_name_sex_MATCH_address_birthdate",
                 "blocking_keys": [
                     "ZIP",
                     "FIRST_NAME",
@@ -63,14 +64,13 @@
                 "evaluators": [
                     {
                         "feature": "ADDRESS",
-                        "func": "func:recordlinker.linking.matchers.compare_probabilistic_fuzzy_match"
+                        "func": "COMPARE_PROBABILISTIC_FUZZY_MATCH"
                     },
                     {
                         "feature": "BIRTHDATE",
-                        "func": "func:recordlinker.linking.matchers.compare_probabilistic_fuzzy_match"
+                        "func": "COMPARE_PROBABILISTIC_FUZZY_MATCH"
                     }
                 ],
-                "rule": "func:recordlinker.linking.matchers.rule_probabilistic_match",
                 "kwargs": {
                     "similarity_measure": "JaroWinkler",
                     "thresholds": {
