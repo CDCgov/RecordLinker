@@ -7,10 +7,11 @@ This module contains the unit tests for the recordlinker.database.algorithm_serv
 
 import pytest
 import sqlalchemy.exc
+from sqlalchemy.sql import select
+
 from recordlinker import models
 from recordlinker import schemas
 from recordlinker.database import algorithm_service
-from sqlalchemy.sql import select
 
 
 def test_list_algorithms(session):
@@ -72,10 +73,9 @@ class TestLoadAlgorithm:
                             "feature": "ZIP",
                             "func": "COMPARE_PROBABILISTIC_FUZZY_MATCH",
                         }
-                    ]
+                    ],
                 )
             ],
-            
         )
         obj, created = algorithm_service.load_algorithm(session, data)
         session.flush()
@@ -108,7 +108,7 @@ class TestLoadAlgorithm:
                             "feature": "ZIP",
                             "func": "COMPARE_PROBABILISTIC_FUZZY_MATCH",
                         }
-                    ]
+                    ],
                 )
             ],
         )
@@ -141,9 +141,7 @@ def test_delete_algorithm(session):
     pass1 = models.AlgorithmPass(
         algorithm=algo1,
         blocking_keys=["FIRST_NAME"],
-        evaluators=[
-            {"feature": "ZIP", "func": "COMPARE_PROBABILISTIC_FUZZY_MATCH"}
-        ],
+        evaluators=[{"feature": "ZIP", "func": "COMPARE_PROBABILISTIC_FUZZY_MATCH"}],
     )
     session.add(pass1)
     session.commit()
@@ -159,9 +157,7 @@ def test_clear_algorithms(session):
     pass1 = models.AlgorithmPass(
         algorithm=algo1,
         blocking_keys=["FIRST_NAME"],
-        evaluators=[
-            {"feature": "ZIP", "func": "COMPARE_PROBABILISTIC_FUZZY_MATCH"}
-        ],
+        evaluators=[{"feature": "ZIP", "func": "COMPARE_PROBABILISTIC_FUZZY_MATCH"}],
     )
     session.add(pass1)
     session.commit()

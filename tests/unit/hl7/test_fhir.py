@@ -8,6 +8,7 @@ This module contains the unit tests for the recordlinker.parsers.fhir module
 import copy
 
 from conftest import load_test_json_asset
+
 from recordlinker.hl7 import fhir
 
 
