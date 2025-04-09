@@ -4,7 +4,7 @@ import Link from "next/link";
 
 const Header: React.FC = () => {
   return (
-    <header className={`padding-x-10 padding-y-6 ${styles.header}`}>
+    <header className={`padding-x-10 padding-y-4 ${styles.header}`}>
       <Link
         href="/"
         className="text-no-underline font-serif-xl text-white grid-row flex-row flex-align-center"

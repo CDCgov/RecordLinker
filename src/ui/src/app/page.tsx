@@ -24,7 +24,9 @@ const Home: React.FC = () => {
           )}
         >
           <div className="grid-col-6">
-            <h1 className="font-alt-xl margin-bottom-2">Lorem ipsum title</h1>
+            <h1 className="font-alt-xl margin-bottom-2 margin-top-0">
+              Lorem ipsum title
+            </h1>
             <p>
               Short overview description of Record Linker, Lorem ipsum dolor sit
               amet, consectetur adipiscing elit. Etiam sed condimentum mauris.
