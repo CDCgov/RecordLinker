@@ -19,7 +19,7 @@ jobs:
     strategy:
       matrix:
         # Using a matrix in case we need to test Javascript code in the future
-        language: ['python']
+        language: ['python', 'javascript']
 
     steps:
     - name: Checkout code
