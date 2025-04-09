@@ -28,34 +28,26 @@ class TestAlgorithmPass:
         )
 
     def test_validate_evaluators(self):
-        evaluators = [
-            {"feature": "name", "func": "COMPARE_PROBABILISTIC_FUZZY_MATCH"}
-        ]
+        evaluators = [{"feature": "name", "func": "COMPARE_PROBABILISTIC_FUZZY_MATCH"}]
         with pytest.raises(pydantic.ValidationError):
             AlgorithmPass(
                 blocking_keys=[],
                 evaluators=evaluators,
             )
-        evaluators = [
-            {"feature": "LAST_NAME", "func": "UNKNOWN"}
-        ]
+        evaluators = [{"feature": "LAST_NAME", "func": "UNKNOWN"}]
         with pytest.raises(pydantic.ValidationError):
             AlgorithmPass(
                 blocking_keys=[],
                 evaluators=evaluators,
             )
-        evaluators = [
-            {"feature": "LAST_NAME", "func": "COMPARE_PROBABILISTIC_FUZZY_MATCH"}
-        ]
+        evaluators = [{"feature": "LAST_NAME", "func": "COMPARE_PROBABILISTIC_FUZZY_MATCH"}]
         # write an assertion that no exception is raised
         AlgorithmPass(
             blocking_keys=[],
             evaluators=evaluators,
         )
 
-        evaluators = [
-            {"feature": "FIRST_NAME:DL", "func": "COMPARE_PROBABILISTIC_FUZZY_MATCH"}
-        ]
+        evaluators = [{"feature": "FIRST_NAME:DL", "func": "COMPARE_PROBABILISTIC_FUZZY_MATCH"}]
         with pytest.raises(pydantic.ValidationError):
             AlgorithmPass(
                 blocking_keys=[],
@@ -85,17 +77,21 @@ class TestAlgorithmPass:
     def test_default_label(self):
         apass = AlgorithmPass(
             blocking_keys=[],
-            evaluators=[
-                {"feature": "LAST_NAME", "func": "COMPARE_PROBABILISTIC_FUZZY_MATCH"}
-            ],
+            evaluators=[{"feature": "LAST_NAME", "func": "COMPARE_PROBABILISTIC_FUZZY_MATCH"}],
             rule="func:recordlinker.linking.matchers.rule_probabilistic_match",
         )
         assert apass.label == "BLOCK_MATCH_last_name"
         apass = AlgorithmPass(
             blocking_keys=["ADDRESS"],
             evaluators=[
-                {"feature": "LAST_NAME", "func": "COMPARE_PROBABILISTIC_FUZZY_MATCH"},
-                {"feature": "FIRST_NAME", "func": "COMPARE_PROBABILISTIC_FUZZY_MATCH"},
+                {
+                    "feature": "LAST_NAME",
+                    "func": "COMPARE_PROBABILISTIC_FUZZY_MATCH",
+                },
+                {
+                    "feature": "FIRST_NAME",
+                    "func": "COMPARE_PROBABILISTIC_FUZZY_MATCH",
+                },
             ],
             rule="func:recordlinker.linking.matchers.rule_probabilistic_match",
         )
@@ -104,7 +100,10 @@ class TestAlgorithmPass:
             label="custom-label",
             blocking_keys=[],
             evaluators=[
-                {"feature": "LAST_NAME", "func": "COMPARE_PROBABILISTIC_FUZZY_MATCH"},
+                {
+                    "feature": "LAST_NAME",
+                    "func": "COMPARE_PROBABILISTIC_FUZZY_MATCH",
+                },
             ],
             rule="func:recordlinker.linking.matchers.rule_probabilistic_match",
         )
@@ -173,7 +172,7 @@ class TestAlgorithm:
                         blocking_keys=[],
                         evaluators=[],
                         rule="func:recordlinker.linking.matchers.rule_probabilistic_match",
-                    )
+                    ),
                 ],
             )
         Algorithm(
@@ -193,6 +192,6 @@ class TestAlgorithm:
                     blocking_keys=[],
                     evaluators=[],
                     rule="func:recordlinker.linking.matchers.rule_probabilistic_match",
-                )
+                ),
             ],
         )
