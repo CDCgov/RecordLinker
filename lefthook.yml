@@ -1,10 +1,12 @@
 pre-commit:
   parallel: true
   commands:
+    tests-code-checks:
+      glob: "tests/*.py"
+      run: "./.venv/bin/ruff check --fix {staged_files} && git add {staged_files}"
     api-code-checks:
-      root: "."
-      glob: "*.{py}"
-      run: "./.venv/bin/ruff --fix {staged_files} && git add {staged_files}"
+      glob: "src/api/recordlinker/*.py"
+      run: "./.venv/bin/ruff check --fix {staged_files} && git add {staged_files}"
     frontend-code-checks:
       root: "src/ui"
       glob: "*.{js,ts,jsx,tsx}"
