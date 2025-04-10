@@ -24,6 +24,7 @@ router = fastapi.APIRouter()
     "/",
     summary="Create a patient record and link to an existing person",
     status_code=fastapi.status.HTTP_201_CREATED,
+    name="create-patient",
 )
 def create_patient(
     payload: typing.Annotated[schemas.PatientCreatePayload, fastapi.Body],
@@ -59,7 +60,10 @@ def create_patient(
 
 
 @router.get(
-    "/orphaned", summary="Retrieve orphaned patients", status_code=fastapi.status.HTTP_200_OK
+    "/orphaned",
+    summary="Retrieve orphaned patients",
+    status_code=fastapi.status.HTTP_200_OK,
+    name="get-orphaned-patients",
 )
 def get_orphaned_patients(
     request: fastapi.Request,
@@ -110,6 +114,7 @@ def get_orphaned_patients(
     "/{patient_reference_id}",
     summary="Retrieve a patient record",
     status_code=fastapi.status.HTTP_200_OK,
+    name="get-patient",
 )
 def get_patient(
     patient_reference_id: uuid.UUID,
@@ -135,6 +140,7 @@ def get_patient(
     "/{patient_reference_id}",
     summary="Update a patient record",
     status_code=fastapi.status.HTTP_200_OK,
+    name="update-patient",
 )
 def update_patient(
     patient_reference_id: uuid.UUID,
@@ -181,6 +187,7 @@ def update_patient(
     "/{patient_reference_id}",
     summary="Delete a Patient",
     status_code=fastapi.status.HTTP_204_NO_CONTENT,
+    name="delete-patient",
 )
 def delete_patient(
     patient_reference_id: uuid.UUID, session: orm.Session = fastapi.Depends(get_session)

@@ -9,12 +9,15 @@ from recordlinker import models
 
 
 class TestListAlgorithms:
+    def path(self, client):
+        return client.app.url_path_for("list-algorithms")
+
     def test_list(self, client):
         algo1 = models.Algorithm(label="default", is_default=True, description="First algorithm")
         client.session.add(algo1)
         client.session.commit()
 
-        response = client.get("/algorithm")
+        response = client.get(self.path(client))
         assert response.status_code == 200
         assert response.json() == [
             {
@@ -30,8 +33,11 @@ class TestListAlgorithms:
 
 
 class TestGetAlgorithm:
+    def path(self, client, label):
+        return client.app.url_path_for("get-algorithm", label=label)
+
     def test_404(self, client):
-        response = client.get("/algorithm/unknown")
+        response = client.get(self.path(client, "unknown"))
         assert response.status_code == 404
 
     def test_get(self, client):
@@ -60,7 +66,7 @@ class TestGetAlgorithm:
         client.session.add(algo)
         client.session.commit()
 
-        response = client.get(f"/algorithm/{algo.label}")
+        response = client.get(self.path(client, algo.label))
         assert response.status_code == 200
         assert response.json() == {
             "label": "default",
@@ -91,8 +97,11 @@ class TestGetAlgorithm:
 
 
 class TestCreateAlgorithm:
+    def path(self, client):
+        return client.app.url_path_for("create-algorithm")
+
     def test_invalid_data(self, client):
-        response = client.post("/algorithm", json={})
+        response = client.post(self.path(client), json={})
         assert response.status_code == 422
 
     def test_exsiting_default(self, client):
@@ -107,7 +116,7 @@ class TestCreateAlgorithm:
             "belongingness_ratio": (0.25, 0.5),
             "passes": [],
         }
-        response = client.post("/algorithm", json=payload)
+        response = client.post(self.path(client), json=payload)
         assert response.status_code == 422
 
     def test_existing_label(self, client):
@@ -121,7 +130,7 @@ class TestCreateAlgorithm:
             "description": "Second algorithm",
             "passes": [],
         }
-        response = client.post("/algorithm", json=payload)
+        response = client.post(self.path(client), json=payload)
         assert response.status_code == 422
 
     def test_create(self, client):
@@ -145,7 +154,7 @@ class TestCreateAlgorithm:
                 }
             ],
         }
-        response = client.post("/algorithm", json=payload)
+        response = client.post(self.path(client), json=payload)
         assert response.status_code == 201
 
         algo = (
@@ -169,6 +178,9 @@ class TestCreateAlgorithm:
 
 
 class TestUpdateAlgorithm:
+    def path(self, client, label):
+        return client.app.url_path_for("update-algorithm", label=label)
+
     def test_404(self, client):
         payload = {
             "label": "bad",
@@ -177,7 +189,7 @@ class TestUpdateAlgorithm:
             "missing_field_points_proportion": 0.5,
             "passes": [],
         }
-        response = client.put("/algorithm/unknown", json=payload)
+        response = client.put(self.path(client, "unknown"), json=payload)
         assert response.status_code == 404
 
     def test_invalid_data(self, client):
@@ -185,7 +197,7 @@ class TestUpdateAlgorithm:
         client.session.add(algo)
         client.session.commit()
 
-        response = client.put("/algorithm/default", json={})
+        response = client.put(self.path(client, algo.label), json={})
         assert response.status_code == 422
 
     def test_exsiting_default(self, client):
@@ -201,7 +213,7 @@ class TestUpdateAlgorithm:
             "description": "new default algorithm",
             "passes": [],
         }
-        response = client.post("/algorithm", json=payload)
+        response = client.put(self.path(client, algo2.label), json=payload)
         assert response.status_code == 422
 
     def test_update(self, client):
@@ -230,7 +242,7 @@ class TestUpdateAlgorithm:
                 }
             ],
         }
-        response = client.put("/algorithm/default", json=payload)
+        response = client.put(self.path(client, algo.label), json=payload)
         assert response.status_code == 200
 
         algo = (
@@ -254,8 +266,11 @@ class TestUpdateAlgorithm:
 
 
 class TestDeleteAlgorithm:
+    def path(self, client, label):
+        return client.app.url_path_for("delete-algorithm", label=label)
+
     def test_404(self, client):
-        response = client.delete("/algorithm/unknown")
+        response = client.delete(self.path(client, "unknown"))
         assert response.status_code == 404
 
     def test_delete(self, client):
@@ -263,7 +278,7 @@ class TestDeleteAlgorithm:
         client.session.add(algo)
         client.session.commit()
 
-        response = client.delete("/algorithm/default")
+        response = client.delete(self.path(client, algo.label))
         assert response.status_code == 204
 
         algo = (
