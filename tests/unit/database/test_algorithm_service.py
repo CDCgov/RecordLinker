@@ -7,10 +7,11 @@ This module contains the unit tests for the recordlinker.database.algorithm_serv
 
 import pytest
 import sqlalchemy.exc
+from sqlalchemy.sql import select
+
 from recordlinker import models
 from recordlinker import schemas
 from recordlinker.database import algorithm_service
-from sqlalchemy.sql import select
 
 
 def test_list_algorithms(session):
@@ -70,13 +71,11 @@ class TestLoadAlgorithm:
                     evaluators=[
                         {
                             "feature": "ZIP",
-                            "func": "func:recordlinker.linking.matchers.compare_probabilistic_fuzzy_match",
+                            "func": "COMPARE_PROBABILISTIC_FUZZY_MATCH",
                         }
                     ],
-                    rule="func:recordlinker.linking.matchers.rule_probabilistic_match",
                 )
             ],
-            
         )
         obj, created = algorithm_service.load_algorithm(session, data)
         session.flush()
@@ -91,9 +90,8 @@ class TestLoadAlgorithm:
         assert obj.passes[0].algorithm_id == 1
         assert obj.passes[0].blocking_keys == ["FIRST_NAME"]
         assert obj.passes[0].evaluators == [
-            {"feature": "ZIP", "func": "func:recordlinker.linking.matchers.compare_probabilistic_fuzzy_match"}
+            {"feature": "ZIP", "func": "COMPARE_PROBABILISTIC_FUZZY_MATCH"}
         ]
-        assert obj.passes[0].rule == "func:recordlinker.linking.matchers.rule_probabilistic_match"
 
     def test_load_algorithm_updated(self, session):
         data = schemas.Algorithm(
@@ -108,10 +106,9 @@ class TestLoadAlgorithm:
                     evaluators=[
                         {
                             "feature": "ZIP",
-                            "func": "func:recordlinker.linking.matchers.compare_probabilistic_fuzzy_match",
+                            "func": "COMPARE_PROBABILISTIC_FUZZY_MATCH",
                         }
                     ],
-                    rule="func:recordlinker.linking.matchers.rule_probabilistic_match",
                 )
             ],
         )
@@ -132,9 +129,8 @@ class TestLoadAlgorithm:
         assert obj.passes[0].algorithm_id == 1
         assert obj.passes[0].blocking_keys == ["LAST_NAME"]
         assert obj.passes[0].evaluators == [
-            {"feature": "ZIP", "func": "func:recordlinker.linking.matchers.compare_probabilistic_fuzzy_match"}
+            {"feature": "ZIP", "func": "COMPARE_PROBABILISTIC_FUZZY_MATCH"}
         ]
-        assert obj.passes[0].rule == "func:recordlinker.linking.matchers.rule_probabilistic_match"
 
 
 def test_delete_algorithm(session):
@@ -145,10 +141,7 @@ def test_delete_algorithm(session):
     pass1 = models.AlgorithmPass(
         algorithm=algo1,
         blocking_keys=["FIRST_NAME"],
-        evaluators=[
-            {"feature": "ZIP", "func": "func:recordlinker.linking.matchers.compare_probabilistic_fuzzy_match"}
-        ],
-        rule="func:recordlinker.linking.matchers.rule_probabilistic_match",
+        evaluators=[{"feature": "ZIP", "func": "COMPARE_PROBABILISTIC_FUZZY_MATCH"}],
     )
     session.add(pass1)
     session.commit()
@@ -164,10 +157,7 @@ def test_clear_algorithms(session):
     pass1 = models.AlgorithmPass(
         algorithm=algo1,
         blocking_keys=["FIRST_NAME"],
-        evaluators=[
-            {"feature": "ZIP", "func": "func:recordlinker.linking.matchers.compare_probabilistic_match"}
-        ],
-        rule="func:recordlinker.linking.matchers.rule_probabilistic_match",
+        evaluators=[{"feature": "ZIP", "func": "COMPARE_PROBABILISTIC_FUZZY_MATCH"}],
     )
     session.add(pass1)
     session.commit()

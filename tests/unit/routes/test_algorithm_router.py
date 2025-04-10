@@ -51,10 +51,9 @@ class TestGetAlgorithm:
                     evaluators=[
                         {
                             "feature": "FIRST_NAME",
-                            "func": "func:recordlinker.linking.matchers.compare_probabilistic_fuzzy_match",
+                            "func": "COMPARE_PROBABILISTIC_FUZZY_MATCH",
                         },
                     ],
-                    rule="func:recordlinker.linking.matchers.rule_probabilistic_match",
                     kwargs={"similarity_measure": "JaroWinkler", "log_odds": {"FIRST_NAME": 6.8}},
                 )
             ],
@@ -74,14 +73,15 @@ class TestGetAlgorithm:
             "missing_field_points_proportion": 0.5,
             "passes": [
                 {
+                    "label": "BLOCK_birthdate_MATCH_first_name",
+                    "description": None,
                     "blocking_keys": ["BIRTHDATE"],
                     "evaluators": [
                         {
                             "feature": "FIRST_NAME",
-                            "func": "func:recordlinker.linking.matchers.compare_probabilistic_fuzzy_match",
+                            "func": "COMPARE_PROBABILISTIC_FUZZY_MATCH",
                         }
                     ],
-                    "rule": "func:recordlinker.linking.matchers.rule_probabilistic_match",
                     "kwargs": {
                         "similarity_measure": "JaroWinkler",
                         "log_odds": {"FIRST_NAME": 6.8}
@@ -140,10 +140,9 @@ class TestCreateAlgorithm:
                     "evaluators": [
                         {
                             "feature": "FIRST_NAME",
-                            "func": "func:recordlinker.linking.matchers.compare_probabilistic_fuzzy_match",
+                            "func": "COMPARE_PROBABILISTIC_FUZZY_MATCH",
                         }
                     ],
-                    "rule": "func:recordlinker.linking.matchers.rule_probabilistic_match",
                 }
             ],
         }
@@ -164,10 +163,9 @@ class TestCreateAlgorithm:
         assert algo.passes[0].evaluators == [
             {
                 "feature": "FIRST_NAME",
-                "func": "func:recordlinker.linking.matchers.compare_probabilistic_fuzzy_match",
+                "func": "COMPARE_PROBABILISTIC_FUZZY_MATCH",
             }
         ]
-        assert algo.passes[0].rule == "func:recordlinker.linking.matchers.rule_probabilistic_match"
         assert algo.passes[0].kwargs == {}
 
 
@@ -228,10 +226,9 @@ class TestUpdateAlgorithm:
                     "evaluators": [
                         {
                             "feature": "FIRST_NAME",
-                            "func": "func:recordlinker.linking.matchers.compare_probabilistic_fuzzy_match",
+                            "func": "COMPARE_PROBABILISTIC_FUZZY_MATCH",
                         }
                     ],
-                    "rule": "func:recordlinker.linking.matchers.rule_probabilistic_match",
                 }
             ],
         }
@@ -252,10 +249,9 @@ class TestUpdateAlgorithm:
         assert algo.passes[0].evaluators == [
             {
                 "feature": "FIRST_NAME",
-                "func": "func:recordlinker.linking.matchers.compare_probabilistic_fuzzy_match",
+                "func": "COMPARE_PROBABILISTIC_FUZZY_MATCH",
             }
         ]
-        assert algo.passes[0].rule == "func:recordlinker.linking.matchers.rule_probabilistic_match"
         assert algo.passes[0].kwargs == {}
 
 

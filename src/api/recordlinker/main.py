@@ -67,7 +67,6 @@ api.include_router(seed_router, prefix="/seed", tags=["mpi"])
 app.mount("/api", api)
 
 if settings.ui_static_dir:
-
     @app.exception_handler(StarletteHTTPException)
     async def not_found_handler(request, exc):
         """
@@ -88,9 +87,11 @@ if settings.ui_static_dir:
         view: str = path if path.endswith(".ico") else f"{path}.html"
         return FileResponse(os.path.join(settings.ui_static_dir, view))
 
+
     # static files for the UI
     app.mount(
         "/",
         StaticFiles(directory=os.path.join(settings.ui_static_dir)),
         name="SpaStaticAssets",
     )
+
