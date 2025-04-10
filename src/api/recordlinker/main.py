@@ -94,4 +94,3 @@ if settings.ui_static_dir:
         StaticFiles(directory=os.path.join(settings.ui_static_dir)),
         name="SpaStaticAssets",
     )
-
