@@ -161,7 +161,7 @@ class Identifier(pydantic.BaseModel):
     model_config = pydantic.ConfigDict(extra="allow")
 
     type: IdentifierType
-    value: str
+    value: typing.Optional[str]
     authority: typing.Optional[str] = None
 
     @classmethod

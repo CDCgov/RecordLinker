@@ -15,7 +15,10 @@ from sqlalchemy import orm
 from recordlinker import models
 from recordlinker import schemas
 from recordlinker.database import mpi_service
+from recordlinker.schemas.algorithm import SkipValue
 from recordlinker.utils.mock import MockTracer
+
+from . import clean
 
 LOGGER = logging.getLogger(__name__)
 TRACER: typing.Any = None
@@ -42,6 +45,7 @@ def compare(
     missing_field_points_proportion: float,
     algorithm_pass: models.AlgorithmPass,
     log_odds_weights: dict[str, float],
+    skip_values: list[SkipValue] = [],
 ) -> bool:
     """
     Compare the incoming record to the linked patient and return the calculated
@@ -74,8 +78,11 @@ def compare(
     matching_rule: typing.Callable = algorithm_pass.bound_rule()
     # keyword arguments to pass to comparison functions and matching rule
     kwargs: dict[typing.Any, typing.Any] = algorithm_pass.kwargs
-    # convert the Patient model into a PIIRecord for comparison
-    mpi_record: schemas.PIIRecord = schemas.PIIRecord.from_patient(patient)
+    # convert the Patient model into a cleaned PIIRecord for comparison
+    # FIXME: can we clean higher up on the stack?
+    mpi_record: schemas.PIIRecord = clean.clean(
+        schemas.PIIRecord.from_patient(patient), skip_values
+    )
 
     missing_field_weights = 0.0
     results: list[float] = []
@@ -152,6 +159,11 @@ def link_record_against_mpi(
         "above_lower_bound": 0,
         "above_upper_bound": 0,
     }
+    # NOTE: this is a temp conversion from model JSON data to a list of SkipValue objects
+    # when #223 is completed, this will be removed
+    skip_values: list[SkipValue] = [SkipValue(**d) for d in algorithm.skip_values] if algorithm.skip_values else []
+    # clean the incoming record
+    cleaned_record: schemas.PIIRecord = clean.clean(record, skip_values)
     for algorithm_pass in algorithm.passes:
         with TRACER.start_as_current_span("link.pass"):
             # Determine the maximum possible number of log-odds points in this pass
@@ -161,13 +173,13 @@ def link_record_against_mpi(
 
             # initialize a dictionary to hold the clusters of patients for each person
             clusters: dict[models.Person, list[models.Patient]] = collections.defaultdict(list)
-            # block on the pii_record and the algorithm's blocking criteria, then
+            # block on the cleaned_record and the algorithm's blocking criteria, then
             # iterate over the patients, grouping them by person
             with TRACER.start_as_current_span("link.block"):
                 # get all candidate Patient records identified in blocking
                 # and the remaining Patient records in their Person clusters
                 pats = mpi_service.BlockData.get(
-                    session, record, algorithm_pass, max_missing_allowed_proportion
+                    session, cleaned_record, algorithm_pass, max_missing_allowed_proportion
                 )
                 for pat in pats:
                     clusters[pat.person].append(pat)
@@ -178,16 +190,17 @@ def link_record_against_mpi(
                     assert pats, "Patient cluster should not be empty"
                     matched_count = 0
                     for pat in pats:
-                        # increment our match count if the pii_record matches the patient
+                        # increment our match count if the cleaned_record matches the patient
                         with TRACER.start_as_current_span("link.compare"):
                             if compare(
-                                record,
+                                cleaned_record,
                                 pat,
                                 max_points,
                                 max_missing_allowed_proportion,
                                 missing_field_points_proportion,
                                 algorithm_pass,
                                 log_odds_points,
+                                skip_values,
                             ):
                                 matched_count += 1
                     result_counts["persons_compared"] += 1

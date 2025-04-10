@@ -320,7 +320,7 @@ class PIIRecord(StrippedBaseModel):
     address: typing.List[Address] = []
     name: typing.List[Name] = []
     telecom: typing.List[Telecom] = []
-    race: typing.List[Race] = []
+    race: typing.List[typing.Optional[Race]] = []
     identifiers: typing.List[Identifier] = []
 
     @classmethod
@@ -510,9 +510,10 @@ class PIIRecord(StrippedBaseModel):
                     yield normalize_text(address.county)
         elif attribute == FeatureAttribute.IDENTIFIER:
             for identifier in self.identifiers:
-                if identifier_suffix is None or identifier_suffix == identifier.type:
-                    identifier_authority = identifier.authority or ""
-                    yield f"{normalize_text(identifier.value)}:{normalize_text(identifier_authority) if identifier_authority else identifier_authority}:{identifier.type}"
+                if identifier.value and (identifier_suffix is None or identifier_suffix == identifier.type):
+                    val = normalize_text(identifier.value)
+                    auth = normalize_text(identifier.authority or "")
+                    yield f"{val}:{auth}:{identifier.type}"
 
     def blocking_keys(self, key: models.BlockingKey) -> set[str]:
         """
