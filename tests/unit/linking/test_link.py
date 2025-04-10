@@ -360,6 +360,10 @@ class TestLinkRecordAgainstMpi:
         new_record.address[0].line[0] = "4444 Different Street"
         patients.append(new_record)
 
+        # Need to decrease MMT for example purposes so pass 2 grades
+        # as possible
+        default_algorithm.passes[1].possible_match_window = [0.4, 0.9]
+
         matches: list[bool] = []
         results = []
         for data in patients:
@@ -383,9 +387,12 @@ class TestLinkRecordAgainstMpi:
         # To get non-certain in pass 1, then certain in pass 2,
         # need equal DOB, Identifier, and Address, and different 
         # First and Last Names after first 4 chars
-        new_record.name[0].given[0] = "Johnathan"
         new_record.name[0].family = "Shepley"
         patients.append(new_record)
+
+        # Need to decrease MMT for example purposes so pass 1 grades
+        # as possible
+        default_algorithm.passes[0].possible_match_window = [0.4, 0.9]
 
         matches: list[bool] = []
         results = []
