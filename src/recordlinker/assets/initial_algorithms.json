@@ -17,14 +17,13 @@
                 "evaluators": [
                     {
                         "feature": "FIRST_NAME",
-                        "func": "func:recordlinker.linking.matchers.compare_probabilistic_fuzzy_match"
+                        "func": "COMPARE_PROBABILISTIC_FUZZY_MATCH"
                     },
                     {
                         "feature": "LAST_NAME",
-                        "func": "func:recordlinker.linking.matchers.compare_probabilistic_fuzzy_match"
+                        "func": "COMPARE_PROBABILISTIC_FUZZY_MATCH"
                     }
                 ],
-                "rule": "func:recordlinker.linking.matchers.rule_probabilistic_sum",
                 "possible_match_window": [
                     0.8,
                     0.925
@@ -50,7 +49,6 @@
                         "STATE": 0.022376768992488694,
                         "ZIP": 4.975031471124867
                     }
-
                 }
             },
             {
@@ -64,14 +62,13 @@
                 "evaluators": [
                     {
                         "feature": "ADDRESS",
-                        "func": "func:recordlinker.linking.matchers.compare_probabilistic_fuzzy_match"
+                        "func": "COMPARE_PROBABILISTIC_FUZZY_MATCH"
                     },
                     {
                         "feature": "BIRTHDATE",
-                        "func": "func:recordlinker.linking.matchers.compare_probabilistic_fuzzy_match"
+                        "func": "COMPARE_PROBABILISTIC_FUZZY_MATCH"
                     }
                 ],
-                "rule": "func:recordlinker.linking.matchers.rule_probabilistic_sum",
                 "possible_match_window": [
                     0.815,
                     0.915

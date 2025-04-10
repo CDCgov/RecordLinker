@@ -49,10 +49,9 @@ class TestGetAlgorithm:
                     evaluators=[
                         {
                             "feature": "FIRST_NAME",
-                            "func": "func:recordlinker.linking.matchers.compare_probabilistic_fuzzy_match",
+                            "func": "COMPARE_PROBABILISTIC_FUZZY_MATCH",
                         },
                     ],
-                    rule="func:recordlinker.linking.matchers.rule_probabilistic_sum",
                     possible_match_window=(0.75, 1.0),
                     kwargs={"similarity_measure": "JaroWinkler", "log_odds": {"FIRST_NAME": 6.8}},
                 )
@@ -78,10 +77,9 @@ class TestGetAlgorithm:
                     "evaluators": [
                         {
                             "feature": "FIRST_NAME",
-                            "func": "func:recordlinker.linking.matchers.compare_probabilistic_fuzzy_match",
+                            "func": "COMPARE_PROBABILISTIC_FUZZY_MATCH",
                         }
                     ],
-                    "rule": "func:recordlinker.linking.matchers.rule_probabilistic_sum",
                     "possible_match_window": [0.75, 1.0],
                     "kwargs": {
                         "similarity_measure": "JaroWinkler",
@@ -140,10 +138,9 @@ class TestCreateAlgorithm:
                     "evaluators": [
                         {
                             "feature": "FIRST_NAME",
-                            "func": "func:recordlinker.linking.matchers.compare_probabilistic_fuzzy_match",
+                            "func": "COMPARE_PROBABILISTIC_FUZZY_MATCH",
                         }
                     ],
-                    "rule": "func:recordlinker.linking.matchers.rule_probabilistic_sum",
                     "possible_match_window": (0.75, 1.0),
                 }
             ],
@@ -164,10 +161,9 @@ class TestCreateAlgorithm:
         assert algo.passes[0].evaluators == [
             {
                 "feature": "FIRST_NAME",
-                "func": "func:recordlinker.linking.matchers.compare_probabilistic_fuzzy_match",
+                "func": "COMPARE_PROBABILISTIC_FUZZY_MATCH",
             }
         ]
-        assert algo.passes[0].rule == "func:recordlinker.linking.matchers.rule_probabilistic_sum"
         assert algo.passes[0].possible_match_window == (0.75, 1.0)
         assert algo.passes[0].kwargs == {}
 
@@ -227,11 +223,10 @@ class TestUpdateAlgorithm:
                     "evaluators": [
                         {
                             "feature": "FIRST_NAME",
-                            "func": "func:recordlinker.linking.matchers.compare_probabilistic_fuzzy_match",
+                            "func": "COMPARE_PROBABILISTIC_FUZZY_MATCH",
                         }
                     ],
                     "possible_match_window": (0.75, 1.0),
-                    "rule": "func:recordlinker.linking.matchers.rule_probabilistic_sum",
                 }
             ],
         }
@@ -251,10 +246,9 @@ class TestUpdateAlgorithm:
         assert algo.passes[0].evaluators == [
             {
                 "feature": "FIRST_NAME",
-                "func": "func:recordlinker.linking.matchers.compare_probabilistic_fuzzy_match",
+                "func": "COMPARE_PROBABILISTIC_FUZZY_MATCH",
             }
         ]
-        assert algo.passes[0].rule == "func:recordlinker.linking.matchers.rule_probabilistic_sum"
         assert algo.passes[0].possible_match_window == (0.75, 1.0)
         assert algo.passes[0].kwargs == {}
 

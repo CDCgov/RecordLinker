@@ -132,9 +132,7 @@ def compare(
     """
     # all the functions used for comparison
     evals: list[models.BoundEvaluator] = algorithm_pass.bound_evaluators()
-    # a function to determine a match based on the comparison results
-    matching_rule: typing.Callable = algorithm_pass.bound_rule()
-    # keyword arguments to pass to comparison functions and matching rule
+    # keyword arguments to pass to comparison functions
     kwargs: dict[typing.Any, typing.Any] = algorithm_pass.kwargs
     # convert the Patient model into a PIIRecord for comparison
     mpi_record: schemas.PIIRecord = schemas.PIIRecord.from_patient(patient)
@@ -162,10 +160,10 @@ def compare(
 
     # Make sure this score wasn't just accumulated with missing checks
     if missing_field_weights <= max_allowed_missingness_proportion * max_log_odds_points:
-        rule_result = matching_rule(results, **kwargs)
+        rule_result = sum(results)
     else:
         rule_result = 0.0
-    details[f"rule.{matching_rule.__name__}.results"] = rule_result
+    details[f"rule.probabilistic_sum.results"] = rule_result
     # TODO: this may add a lot of noise, consider moving to debug
     LOGGER.info("patient comparison", extra=details)
     return rule_result

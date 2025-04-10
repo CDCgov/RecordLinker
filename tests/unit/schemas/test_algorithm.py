@@ -8,7 +8,7 @@ This module contains the unit tests for the recordlinker.schemas.algorithm modul
 import pydantic
 import pytest
 
-from recordlinker.schemas.algorithm import AlgorithmPass
+from recordlinker.schemas.algorithm import Algorithm, AlgorithmPass
 
 
 class TestAlgorithmPass:
@@ -18,14 +18,12 @@ class TestAlgorithmPass:
             AlgorithmPass(
                 blocking_keys=keys,
                 evaluators=[],
-                rule="func:recordlinker.linking.matchers.rule_probabilistic_sum",
             )
         keys = ["LAST_NAME", "BIRTHDATE", "ZIP"]
         # write an assertion that no exception is raised
         AlgorithmPass(
             blocking_keys=keys,
             evaluators=[],
-            rule="func:recordlinker.linking.matchers.rule_probabilistic_sum",
             possible_match_window=(0.75, 1.0),
         )
 
@@ -34,14 +32,13 @@ class TestAlgorithmPass:
         evaluators = [
             {
                 "feature": "LAST_NAME",
-                "func": "func:recordlinker.linking.matchers.compare_probabilistic_fuzzy_match",
+                "func": "COMPARE_PROBABILISTIC_FUZZY_MATCH",
             }
         ]
         with pytest.raises(pydantic.ValidationError):
             AlgorithmPass(
                 blocking_keys=["LAST_NAME", "BIRTHDATE"],
                 evaluators=evaluators,
-                rule="func:recordlinker.linking.matchers.rule_probabilistic_sum",
                 possible_match_window=possible_match_window
             )
 
@@ -49,7 +46,6 @@ class TestAlgorithmPass:
         AlgorithmPass(
             blocking_keys=["LAST_NAME", "BIRTHDATE"],
             evaluators=evaluators,
-            rule="func:recordlinker.linking.matchers.rule_probabilistic_sum",
             possible_match_window=possible_match_window
         )
 
@@ -57,103 +53,59 @@ class TestAlgorithmPass:
         AlgorithmPass(
             blocking_keys=["LAST_NAME", "BIRTHDATE"],
             evaluators=evaluators,
-            rule="func:recordlinker.linking.matchers.rule_probabilistic_sum",
             possible_match_window=possible_match_window
         )
 
     def test_validate_evaluators(self):
         # Tests non-existent / invalid feature name
         evaluators = [
-            {"feature": "name", "func": "func:recordlinker.linking.matchers.compare_probabilistic_fuzzy_match"}
+            {"feature": "invalid", "func": "COMPARE_PROBABILISTIC_FUZZY_MATCH"}
         ]
         with pytest.raises(pydantic.ValidationError):
             AlgorithmPass(
                 blocking_keys=[],
                 evaluators=evaluators,
-                rule="func:recordlinker.linking.matchers.rule_probabilistic_sum",
                 possible_match_window=(0.75, 1.0),
             )
         
         # Tests invalid evaluation functions
         evaluators = [
-            {"feature": "LAST_NAME", "func": "func:recordlinker.linking.matchers.unknown"}
+            {"feature": "LAST_NAME", "func": "UNKNOWN"}
         ]
         with pytest.raises(pydantic.ValidationError):
             AlgorithmPass(
                 blocking_keys=[],
                 evaluators=evaluators,
-                rule="func:recordlinker.linking.matchers.rule_probabilistic_sum",
-                possible_match_window=(0.75, 1.0),
             )
         
-        # Tests using a match rule as a comparison function
-        evaluators = [
-            {
-                "feature": "LAST_NAME",
-                "func": "func:recordlinker.linking.matchers.rule_probabilistic_sum",
-            }
-        ]
-        with pytest.raises(pydantic.ValidationError):
-            AlgorithmPass(
-                blocking_keys=[],
-                evaluators=evaluators,
-                rule="func:recordlinker.linking.matchers.rule_probabilistic_sum",
-                possible_match_window=(0.75, 1.0),
-            )
-
-        # Tests correct behavior
-        evaluators = [
-            {"feature": "LAST_NAME", "func": "func:recordlinker.linking.matchers.compare_probabilistic_fuzzy_match"}
-        ]
+        # Correct behavior
+        evaluators = [{"feature": "LAST_NAME", "func": "COMPARE_PROBABILISTIC_FUZZY_MATCH"}]
         # write an assertion that no exception is raised
         AlgorithmPass(
             blocking_keys=[],
             evaluators=evaluators,
-            rule="func:recordlinker.linking.matchers.rule_probabilistic_sum",
             possible_match_window=(0.75, 1.0),
         )
 
-        evaluators = [
-            {"feature": "FIRST_NAME:DL", "func": "func:recordlinker.linking.matchers.compare_probabilistic_fuzzy_match"}
-        ]
+        evaluators = [{"feature": "FIRST_NAME:DL", "func": "COMPARE_PROBABILISTIC_FUZZY_MATCH"}]
         with pytest.raises(pydantic.ValidationError):
             AlgorithmPass(
                 blocking_keys=[],
                 evaluators=evaluators,
-                rule="func:recordlinker.linking.matchers.rule_probabilistic_sum",
                 possible_match_window=(0.75, 1.0),
             )
-
-    def test_validate_rule(self):
-        rule = "invalid.func"
-        with pytest.raises(pydantic.ValidationError):
-            AlgorithmPass(
-                blocking_keys=[],
-                evaluators=[],
-                rule=rule,
-                possible_match_window=(0.75, 1.0),
-            )
-        rule = "func:recordlinker.linking.matchers.rule_probabilistic_sum"
-        AlgorithmPass(
-            blocking_keys=[],
-            evaluators=[],
-            rule=rule,
-            possible_match_window=(0.75, 1.0),
-        )
 
     def test_kwargs(self):
         with pytest.raises(pydantic.ValidationError):
             AlgorithmPass(
                 blocking_keys=[],
                 evaluators=[],
-                rule="func:recordlinker.linking.matchers.rule_probabilistic_sum",
                 possible_match_window=(0.75, 1.0),
                 kwargs={"invalid": "key"},
             )
         AlgorithmPass(
             blocking_keys=[],
             evaluators=[],
-            rule="func:recordlinker.linking.matchers.rule_probabilistic_sum",
             possible_match_window=(0.75, 1.0),
             kwargs={
                 "similarity_measure": "JaroWinkler",
@@ -167,17 +119,22 @@ class TestAlgorithmPass:
         apass = AlgorithmPass(
             blocking_keys=[],
             evaluators=[
-                {"feature": "LAST_NAME", "func": "func:recordlinker.linking.matchers.compare_probabilistic_fuzzy_match"}
+                {"feature": "LAST_NAME", "func": "COMPARE_PROBABILISTIC_FUZZY_MATCH"}
             ],
-            rule="func:recordlinker.linking.matchers.rule_probabilistic_sum",
             possible_match_window=[0.8, 0.9]
         )
         assert apass.label == "BLOCK_MATCH_last_name"
         apass = AlgorithmPass(
             blocking_keys=["ADDRESS"],
             evaluators=[
-                {"feature": "LAST_NAME", "func": "func:recordlinker.linking.matchers.compare_probabilistic_fuzzy_match"},
-                {"feature": "FIRST_NAME", "func": "func:recordlinker.linking.matchers.compare_probabilistic_fuzzy_match"},
+                {
+                    "feature": "LAST_NAME",
+                    "func": "COMPARE_PROBABILISTIC_FUZZY_MATCH",
+                },
+                {
+                    "feature": "FIRST_NAME",
+                    "func": "COMPARE_PROBABILISTIC_FUZZY_MATCH",
+                },
             ],
             rule="func:recordlinker.linking.matchers.rule_probabilistic_sum",
             possible_match_window=[0.8, 0.9]
@@ -187,9 +144,55 @@ class TestAlgorithmPass:
             label="custom-label",
             blocking_keys=[],
             evaluators=[
-                {"feature": "LAST_NAME", "func": "func:recordlinker.linking.matchers.compare_probabilistic_fuzzy_match"},
+                {
+                    "feature": "LAST_NAME",
+                    "func": "COMPARE_PROBABILISTIC_FUZZY_MATCH",
+                },
             ],
             rule="func:recordlinker.linking.matchers.rule_probabilistic_sum",
             possible_match_window=[0.8, 0.9]
         )
         assert apass.label == "custom-label"
+
+
+class TestAlgorithm:
+    def test_validate_pass_labels(self):
+        with pytest.raises(pydantic.ValidationError):
+            Algorithm(
+                label="label",
+                max_missing_allowed_proportion=0.5,
+                missing_field_points_proportion=0.5,
+                passes=[
+                    AlgorithmPass(
+                        label="pass",
+                        blocking_keys=[],
+                        evaluators=[],
+                        possible_match_window=[0.8, 0.9]
+                    ),
+                    AlgorithmPass(
+                        label="pass",
+                        blocking_keys=[],
+                        evaluators=[],
+                        possible_match_window=[0.8, 0.9]
+                    ),
+                ],
+            )
+        Algorithm(
+            label="label",
+            max_missing_allowed_proportion=0.5,
+            missing_field_points_proportion=0.5,
+            passes=[
+                AlgorithmPass(
+                    label="pass1",
+                    blocking_keys=[],
+                    evaluators=[],
+                    possible_match_window=[0.8, 0.9]
+                ),
+                AlgorithmPass(
+                    label="pass2",
+                    blocking_keys=[],
+                    evaluators=[],
+                    possible_match_window=[0.8, 0.9]
+                ),
+            ],
+        )

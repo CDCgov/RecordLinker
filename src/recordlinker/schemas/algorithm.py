@@ -46,7 +46,7 @@ class AlgorithmPass(pydantic.BaseModel):
     model_config = pydantic.ConfigDict(from_attributes=True, use_enum_values=True)
 
     label: typing.Optional[str] = pydantic.Field(
-        None, pattern=r"^[a-z0-9]+(?:-[a-z0-9]+)*$", max_length=255
+        None, pattern=r"^[A-Za-z0-9]+(?:[_-][A-Za-z0-9]+)*$", max_length=255
     )
     description: typing.Optional[str] = None
     blocking_keys: list[BlockingKey] = pydantic.Field(
@@ -59,7 +59,6 @@ class AlgorithmPass(pydantic.BaseModel):
     possible_match_window: tuple[
         Annotated[float, pydantic.Field(ge=0, le=1)], Annotated[float, pydantic.Field(ge=0, le=1)]
     ]
-    rule: matchers.RuleFunc
     kwargs: dict[str, typing.Any] = {}
 
     @pydantic.field_validator("possible_match_window", mode="before")
@@ -107,7 +106,7 @@ class Algorithm(pydantic.BaseModel):
 
     model_config = pydantic.ConfigDict(from_attributes=True, use_enum_values=True)
 
-    label: str = pydantic.Field(pattern=r"^[a-z0-9]+(?:-[a-z0-9]+)*$", max_length=255)
+    label: str = pydantic.Field(pattern=r"^[A-Za-z0-9]+(?:[_-][A-Za-z0-9]+)*$", max_length=255)
     description: typing.Optional[str] = None
     is_default: bool = False
     include_multiple_matches: bool = True
