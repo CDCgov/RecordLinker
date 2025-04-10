@@ -46,7 +46,7 @@ class AlgorithmPass(pydantic.BaseModel):
     model_config = pydantic.ConfigDict(from_attributes=True, use_enum_values=True)
 
     label: typing.Optional[str] = pydantic.Field(
-        None, pattern=r"^[a-z0-9]+(?:-[a-z0-9]+)*$", max_length=255
+        None, pattern=r"^[A-Za-z0-9]+(?:[_-][A-Za-z0-9]+)*$", max_length=255
     )
     description: typing.Optional[str] = None
     blocking_keys: list[BlockingKey] = pydantic.Field(
@@ -56,8 +56,21 @@ class AlgorithmPass(pydantic.BaseModel):
         },
     )
     evaluators: list[Evaluator]
+    possible_match_window: tuple[
+        Annotated[float, pydantic.Field(ge=0, le=1)], Annotated[float, pydantic.Field(ge=0, le=1)]
+    ]
     kwargs: dict[str, typing.Any] = {}
 
+    @pydantic.field_validator("possible_match_window", mode="before")
+    def validate_possible_match_window(cls, value):
+        """
+        Validate the Possible Match Window.
+        """
+        minimum_match_threshold, certain_match_threshold = value
+        if minimum_match_threshold > certain_match_threshold:
+            raise ValueError(f"Invalid range. Lower bound must be less than upper bound: {value}")
+        return (minimum_match_threshold, certain_match_threshold)
+    
     @pydantic.model_validator(mode="after")
     def default_label(self) -> "AlgorithmPass":
         """
@@ -93,26 +106,14 @@ class Algorithm(pydantic.BaseModel):
 
     model_config = pydantic.ConfigDict(from_attributes=True, use_enum_values=True)
 
-    label: str = pydantic.Field(pattern=r"^[a-z0-9]+(?:-[a-z0-9]+)*$", max_length=255)
+    label: str = pydantic.Field(pattern=r"^[A-Za-z0-9]+(?:[_-][A-Za-z0-9]+)*$", max_length=255)
     description: typing.Optional[str] = None
     is_default: bool = False
     include_multiple_matches: bool = True
-    belongingness_ratio: tuple[
-        Annotated[float, pydantic.Field(ge=0, le=1)], Annotated[float, pydantic.Field(ge=0, le=1)]
-    ]
     passes: typing.Sequence[AlgorithmPass]
     max_missing_allowed_proportion: float = pydantic.Field(ge=0.0, le=1.0)
     missing_field_points_proportion: float = pydantic.Field(ge=0.0, le=1.0)
 
-    @pydantic.field_validator("belongingness_ratio", mode="before")
-    def validate_belongingness_ratio(cls, value):
-        """
-        Validate the Belongingness Ratio Threshold Range.
-        """
-        lower_bound, upper_bound = value
-        if lower_bound > upper_bound:
-            raise ValueError(f"Invalid range. Lower bound must be less than upper bound: {value}")
-        return (lower_bound, upper_bound)
 
     @pydantic.model_validator(mode="after")
     def validate_passes(self) -> "Algorithm":
