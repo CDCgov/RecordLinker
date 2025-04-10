@@ -92,16 +92,6 @@ def _get_fuzzy_params(col: str, **kwargs) -> tuple[SIMILARITY_MEASURES, float]:
     return (similarity_measure, threshold)
 
 
-def rule_probabilistic_sum(feature_comparisons: list[float], **kwargs: typing.Any) -> float:
-    """
-    Simple function to total up the number of accumulated log-odds points between
-    an incoming record and an MPI record. This function must be used for log-odds
-    possible matching because the score needs to be propagated to the link function
-    rather than binarized here, against a threshold.
-    """
-    return sum(feature_comparisons)
-
-
 def compare_probabilistic_exact_match(
     record: PIIRecord,
     mpi_record: PIIRecord,
