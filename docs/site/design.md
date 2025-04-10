@@ -72,18 +72,29 @@ The MPI system is designed to link records from different sources that potential
 1. **Data Ingestion**:
    When patient data is loaded into the system, the **Patient** record is initialized, and the **BlockingValue** records are generated based on the patient's PII data (e.g., birthdate, name, address).
    
-1. **Blocking**:
+2. **Blocking**:
    The **BlockingKey** enum defines the types of blocking values that are generated from the patient data. For example, the first 4 characters of the patient's first name or their birthdate can serve as a blocking key.
    
-   Blocking is used to reduce the search space for potential matches by grouping patients based on these simplified values. Patient records that share the same blocking values _or_ patient records in the Person clusters of those that share the same blocking values are compared in detail. This makes the matching process more efficient.
+   Blocking is used to reduce the search space for potential matches by grouping patients based on these simplified values. RecordLinker blocks on two types of Patient records:
+   
+   (1) Patient records that share the same blocking values as the incoming record; _and_
+   (2) Patient records that are missing data in the fields used for blocking, but which are members of the Person clusters of the Patient records identified in (1) above.
 
    We use the **BlockingValue** records from the incoming patient to quickly find potential matches against existing patients in the MPI (matching on their blocking values, and including any patient records in the Person clusters of those blocked on).
 
-3. **Record Linkage**:  
-   The system compares the incoming patient record against patient records that share the same blocking values, as well as patient records in the Person clusters of those that share the same blocking values (even if these patients weren't blocked on individually). It uses other details stored in the **Patient** model, such as name, address, MRN, etc, to calculate a **belongingness ratio**, indicating the percentage of patients within a person cluster that the new patient record matches with.
+3. **Record Comparisons and Match Scores**:  
+   The system compares the incoming patient record against patient records that share the same blocking values, as well as patient records in the Person clusters of those that share the same blocking values which are missing data in the fields used for blocking (such records aren't blocked on individually because of this missingness, so including them after the fact allows them to be considered).
 
-1. **Person Linking**:
-   If the belongingness ratio exceeds a threshold, the patient is linked to an existing **Person** in the MPI. If it does not exceed the threshold, that means no suitable match was found, and a new **Person** record is created.
+   For each Person cluster found during blocking, the system computes an aggregated **log-odds sum** measuring the median number of **log-odds points** the incoming record scored in comparison to each Patient record in the cluster. These sums are tracked across the algorithm and are used to compute a **Relative Match Score**, the percentage of total possible log-odds points the incoming record scored during evaluation. These **RMS** values are used in conjunction with **minimum match** and **certain match** thresholds supplied by the user to make final linkage decisions.
+
+4. **Person Linking**:
+   For each Person cluster found, a **match-grade** is assigned based on where that cluster's **RMS** falls in relation to the provided thresholds:
+
+   - If **RMS** < **minimum match threshold**, the cluster is graded as **certainly-not** a match.
+   - If **RMS** >= **certain match threshold**, the cluster is graded as a **certain** match.
+   - Otherwise, if the **RMS** is between the two thresholds, the cluster is graded as a **possible** match.
+
+   If at least one cluster is graded as **certain**, the **certain** cluster with the highest **RMS** is returned as the result, and a link is formed between that cluster and the incoming record. Otherwise, if at least one cluster graded as **possible**, no links are made automatically, but the **possible** cluster is returned to the user for manual evaluation.
 
 ---
 

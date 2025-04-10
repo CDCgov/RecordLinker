@@ -9,6 +9,7 @@ pair of records should be considered a match or not.
 """
 
 import enum
+import sys
 import typing
 
 import rapidfuzz
@@ -19,35 +20,30 @@ from recordlinker.schemas.pii import PIIRecord
 SIMILARITY_MEASURES = typing.Literal["JaroWinkler", "Levenshtein", "DamerauLevenshtein"]
 
 
-class RuleFunc(enum.Enum):
-    """
-    Enum for the different types of match rules that can be used for patient
-    matching. This is the universe of all possible match rules that a user can
-    choose from when configuring their algorithm.  When data is loaded into the
-    MPI, all possible RuleFuncs will be created for the defined match rules.
-    However, only a subset will be used in matching, based on the configuration of
-    the algorithm.
-    """
-
-    RULE_PROBABILISTIC_MATCH = "func:recordlinker.linking.matchers.rule_probabilistic_match"
-
-
 class FeatureFunc(enum.Enum):
     """
     Enum for the different types of feature comparison functions that can be used
-    for patient matching. This is the universe of all possible feature comparison
-    functions that a user can choose from when configuring their algorithm.  When
-    data is loaded into the MPI, all possible FeatureFuncs will be created for the
-    defined feature comparison functions. However, only a subset will be used in
-    matching, based on the configuration of the algorithm.
+    for patient matching. We recommend using COMPARE_PROBABILISTIC_EXACT_MATCH for
+    features that are comparing to a set of known values (e.g. "SEX", "RACE").  For
+    all other features, we recommend using COMPARE_PROBABILISTIC_FUZZY_MATCH.
     """
 
-    COMPARE_PROBABILISTIC_EXACT_MATCH = (
-        "func:recordlinker.linking.matchers.compare_probabilistic_exact_match"
-    )
-    COMPARE_PROBABILISTIC_FUZZY_MATCH = (
-        "func:recordlinker.linking.matchers.compare_probabilistic_fuzzy_match"
-    )
+    COMPARE_PROBABILISTIC_EXACT_MATCH = "COMPARE_PROBABILISTIC_EXACT_MATCH"
+    COMPARE_PROBABILISTIC_FUZZY_MATCH = "COMPARE_PROBABILISTIC_FUZZY_MATCH"
+
+    def __str__(self) -> str:
+        """
+        Returns the string representation of the FeatureFunc.
+        """
+        return self.value
+
+    def callable(self) -> typing.Callable:
+        """
+        Returns the callable associated with the FeatureFunc.
+        """
+        if not hasattr(self, "_callable"):
+            self._callable = getattr(sys.modules[__name__], self.value.lower())
+        return self._callable
 
 
 class AvailableKwarg(enum.Enum):
@@ -64,7 +60,6 @@ class AvailableKwarg(enum.Enum):
     THRESHOLD = "threshold"
     THRESHOLDS = "thresholds"
     LOG_ODDS = "log_odds"
-    TRUE_MATCH_THRESHOLD = "true_match_threshold"
 
 
 def _get_fuzzy_params(col: str, **kwargs) -> tuple[SIMILARITY_MEASURES, float]:
@@ -95,23 +90,6 @@ def _get_fuzzy_params(col: str, **kwargs) -> tuple[SIMILARITY_MEASURES, float]:
         threshold = kwargs["threshold"]
 
     return (similarity_measure, threshold)
-
-
-def rule_probabilistic_match(feature_comparisons: list[float], **kwargs: typing.Any) -> bool:
-    """
-    Determines whether a given set of feature comparisons matches enough
-    to be the result of a true patient link instead of just random chance.
-    This is represented using previously computed log-odds ratios.
-
-    :param feature_comparisons: A list of floats representing the log-odds
-      score of each field computed on.
-    :return: Whether the feature comparisons score well enough to be
-      considered a match.
-    """
-    threshold: typing.Any = kwargs.get("true_match_threshold")
-    if threshold is None:
-        raise KeyError("Cutoff threshold for true matches must be passed.")
-    return sum(feature_comparisons) >= float(threshold)
 
 
 def compare_probabilistic_exact_match(
