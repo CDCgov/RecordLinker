@@ -22,7 +22,6 @@ class TestListAlgorithms:
                 "is_default": True,
                 "description": "First algorithm",
                 "include_multiple_matches": True,
-                "belongingness_ratio": [1.0, 1.0],
                 "max_missing_allowed_proportion": 0.5,
                 "missing_field_points_proportion": 0.5,
                 "pass_count": 0,
@@ -40,7 +39,6 @@ class TestGetAlgorithm:
             label="default",
             is_default=True,
             description="First algorithm",
-            belongingness_ratio=(0.25, 0.5),
             max_missing_allowed_proportion=0.5,
             missing_field_points_proportion=0.5,
             passes=[
@@ -54,6 +52,7 @@ class TestGetAlgorithm:
                             "func": "COMPARE_PROBABILISTIC_FUZZY_MATCH",
                         },
                     ],
+                    possible_match_window=(0.75, 1.0),
                     kwargs={"similarity_measure": "JaroWinkler", "log_odds": {"FIRST_NAME": 6.8}},
                 )
             ],
@@ -68,7 +67,6 @@ class TestGetAlgorithm:
             "is_default": True,
             "description": "First algorithm",
             "include_multiple_matches": True,
-            "belongingness_ratio": [0.25, 0.5],
             "max_missing_allowed_proportion": 0.5,
             "missing_field_points_proportion": 0.5,
             "passes": [
@@ -82,6 +80,7 @@ class TestGetAlgorithm:
                             "func": "COMPARE_PROBABILISTIC_FUZZY_MATCH",
                         }
                     ],
+                    "possible_match_window": [0.75, 1.0],
                     "kwargs": {
                         "similarity_measure": "JaroWinkler",
                         "log_odds": {"FIRST_NAME": 6.8}
@@ -129,7 +128,6 @@ class TestCreateAlgorithm:
         payload = {
             "label": "created",
             "description": "Created algorithm",
-            "belongingness_ratio": (0.25, 0.5),
             "max_missing_allowed_proportion": 0.5,
             "missing_field_points_proportion": 0.5,
             "passes": [
@@ -143,6 +141,7 @@ class TestCreateAlgorithm:
                             "func": "COMPARE_PROBABILISTIC_FUZZY_MATCH",
                         }
                     ],
+                    "possible_match_window": (0.75, 1.0),
                 }
             ],
         }
@@ -155,7 +154,6 @@ class TestCreateAlgorithm:
         assert algo.label == "created"
         assert algo.is_default is False
         assert algo.description == "Created algorithm"
-        assert algo.belongingness_ratio == (0.25, 0.5)
         assert algo.max_missing_allowed_proportion == 0.5
         assert algo.missing_field_points_proportion == 0.5
         assert len(algo.passes) == 1
@@ -166,6 +164,7 @@ class TestCreateAlgorithm:
                 "func": "COMPARE_PROBABILISTIC_FUZZY_MATCH",
             }
         ]
+        assert algo.passes[0].possible_match_window == (0.75, 1.0)
         assert algo.passes[0].kwargs == {}
 
 
@@ -174,7 +173,6 @@ class TestUpdateAlgorithm:
         payload = {
             "label": "bad",
             "description": "First algorithm",
-            "belongingness_ratio": (1.0, 1.0),
             "max_missing_allowed_proportion": 0.5,
             "missing_field_points_proportion": 0.5,
             "passes": [],
@@ -215,7 +213,6 @@ class TestUpdateAlgorithm:
             "label": "default",
             "is_default": True,
             "description": "Updated algorithm",
-            "belongingness_ratio": (0.25, 0.5),
             "max_missing_allowed_proportion": 0.5,
             "missing_field_points_proportion": 0.5,
             "passes": [
@@ -229,6 +226,7 @@ class TestUpdateAlgorithm:
                             "func": "COMPARE_PROBABILISTIC_FUZZY_MATCH",
                         }
                     ],
+                    "possible_match_window": (0.75, 1.0),
                 }
             ],
         }
@@ -241,7 +239,6 @@ class TestUpdateAlgorithm:
         assert algo.label == "default"
         assert algo.is_default is True
         assert algo.description == "Updated algorithm"
-        assert algo.belongingness_ratio == (0.25, 0.5)
         assert algo.max_missing_allowed_proportion == 0.5
         assert algo.missing_field_points_proportion == 0.5
         assert len(algo.passes) == 1
@@ -252,6 +249,7 @@ class TestUpdateAlgorithm:
                 "func": "COMPARE_PROBABILISTIC_FUZZY_MATCH",
             }
         ]
+        assert algo.passes[0].possible_match_window == (0.75, 1.0)
         assert algo.passes[0].kwargs == {}
 
 
