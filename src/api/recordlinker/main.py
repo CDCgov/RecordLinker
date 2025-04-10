@@ -67,13 +67,6 @@ api.include_router(seed_router, prefix="/seed", tags=["mpi"])
 app.mount("/api", api)
 
 if settings.ui_static_dir:
-    # static files for the UI
-    app.mount(
-        "/_next",
-        StaticFiles(directory=os.path.join(settings.ui_static_dir, "_next")),
-        name="SpaStaticAssets",
-    )
-
     @app.exception_handler(StarletteHTTPException)
     async def not_found_handler(request, exc):
         """
@@ -83,9 +76,9 @@ if settings.ui_static_dir:
             return FileResponse(os.path.join(settings.ui_static_dir, "404.html"), status_code=404)
         raise exc
 
+    # page routes
     @app.get("/")
     @app.get("/wizard")
-    @app.get("/favicon.ico")
     async def page(request: fastapi.Request):
         """
         Route to handle custom HTML pages for the UI
@@ -93,3 +86,11 @@ if settings.ui_static_dir:
         path: str = request.url.path.strip("/") or "index"
         view: str = path if path.endswith(".ico") else f"{path}.html"
         return FileResponse(os.path.join(settings.ui_static_dir, view))
+    
+    # static files for the UI
+    app.mount(
+        "/",
+        StaticFiles(directory=os.path.join(settings.ui_static_dir)),
+        name="SpaStaticAssets",
+       
+    )

@@ -1,4 +1,4 @@
-import Image from "@/components/image/image";
+import Image from "next/image";
 import styles from "./header.module.scss";
 import Link from "next/link";
 

@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "NEXT_PUBLIC_API_URL=http://localhost:8000/api next dev --turbopack",
     "dev:win": "next dev --turbopack",
-    "build": "NEXT_PUBLIC_IMG_PATH=/_next next build && cp -a public/. out/_next/",
+    "build": "next build",
     "start": "next start",
     "lint": "next lint",
     "prettier": "prettier 'src/**/*.{js,ts,jsx,tsx,css}' --check",

@@ -1,7 +1,7 @@
 import Link from "next/link";
-import Image from "@/components/image/image";
+import Image from "next/image";
 import classNames from "classnames";
-import style from "./page.module.scss";
+import style from "./home.module.scss";
 import {
   ProcessList,
   ProcessListHeading,
@@ -71,6 +71,8 @@ const Home: React.FC = () => {
         </p>
         <Image
           className="margin-y-5"
+          width={710}
+          height={310}
           src="/record-linker-diagram-2.png"
           alt="multiple health data sources convey into a single one"
         />
