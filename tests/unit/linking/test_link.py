@@ -245,27 +245,6 @@ class TestCompare:
         with pytest.raises(ValueError):
             link.compare(rec, pat, 0.0, 0.5, 0.5, algorithm_pass, {})
 
-    def test_compare_missing_threshold(self):
-        rec = schemas.PIIRecord(
-            **{"name": [{"given": ["John"], "family": "Doe"}]}
-        )
-        pat = models.Patient(
-            data={"name": [{"given": ["John"], "family": "Doey"}]}
-        )
-
-        algorithm_pass = models.AlgorithmPass(
-            id=1,
-            algorithm_id=1,
-            blocking_keys=[1],
-            evaluators=[
-                {"feature": "FIRST_NAME", "func": "COMPARE_PROBABILISTIC_FUZZY_MATCH"},
-            ],
-            kwargs={"log_odds": {"FIRST_NAME": 6.35}}
-        )
-
-        with pytest.raises(KeyError):
-            link.compare(rec, pat, 0.0, 0.5, 0.5, algorithm_pass, {})
-
 
 class TestLinkRecordAgainstMpi:
     # TODO: Add test case for last name O'Neil

@@ -104,7 +104,7 @@ def compare(
     missing_field_points_proportion: float,
     algorithm_pass: models.AlgorithmPass,
     log_odds_weights: dict[str, float],
-) -> bool:
+) -> float:
     """
     Compare the incoming record to the linked patient and return the calculated
     evaluation score. If a proportion of score points is accumulated via comparisons
