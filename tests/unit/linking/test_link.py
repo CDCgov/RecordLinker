@@ -345,6 +345,59 @@ class TestLinkRecordAgainstMpi:
         #  finds greatest strength match and correctly assigns to larger cluster
         assert matches == [False, True, False, True, False, False, True]
         assert sorted(list(mapped_patients.values())) == [1, 1, 1, 4]
+
+    def test_match_with_certain_first_pass(
+            self,
+            session,
+            default_algorithm,
+            patients: list[schemas.PIIRecord]
+    ):
+        patients = [patients[0]] + [patients[2]]
+        new_record = copy.deepcopy(patients[0])
+
+        # To get certain in pass 1, less than certain in pass 2,
+        # need equal DOB, Identifier, First, and Last Name, but wrong address
+        new_record.address[0].line[0] = "4444 Different Street"
+        patients.append(new_record)
+
+        matches: list[bool] = []
+        results = []
+        for data in patients:
+            (_, person, result, _) = link.link_record_against_mpi(data, session, default_algorithm)
+            matches.append(bool(person and result))
+            results.append(result)
+
+        assert matches == [False, False, True]
+        assert results[2][0].match_grade == "certain"
+        assert results[2][0].pass_label == "BLOCK_birthdate_identifier_sex_MATCH_first_name_last_name"
+
+    def test_match_change_in_second_pass(
+            self,
+            session,
+            default_algorithm,
+            patients: list[schemas.PIIRecord]
+    ):
+        patients = [patients[0]] + [patients[2]]
+        new_record = copy.deepcopy(patients[0])
+
+        # To get non-certain in pass 1, then certain in pass 2,
+        # need equal DOB, Identifier, and Address, and different 
+        # First and Last Names after first 4 chars
+        new_record.name[0].given[0] = "Johnathan"
+        new_record.name[0].family = "Shepley"
+        patients.append(new_record)
+
+        matches: list[bool] = []
+        results = []
+        for data in patients:
+            (_, person, result, _) = link.link_record_against_mpi(data, session, default_algorithm)
+            matches.append(bool(person and result))
+            results.append(result)
+
+        assert matches == [False, False, True]
+        assert results[2][0].match_grade == "certain"
+        assert results[2][0].pass_label == "BLOCK_zip_first_name_last_name_sex_MATCH_address_birthdate"
+
     
     def test_match_with_missing_field(
             self,
