@@ -98,4 +98,3 @@ if settings.ui_static_dir:
 
 
 
-
