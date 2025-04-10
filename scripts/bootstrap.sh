@@ -3,9 +3,13 @@
 # Use this script to initialize the development environment.
 #
 # Usage: source bootstrap.sh
-# Requires: python3
+# Requires: python3, node v20+
 
 cd "$(dirname "$0")/.."
+
+# Install the npm packages
+echo "Installing the npm packages..."
+npm install --legacy-peer-deps --prefix "src/ui" > /dev/null
 
 # Create a default .env file if it doesn't exist
 if [ ! -f .env ]; then

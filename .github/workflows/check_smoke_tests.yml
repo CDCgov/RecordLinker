@@ -4,7 +4,7 @@ on:
   push:
     branches: [main]
   pull_request:
-    branches: [main]
+    branches: [main, demo]
 
 jobs:
   smoke_tests:
@@ -69,7 +69,7 @@ jobs:
           # Wait for the RL Service to be healthy
           TRIES=5
           COUNT=0
-          until curl -s http://localhost:8080/ | grep "OK"; do
+          until curl -s http://localhost:8080/api/ | grep "OK"; do
             echo "Waiting for RL Service to become healthy... Attempt $((COUNT+1)) of $TRIES"
             sleep 5
             COUNT=$((COUNT+1))
@@ -83,7 +83,7 @@ jobs:
           RECORD='{"record": {"birth_date": "2013-11-07", "sex": "M", "identifiers":[{"value": "123456789", "type": "MR"}], "name":[{"family":"Shepard", "given":["John"]}]}}'
           ALGORITHM='{"algorithm": "dibbs-default", "record": {"birth_date": "2000-12-06", "sex": "M", "identifiers":[{"value": "9876543210", "type": "MR"}], "name":[{"family":"Smith", "given":["William"]}]}}'
 
-          RESPONSE_1=$(curl -s -X POST http://localhost:8080/link \
+          RESPONSE_1=$(curl -s -X POST http://localhost:8080/api/link \
           -d "$RECORD" \
           -H "Content-Type: application/json")
 
@@ -92,7 +92,7 @@ jobs:
 
           PERSON_REFERENCE_ID=$(echo "$RESPONSE_1" | jq -r '.person_reference_id')
 
-          RESPONSE_2=$(curl -s -X POST http://localhost:8080/link \
+          RESPONSE_2=$(curl -s -X POST http://localhost:8080/api/link \
           -d "$RECORD" \
           -H "Content-Type: application/json")
 
@@ -100,7 +100,7 @@ jobs:
           echo "$RESPONSE_2" | jq -e '.prediction == "match"'  
           echo "$RESPONSE_2" | jq -e --arg id "$PERSON_REFERENCE_ID" '.person_reference_id == $id'
 
-          RESPONSE_3=$(curl -s -X POST http://localhost:8080/link \
+          RESPONSE_3=$(curl -s -X POST http://localhost:8080/api/link \
           -d "$ALGORITHM" \
           -H "Content-Type: application/json")
 
@@ -109,7 +109,7 @@ jobs:
 
           PERSON_REFERENCE_ID=$(echo "$RESPONSE_3" | jq -r '.person_reference_id')
 
-          RESPONSE_4=$(curl -s -X POST http://localhost:8080/link \
+          RESPONSE_4=$(curl -s -X POST http://localhost:8080/api/link \
           -d "$ALGORITHM" \
           -H "Content-Type: application/json")
 
@@ -118,7 +118,7 @@ jobs:
           echo "$RESPONSE_4" | jq -e --arg id "$PERSON_REFERENCE_ID" '.person_reference_id == $id'     
 
           #invalid tests
-          RESPONSE_5=$(curl -s -X POST http://localhost:8080/link \
+          RESPONSE_5=$(curl -s -X POST http://localhost:8080/api/link \
           -d '{"algorithm": "invalid", "record": {}}' \
           -H "Content-Type: application/json")
 

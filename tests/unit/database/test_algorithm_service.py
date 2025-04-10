@@ -73,10 +73,9 @@ class TestLoadAlgorithm:
                             "feature": "ZIP",
                             "func": "COMPARE_PROBABILISTIC_FUZZY_MATCH",
                         }
-                    ]
+                    ],
                 )
             ],
-            
         )
         obj, created = algorithm_service.load_algorithm(session, data)
         session.flush()
@@ -109,7 +108,7 @@ class TestLoadAlgorithm:
                             "feature": "ZIP",
                             "func": "COMPARE_PROBABILISTIC_FUZZY_MATCH",
                         }
-                    ]
+                    ],
                 )
             ],
         )
@@ -142,9 +141,7 @@ def test_delete_algorithm(session):
     pass1 = models.AlgorithmPass(
         algorithm=algo1,
         blocking_keys=["FIRST_NAME"],
-        evaluators=[
-            {"feature": "ZIP", "func": "COMPARE_PROBABILISTIC_FUZZY_MATCH"}
-        ],
+        evaluators=[{"feature": "ZIP", "func": "COMPARE_PROBABILISTIC_FUZZY_MATCH"}],
     )
     session.add(pass1)
     session.commit()
@@ -160,9 +157,7 @@ def test_clear_algorithms(session):
     pass1 = models.AlgorithmPass(
         algorithm=algo1,
         blocking_keys=["FIRST_NAME"],
-        evaluators=[
-            {"feature": "ZIP", "func": "COMPARE_PROBABILISTIC_FUZZY_MATCH"}
-        ],
+        evaluators=[{"feature": "ZIP", "func": "COMPARE_PROBABILISTIC_FUZZY_MATCH"}],
     )
     session.add(pass1)
     session.commit()

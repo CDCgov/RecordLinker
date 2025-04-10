@@ -1,2 +1,4 @@
 # Define owners for all files in the repository
 *       @ericbuckley @bamader @m-goggins
+
+/src/ui      @ericbuckley @m-goggins @johanna-skylight

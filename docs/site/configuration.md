@@ -79,6 +79,23 @@ Each setting can be configured as follows:
 
     **Development Default**: `assets/initial_algorithms.json`
 
+`UI_HOST (Optional)`
+
+:   Hostname of the UI server used to generate HTML in development mode.  This should
+    not be used in a production environment.
+
+    **Docker Default**: `""`
+
+    **Development Default**: `http://localhost:3000`
+
+`UI_STATIC_DIR (Optional)`
+
+:   Path to the directory that contains the application pages and static assets (js bundles, css, images, etc) of the user interface. 
+
+    **Docker Default**: `"/code/build/static"`
+
+    **Development Default**: `""`
+
 
 ### Database Options
 

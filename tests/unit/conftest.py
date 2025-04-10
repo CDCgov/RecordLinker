@@ -46,11 +46,11 @@ def client():
     # get_test_session() function once per test, as it resets the database
     # tables everytime its called
     with database.get_test_session() as session:
-        # Override the get_session dependency in the FastAPI app to use
+        # Override the get_session dependency in the FastAPI api to use
         # a simple function that returns the testing session, this will
         # make the session persist for each call to the client within the
         # scope of the test
-        main.app.dependency_overrides[database.get_session] = lambda: session
+        main.api.dependency_overrides[database.get_session] = lambda: session
         with TestClient(main.app) as c:
             c.session = session
             yield c

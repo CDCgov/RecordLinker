@@ -1,0 +1,35 @@
+{
+  "name": "record-linker-ui",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "NEXT_PUBLIC_API_URL=http://localhost:8000/api next dev --turbopack",
+    "dev:win": "next dev --turbopack",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "prettier": "prettier 'src/**/*.{js,ts,jsx,tsx,css}' --check",
+    "prettier:fix": "prettier 'src/**/*.{js,ts,jsx,tsx,css}' --write"
+  },
+  "dependencies": {
+    "@trussworks/react-uswds": "^9.1.0",
+    "@uswds/uswds": "^3.12.0",
+    "focus-trap-react": "^11.0.3",
+    "next": "15.2.4",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  },
+  "devDependencies": {
+    "@eslint/eslintrc": "^3",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "eslint": "^9",
+    "eslint-config-next": "15.2.4",
+    "eslint-config-prettier": "^10.1.1",
+    "eslint-plugin-unused-imports": "^4.1.4",
+    "prettier": "^3.5.3",
+    "sass": "^1.86.0",
+    "typescript": "^5"
+  }
+}

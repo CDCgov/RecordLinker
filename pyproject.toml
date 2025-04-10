@@ -14,6 +14,7 @@ authors = [
     {name = "Alex Hayward", email = "alex.hayward@skylight.digital"},
     {name = "Cason Brinson", email = "cbrinson@rise8.us"},
     {name = "Derek Dombek", email = "ddombek@rise8.us"},
+    {name = "Johanna Del Pino", email = "johanna@skylight.digital"},
 ]
 license = { file = "LICENSE" }
 readme = {file = "README.md", content-type = "text/markdown"}
@@ -63,23 +64,23 @@ prod = [
 ]
 
 [tool.setuptools]
-package-dir = {"" = "src"}
+package-dir = {"" = "src/api"}
 
 [tool.setuptools.package-data]
 recordlinker = ["assets/*"]
 
 [tool.setuptools.packages.find]
-where = ["src"]
+where = ["src/api"]
 namespaces = false
 
 [tool.setuptools_scm]
-write_to = "src/recordlinker/_version.py"
+write_to = "src/api/recordlinker/_version.py"
 version_scheme = "post-release"
 local_scheme = "dirty-tag"
 fallback_version = "0.0.0"
 
 [tool.ruff]
-exclude = [".git", ".pytest_cache", "__pycache__", "docs"]
+exclude = [".git", ".pytest_cache", "__pycache__", "docs", "src/ui"]
 line-length = 100
 indent-width = 4
 target-version = "py310"
@@ -94,12 +95,13 @@ select = ["E4", "E7", "E9", "F", "I", "D102", "D103", "D104", "D105", "D106"] # 
 
 [tool.ruff.lint.isort]
 # The following settings reduce the number of changes from reorder-python-imports
+known-first-party = ["recordlinker"]
 force-single-line = true
 order-by-type = false
 
 [tool.pytest.ini_options]
 testpaths = ["tests/unit"]
-pythonpath = ["src", "tests/unit"]
+pythonpath = ["src/api", "tests/unit"]
 filterwarnings = [
     "ignore:typing.io is deprecated, import directly from typing instead:DeprecationWarning"
 ]
@@ -111,9 +113,10 @@ env = [
 [tool.coverage.run]
 omit = [
     # Omit the generated version file from coverage
-    "src/recordlinker/_version.py",
+    "src/api/recordlinker/_version.py",
+    "src/ui",
     ]
 
 [tool.mypy]
-files = ["src"]
-mypy_path = ["src"]
+files = ["src/api"]
+mypy_path = ["src/api"]

@@ -14,7 +14,7 @@ class TestListAlgorithms:
         client.session.add(algo1)
         client.session.commit()
 
-        response = client.get("/algorithm")
+        response = client.get("/api/algorithm")
         assert response.status_code == 200
         assert response.json() == [
             {
@@ -32,7 +32,7 @@ class TestListAlgorithms:
 
 class TestGetAlgorithm:
     def test_404(self, client):
-        response = client.get("/algorithm/unknown")
+        response = client.get("/api/algorithm/unknown")
         assert response.status_code == 404
 
     def test_get(self, client):
@@ -61,7 +61,7 @@ class TestGetAlgorithm:
         client.session.add(algo)
         client.session.commit()
 
-        response = client.get(f"/algorithm/{algo.label}")
+        response = client.get(f"/api/algorithm/{algo.label}")
         assert response.status_code == 200
         assert response.json() == {
             "label": "default",
@@ -93,7 +93,7 @@ class TestGetAlgorithm:
 
 class TestCreateAlgorithm:
     def test_invalid_data(self, client):
-        response = client.post("/algorithm", json={})
+        response = client.post("/api/algorithm", json={})
         assert response.status_code == 422
 
     def test_exsiting_default(self, client):
@@ -108,7 +108,7 @@ class TestCreateAlgorithm:
             "belongingness_ratio": (0.25, 0.5),
             "passes": [],
         }
-        response = client.post("/algorithm", json=payload)
+        response = client.post("/api/algorithm", json=payload)
         assert response.status_code == 422
 
     def test_existing_label(self, client):
@@ -122,7 +122,7 @@ class TestCreateAlgorithm:
             "description": "Second algorithm",
             "passes": [],
         }
-        response = client.post("/algorithm", json=payload)
+        response = client.post("/api/algorithm", json=payload)
         assert response.status_code == 422
 
     def test_create(self, client):
@@ -146,7 +146,7 @@ class TestCreateAlgorithm:
                 }
             ],
         }
-        response = client.post("/algorithm", json=payload)
+        response = client.post("/api/algorithm", json=payload)
         assert response.status_code == 201
 
         algo = (
@@ -179,7 +179,7 @@ class TestUpdateAlgorithm:
             "missing_field_points_proportion": 0.5,
             "passes": [],
         }
-        response = client.put("/algorithm/unknown", json=payload)
+        response = client.put("/api/algorithm/unknown", json=payload)
         assert response.status_code == 404
 
     def test_invalid_data(self, client):
@@ -187,7 +187,7 @@ class TestUpdateAlgorithm:
         client.session.add(algo)
         client.session.commit()
 
-        response = client.put("/algorithm/default", json={})
+        response = client.put("/api/algorithm/default", json={})
         assert response.status_code == 422
 
     def test_exsiting_default(self, client):
@@ -203,7 +203,7 @@ class TestUpdateAlgorithm:
             "description": "new default algorithm",
             "passes": [],
         }
-        response = client.post("/algorithm", json=payload)
+        response = client.post("/api/algorithm", json=payload)
         assert response.status_code == 422
 
     def test_update(self, client):
@@ -232,7 +232,7 @@ class TestUpdateAlgorithm:
                 }
             ],
         }
-        response = client.put("/algorithm/default", json=payload)
+        response = client.put("/api/algorithm/default", json=payload)
         assert response.status_code == 200
 
         algo = (
@@ -257,7 +257,7 @@ class TestUpdateAlgorithm:
 
 class TestDeleteAlgorithm:
     def test_404(self, client):
-        response = client.delete("/algorithm/unknown")
+        response = client.delete("/api/algorithm/unknown")
         assert response.status_code == 404
 
     def test_delete(self, client):
@@ -265,7 +265,7 @@ class TestDeleteAlgorithm:
         client.session.add(algo)
         client.session.commit()
 
-        response = client.delete("/algorithm/default")
+        response = client.delete("/api/algorithm/default")
         assert response.status_code == 204
 
         algo = (
