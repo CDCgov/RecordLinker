@@ -72,7 +72,7 @@ def link_piirecord(
     """
     algorithm: models.Algorithm = algorithm_or_422(db_session, input.algorithm)
 
-    (patient, person, results, prediction) = link.link_record_against_mpi(
+    (patient, person, results, match_grade) = link.link_record_against_mpi(
         record=input.record,
         session=db_session,
         algorithm=algorithm,
@@ -81,7 +81,7 @@ def link_piirecord(
     )
     assert patient is not None, "Patient should always be created"
     return schemas.LinkResponse(
-        prediction=prediction,
+        match_grade=match_grade,
         patient_reference_id=patient.reference_id,
         person_reference_id=(person and person.reference_id),
         results=[schemas.LinkResult(**r.__dict__) for r in results],
@@ -103,7 +103,7 @@ def link_fhir(
     algorithm: models.Algorithm = algorithm_or_422(db_session, input.algorithm)
     record: schemas.PIIRecord = fhir_record_or_422(input.bundle)
 
-    (patient, person, results, prediction) = link.link_record_against_mpi(
+    (patient, person, results, match_grade) = link.link_record_against_mpi(
         record=record,
         session=db_session,
         algorithm=algorithm,
@@ -112,7 +112,7 @@ def link_fhir(
     )
     assert patient is not None, "Patient should always be created"
     return schemas.LinkFhirResponse(
-        prediction=prediction,
+        match_grade=match_grade,
         patient_reference_id=patient.reference_id,
         person_reference_id=(person and person.reference_id),
         results=[schemas.LinkResult(**r.__dict__) for r in results],
@@ -135,7 +135,7 @@ def match_piirecord(
     """
     algorithm: models.Algorithm = algorithm_or_422(db_session, input.algorithm)
 
-    (patient, person, results, prediction) = link.link_record_against_mpi(
+    (patient, person, results, match_grade) = link.link_record_against_mpi(
         record=input.record,
         session=db_session,
         algorithm=algorithm,
@@ -144,7 +144,7 @@ def match_piirecord(
     )
     assert patient is None, "Patient should not have been created"
     return schemas.MatchResponse(
-        prediction=prediction,
+        match_grade=match_grade,
         person_reference_id=(person and person.reference_id),
         results=[schemas.LinkResult(**r.__dict__) for r in results],
     )
@@ -163,7 +163,7 @@ def match_fhir(
     algorithm: models.Algorithm = algorithm_or_422(db_session, input.algorithm)
     record: schemas.PIIRecord = fhir_record_or_422(input.bundle)
 
-    (patient, person, results, prediction) = link.link_record_against_mpi(
+    (patient, person, results, match_grade) = link.link_record_against_mpi(
         record=record,
         session=db_session,
         algorithm=algorithm,
@@ -172,7 +172,7 @@ def match_fhir(
     )
     assert patient is None, "Patient should not have been created"
     return schemas.MatchFhirResponse(
-        prediction=prediction,
+        match_grade=match_grade,
         person_reference_id=(person and person.reference_id),
         results=[schemas.LinkResult(**r.__dict__) for r in results],
         updated_bundle=(

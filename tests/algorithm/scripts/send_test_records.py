@@ -41,7 +41,7 @@ def send_test_records(test_csv, algorithm_name, api_url):
                 output_row = {
                     "Test Case #": match_info['test_case_number'],
                     "Expected Result": match_info['should_match'],
-                    "Match Result": resposnse_json['prediction'],
+                    "Match Result": resposnse_json['match_grade'],
                     "Details": ""
                 }
             output_data.append(output_row)

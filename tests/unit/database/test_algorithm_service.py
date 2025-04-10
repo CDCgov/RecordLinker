@@ -62,7 +62,6 @@ class TestLoadAlgorithm:
         data = schemas.Algorithm(
             label="dibbs-test",
             description="First algorithm",
-            belongingness_ratio=(0.75, 0.8),
             max_missing_allowed_proportion=0.5,
             missing_field_points_proportion=0.5,
             passes=[
@@ -73,7 +72,8 @@ class TestLoadAlgorithm:
                             "feature": "ZIP",
                             "func": "COMPARE_PROBABILISTIC_FUZZY_MATCH",
                         }
-                    ]
+                    ],
+                    possible_match_window=(0.75, 1.0),
                 )
             ],
             
@@ -84,7 +84,6 @@ class TestLoadAlgorithm:
         assert obj.id == 1
         assert obj.label == "dibbs-test"
         assert obj.description == "First algorithm"
-        assert obj.belongingness_ratio == (0.75, 0.8)
         assert obj.max_missing_allowed_proportion == 0.5
         assert obj.missing_field_points_proportion == 0.5
         assert len(obj.passes) == 1
@@ -93,12 +92,12 @@ class TestLoadAlgorithm:
         assert obj.passes[0].evaluators == [
             {"feature": "ZIP", "func": "COMPARE_PROBABILISTIC_FUZZY_MATCH"}
         ]
+        assert obj.passes[0].possible_match_window == (0.75, 1.0)
 
     def test_load_algorithm_updated(self, session):
         data = schemas.Algorithm(
             label="dibbs-test",
             description="First algorithm",
-            belongingness_ratio=(0.75, 0.8),
             max_missing_allowed_proportion=0.5,
             missing_field_points_proportion=0.5,
             passes=[
@@ -109,7 +108,8 @@ class TestLoadAlgorithm:
                             "feature": "ZIP",
                             "func": "COMPARE_PROBABILISTIC_FUZZY_MATCH",
                         }
-                    ]
+                    ],
+                    possible_match_window=(0.75, 1.0),
                 )
             ],
         )
@@ -123,7 +123,6 @@ class TestLoadAlgorithm:
         assert obj.id == 1
         assert obj.label == "dibbs-test"
         assert obj.description == "Updated description"
-        assert obj.belongingness_ratio == (0.75, 0.8)
         assert obj.max_missing_allowed_proportion == 0.5
         assert obj.missing_field_points_proportion == 0.5
         assert len(obj.passes) == 1
@@ -132,6 +131,7 @@ class TestLoadAlgorithm:
         assert obj.passes[0].evaluators == [
             {"feature": "ZIP", "func": "COMPARE_PROBABILISTIC_FUZZY_MATCH"}
         ]
+        assert obj.passes[0].possible_match_window == (0.75, 1.0)
 
 
 def test_delete_algorithm(session):
