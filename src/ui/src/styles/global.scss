@@ -16,47 +16,52 @@ body {
 }
 
 // USWDS overwrites
-h1,h2,h2,h4,h5{
+h1,
+h2,
+h2,
+h4,
+h5 {
   color: $record-linker-heading-color;
 }
 
-.usa-process-list__item{
-  border-color:$blue-cool-blue-cool-20;
+.usa-process-list__item {
+  border-color: $blue-cool-blue-cool-20;
 
-  &:before{
+  &:before {
     background-color: $record-linker-bg-color;
-    box-shadow: 0 0 0 .25rem $record-linker-bg-color;
-    border-color:$blue-cool-blue-cool-70;
-    color:$blue-cool-blue-cool-70;
+    box-shadow: 0 0 0 0.25rem $record-linker-bg-color;
+    border-color: $blue-cool-blue-cool-70;
+    color: $blue-cool-blue-cool-70;
   }
 }
 
-.usa-button{
+.usa-button {
   background-color: $record-linker-primary-color;
   min-height: 2.875rem;
 
-  &:hover{
+  &:hover {
     background-color: $record-linker-primary-color-darker;
   }
 
-  &:disabled{
+  &:disabled {
     background-color: $gray-bg-disabled;
     color: $gray-text-disabled;
   }
 
-  &--outline{
+  &--outline {
     @extend .usa-button;
     background-color: transparent;
-    box-shadow: inset 0 0 0 0.125rem $record-linker-primary-color;
-    color: $record-linker-primary-color;
+    box-shadow: inset 0 0 0 0.125rem $record-linker-secondary-color;
+    color: $record-linker-secondary-color;
 
-    &:hover{
+    &:hover {
       background-color: transparent;
-      box-shadow: inset 0 0 0 0.125rem $record-linker-primary-color-darker;
-      color:  $record-linker-primary-color-darker;
+      box-shadow: inset 0 0 0 0.125rem $record-linker-secondary-color-darker;
+      color: $record-linker-secondary-color-darker;
     }
 
-    &:disabled, &:disabled:hover{
+    &:disabled,
+    &:disabled:hover {
       box-shadow: inset 0 0 0 0.125rem $gray-bg-disabled;
       background-color: transparent;
       color: $gray-text-disabled;
@@ -65,18 +70,20 @@ h1,h2,h2,h4,h5{
 }
 
 // record linker
-.page-container{
+.page-container {
   margin: 0 auto;
 
-  &--lg{
+  &--lg {
     @extend .page-container;
     max-width: 50rem;
   }
 
-  &--xl{
+  &--xl {
     @extend .page-container;
     max-width: 75rem;
   }
 }
 
-
+.border-color-light-blue {
+  border-color: $record-linker-blue-border-light;
+}

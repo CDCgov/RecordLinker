@@ -1,15 +1,16 @@
 @use "uswds-core" as *;
 
 // record linker colors
-$blue-cool-blue-cool-5:#e7f2f5;
+$blue-cool-blue-cool-5: #e7f2f5;
 $blue-cool-blue-cool-90: #0f191c;
-$blue-cool-blue-cool-80: #14333D;
-$blue-cool-blue-cool-70: #224A58;
-$blue-cool-blue-cool-20: #ADCFDC;
-$violet-warm-violet-warm-70: #5C395A;
+$blue-cool-blue-cool-80: #14333d;
+$blue-cool-blue-cool-70: #224a58;
+$blue-cool-blue-cool-60: #2e6276;
+$blue-cool-blue-cool-20: #adcfdc;
+$violet-warm-violet-warm-70: #5c395a;
 $violet-warm-violet-warm-60: #864381;
-$gray-bg-disabled: #C9C9C9;
-$gray-text-disabled: #3D4551;
+$gray-bg-disabled: #c9c9c9;
+$gray-text-disabled: #3d4551;
 
 // uswds fonts
 $serif-font: family("heading");
@@ -17,11 +18,14 @@ $sans-serif-font: "Public Sans Web", family("body");
 $mono-font: "Consolas", family("mono");
 
 // app specific
-$record-linker-body-font:$sans-serif-font;
-$record-linker-bg-color:$blue-cool-blue-cool-5;
-$record-linker-header-footer-color:$blue-cool-blue-cool-80;
+$record-linker-body-font: $sans-serif-font;
+$record-linker-bg-color: $blue-cool-blue-cool-5;
+$record-linker-header-footer-color: $blue-cool-blue-cool-80;
 $record-linker-paragraph-color: $blue-cool-blue-cool-90;
 $record-linker-heading-color: $blue-cool-blue-cool-80;
 $record-linker-subheading-color: $blue-cool-blue-cool-80;
 $record-linker-primary-color: $violet-warm-violet-warm-60;
 $record-linker-primary-color-darker: $violet-warm-violet-warm-70;
+$record-linker-secondary-color: $blue-cool-blue-cool-60;
+$record-linker-secondary-color-darker: $blue-cool-blue-cool-70;
+$record-linker-blue-border-light: #82b4c9;

@@ -133,6 +133,7 @@ const Home: React.FC = () => {
           "padding-top-4",
           "padding-bottom-6",
           "border-top-1px",
+          "border-color-light-blue",
           "grid-row",
           "flex-column",
           "flex-align-center",

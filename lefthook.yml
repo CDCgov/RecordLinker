@@ -13,5 +13,5 @@ pre-commit:
       run: "./node_modules/.bin/eslint --fix {staged_files} && ./node_modules/.bin/prettier --write {staged_files} && git add {staged_files}"
     frontend-style-checks:
       root: "src/ui"
-      glob: "*.css"
+      glob: "*.scss"
       run: "./node_modules/.bin/prettier --write {staged_files} && git add {staged_files}"
