@@ -1,10 +1,19 @@
 import Image from "next/image";
 import styles from "./footer.module.scss";
+import classNames from "classnames";
 
 const Footer: React.FC = () => {
   return (
     <footer
-      className={`padding-x-10 padding-y-3 grid-row flex-row flex-align-center flex-justify ${styles.footer}`}
+      className={classNames(
+        "padding-x-10",
+        "padding-y-3",
+        "grid-row",
+        "flex-row",
+        "flex-align-center",
+        "flex-justify",
+        styles.footer,
+      )}
     >
       <Image
         src="/cdc-logo.svg"
