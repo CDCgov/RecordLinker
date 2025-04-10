@@ -1,3 +1,7 @@
+/**********************************
+ * Record linker specific styling
+ **********************************/
+
 @use "variables" as *;
 
 * {
@@ -8,68 +12,10 @@
 }
 
 body {
-  color: $record-linker-paragraph-color;
-  background-color: $record-linker-bg-color;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  font-family: $record-linker-body-font;
 }
 
-// USWDS overwrites
-h1,
-h2,
-h2,
-h4,
-h5 {
-  color: $record-linker-heading-color;
-}
-
-.usa-process-list__item {
-  border-color: $blue-cool-blue-cool-20;
-
-  &:before {
-    background-color: $record-linker-bg-color;
-    box-shadow: 0 0 0 0.25rem $record-linker-bg-color;
-    border-color: $blue-cool-blue-cool-70;
-    color: $blue-cool-blue-cool-70;
-  }
-}
-
-.usa-button {
-  background-color: $record-linker-primary-color;
-  min-height: 2.875rem;
-
-  &:hover {
-    background-color: $record-linker-primary-color-darker;
-  }
-
-  &:disabled {
-    background-color: $gray-bg-disabled;
-    color: $gray-text-disabled;
-  }
-
-  &--outline {
-    @extend .usa-button;
-    background-color: transparent;
-    box-shadow: inset 0 0 0 0.125rem $record-linker-secondary-color;
-    color: $record-linker-secondary-color;
-
-    &:hover {
-      background-color: transparent;
-      box-shadow: inset 0 0 0 0.125rem $record-linker-secondary-color-darker;
-      color: $record-linker-secondary-color-darker;
-    }
-
-    &:disabled,
-    &:disabled:hover {
-      box-shadow: inset 0 0 0 0.125rem $gray-bg-disabled;
-      background-color: transparent;
-      color: $gray-text-disabled;
-    }
-  }
-}
-
-// record linker
 .page-container {
   margin: 0 auto;
 

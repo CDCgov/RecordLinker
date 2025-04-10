@@ -3,6 +3,7 @@ import Image from "next/image";
 import classNames from "classnames";
 import style from "./home.module.scss";
 import {
+  Button,
   ProcessList,
   ProcessListHeading,
   ProcessListItem,
@@ -150,6 +151,9 @@ const Home: React.FC = () => {
         <Link className="usa-button padding-x-7 margin-top-2" href={"/wizard"}>
           Launch Demo
         </Link>
+        <Button disabled outline>
+          test disabled
+        </Button>
       </div>
     </>
   );
