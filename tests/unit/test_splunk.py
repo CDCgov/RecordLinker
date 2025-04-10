@@ -1,6 +1,7 @@
 import unittest.mock
 
 import pytest
+
 from recordlinker import splunk
 
 

@@ -11,6 +11,7 @@ import uuid
 
 import pydantic
 import pytest
+
 from recordlinker.models import BlockingKey
 from recordlinker.models import Patient
 from recordlinker.schemas import pii

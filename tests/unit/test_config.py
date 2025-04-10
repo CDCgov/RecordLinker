@@ -1,4 +1,5 @@
 import pytest
+
 from recordlinker import config
 
 
