@@ -128,16 +128,9 @@ class TestAlgorithmPass:
         apass = AlgorithmPass(
             blocking_keys=["ADDRESS"],
             evaluators=[
-                {
-                    "feature": "LAST_NAME",
-                    "func": "COMPARE_PROBABILISTIC_FUZZY_MATCH",
-                },
-                {
-                    "feature": "FIRST_NAME",
-                    "func": "COMPARE_PROBABILISTIC_FUZZY_MATCH",
-                },
+                {"feature": "LAST_NAME", "func": "COMPARE_PROBABILISTIC_FUZZY_MATCH"},
+                {"feature": "FIRST_NAME", "func": "COMPARE_PROBABILISTIC_FUZZY_MATCH"},
             ],
-            rule="func:recordlinker.linking.matchers.rule_probabilistic_sum",
             possible_match_window=[0.8, 0.9]
         )
         assert apass.label == "BLOCK_address_MATCH_last_name_first_name"
@@ -145,12 +138,8 @@ class TestAlgorithmPass:
             label="custom-label",
             blocking_keys=[],
             evaluators=[
-                {
-                    "feature": "LAST_NAME",
-                    "func": "COMPARE_PROBABILISTIC_FUZZY_MATCH",
-                },
+                {"feature": "LAST_NAME", "func": "COMPARE_PROBABILISTIC_FUZZY_MATCH"}
             ],
-            rule="func:recordlinker.linking.matchers.rule_probabilistic_sum",
             possible_match_window=[0.8, 0.9]
         )
         assert apass.label == "custom-label"

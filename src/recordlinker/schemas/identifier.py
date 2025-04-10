@@ -1,5 +1,4 @@
 import enum
-import re
 import typing
 
 import pydantic
@@ -9,6 +8,7 @@ class IdentifierType(enum.Enum):
     """
     Enum for various identifier types.
     """
+
     AC = "AC"
     ACSN = "ACSN"
     AIN = "AIN"
@@ -174,24 +174,22 @@ class Identifier(pydantic.BaseModel):
         values["type"] = IdentifierType(values["type"])
         return super().model_construct(_fields_set=_fields_set, **values)
 
-    @pydantic.field_validator("value", mode="before")
-    def parse_value(cls, value: str, info: pydantic.ValidationInfo):
+    @pydantic.field_validator("value", "authority", mode="before")
+    def strip_whitespace(cls, v: typing.Any) -> str:
         """
-        Parse the value string
+        Remove leading and trailing whitespace from all string fields.
         """
-        # NOTE: Define "type" before "value" in the field definitions to guarentee that it will be available here.
-        identifier_type = info.data["type"]
-        if identifier_type == IdentifierType.SS:       
-            val = str(value).strip()
+        if isinstance(v, str):
+            return v.strip()
+        return v
 
-            if re.match(r"^\d{3}-\d{2}-\d{4}$", val):
-                return val
-
-            if len(val) != 9 or not val.isdigit():
-                return ''
-
-            # Format back to the standard SSN format (XXX-XX-XXXX)
-            formatted_ssn = f"{val[:3]}-{val[3:5]}-{val[5:]}"
-            return formatted_ssn
-        
-        return value
+    @pydantic.model_validator(mode="after")
+    def normalize_ssn_value(self) -> typing.Self:
+        """
+        Normalize the value string.
+        """
+        if self.type == IdentifierType.SS:
+            if len(self.value) == 9 and self.value.isdigit():
+                # Format back to the standard SSN format (XXX-XX-XXXX)
+                self.value = f"{self.value[:3]}-{self.value[3:5]}-{self.value[5:]}"
+        return self
