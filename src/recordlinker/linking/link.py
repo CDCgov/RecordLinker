@@ -163,7 +163,7 @@ def compare(
         rule_result = sum(results)
     else:
         rule_result = 0.0
-    details[f"rule.probabilistic_sum.results"] = rule_result
+    details["rule.probabilistic_sum.results"] = rule_result
     # TODO: this may add a lot of noise, consider moving to debug
     LOGGER.info("patient comparison", extra=details)
     return rule_result
