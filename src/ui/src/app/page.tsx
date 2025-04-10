@@ -142,7 +142,7 @@ const Home: React.FC = () => {
         )}
       >
         <h2>Footer header title lorem ipsum</h2>
-        <p className="text-center">
+        <p className="text-center text-thin">
           Check out the Record Linker demo to try
           <br />
           out features using sample data.
