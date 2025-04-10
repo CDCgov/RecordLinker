@@ -126,7 +126,7 @@
           {
             "family": "Smith",
             "given": [
-              "Johna"
+              "Johnathan"
             ],
             "use": "official"
           }
@@ -134,7 +134,7 @@
         "birthDate": "1980-01-01",
         "gender": "male",
         "address": [
-            {
+          {
             "line": [
               "1234 Silversun Strip"
             ],
@@ -184,7 +184,7 @@
         "birthDate": "1980-01-01",
         "gender": "male",
         "address": [
-            {
+          {
             "line": [
               "1234 Silversun Strip"
             ],
