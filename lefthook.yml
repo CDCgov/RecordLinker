@@ -1,6 +1,10 @@
 pre-commit:
   parallel: true
   commands:
+    backend-code-checks:
+      root: "{src/api,tests}"
+      glob: "*.{py}"
+      run: "./.venv/bin/ruff --fix {staged_files} && git add {staged_files}"
     frontend-code-checks:
       root: "src/ui"
       glob: "*.{js,ts,jsx,tsx}"
