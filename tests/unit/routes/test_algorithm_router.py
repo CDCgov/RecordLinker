@@ -24,6 +24,7 @@ class TestListAlgorithms:
                 "include_multiple_matches": True,
                 "max_missing_allowed_proportion": 0.5,
                 "missing_field_points_proportion": 0.5,
+                "skip_values": [],
                 "pass_count": 0,
             },
         ]
@@ -41,6 +42,9 @@ class TestGetAlgorithm:
             description="First algorithm",
             max_missing_allowed_proportion=0.5,
             missing_field_points_proportion=0.5,
+            skip_values=[
+                {"feature": "*", "values": ["unknown"]},
+            ],
             passes=[
                 models.AlgorithmPass(
                     blocking_keys=[
@@ -69,6 +73,9 @@ class TestGetAlgorithm:
             "include_multiple_matches": True,
             "max_missing_allowed_proportion": 0.5,
             "missing_field_points_proportion": 0.5,
+            "skip_values": [
+                {"feature": "*", "values": ["unknown"]},
+            ],
             "passes": [
                 {
                     "label": "BLOCK_birthdate_MATCH_first_name",

@@ -43,6 +43,7 @@ class Algorithm(Base):
     missing_field_points_proportion: orm.Mapped[float] = orm.mapped_column(
         sqltypes.Float, default=0.5
     )
+    skip_values: orm.Mapped[list[dict]] = orm.mapped_column(sqltypes.JSON, default=list)
 
     @classmethod
     def from_dict(cls, **data: dict) -> "Algorithm":
