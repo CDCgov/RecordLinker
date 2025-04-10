@@ -30,6 +30,7 @@ class FeatureAttribute(enum.Enum):
     GIVEN_NAME = "GIVEN_NAME"
     FIRST_NAME = "FIRST_NAME"
     LAST_NAME = "LAST_NAME"
+    NAME = "NAME"
     ADDRESS = "ADDRESS"
     CITY = "CITY"
     STATE = "STATE"
@@ -475,6 +476,9 @@ class PIIRecord(StrippedBaseModel):
             for name in self.name:
                 if name.family:
                     yield normalize_text(name.family)
+        elif attribute == FeatureAttribute.NAME:
+            for name in self.name:
+                yield normalize_text("".join(name.given + [name.family]))
         elif attribute == FeatureAttribute.RACE:
             for race in self.race:
                 if race and race not in [Race.UNKNOWN, Race.ASKED_UNKNOWN]:
