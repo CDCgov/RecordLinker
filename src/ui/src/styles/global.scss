@@ -1,27 +1,35 @@
-@use "uswds-core" as *;
+/**********************************
+ * Record linker specific styling
+ **********************************/
 
-:root {
-   --background: #ffffff;
-   --foreground: #171717;
- }
- 
- html,
- body {
-   max-width: 100vw;
-   overflow-x: hidden;
- }
- 
- body {
-   color: var(--foreground);
-   background: var(--background);
-   font-family: Arial, Helvetica, sans-serif;
-   -webkit-font-smoothing: antialiased;
-   -moz-osx-font-smoothing: grayscale;
- }
- 
- * {
-   box-sizing: border-box;
-   padding: 0;
-   margin: 0;
- }
- 
+@use "variables" as *;
+
+* {
+  box-sizing: border-box;
+  padding: 0;
+  margin: 0;
+  line-height: 140%;
+}
+
+body {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.page-container {
+  margin: 0 auto;
+
+  &--lg {
+    @extend .page-container;
+    max-width: 50rem;
+  }
+
+  &--xl {
+    @extend .page-container;
+    max-width: 75rem;
+  }
+}
+
+.border-color-light-blue {
+  border-color: $record-linker-blue-border-light;
+}

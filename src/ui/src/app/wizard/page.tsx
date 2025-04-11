@@ -17,10 +17,10 @@ const Wizard: React.FC = () => {
   }, []);
 
   return (
-    <>
+    <div className="page-container--lg">
       <h1>Wizard placeholder!</h1>
       <Textarea defaultValue={content} />
-    </>
+    </div>
   );
 };
 

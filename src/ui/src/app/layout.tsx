@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import "../styles/index.scss";
+import Header from "@/components/header/header";
+import Footer from "@/components/footer/footer";
 
 export const metadata: Metadata = {
   title: "Record Linker",
@@ -13,7 +15,11 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body>{children}</body>
+      <body>
+        <Header />
+        <main>{children}</main>
+        <Footer />
+      </body>
     </html>
   );
 }
