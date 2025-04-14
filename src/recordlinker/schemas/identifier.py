@@ -161,7 +161,7 @@ class Identifier(pydantic.BaseModel):
     model_config = pydantic.ConfigDict(extra="allow")
 
     type: IdentifierType
-    value: typing.Optional[str]
+    value: str
     authority: typing.Optional[str] = None
 
     @classmethod
@@ -188,7 +188,7 @@ class Identifier(pydantic.BaseModel):
         """
         Normalize the value string.
         """
-        if self.type == IdentifierType.SS and self.value:
+        if self.type == IdentifierType.SS:
             if len(self.value) == 9 and self.value.isdigit():
                 # Format back to the standard SSN format (XXX-XX-XXXX)
                 self.value = f"{self.value[:3]}-{self.value[3:5]}-{self.value[5:]}"
