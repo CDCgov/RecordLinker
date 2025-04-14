@@ -3,10 +3,10 @@ pre-commit:
   commands:
     tests-code-checks:
       glob: "tests/*.py"
-      run: "./.venv/bin/ruff check --fix {staged_files} && git add {staged_files}"
+      run: "ruff check --fix {staged_files} && git add {staged_files}"
     api-code-checks:
       glob: "src/api/recordlinker/*.py"
-      run: "./.venv/bin/ruff check --fix {staged_files} && git add {staged_files}"
+      run: "ruff check --fix {staged_files} && git add {staged_files}"
     frontend-code-checks:
       root: "src/ui"
       glob: "*.{js,ts,jsx,tsx}"

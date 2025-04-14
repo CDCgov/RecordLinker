@@ -36,7 +36,8 @@ dependencies = [
     "cryptography",  # MySQL & MariaDB dependency
     "pyodbc", # Microsoft SQL Server
     # Normalization
-    "phonenumbers"
+    "phonenumbers",
+    "lefthook"
 ]
 
 [project.optional-dependencies]
