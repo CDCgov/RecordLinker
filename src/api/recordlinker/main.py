@@ -90,7 +90,13 @@ if settings.ui_static_dir:
 
     # static files for the UI
     app.mount(
-        "/",
-        StaticFiles(directory=os.path.join(settings.ui_static_dir)),
-        name="SpaStaticAssets",
+        "/images",
+        StaticFiles(directory=os.path.join(settings.ui_static_dir, "images")),
+        name="SpaStaticImages",
+    )
+    
+    app.mount(
+        "/_next",
+        StaticFiles(directory=os.path.join(settings.ui_static_dir, "_next")),
+        name="SpaStaticJSCSS",
     )
