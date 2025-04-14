@@ -40,6 +40,10 @@ in the future, parsing the birthdate will generate an error message and result i
 
 :   The patient's last name.
 
+`NAME`
+
+:   The patient's full name. (We recommend only using this field for checking skip values, for feature matching we recommend using `FIRST_NAME` and `LAST_NAME` for best results)
+
 `SUFFIX`
 
 :   The patient's name suffix.

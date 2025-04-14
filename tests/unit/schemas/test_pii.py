@@ -315,6 +315,10 @@ class TestPIIRecord:
             "doe",
             "smith",
         ]
+        assert list(record.feature_iter(pii.Feature(attribute=pii.FeatureAttribute.NAME))) == [
+            "johnldoe",
+            "janesmith",
+        ]
         assert list(record.feature_iter(pii.Feature(attribute=pii.FeatureAttribute.RACE))) == []
         assert list(record.feature_iter(pii.Feature(attribute=pii.FeatureAttribute.TELECOM))) == [
             "555-123-4567",
