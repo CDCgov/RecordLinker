@@ -190,7 +190,7 @@ class TestClean:
         )
         assert cleaned.identifiers[0].type == IdentifierType.MR
         assert cleaned.identifiers[0].value == ""
-        skips = [SkipValue(feature="IDENTIFIER", values=["99-999-9999:SS"])]
+        skips = [SkipValue(feature="IDENTIFIER", values=["99-999-9999::SS"])]
         cleaned = clean.clean(
             schemas.PIIRecord(identifiers=[{"type": "SS", "value": "99-999-9999"}]), skips
         )
