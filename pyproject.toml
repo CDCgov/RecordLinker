@@ -36,8 +36,7 @@ dependencies = [
     "cryptography",  # MySQL & MariaDB dependency
     "pyodbc", # Microsoft SQL Server
     # Normalization
-    "phonenumbers",
-    "lefthook"
+    "phonenumbers"
 ]
 
 [project.optional-dependencies]
@@ -59,6 +58,7 @@ dev = [
     "mkdocs",
     "mkdocs-mermaid2-plugin",
     "mkdocs-material",
+    "lefthook"
 ]
 prod = [
     # List any additional production-only dependencies here
