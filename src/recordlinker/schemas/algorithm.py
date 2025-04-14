@@ -99,6 +99,24 @@ class AlgorithmPass(pydantic.BaseModel):
         return value
 
 
+class SkipValue(pydantic.BaseModel):
+    feature: str = pydantic.Field(json_schema_extra={"enum": Feature.all_options() + ["*"]})
+    values: list[str] = pydantic.Field(min_length=1)
+
+    @pydantic.field_validator("feature", mode="before")
+    def validate_feature(cls, value):
+        """
+        Validate the feature is a valid PII feature.
+        """
+        if value == "*":
+            return value
+        try:
+            Feature.parse(value)
+        except ValueError as e:
+            raise ValueError(f"Invalid feature: '{value}'. {e}")
+        return value
+
+
 class Algorithm(pydantic.BaseModel):
     """
     The schema for an algorithm record.
@@ -113,6 +131,7 @@ class Algorithm(pydantic.BaseModel):
     passes: typing.Sequence[AlgorithmPass]
     max_missing_allowed_proportion: float = pydantic.Field(ge=0.0, le=1.0)
     missing_field_points_proportion: float = pydantic.Field(ge=0.0, le=1.0)
+    skip_values: typing.Sequence[SkipValue] = []
 
 
     @pydantic.model_validator(mode="after")
