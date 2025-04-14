@@ -320,7 +320,7 @@ class PIIRecord(StrippedBaseModel):
     address: typing.List[Address] = []
     name: typing.List[Name] = []
     telecom: typing.List[Telecom] = []
-    race: typing.List[typing.Optional[Race]] = []
+    race: typing.List[Race] = []
     identifiers: typing.List[Identifier] = []
 
     @classmethod

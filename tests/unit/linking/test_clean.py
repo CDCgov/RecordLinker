@@ -46,7 +46,7 @@ class TestClean:
         assert cleaned.name[0].family == "Doe"
         assert cleaned.address[0].postal_code == ""
         cleaned = clean.clean(schemas.PIIRecord(race=["UNKNOWN"]), skips)
-        assert cleaned.race == [None]
+        assert cleaned.race == []
 
     def test_case_insensitive(self):
         skips = [SkipValue(feature="*", values=["austin"])]
@@ -133,7 +133,7 @@ class TestClean:
     def test_race(self):
         skips = [SkipValue(feature="RACE", values=["UNKNOWN"])]
         cleaned = clean.clean(schemas.PIIRecord(race=["UNKNOWN", "WHITE"]), skips)
-        assert cleaned.race == [None, Race.WHITE]
+        assert cleaned.race == [Race.WHITE]
 
     def test_telecom(self):
         skips = [SkipValue(feature="TELECOM", values=["+15555555555"])]
