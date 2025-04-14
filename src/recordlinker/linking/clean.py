@@ -108,7 +108,7 @@ def clean(record: schemas.PIIRecord, skips: list[SkipValue]) -> schemas.PIIRecor
         if feat_attr in (schemas.FeatureAttribute.IDENTIFIER, None):
             for idx, ident in enumerate(record.identifiers):
                 if feat_suff is None or feat_suff == ident.type:
-                    val = f"{ident.value}:{ident.authority or ""}:{ident.type}"
+                    val = f"{ident.value}:{ident.authority or ''}:{ident.type}"
                     if matches(val, values):
                         cleaned.identifiers[idx].value = ""
     return cleaned
