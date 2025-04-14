@@ -18,7 +18,7 @@ const Header: React.FC = () => {
         )}
       >
         <Image
-          src="/record-linker-logo.svg"
+          src="/images/record-linker-logo.svg"
           width={30}
           height={30}
           alt="record linker logo"

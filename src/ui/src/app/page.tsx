@@ -41,7 +41,7 @@ const Home: React.FC = () => {
             </Link>
           </div>
           <Image
-            src="/record-linker-diagram-1.svg"
+            src="/images/record-linker-diagram-1.svg"
             width={300}
             height={300}
             alt="multiple health data sources convey into a single one"
@@ -73,7 +73,7 @@ const Home: React.FC = () => {
           className="margin-y-5"
           width={710}
           height={310}
-          src="/record-linker-diagram-2.png"
+          src="/images/record-linker-diagram-2.png"
           alt="multiple health data sources convey into a single one"
         />
         <h2>How does it work?</h2>

@@ -16,7 +16,7 @@ const Footer: React.FC = () => {
       )}
     >
       <Image
-        src="/cdc-logo.svg"
+        src="/images/cdc-logo.svg"
         height={47}
         width={200}
         alt="CDC logo. U.S. centers for disease control and prevention"
