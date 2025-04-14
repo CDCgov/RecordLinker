@@ -60,6 +60,8 @@ class StrippedBaseModel(pydantic.BaseModel):
         if isinstance(v, str):
             return v.strip()
         return v
+
+
 class Feature(StrippedBaseModel):
     """
     The schema for a feature.
@@ -193,42 +195,31 @@ class Address(StrippedBaseModel):
     )
     model_config = pydantic.ConfigDict(extra="allow")
 
-    line: typing.List[str] = pydantic.Field(default_factory=list,
+    line: typing.List[str] = pydantic.Field(
+        default_factory=list,
         description=(
             "A list of street name, number, direction & P.O. Box etc., "
             "the order in which lines should appear in an address label."
-        )
+        ),
     )
-    city: typing.Optional[str] = pydantic.Field(
-        default=None,
-        description="Name of city, town etc."
-    )
+    city: typing.Optional[str] = pydantic.Field(default=None, description="Name of city, town etc.")
     state: typing.Optional[str] = pydantic.Field(
-        default=None,
-        description="US State or abbreviation"
+        default=None, description="US State or abbreviation"
     )
     postal_code: typing.Optional[str] = pydantic.Field(
         default=None,
         validation_alias=pydantic.AliasChoices(
             "postal_code", "postalcode", "postalCode", "zip_code", "zipcode", "zipCode", "zip"
         ),
-        description="Postal code for area"
+        description="Postal code for area",
     )
-    county: typing.Optional[str] = pydantic.Field(
-        default=None,
-        description="Name of county"
-    )
-    country: typing.Optional[str] = pydantic.Field(
-        default=None,
-        description="Name of country"
-    )
+    county: typing.Optional[str] = pydantic.Field(default=None, description="Name of county")
+    country: typing.Optional[str] = pydantic.Field(default=None, description="Name of country")
     latitude: typing.Optional[float] = pydantic.Field(
-        default=None,
-        description="Latitude of address"
+        default=None, description="Latitude of address"
     )
     longitude: typing.Optional[float] = pydantic.Field(
-        default=None,
-        description="Longitude of address"
+        default=None, description="Longitude of address"
     )
 
     @pydantic.field_validator("line", mode="before")
@@ -332,7 +323,9 @@ class PIIRecord(StrippedBaseModel):
         obj.address = [Address.model_construct(**a) for a in patient.data.get("address", [])]
         obj.name = [Name.model_construct(**n) for n in patient.data.get("name", [])]
         obj.telecom = [Telecom.model_construct(**t) for t in patient.data.get("telecom", [])]
-        obj.identifiers = [Identifier.model_construct(**i) for i in patient.data.get("identifiers", [])]
+        obj.identifiers = [
+            Identifier.model_construct(**i) for i in patient.data.get("identifiers", [])
+        ]
         return obj
 
     def to_data(self) -> dict[str, typing.Any]:
@@ -514,10 +507,9 @@ class PIIRecord(StrippedBaseModel):
                     yield normalize_text(address.county)
         elif attribute == FeatureAttribute.IDENTIFIER:
             for identifier in self.identifiers:
-                if identifier.value and (identifier_suffix is None or identifier_suffix == identifier.type):
-                    val = normalize_text(identifier.value)
-                    auth = normalize_text(identifier.authority or "")
-                    yield f"{val}:{auth}:{identifier.type}"
+                if identifier_suffix is None or identifier_suffix == identifier.type:
+                    identifier_authority = identifier.authority or ""
+                    yield f"{normalize_text(identifier.value)}:{normalize_text(identifier_authority) if identifier_authority else identifier_authority}:{identifier.type}"
 
     def blocking_keys(self, key: models.BlockingKey) -> set[str]:
         """
