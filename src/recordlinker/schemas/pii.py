@@ -30,6 +30,7 @@ class FeatureAttribute(enum.Enum):
     GIVEN_NAME = "GIVEN_NAME"
     FIRST_NAME = "FIRST_NAME"
     LAST_NAME = "LAST_NAME"
+    NAME = "NAME"
     ADDRESS = "ADDRESS"
     CITY = "CITY"
     STATE = "STATE"
@@ -59,8 +60,6 @@ class StrippedBaseModel(pydantic.BaseModel):
         if isinstance(v, str):
             return v.strip()
         return v
-
-
 class Feature(StrippedBaseModel):
     """
     The schema for a feature.
@@ -237,15 +236,16 @@ class Address(StrippedBaseModel):
         """
         Parse the line field into a list of strings with normalized street suffixes.
         """
-        normalized = []
-        for line in value:
-            parts = line.strip().split(" ")
-            # remove all non-alphanumeric characters and convert to uppercase
-            suffix = "".join(c for c in parts[-1] if c.isalnum()).upper()
-            if common := cls.ST_SUFFIXES.get(suffix):
-                # replace the suffix with the common suffix
-                parts[-1] = common
-            normalized.append(" ".join(parts))
+        normalized: list[str] = []
+        if value:
+            for line in value:
+                parts = line.strip().split(" ")
+                # remove all non-alphanumeric characters and convert to uppercase
+                suffix = "".join(c for c in parts[-1] if c.isalnum()).upper()
+                if common := cls.ST_SUFFIXES.get(suffix):
+                    # replace the suffix with the common suffix
+                    parts[-1] = common
+                normalized.append(" ".join(parts))
         return normalized
 
     @pydantic.field_validator("state", mode="before")
@@ -278,7 +278,7 @@ class Telecom(StrippedBaseModel):
     use: typing.Optional[str] = None
 
     @pydantic.model_validator(mode="after")
-    def validate_and_normalize_telecom(self):
+    def validate_and_normalize_telecom(self) -> typing.Self:
         """
         Validate and normalize the telecom record.
         """
@@ -340,7 +340,6 @@ class PIIRecord(StrippedBaseModel):
         Convert this PIIRecord into a data dict.
         """
         return self.to_dict(prune_empty=True)
-
 
     @pydantic.field_validator("external_id", mode="before")
     def parse_external_id(cls, value):
@@ -407,6 +406,8 @@ class PIIRecord(StrippedBaseModel):
         """
         Parse the race string into a race enum.
         """
+        if not value:
+            return []
         return [Race.parse(v) for v in value]
 
     def to_json(self, prune_empty: bool = False) -> str:
@@ -475,6 +476,9 @@ class PIIRecord(StrippedBaseModel):
             for name in self.name:
                 if name.family:
                     yield normalize_text(name.family)
+        elif attribute == FeatureAttribute.NAME:
+            for name in self.name:
+                yield normalize_text("".join(name.given + [name.family]))
         elif attribute == FeatureAttribute.RACE:
             for race in self.race:
                 if race and race not in [Race.UNKNOWN, Race.ASKED_UNKNOWN]:
