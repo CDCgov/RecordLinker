@@ -56,7 +56,7 @@ const Home: React.FC = () => {
           style.section,
         )}
       >
-        <h2 className="font-sans-xl">What is it?</h2>
+        <h2>What is it?</h2>
         <p className="margin-top-1">
           Nunc hendrerit efficitur lorem ut molestie. Suspendisse eleifend eros
           mi, congue varius nibh sagittis sed. Phasellus quis ex non odio

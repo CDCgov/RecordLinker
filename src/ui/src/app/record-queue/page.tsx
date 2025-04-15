@@ -2,7 +2,7 @@ import ServerError from "@/components/serverError/serverError";
 import EmptyQueue from "./emptyQueue";
 
 const CaseQueue: React.FC = () => {
-  const view: string = "error";
+  const view: string = "empty";
 
   return (
     <div className="page-container--xl page-container--full-height padding-top-5 padding-bottom-10">

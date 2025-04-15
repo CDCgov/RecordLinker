@@ -2,7 +2,14 @@
 
 .serverError {
   background: $gray-cool-gray-cool-10;
-  border-radius: 4px;
+  border-radius: 0.25rem;
   box-shadow: 0px 4px 8px 0px rgba(0, 0, 0, 0.15);
-  padding: 153px 218px;
+  padding: 9.563rem 13.625rem;
+}
+
+.instructions {
+  border-radius: 0.25rem;
+  font-size: 1.125rem;
+  border: solid 1px $red-70;
+  background: $gray-cool-gray-cool-20;
 }

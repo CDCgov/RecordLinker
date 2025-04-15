@@ -11,7 +11,7 @@ const EmptyQueue: React.FC = () => {
         "flex-align-center",
       )}
     >
-      <Image src="/images/empty-folder.png" width={300} height={300} alt="" />
+      <Image src="/images/empty-folder-1.png" width={300} height={300} alt="" />
       <p
         className={classNames(
           "font-body-lg",

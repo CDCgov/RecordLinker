@@ -13,8 +13,10 @@ const ServerError: React.FC = () => {
       )}
     >
       <ErrorHeading>Internal server error</ErrorHeading>
-      <p>There&apos;s an issue with the DIBBs server</p>
-      <div className="padding-3">
+      <p className="text-semibold margin-left-05 margin-bottom-2">
+        There&apos;s an issue with the DIBBs server
+      </p>
+      <div className={classNames("padding-3", styles.instructions)}>
         <p className="text-bold margin-bottom-2">Please try the following:</p>
         <ul>
           <li>
