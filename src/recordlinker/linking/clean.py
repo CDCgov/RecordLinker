@@ -79,7 +79,12 @@ def clean(record: schemas.PIIRecord, skips: list[SkipValue]) -> schemas.PIIRecor
             for idx, name in enumerate(record.name):
                 if name.family and matches(name.family, values):
                     cleaned.name[idx].family = ""
-        # TODO: add support for the NAME field
+        if feat_attr in (schemas.FeatureAttribute.NAME, None):
+            for idx, name in enumerate(record.name):
+                nval = f"{' '.join(name.given)} {name.family}"
+                if name and matches(nval, values):
+                    cleaned.name[idx].given = []
+                    cleaned.name[idx].family = ""
         if feat_attr in (schemas.FeatureAttribute.RACE, None):
             for idx in reversed(range(len(record.race))):
                 # We are iterating through the list backwards so we can safely delete

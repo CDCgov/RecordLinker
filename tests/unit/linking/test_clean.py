@@ -122,6 +122,29 @@ class TestClean:
         assert cleaned.name[0].given == ["john", "jane"]
         assert cleaned.name[0].family == ""
 
+    def test_name(self):
+        skips = [SkipValue(feature="NAME", values=["John Doe", "John * Doe", "Jon Doe", "Jon * Doe","Jane Doe", "Jane * Doe"])]
+        cleaned = clean.clean(
+            schemas.PIIRecord(name=[{"given": ["jane", "fake"], "family": "doe"}]), skips
+        )
+        assert cleaned.name[0].given == []
+        assert cleaned.name[0].family == ""
+        cleaned = clean.clean(
+            schemas.PIIRecord(name=[{"given": ["John"], "family": "Doe"}]), skips
+        )
+        assert cleaned.name[0].given == []
+        assert cleaned.name[0].family == ""
+        cleaned = clean.clean(
+            schemas.PIIRecord(name=[{"given": ["Jon", "X"], "family": "Doe"}]), skips
+        )
+        assert cleaned.name[0].given == []
+        assert cleaned.name[0].family == ""
+        cleaned = clean.clean(
+            schemas.PIIRecord(name=[{"given": ["JonDoe"], "family": ""}]), skips
+        )
+        assert cleaned.name[0].given == ["JonDoe"]
+        assert cleaned.name[0].family == ""
+
     def test_suffix(self):
         skips = [SkipValue(feature="SUFFIX", values=["UNK"])]
         cleaned = clean.clean(
