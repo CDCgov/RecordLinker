@@ -1,0 +1,22 @@
+.hero {
+  background: linear-gradient(
+    110deg,
+    rgba(173, 207, 220, 0.25) 8.02%,
+    rgba(46, 98, 118, 0.5) 117.53%
+  );
+}
+
+.section {
+  h2 {
+    font-size: 1.75rem;
+  }
+}
+
+.footnotes {
+  gap: 0.938rem;
+
+  p {
+    font-size: 1.375rem;
+    line-height: 140%;
+  }
+}

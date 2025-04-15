@@ -1,0 +1,17 @@
+pre-commit:
+  parallel: true
+  commands:
+    tests-code-checks:
+      glob: "tests/*.py"
+      run: "ruff check --fix {staged_files} && git add {staged_files}"
+    api-code-checks:
+      glob: "src/api/recordlinker/*.py"
+      run: "ruff check --fix {staged_files} && git add {staged_files}"
+    frontend-code-checks:
+      root: "src/ui"
+      glob: "*.{js,ts,jsx,tsx}"
+      run: "./node_modules/.bin/eslint --fix {staged_files} && ./node_modules/.bin/prettier --write {staged_files} && git add {staged_files}"
+    frontend-style-checks:
+      root: "src/ui"
+      glob: "*.scss"
+      run: "./node_modules/.bin/prettier --write {staged_files} && git add {staged_files}"

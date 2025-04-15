@@ -58,6 +58,7 @@ dev = [
     "mkdocs",
     "mkdocs-mermaid2-plugin",
     "mkdocs-material",
+    "lefthook"
 ]
 prod = [
     # List any additional production-only dependencies here

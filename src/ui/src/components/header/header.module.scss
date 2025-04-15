@@ -1,0 +1,10 @@
+@use "../../styles/variables.scss" as *;
+
+.header {
+  background-color: $record-linker-header-footer-color;
+
+  a{
+    font-size: 1.5rem;
+    width:fit-content;
+  }
+}
