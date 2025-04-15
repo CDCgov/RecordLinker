@@ -1,0 +1,8 @@
+@use "../../styles/variables.scss" as *;
+
+.serverError {
+  background: $gray-cool-gray-cool-10;
+  border-radius: 4px;
+  box-shadow: 0px 4px 8px 0px rgba(0, 0, 0, 0.15);
+  padding: 153px 218px;
+}

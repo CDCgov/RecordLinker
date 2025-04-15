@@ -35,7 +35,7 @@ const Home: React.FC = () => {
             </p>
             <Link
               className="usa-button padding-x-7 margin-top-2"
-              href={"/wizard"}
+              href={"/record-queue"}
             >
               Launch Demo
             </Link>
@@ -147,7 +147,10 @@ const Home: React.FC = () => {
           <br />
           out features using sample data.
         </p>
-        <Link className="usa-button padding-x-7 margin-top-2" href={"/wizard"}>
+        <Link
+          className="usa-button padding-x-7 margin-top-2"
+          href={"/record-queue"}
+        >
           Launch Demo
         </Link>
       </div>

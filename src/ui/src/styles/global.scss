@@ -28,8 +28,17 @@ body {
     @extend .page-container;
     max-width: 75rem;
   }
+
+  &--full-height {
+    min-height: calc(100vh - 11.75rem);
+  }
 }
 
 .border-color-light-blue {
   border-color: $record-linker-blue-border-light;
+}
+
+.subheading {
+  color: $record-linker-subheading-color;
+  font-size: 1.125rem;
 }
