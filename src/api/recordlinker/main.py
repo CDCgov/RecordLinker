@@ -77,7 +77,6 @@ if settings.ui_static_dir:
         raise exc
 
     # page routes
-    @app.get("/")
     @app.get("/wizard")
     async def page(request: fastapi.Request):
         """
@@ -87,16 +86,10 @@ if settings.ui_static_dir:
         view: str = path if path.endswith(".ico") else f"{path}.html"
         return FileResponse(os.path.join(settings.ui_static_dir, view))
 
-
-    # static files for the UI
+    # Other static files of NextJS app (includes index.html)
+    # [page-rehydration].txt files, images and js/css bundles in _next
     app.mount(
-        "/images",
-        StaticFiles(directory=os.path.join(settings.ui_static_dir, "images")),
-        name="SpaStaticImages",
-    )
-    
-    app.mount(
-        "/_next",
-        StaticFiles(directory=os.path.join(settings.ui_static_dir, "_next")),
-        name="SpaStaticJSCSS",
+        "/",
+        StaticFiles(directory=os.path.join(settings.ui_static_dir), html = True),
+        name="SpaStatic",
     )
