@@ -42,3 +42,29 @@ body {
   color: $record-linker-subheading-color;
   font-size: 1.125rem;
 }
+
+.text-good {
+  color: $green-cool-40;
+}
+
+.text-okay {
+  color: $gold-50v;
+}
+
+.text-bad {
+  color: $red-warm-60v;
+}
+
+th .descending-order {
+  &:after {
+    content: "";
+    background: url(/images/up-tick.svg) no-repeat;
+    height: 5px;
+    width: 9px;
+    display: inline-block;
+    vertical-align: middle;
+    margin: 0px 6px;
+    position: relative;
+    top: -3px;
+  }
+}
