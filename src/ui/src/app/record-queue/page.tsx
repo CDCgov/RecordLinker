@@ -1,6 +1,6 @@
 import ServerError from "@/components/serverError/serverError";
 import EmptyQueue from "./emptyQueue";
-import RecordTable from "./recordTable";
+import RecordTable from "@/components/recordTable/recordTable";
 
 const CaseQueue: React.FC = () => {
   const view: string = "table";
@@ -13,7 +13,7 @@ const CaseQueue: React.FC = () => {
         automatic matches for the patient records listed below. Please review
         each record for field similarity to make a manual match decision.
       </p>
-      {view == "table" && <RecordTable items={[]} />}
+      {view == "table" && <RecordTable items={[]} withReviewLink />}
       {view == "error" && <ServerError />}
       {view == "empty" && <EmptyQueue />}
     </div>

@@ -5,9 +5,35 @@ import { JSX } from "react";
 
 export interface RecordTableProps {
   items: Record[];
+  withReviewLink?: boolean;
 }
 
-function getTableRow(record: Record): JSX.Element {
+function getLinkScoreEl(linkScore: number): JSX.Element {
+  if (linkScore > 0.9) {
+    return (
+      <>
+        <span className="text-semibold text-good">{linkScore}</span>{" "}
+        <span className="usa-sr-only">good</span>
+      </>
+    );
+  } else if (linkScore > 0.8) {
+    return (
+      <>
+        <span className="text-semibold text-okay">{linkScore}</span>{" "}
+        <span className="usa-sr-only">okay</span>
+      </>
+    );
+  } else {
+    return (
+      <>
+        <span className="text-semibold text-bad">{linkScore}</span>{" "}
+        <span className="usa-sr-only">bad</span>
+      </>
+    );
+  }
+}
+
+function getTableRow(record: Record, withReviewLink: boolean): JSX.Element {
   return (
     <tr>
       <td>
@@ -27,19 +53,24 @@ function getTableRow(record: Record): JSX.Element {
         <br />
         <span className="text-base">{record.dataStream.type}</span>
       </td>
-      <td width={146} className="text-center">
-        <span className="text-semibold text-good">{record.linkScore}</span>
+      <td width={160} className="text-center">
+        {getLinkScoreEl(record.linkScore)}
       </td>
-      <td width={58} className="text-center">
-        <Link className="usa-link" href={`/record-review/${record.id}`}>
-          Review
-        </Link>
-      </td>
+      {withReviewLink && (
+        <td width={58} className="text-center">
+          <Link className="usa-link" href={`/record-review/${record.id}`}>
+            Review
+          </Link>
+        </td>
+      )}
     </tr>
   );
 }
 
-const RecordTable: React.FC<RecordTableProps> = ({ items }) => {
+const RecordTable: React.FC<RecordTableProps> = ({
+  items,
+  withReviewLink = false,
+}) => {
   return (
     <Table fullWidth className="usa-table--record-linker">
       <thead>
@@ -50,11 +81,11 @@ const RecordTable: React.FC<RecordTableProps> = ({ items }) => {
           </th>
           <th>Data stream</th>
           <th>Link Score</th>
-          <th>Actions</th>
+          {withReviewLink && <th>Actions</th>}
         </tr>
       </thead>
       <tbody>
-        {items.map((record: Record) => getTableRow(record))}
+        {items.map((record: Record) => getTableRow(record, withReviewLink))}
         <tr>
           <td>
             <span className="text-bold">Simpson, Jon</span>
@@ -71,14 +102,16 @@ const RecordTable: React.FC<RecordTableProps> = ({ items }) => {
             <br />
             <span className="text-base">ELR</span>
           </td>
-          <td width={146} className="text-center">
+          <td width={160} className="text-center">
             <span className="text-semibold text-good">.92</span>
           </td>
-          <td width={58} className="text-center">
-            <Link className="usa-link" href="/record-review/123">
-              Review
-            </Link>
-          </td>
+          {withReviewLink && (
+            <td width={58} className="text-center">
+              <Link className="usa-link" href="/record-review/123">
+                Review
+              </Link>
+            </td>
+          )}
         </tr>
       </tbody>
     </Table>
