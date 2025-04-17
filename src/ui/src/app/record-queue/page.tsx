@@ -23,7 +23,7 @@ const records: Record[] = [
     patient: {
       firstName: "Jane",
       LastName: "Doe",
-      dob: new Date("13/04/1989"),
+      dob: new Date("04/15/1989"),
     },
     receivedOn: new Date(),
     dataStream: {

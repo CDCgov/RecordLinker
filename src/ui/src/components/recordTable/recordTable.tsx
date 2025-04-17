@@ -41,12 +41,20 @@ function getTableRow(record: Record, withReviewLink: boolean): JSX.Element {
           {record.patient.LastName}, {record.patient.firstName}
         </span>
         <br />
-        <span className="text-base">DOB: 2/21/1976</span>
+        <span className="text-base">
+          DOB: {record.patient.dob.toLocaleDateString()}
+        </span>
       </td>
       <td>
-        <span>4/28/2024</span>
+        <span>{record.receivedOn.toLocaleDateString()}</span>
         <br />
-        <span className="text-base">10:57 AM</span>
+        <span className="text-base">
+          {record.receivedOn.toLocaleTimeString([], {
+            hour: "numeric",
+            minute: "2-digit",
+            hour12: true,
+          })}
+        </span>
       </td>
       <td>
         <span>{record.dataStream.name}</span>
