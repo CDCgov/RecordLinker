@@ -131,7 +131,7 @@ def compare(
     :param log_odds_weights: A dictionary mapping Field names to float values,
       which are the precomputed log-odds weights associated with that field.
     :param skip_values: A list of SkipValue objects that contain information
-      about fields that should be skipped during comparison.
+      about field values that should be skipped during comparison.
     :returns: A boolean indicating whether the incoming record and the supplied
       candidate are a match, as determined by the specific matching rule
       contained in the algorithm_pass object.
