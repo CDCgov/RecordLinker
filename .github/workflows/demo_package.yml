@@ -4,7 +4,7 @@ name: "demo-package"
 
 on:
   push:
-    branches: [demo]
+    branches: [demo, feature/311-demo-packages]
 
 jobs:
   package:
