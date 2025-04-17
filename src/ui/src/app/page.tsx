@@ -7,6 +7,7 @@ import {
   ProcessListHeading,
   ProcessListItem,
 } from "@trussworks/react-uswds";
+import { PAGES } from "@/utils/constants";
 
 const Home: React.FC = () => {
   return (
@@ -35,7 +36,7 @@ const Home: React.FC = () => {
             </p>
             <Link
               className="usa-button padding-x-7 margin-top-2"
-              href={"/record-queue"}
+              href={PAGES.RECORD_QUEUE}
             >
               Launch Demo
             </Link>
@@ -149,7 +150,7 @@ const Home: React.FC = () => {
         </p>
         <Link
           className="usa-button padding-x-7 margin-top-2"
-          href={"/record-queue"}
+          href={PAGES.RECORD_QUEUE}
         >
           Launch Demo
         </Link>

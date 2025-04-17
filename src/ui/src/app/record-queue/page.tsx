@@ -1,6 +1,38 @@
 import ServerError from "@/components/serverError/serverError";
 import EmptyQueue from "./emptyQueue";
 import RecordTable from "@/components/recordTable/recordTable";
+import { Record } from "@/models/record";
+
+const records: Record[] = [
+  {
+    id: "123",
+    patient: {
+      firstName: "John",
+      LastName: "Doe",
+      dob: new Date("04/13/1989"),
+    },
+    receivedOn: new Date(),
+    dataStream: {
+      name: "System system",
+      type: "ELR",
+    },
+    linkScore: 0.98,
+  },
+  {
+    id: "124",
+    patient: {
+      firstName: "Jane",
+      LastName: "Doe",
+      dob: new Date("13/04/1989"),
+    },
+    receivedOn: new Date(),
+    dataStream: {
+      name: "System system",
+      type: "ELR",
+    },
+    linkScore: 0.86,
+  },
+];
 
 const CaseQueue: React.FC = () => {
   const view: string = "table";
@@ -13,7 +45,7 @@ const CaseQueue: React.FC = () => {
         automatic matches for the patient records listed below. Please review
         each record for field similarity to make a manual match decision.
       </p>
-      {view == "table" && <RecordTable items={[]} withReviewLink />}
+      {view == "table" && <RecordTable items={records} withReviewLink />}
       {view == "error" && <ServerError />}
       {view == "empty" && <EmptyQueue />}
     </div>
