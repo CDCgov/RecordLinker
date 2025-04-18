@@ -10,6 +10,7 @@ import pytest
 
 from recordlinker.schemas.algorithm import Algorithm
 from recordlinker.schemas.algorithm import AlgorithmPass
+from recordlinker.schemas.algorithm import SkipValue
 
 
 class TestAlgorithmPass:
@@ -128,16 +129,9 @@ class TestAlgorithmPass:
         apass = AlgorithmPass(
             blocking_keys=["ADDRESS"],
             evaluators=[
-                {
-                    "feature": "LAST_NAME",
-                    "func": "COMPARE_PROBABILISTIC_FUZZY_MATCH",
-                },
-                {
-                    "feature": "FIRST_NAME",
-                    "func": "COMPARE_PROBABILISTIC_FUZZY_MATCH",
-                },
+                {"feature": "LAST_NAME", "func": "COMPARE_PROBABILISTIC_FUZZY_MATCH"},
+                {"feature": "FIRST_NAME", "func": "COMPARE_PROBABILISTIC_FUZZY_MATCH"},
             ],
-            rule="func:recordlinker.linking.matchers.rule_probabilistic_sum",
             possible_match_window=[0.8, 0.9]
         )
         assert apass.label == "BLOCK_address_MATCH_last_name_first_name"
@@ -145,15 +139,31 @@ class TestAlgorithmPass:
             label="custom-label",
             blocking_keys=[],
             evaluators=[
-                {
-                    "feature": "LAST_NAME",
-                    "func": "COMPARE_PROBABILISTIC_FUZZY_MATCH",
-                },
+                {"feature": "LAST_NAME", "func": "COMPARE_PROBABILISTIC_FUZZY_MATCH"}
             ],
-            rule="func:recordlinker.linking.matchers.rule_probabilistic_sum",
             possible_match_window=[0.8, 0.9]
         )
         assert apass.label == "custom-label"
+
+
+class TestSkipValue:
+    def test_invalid_feature(self):
+        with pytest.raises(pydantic.ValidationError):
+            SkipValue(feature="invalid", values=["X"])
+
+    def test_missing_values(self):
+        with pytest.raises(pydantic.ValidationError):
+            SkipValue(feature="FIRST_NAME", values=[])
+
+    def test_astrisk_feature(self):
+        skip_value = SkipValue(feature="*", values=["X"])
+        assert skip_value.feature == "*"
+        assert skip_value.values == ["X"]
+
+    def test_values(self):
+        skip_value = SkipValue(feature="EMAIL", values=["X", "Y * Z"])
+        assert skip_value.feature == "EMAIL"
+        assert skip_value.values == ["X", "Y * Z"]
 
 
 class TestAlgorithm:
