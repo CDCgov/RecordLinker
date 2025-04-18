@@ -59,12 +59,12 @@ th .descending-order {
   &:after {
     content: "";
     background: url(/images/up-tick.svg) no-repeat;
-    height: 5px;
-    width: 9px;
+    height: 0.313rem;
+    width: 0.563rem;
     display: inline-block;
     vertical-align: middle;
-    margin: 0px 6px;
+    margin: 0 0.375rem;
     position: relative;
-    top: -3px;
+    top: -0.188rem;
   }
 }
