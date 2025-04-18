@@ -62,6 +62,7 @@ class HealthCheckResponse(pydantic.BaseModel):
 
 @app.get(
     path("/"),
+    name="health-check",
     responses={
         200: {
             "description": "Successful response with status OK",
