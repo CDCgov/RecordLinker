@@ -28,8 +28,43 @@ body {
     @extend .page-container;
     max-width: 75rem;
   }
+
+  &--full-height {
+    min-height: calc(100vh - 11.75rem);
+  }
 }
 
 .border-color-light-blue {
   border-color: $record-linker-blue-border-light;
+}
+
+.subheading {
+  color: $record-linker-subheading-color;
+  font-size: 1.125rem;
+}
+
+.text-good {
+  color: $green-cool-40;
+}
+
+.text-okay {
+  color: $gold-50v;
+}
+
+.text-bad {
+  color: $red-warm-60v;
+}
+
+th .descending-order {
+  &:after {
+    content: "";
+    background: url(/images/up-tick.svg) no-repeat;
+    height: 0.313rem;
+    width: 0.563rem;
+    display: inline-block;
+    vertical-align: middle;
+    margin: 0 0.375rem;
+    position: relative;
+    top: -0.188rem;
+  }
 }

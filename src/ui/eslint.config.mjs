@@ -16,6 +16,11 @@ const eslintConfig = [
     ignorePatterns:"*/__mocks__/**/*.js",
     extends: ["eslint:recommended","next/core-web-vitals", "next/typescript", "prettier"],
     plugins: ["unused-imports"],//"@typescript-eslint",
+    rules:{
+      "@typescript-eslint/no-unused-vars": ["warn", { 
+        caughtErrors: "none"
+      }]
+    }
   }),
 ];
 

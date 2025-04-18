@@ -77,7 +77,7 @@ if settings.ui_static_dir:
         raise exc
 
     # page routes
-    @app.get("/wizard")
+    @app.get("/record-queue")
     async def page(request: fastapi.Request):
         """
         Route to handle custom HTML pages for the UI
