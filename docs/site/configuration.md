@@ -79,6 +79,14 @@ Each setting can be configured as follows:
 
     **Development Default**: `assets/initial_algorithms.json`
 
+`API_ROOT_PATH (Optional)`
+
+:   Root path from which the Record Linker API will be exposed.
+
+    **Docker Default**: `/api`
+
+    **Development Default**: `/api`
+
 
 ### Database Options
 
