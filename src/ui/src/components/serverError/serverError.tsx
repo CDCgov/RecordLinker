@@ -16,9 +16,9 @@ const ServerError: React.FC = () => {
       <p className="text-semibold margin-left-05 margin-bottom-2">
         There&apos;s an issue with the DIBBs server
       </p>
-      <div className={classNames("padding-3", styles.instructions)}>
+      <div className={classNames("padding-205", styles.instructions)}>
         <p className="text-bold margin-bottom-2">Please try the following:</p>
-        <ul>
+        <ul className="margin-left-3">
           <li>
             <span className="text-bold">Refresh the page:</span> Sometimes, a
             simple refresh can solve the problem.

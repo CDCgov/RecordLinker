@@ -18,7 +18,7 @@ const eslintConfig = [
     plugins: ["unused-imports"],//"@typescript-eslint",
     rules:{
       "@typescript-eslint/no-unused-vars": ["warn", { 
-        caughtErrors: "none" // or "all" or "after-used"
+        caughtErrors: "none"
       }]
     }
   }),

@@ -11,7 +11,7 @@ const UnreviewedRecordQueue: React.FC = () => {
   const [recordList, setRecordList] = useState<Record[] | undefined>();
   const [serverError, setServerError] = useState(false);
 
-  async function retrieveDibbsDefault() {
+  async function retrieveUnreviewedRecords() {
     try {
       const records = await getUnreviewedRecords();
       setRecordList(records);
@@ -21,7 +21,7 @@ const UnreviewedRecordQueue: React.FC = () => {
   }
 
   useEffect(() => {
-    retrieveDibbsDefault();
+    retrieveUnreviewedRecords();
   }, []);
 
   if (serverError) {

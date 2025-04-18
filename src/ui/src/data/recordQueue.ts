@@ -1,9 +1,9 @@
 import { Record as RLRecord } from "@/models/record";
 
 export async function getUnreviewedRecords(): Promise<RLRecord[]> {
-  //  return (await fetch(`${API_URL}/demo/record`)).json();
-  //return [];
-  //  return Promise.reject(new Error("oooops"));
+  // return (await fetch(`${API_URL}/demo/record`)).json();
+  // return [];
+  // return Promise.reject(new Error("oooops"));
   return Promise.resolve([
     {
       id: "123",
