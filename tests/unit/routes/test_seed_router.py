@@ -63,7 +63,8 @@ class TestBatch:
         assert seed_resp.status_code == 201
         persons = seed_resp.json()["persons"]
         assert len(persons) == 1
-        response = client.post("/link", json={"record": record})
+        link_url = client.app.url_path_for("link-record")
+        response = client.post(link_url, json={"record": record})
         assert response.status_code == 200
 
 
