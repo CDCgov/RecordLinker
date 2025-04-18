@@ -61,7 +61,7 @@ class HealthCheckResponse(pydantic.BaseModel):
 
 
 @app.get(
-    path("/"),
+    path(""),
     name="health-check",
     responses={
         200: {
