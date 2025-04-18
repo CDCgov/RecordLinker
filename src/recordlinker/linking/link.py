@@ -101,7 +101,7 @@ class LinkResult:
 
 def compare(
     record: schemas.PIIRecord,
-    patient: models.Patient,
+    mpi_record: schemas.PIIRecord,
     max_log_odds_points: float,
     max_allowed_missingness_proportion: float,
     missing_field_points_proportion: float,
@@ -116,7 +116,7 @@ def compare(
     the potential match candidacy of the linked patient.
 
     :param record: The new, incoming record, as a PIIRecord data type.
-    :param patient: A candidate record returned by blocking from the MPI, whose
+    :param mpi_record: A candidate record returned by blocking from the MPI, whose
       match quality the function call will evaluate.
     :param max_log_odds_points: The maximum available log odds points that can be
       accumulated by a candidate pair during this pass of the algorithm.
@@ -140,15 +140,10 @@ def compare(
     evals: list[models.BoundEvaluator] = algorithm_pass.bound_evaluators()
     # keyword arguments to pass to comparison functions
     kwargs: dict[typing.Any, typing.Any] = algorithm_pass.kwargs
-    # convert the Patient model into a cleaned PIIRecord for comparison
-    # FIXME: can we clean higher up on the stack?
-    mpi_record: schemas.PIIRecord = clean.clean(
-        schemas.PIIRecord.from_patient(patient), skip_values
-    )
 
     missing_field_weights = 0.0
     results: list[float] = []
-    details: dict[str, typing.Any] = {"patient.reference_id": str(patient.reference_id)}
+    details: dict[str, typing.Any] = {}
     for e in evals:
         # TODO: can we do this check earlier?
         feature = schemas.Feature.parse(e.feature)
@@ -247,7 +242,7 @@ def link_record_against_mpi(
             max_points = sum([log_odds_points[e] for e in evaluators])
 
             # initialize a dictionary to hold the clusters of patients for each person
-            clusters: dict[models.Person, list[models.Patient]] = collections.defaultdict(list)
+            clusters: dict[models.Person, list[schemas.PIIRecord]] = collections.defaultdict(list)
 
             # block on the cleaned_record and the algorithm's blocking criteria, then
             # iterate over the patients, grouping them by person
@@ -258,20 +253,24 @@ def link_record_against_mpi(
                     session, cleaned_record, algorithm_pass, max_missing_allowed_proportion
                 )
                 for pat in pats:
-                    clusters[pat.person].append(pat)
+                    # convert the Patient model into a cleaned PIIRecord for comparison
+                    mpi_record: schemas.PIIRecord = clean.clean(
+                        schemas.PIIRecord.from_patient(pat), skip_values
+                    )
+                    clusters[pat.person].append(mpi_record)
 
             # evaluate each Person cluster to see if the incoming record is a match
             with TRACER.start_as_current_span("link.evaluate"):
-                for person, pats in clusters.items():
-                    assert pats, "Patient cluster should not be empty"
+                for person, mpi_records in clusters.items():
+                    assert mpi_records, "Patient cluster should not be empty"
                     log_odds_sums = []
-                    for pat in pats:
+                    for mpi_record in mpi_records:
                         with TRACER.start_as_current_span("link.compare"):
                             # track the accumulated points so we can eventually find
                             # the median and normalize it
                             rule_result = compare(
                                     record,
-                                    pat,
+                                    mpi_record,
                                     max_points,
                                     max_missing_allowed_proportion,
                                     missing_field_points_proportion,
@@ -282,7 +281,7 @@ def link_record_against_mpi(
                             log_odds_sums.append(rule_result)
 
                     result_counts["persons_compared"] += 1
-                    result_counts["patients_compared"] += len(pats)
+                    result_counts["patients_compared"] += len(mpi_records)
                     # calculate the relative match score for this person cluster
                     cluster_median = statistics.median(log_odds_sums)
                     rms = cluster_median / max_points
@@ -294,7 +293,7 @@ def link_record_against_mpi(
                             "median log-odds points accumulated": cluster_median,
                             "relative match score": rms,
                             "person.reference_id": str(person.reference_id),
-                            "patients compared in cluster": len(pats),
+                            "patients compared in cluster": len(mpi_records),
                             "algorithm.minimum_match_threshold": minimum_match_threshold,
                             "algorithm.certain_match_threshold": certain_match_threshold,
                         },

@@ -60,6 +60,8 @@ class StrippedBaseModel(pydantic.BaseModel):
         if isinstance(v, str):
             return v.strip()
         return v
+
+
 class Feature(StrippedBaseModel):
     """
     The schema for a feature.

@@ -32,8 +32,8 @@ class TestCompare:
                 ]
             }
         )
-        pat = models.Patient(
-            data={
+        mpi_rec = schemas.PIIRecord(
+            **{
                 "name": [
                     {
                         "given": [
@@ -64,7 +64,7 @@ class TestCompare:
             kwargs={"log_odds": log_odds},
         )
 
-        assert round(link.compare(rec, pat, max_points, max_allowed_missingness_proportion, missing_field_points_proportion, algorithm_pass, log_odds), 3) == 12.830
+        assert round(link.compare(rec, mpi_rec, max_points, max_allowed_missingness_proportion, missing_field_points_proportion, algorithm_pass, log_odds), 3) == 12.830
 
     def test_compare_non_match_worthy_score(self):
         rec = schemas.PIIRecord(
@@ -79,8 +79,8 @@ class TestCompare:
                 ]
             }
         )
-        pat = models.Patient(
-            data={
+        mpi_rec = schemas.PIIRecord(
+            **{
                 "name": [
                     {
                         "given": [
@@ -109,7 +109,7 @@ class TestCompare:
             kwargs={"log_odds": log_odds},
         )
 
-        assert round(link.compare(rec, pat, max_points, max_allowed_missingness_proportion, missing_field_points_proportion, algorithm_pass, log_odds), 3) == 5.137
+        assert round(link.compare(rec, mpi_rec, max_points, max_allowed_missingness_proportion, missing_field_points_proportion, algorithm_pass, log_odds), 3) == 5.137
 
     def test_compare_identifier_match(self):
         rec = schemas.PIIRecord(
@@ -128,8 +128,8 @@ class TestCompare:
                 ]
             }
         )
-        pat = models.Patient(
-            data={
+        mpi_rec = schemas.PIIRecord(
+            **{
                 "identifiers": [
                     {
                         "type": "MR",
@@ -163,7 +163,7 @@ class TestCompare:
             kwargs={"log_odds": log_odds},
         )
 
-        assert link.compare(rec, pat, max_points, max_allowed_missingness_proportion, missing_field_points_proportion, algorithm_pass, log_odds) == algorithm_pass.kwargs["log_odds"]["IDENTIFIER"]
+        assert link.compare(rec, mpi_rec, max_points, max_allowed_missingness_proportion, missing_field_points_proportion, algorithm_pass, log_odds) == algorithm_pass.kwargs["log_odds"]["IDENTIFIER"]
 
     def test_compare_identifier_with_suffix(self):
         rec = schemas.PIIRecord(
@@ -182,8 +182,8 @@ class TestCompare:
                 ]
             }
         )
-        pat = models.Patient(
-            data={
+        mpi_rec = schemas.PIIRecord(
+            **{
                 "identifiers": [
                     {
                         "type": "MR",
@@ -218,18 +218,18 @@ class TestCompare:
         )
 
         #should pass as MR is the same for both
-        assert link.compare(rec, pat, max_points, max_allowed_missingness_proportion, missing_field_points_proportion, algorithm_pass, log_odds) == algorithm_pass.kwargs["log_odds"]["IDENTIFIER"]
+        assert link.compare(rec, mpi_rec, max_points, max_allowed_missingness_proportion, missing_field_points_proportion, algorithm_pass, log_odds) == algorithm_pass.kwargs["log_odds"]["IDENTIFIER"]
 
         algorithm_pass.evaluators = [{"feature": "IDENTIFIER:SS", "func": "COMPARE_PROBABILISTIC_FUZZY_MATCH"}]
         #should fail as SS is different for both
-        assert link.compare(rec, pat, max_points, max_allowed_missingness_proportion, missing_field_points_proportion, algorithm_pass, log_odds) == 0.0
+        assert link.compare(rec, mpi_rec, max_points, max_allowed_missingness_proportion, missing_field_points_proportion, algorithm_pass, log_odds) == 0.0
 
     def test_compare_invalid_feature(self):
         rec = schemas.PIIRecord(
             **{"name": [{"given": ["John"], "family": "Doe"}]}
         )
-        pat = models.Patient(
-            data={"name": [{"given": ["John"], "family": "Doey"}]}
+        mpi_rec = schemas.PIIRecord(
+            **{"name": [{"given": ["John"], "family": "Doey"}]}
         )
 
         algorithm_pass = models.AlgorithmPass(
@@ -243,7 +243,7 @@ class TestCompare:
         )
 
         with pytest.raises(ValueError):
-            link.compare(rec, pat, 0.0, 0.5, 0.5, algorithm_pass, {})
+            link.compare(rec, mpi_rec, 0.0, 0.5, 0.5, algorithm_pass, {})
 
 
 class TestLinkRecordAgainstMpi:
