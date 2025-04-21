@@ -41,7 +41,7 @@ function getTableRow(record: Record, withReviewLink: boolean): JSX.Element {
       </td>
       {withReviewLink && (
         <td width={58} className="text-center">
-          <Link className="usa-link" href={`/record-review/${record.id}`}>
+          <Link className="usa-link" href={`/{PAGES.RECORD_REVIEW}/${record.id}`}>
             Review
           </Link>
         </td>
