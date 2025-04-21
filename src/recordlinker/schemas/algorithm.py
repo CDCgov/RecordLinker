@@ -21,21 +21,27 @@ class Evaluator(pydantic.BaseModel):
     The schema for an evaluator record.
     """
 
-    model_config = pydantic.ConfigDict(from_attributes=True, use_enum_values=True)
+    model_config = pydantic.ConfigDict(from_attributes=True)
 
-    feature: str = pydantic.Field(json_schema_extra={"enum": Feature.all_options()})
+    feature: Feature = pydantic.Field(json_schema_extra={"enum": Feature.all_options()})
     func: matchers.FeatureFunc
 
     @pydantic.field_validator("feature", mode="before")
-    def validate_feature(cls, value):
+    def validate_feature(cls, value: str) -> Feature:
         """
         Validate the feature is a valid PII feature.
         """
         try:
-            Feature.parse(value)
+            return Feature.parse(value)
         except ValueError as e:
             raise ValueError(f"Invalid feature: '{value}'. {e}")
-        return value
+
+    @pydantic.field_serializer("func")
+    def serialize_func(self, value: matchers.FeatureFunc) -> str:
+        """
+        Serialize the func to a string.
+        """
+        return str(value)
 
 
 class AlgorithmPass(pydantic.BaseModel):
