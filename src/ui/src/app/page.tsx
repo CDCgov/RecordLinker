@@ -7,6 +7,7 @@ import {
   ProcessListHeading,
   ProcessListItem,
 } from "@trussworks/react-uswds";
+import { PAGES } from "@/utils/constants";
 
 const Home: React.FC = () => {
   return (
@@ -35,7 +36,7 @@ const Home: React.FC = () => {
             </p>
             <Link
               className="usa-button padding-x-7 margin-top-2"
-              href={"/wizard"}
+              href={PAGES.RECORD_QUEUE}
             >
               Launch Demo
             </Link>
@@ -56,7 +57,7 @@ const Home: React.FC = () => {
           style.section,
         )}
       >
-        <h2 className="font-sans-xl">What is it?</h2>
+        <h2>What is it?</h2>
         <p className="margin-top-1">
           Nunc hendrerit efficitur lorem ut molestie. Suspendisse eleifend eros
           mi, congue varius nibh sagittis sed. Phasellus quis ex non odio
@@ -147,7 +148,10 @@ const Home: React.FC = () => {
           <br />
           out features using sample data.
         </p>
-        <Link className="usa-button padding-x-7 margin-top-2" href={"/wizard"}>
+        <Link
+          className="usa-button padding-x-7 margin-top-2"
+          href={PAGES.RECORD_QUEUE}
+        >
           Launch Demo
         </Link>
       </div>
