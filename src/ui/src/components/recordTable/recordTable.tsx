@@ -7,6 +7,7 @@ import { PAGES } from "@/utils/constants";
 export interface RecordTableProps {
   items: Record[];
   withReviewLink?: boolean;
+  withSortIndicator?: boolean;
 }
 
 function getTableRow(record: Record, withReviewLink: boolean): JSX.Element {
@@ -44,7 +45,7 @@ function getTableRow(record: Record, withReviewLink: boolean): JSX.Element {
         <td width={58} className="text-center">
           <Link
             className="usa-link"
-            href={`${PAGES.RECORD_REVIEW}/${record.id}`}
+            href={`${PAGES.RECORD_REVIEW}?id=${record.id}`}
           >
             Review
           </Link>
@@ -57,6 +58,7 @@ function getTableRow(record: Record, withReviewLink: boolean): JSX.Element {
 const RecordTable: React.FC<RecordTableProps> = ({
   items,
   withReviewLink = false,
+  withSortIndicator = false,
 }) => {
   return (
     <Table fullWidth className="usa-table--record-linker">
@@ -64,7 +66,9 @@ const RecordTable: React.FC<RecordTableProps> = ({
         <tr>
           <th>Patient</th>
           <th>
-            <span className="descending-order">Received on</span>
+            <span className={withSortIndicator ? "descending-order" : ""}>
+              Received on
+            </span>
           </th>
           <th>Data stream</th>
           <th>Link Score</th>

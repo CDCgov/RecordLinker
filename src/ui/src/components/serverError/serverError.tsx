@@ -1,6 +1,6 @@
 import classNames from "classnames";
 import styles from "./serverError.module.scss";
-import ErrorHeading from "./errorHeading";
+import { InfoIcon } from "../Icons/icons";
 
 const ServerError: React.FC = () => {
   return (
@@ -12,7 +12,9 @@ const ServerError: React.FC = () => {
         styles.serverError,
       )}
     >
-      <ErrorHeading>Internal server error</ErrorHeading>
+      <h2 className="font-alt-xl text-secondary-darker margin-bottom-1">
+        <InfoIcon className="text-sub" size={5} /> Internal server error
+      </h2>
       <p className="text-semibold margin-left-05 margin-bottom-2">
         There&apos;s an issue with the DIBBs server
       </p>

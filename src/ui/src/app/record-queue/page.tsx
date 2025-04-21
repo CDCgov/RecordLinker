@@ -27,7 +27,7 @@ const UnreviewedRecordQueue: React.FC = () => {
   if (serverError) {
     return <ServerError />;
   } else if (recordList && recordList?.length > 0) {
-    return <RecordTable items={recordList} withReviewLink />;
+    return <RecordTable items={recordList} withReviewLink withSortIndicator />;
   } else if (recordList && recordList?.length === 0) {
     return <EmptyQueue />;
   }
