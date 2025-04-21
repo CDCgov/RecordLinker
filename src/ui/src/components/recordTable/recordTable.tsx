@@ -8,36 +8,11 @@ export interface RecordTableProps {
   withReviewLink?: boolean;
 }
 
-function getLinkScoreEl(linkScore: number): JSX.Element {
-  if (linkScore > 0.9) {
-    return (
-      <>
-        <span className="text-semibold text-good">{linkScore}</span>{" "}
-        <span className="usa-sr-only">good</span>
-      </>
-    );
-  } else if (linkScore > 0.8) {
-    return (
-      <>
-        <span className="text-semibold text-okay">{linkScore}</span>{" "}
-        <span className="usa-sr-only">okay</span>
-      </>
-    );
-  } else {
-    return (
-      <>
-        <span className="text-semibold text-bad">{linkScore}</span>{" "}
-        <span className="usa-sr-only">bad</span>
-      </>
-    );
-  }
-}
-
 function getTableRow(record: Record, withReviewLink: boolean): JSX.Element {
   return (
     <tr key={record.id}>
       <td>
-        <span className="text-bold">
+        <span className="text-bold text-base-darker">
           {record.patient.LastName}, {record.patient.firstName}
         </span>
         <br />
@@ -62,7 +37,7 @@ function getTableRow(record: Record, withReviewLink: boolean): JSX.Element {
         <span className="text-base">{record.dataStream.type}</span>
       </td>
       <td width={160} className="text-center">
-        {getLinkScoreEl(record.linkScore)}
+        <span className="text-bold text-base-darker">{record.linkScore}</span>
       </td>
       {withReviewLink && (
         <td width={58} className="text-center">

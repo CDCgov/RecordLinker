@@ -9,8 +9,7 @@
   $theme-show-notifications: false,
   $theme-image-path: "../../../../../../dist/img",
 
-  // Color Palette
-  $theme-text-color: "blue-cool-90",
+  // Background color
   $theme-body-background-color: "blue-cool-5",
   // disabled elements bg and text color
   $theme-color-disabled-family: "gray",
@@ -18,9 +17,13 @@
   // primary color for elements and hover
   $theme-color-primary: "violet-warm-60",
   $theme-color-primary-dark: "violet-warm-70",
-  $theme-color-base-ink: "blue-cool-80",
   $theme-link-color: "violet-warm-60",
   $theme-link-hover-color: "violet-warm-70",
+  // General font colors
+  $theme-color-base-family: "blue-cool",
+  $theme-text-color: "blue-cool-90",
+  $theme-color-base-darker: "blue-cool-80",
+  $theme-color-base-ink: "blue-cool-90",
 
   // Components
   $theme-hero-image: "../../../../dist/img/hero.jpg",
