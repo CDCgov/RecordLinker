@@ -230,7 +230,7 @@ def link_record_against_mpi(
     # when #223 is completed, this will be removed
     skip_values: list[SkipValue] = [SkipValue(**d) for d in algorithm.skip_values] if algorithm.skip_values else []
     # clean the incoming record
-    cleaned_record: schemas.PIIRecord = clean.clean(record, skip_values)
+    cleaned_record: schemas.PIIRecord = clean.remove_skip_values(record, skip_values)
     for algorithm_pass in algorithm.passes:
         with TRACER.start_as_current_span("link.pass"):
             pass_label = algorithm_pass.label
@@ -254,7 +254,7 @@ def link_record_against_mpi(
                 )
                 for pat in pats:
                     # convert the Patient model into a cleaned PIIRecord for comparison
-                    mpi_record: schemas.PIIRecord = clean.clean(
+                    mpi_record: schemas.PIIRecord = clean.remove_skip_values(
                         schemas.PIIRecord.from_patient(pat), skip_values
                     )
                     clusters[pat.person].append(mpi_record)

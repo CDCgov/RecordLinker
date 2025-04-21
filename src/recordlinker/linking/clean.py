@@ -25,7 +25,7 @@ def matches(value: str, values: list[str]) -> bool:
     return any(fnmatch.fnmatch(val, v.lower()) for v in values)
 
 
-def clean(record: schemas.PIIRecord, skips: list[SkipValue]) -> schemas.PIIRecord:
+def remove_skip_values(record: schemas.PIIRecord, skips: list[SkipValue]) -> schemas.PIIRecord:
     """
     Return a copy of the incoming record, cleaned of any values identified in the
     skip list.
