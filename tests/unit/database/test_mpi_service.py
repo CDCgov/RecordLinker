@@ -534,23 +534,6 @@ class TestBlockData:
         for datum, person in data:
             mpi_service.insert_patient(session, schemas.PIIRecord(**datum), person=person)
 
-    def test_block_invalid_key(self, session: Session):
-        data = {
-            "name": [
-                {
-                    "given": [
-                        "Johnathon",
-                        "Bill",
-                    ],
-                    "family": "Smith",
-                }
-            ]
-        }
-        # passing in a invalid id of -1 for a blocking key which should raise a value error
-        algorithm_pass = models.AlgorithmPass(blocking_keys=["INVALID"])
-        with pytest.raises(ValueError):
-            mpi_service.BlockData.get(session, schemas.PIIRecord(**data), algorithm_pass, 0.3)
-
     def test_block_missing_data(self, session: Session, prime_index: None):
         data = {
             "name": [
@@ -563,7 +546,13 @@ class TestBlockData:
                 }
             ]
         }
-        algorithm_pass = models.AlgorithmPass(blocking_keys=["BIRTHDATE"])
+        algorithm_pass = schemas.AlgorithmPass(
+            label="pass",
+            evaluators=[],
+            blocking_keys=["BIRTHDATE"],
+            possible_match_window=(0, 1),
+        )
+
         matches = mpi_service.BlockData.get(session, schemas.PIIRecord(**data), algorithm_pass, 0.3)
         assert len(matches) == 0
 
@@ -579,7 +568,12 @@ class TestBlockData:
             ],
             "birthdate": "",
         }
-        algorithm_pass = models.AlgorithmPass(blocking_keys=["BIRTHDATE", "FIRST_NAME"])
+        algorithm_pass = schemas.AlgorithmPass(
+            label="pass",
+            evaluators=[],
+            blocking_keys=["BIRTHDATE", "FIRST_NAME"],
+            possible_match_window=(0, 1),
+        )
         matches = mpi_service.BlockData.get(session, schemas.PIIRecord(**data), algorithm_pass, 0.3)
         assert len(matches) == 0
 
@@ -600,7 +594,12 @@ class TestBlockData:
             ],
             "birthdate": "1974-11-07",
         }
-        algorithm_pass = models.AlgorithmPass(blocking_keys=["BIRTHDATE", "FIRST_NAME"])
+        algorithm_pass = schemas.AlgorithmPass(
+            label="pass",
+            evaluators=[],
+            blocking_keys=["BIRTHDATE", "FIRST_NAME"],
+            possible_match_window=(0, 1),
+        )
         # Will initially be 3 patients in this person cluster
         # One agrees on blocking, one has missing values, and one
         # is wrong, so we should throw away that one
@@ -620,7 +619,12 @@ class TestBlockData:
             ],
             "birthdate": "01/01/1980",
         }
-        algorithm_pass = models.AlgorithmPass(blocking_keys=["BIRTHDATE"])
+        algorithm_pass = schemas.AlgorithmPass(
+            label="pass",
+            evaluators=[],
+            blocking_keys=["BIRTHDATE"],
+            possible_match_window=(0, 1),
+        )
 
         matches = mpi_service.BlockData.get(session, schemas.PIIRecord(**data), algorithm_pass, 0.3)
         assert len(matches) == 4
@@ -652,7 +656,12 @@ class TestBlockData:
             ],
             "birthdate": "01/01/1980",
         }
-        algorithm_pass = models.AlgorithmPass(blocking_keys=["FIRST_NAME"])
+        algorithm_pass = schemas.AlgorithmPass(
+            label="pass",
+            evaluators=[],
+            blocking_keys=["FIRST_NAME"],
+            possible_match_window=(0, 1),
+        )
         matches = mpi_service.BlockData.get(session, schemas.PIIRecord(**data), algorithm_pass, 0.3)
         # One candidate in MPI person_1 is a Bill, will be ruled out
         assert len(matches) == 4
@@ -670,7 +679,12 @@ class TestBlockData:
             ],
             "birthdate": "01/01/1980",
         }
-        algorithm_pass = models.AlgorithmPass(blocking_keys=["BIRTHDATE", "FIRST_NAME"])
+        algorithm_pass = schemas.AlgorithmPass(
+            label="pass",
+            evaluators=[],
+            blocking_keys=["BIRTHDATE", "FIRST_NAME"],
+            possible_match_window=(0, 1),
+        )
         matches = mpi_service.BlockData.get(session, schemas.PIIRecord(**data), algorithm_pass, 0.3)
         # One candidate in MPI person_1 is just a Bill, ruled out
         assert len(matches) == 3
@@ -688,8 +702,11 @@ class TestBlockData:
             ],
             "birthdate": "01/01/1980",
         }
-        algorithm_pass = models.AlgorithmPass(
-            blocking_keys=["BIRTHDATE", "FIRST_NAME", "LAST_NAME"]
+        algorithm_pass = schemas.AlgorithmPass(
+            label="pass",
+            evaluators=[],
+            blocking_keys=["BIRTHDATE", "FIRST_NAME", "LAST_NAME"],
+            possible_match_window=(0, 1),
         )
         matches = mpi_service.BlockData.get(session, schemas.PIIRecord(**data), algorithm_pass, 0.3)
         # One person in MPI person_1 is just a Bill, ruled out
@@ -737,8 +754,11 @@ class TestBlockData:
             ],
             "birthdate": "01/01/1980",
         }
-        algorithm_pass = models.AlgorithmPass(
+        algorithm_pass = schemas.AlgorithmPass(
+            label="pass",
+            evaluators=[],
             blocking_keys=["BIRTHDATE", "FIRST_NAME", "LAST_NAME"],
+            possible_match_window=(0, 1),
             kwargs={
                 "log_odds": {"FIRST_NAME": 6.8, "LAST_NAME": 6.3, "BIRTHDATE": 10.1},
             },
@@ -759,8 +779,11 @@ class TestBlockData:
             ],
             "birthdate": "01/01/1980",
         }
-        algorithm_pass = models.AlgorithmPass(
+        algorithm_pass = schemas.AlgorithmPass(
+            label="pass",
+            evaluators=[],
             blocking_keys=["BIRTHDATE", "FIRST_NAME", "LAST_NAME"],
+            possible_match_window=(0, 1),
             kwargs={
                 "log_odds": {"FIRST_NAME": 6.8, "LAST_NAME": 6.3, "BIRTHDATE": 10.1},
             },
@@ -775,12 +798,11 @@ class TestBlockData:
                 {"use": "maiden", "given": ["John"], "family": "Doe"},
             ]
         }
-        algorithm_pass = models.AlgorithmPass(
-            id=1,
-            algorithm_id=1,
+        algorithm_pass = schemas.AlgorithmPass(
+            label="pass",
+            evaluators=[],
             blocking_keys=["FIRST_NAME", "LAST_NAME"],
-            evaluators={},
-            kwargs={},
+            possible_match_window=(0, 1),
         )
         matches = mpi_service.BlockData.get(session, schemas.PIIRecord(**data), algorithm_pass, 0.3)
         # One of patients in MPI person_1 is a Bill, so is excluded
@@ -788,7 +810,12 @@ class TestBlockData:
 
     def test_block_missing_keys(self, session: Session, prime_index: None):
         data = {"birthdate": "01/01/1980"}
-        algorithm_pass = models.AlgorithmPass(blocking_keys=["BIRTHDATE", "LAST_NAME"])
+        algorithm_pass = schemas.AlgorithmPass(
+            label="pass",
+            evaluators=[],
+            blocking_keys=["BIRTHDATE", "LAST_NAME"],
+            possible_match_window=(0, 1),
+        )
         matches = mpi_service.BlockData.get(session, schemas.PIIRecord(**data), algorithm_pass, 0.3)
         assert len(matches) == 0
 
@@ -831,8 +858,10 @@ class TestBlockData:
         mpi_service.insert_patient(session, schemas.PIIRecord(**data), models.Person(), 0.3)
         mpi_service.insert_patient(session, schemas.PIIRecord(**data), models.Person(), 0.3)
         mpi_service.insert_patient(session, schemas.PIIRecord(**data), models.Person(), 0.3)
-        algorithm_pass = models.AlgorithmPass(
-            blocking_keys=["FIRST_NAME", "LAST_NAME", "ZIP", "SEX"]
+        algorithm_pass = schemas.AlgorithmPass(
+            evaluators=[],
+            blocking_keys=["FIRST_NAME", "LAST_NAME", "ZIP", "SEX"],
+            possible_match_window=(0, 1),
         )
 
         matches = mpi_service.BlockData.get(session, schemas.PIIRecord(**data), algorithm_pass, 0.3)

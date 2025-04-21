@@ -17,6 +17,7 @@ from fastapi import status
 
 from recordlinker import models
 from recordlinker import schemas
+from recordlinker.database import algorithm_service
 from recordlinker.hl7 import fhir
 from recordlinker.routes import link_router
 
@@ -338,7 +339,7 @@ class TestMatch:
         assert resp.json()["detail"] == "No algorithm found"
 
     def test_no_match(self, client, default_algorithm, patients):
-        client.session.add(default_algorithm)
+        algorithm_service.load_algorithm(client.session, default_algorithm)
         client.session.commit()
         resp = client.post(self.path(client), json={"record": patients[0].to_dict(True)})
         assert resp.status_code == status.HTTP_200_OK
@@ -350,7 +351,7 @@ class TestMatch:
         assert len(client.session.query(models.Patient).all()) == 0
 
     def test_match(self, client, default_algorithm, patients):
-        client.session.add(default_algorithm)
+        algorithm_service.load_algorithm(client.session, default_algorithm)
         client.session.commit()
         per1 = client.post(client.app.url_path_for("link-record"), json={"record": patients[0].to_dict(True)}).json()["person_reference_id"]
 
@@ -383,7 +384,7 @@ class TestMatchFHIR:
         assert resp.json()["detail"] == "No algorithm found"
 
     def test_no_match(self, client, default_algorithm, patient_bundles):
-        client.session.add(default_algorithm)
+        algorithm_service.load_algorithm(client.session, default_algorithm)
         client.session.commit()
         resp = client.post(self.path(client), json={"bundle": patient_bundles[0]})
         assert resp.status_code == status.HTTP_200_OK
@@ -396,7 +397,7 @@ class TestMatchFHIR:
         assert len(client.session.query(models.Patient).all()) == 0
 
     def test_match(self, client, default_algorithm, patient_bundles):
-        client.session.add(default_algorithm)
+        algorithm_service.load_algorithm(client.session, default_algorithm)
         client.session.commit()
         per1 = client.post(client.app.url_path_for("link-fhir"), json={"bundle": patient_bundles[0]}).json()["person_reference_id"]
 
