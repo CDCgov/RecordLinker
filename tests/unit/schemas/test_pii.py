@@ -619,6 +619,25 @@ class TestPIIRecord:
                 raise AssertionError(f"Unexpected key: {key}")
 
 
+class TestName:
+    def test_parse_suffix(self):
+        # No suffix specified
+        name = pii.Name(family="Smith", given=["Joel", "Miller"])
+        assert name.suffix == []
+
+        # Suffix is present in mapping
+        name = pii.Name(family="Smith", given=["Joel", "Miller"], suffix=["Senior"])
+        assert name.suffix == ["Sr"]
+
+        # Suffix not listed
+        name = pii.Name(family="Smith", given=["Joel", "Miller"], suffix=["invalid"])
+        assert name.suffix == ["invalid"]
+
+        # Multiple suffixes, mix of some in mapping and some not
+        name = pii.Name(family="Smith", given=["Joel", "Miller"], suffix=["Senior", "Jr.", "fake"])
+        assert name.suffix == ["Sr", "Jr", "fake"]
+
+
 class TestAddress:
     def test_parse_line(self):
         address = pii.Address(line=["123 Main St.", "Apt 2"])

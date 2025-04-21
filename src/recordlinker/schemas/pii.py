@@ -19,6 +19,9 @@ from recordlinker.utils.normalize import normalize_text
 _STATE_NAME_TO_CODE = utils.read_json("assets/states.json")
 _STATE_CODE_TO_NAME = {v: k for k, v in _STATE_NAME_TO_CODE.items()}
 
+# Load suffix mappings for Name normalization
+_SUFFIX_VARIANTS_TO_STANDARD_SUFFIXES = utils.read_json("assets/suffixes.json")
+
 
 class FeatureAttribute(enum.Enum):
     """
@@ -60,6 +63,7 @@ class StrippedBaseModel(pydantic.BaseModel):
         if isinstance(v, str):
             return v.strip()
         return v
+    
 class Feature(StrippedBaseModel):
     """
     The schema for a feature.
@@ -181,6 +185,23 @@ class Name(StrippedBaseModel):
     use: typing.Optional[str] = None
     prefix: typing.List[str] = []  # future use
     suffix: typing.List[str] = []
+
+    @pydantic.field_validator("suffix", mode="before")
+    def parse_suffix(cls, value: list[str]) -> list[str]:
+        """
+        Parse and normalize the suffix field into a standard representation.
+        """
+        normalized: list[str] = []
+        if value:
+            for sfx in value:
+                # Don't apply title casing here in case suffix isn't one we've mapped
+                # Allows us to append back the original unaltered data
+                suffix = str(sfx)
+                if suffix.title() in _SUFFIX_VARIANTS_TO_STANDARD_SUFFIXES:
+                    suffix = _SUFFIX_VARIANTS_TO_STANDARD_SUFFIXES[suffix.title()]
+                normalized.append(suffix)
+            return normalized
+        return value
 
 
 class Address(StrippedBaseModel):
