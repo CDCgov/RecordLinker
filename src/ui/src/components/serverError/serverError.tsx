@@ -29,7 +29,7 @@ const ServerError: React.FC = () => {
           </li>
           <li>
             <span className="text-bold">Contact support:</span> If the problem
-            persists, please reach out to your eCR coordinator.
+            persists, please reach out to your administrator.
           </li>
         </ul>
       </div>
