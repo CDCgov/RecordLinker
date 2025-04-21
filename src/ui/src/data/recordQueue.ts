@@ -9,7 +9,7 @@ export async function getUnreviewedRecords(): Promise<RLRecord[]> {
       id: "123",
       patient: {
         firstName: "John",
-        LastName: "Doe",
+        lastName: "Doe",
         dob: new Date("04/13/1989"),
       },
       receivedOn: new Date(),
@@ -23,7 +23,7 @@ export async function getUnreviewedRecords(): Promise<RLRecord[]> {
       id: "124",
       patient: {
         firstName: "Jane",
-        LastName: "Doe",
+        lastName: "Doe",
         dob: new Date("04/15/1989"),
       },
       receivedOn: new Date(),

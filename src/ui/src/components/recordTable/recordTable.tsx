@@ -2,6 +2,7 @@ import { Table } from "@trussworks/react-uswds";
 import { Record } from "@/models/record";
 import Link from "next/link";
 import { JSX } from "react";
+import { PAGES } from "@/utils/constants";
 
 export interface RecordTableProps {
   items: Record[];
@@ -41,7 +42,10 @@ function getTableRow(record: Record, withReviewLink: boolean): JSX.Element {
       </td>
       {withReviewLink && (
         <td width={58} className="text-center">
-          <Link className="usa-link" href={`/{PAGES.RECORD_REVIEW}/${record.id}`}>
+          <Link
+            className="usa-link"
+            href={`${PAGES.RECORD_REVIEW}/${record.id}`}
+          >
             Review
           </Link>
         </td>
