@@ -13,7 +13,7 @@ function getTableRow(record: Record, withReviewLink: boolean): JSX.Element {
     <tr key={record.id}>
       <td>
         <span className="text-bold text-base-darker">
-          {record.patient.LastName}, {record.patient.firstName}
+          {record.patient.lastName}, {record.patient.firstName}
         </span>
         <br />
         <span className="text-base">
