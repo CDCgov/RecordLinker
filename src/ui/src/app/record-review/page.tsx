@@ -17,7 +17,7 @@ const RecordReview: React.FC = () => {
         determine if they refer to the same individual.
       </p>
       <RecordComparison />
-      <p className="text-italic margin-top-105">
+      <p className="text-italic margin-top-2">
         Linking a record will append a Person ID to the incoming record,
         effectively linking it to the potential match.
       </p>

@@ -29,7 +29,7 @@ function getComparisonRow(
   idx: number,
   label: string,
   incomingValue: string,
-  matchingValue: string,
+  potentialValue: string,
 ): JSX.Element {
   return (
     <div key={idx} role="row" className={classNames("grid-row", "flex-row")}>
@@ -53,6 +53,10 @@ function getComparisonRow(
           "margin-left-2",
           "padding-x-105",
           "padding-y-1",
+          "text-medium",
+          incomingValue && incomingValue !== potentialValue
+            ? "text-accent-warm-dark text-bold"
+            : "",
           idx % 2 ? "bg-accent-cool-lighter" : "bg-white",
         )}
       >
@@ -67,10 +71,12 @@ function getComparisonRow(
           "margin-left-2",
           "padding-x-105",
           "padding-y-1",
+          "text-medium",
+          incomingValue && incomingValue !== potentialValue ? "text-bold" : "",
           idx % 2 ? "bg-accent-cool-lighter" : "bg-white",
         )}
       >
-        {matchingValue}
+        {potentialValue}
       </div>
     </div>
   );
@@ -122,8 +128,8 @@ function getComparisonView() {
       </div>
       {getComparisonRow(0, "Person ID", "", "3502")}
       {getComparisonRow(1, "Patient ID", "234", "3502")}
-      {getComparisonRow(2, "First Name", "Jane", "Jan")}
-      {getComparisonRow(3, "Last Name", "Doe", "Doe")}
+      {getComparisonRow(2, "First name", "Jane", "Jan")}
+      {getComparisonRow(3, "Last name", "Doe", "Doe")}
     </div>
   );
 }

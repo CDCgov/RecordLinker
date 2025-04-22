@@ -1,10 +1,6 @@
 @use "../../styles/variables.scss" as *;
 
 .comparisonView {
-  div[role="gridcell"] {
-    font-weight: 500;
-  }
-
   div[role="row"]:nth-child(2) {
     div:nth-child(2),
     div:nth-child(3) {
