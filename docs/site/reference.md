@@ -192,7 +192,6 @@ indicate wildcard matches.
 **Example:**
 
 ```json
-...
 "skip_values": [
   {
     "feature": "NAME",
