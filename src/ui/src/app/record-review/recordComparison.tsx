@@ -5,6 +5,7 @@ import RecordTable from "@/components/recordTable/recordTable";
 import classNames from "classnames";
 import { LinkIcon, LinkOffIcon } from "@/components/Icons/icons";
 import { Button } from "@trussworks/react-uswds";
+import { Record } from "@/models/record";
 import styles from "./recordReview.module.scss";
 
 const patient: unknown = [
@@ -130,7 +131,7 @@ function getComparisonView() {
 const RecordComparison: React.FC = () => {
   return (
     <>
-      <RecordTable items={patient} />
+      <RecordTable items={patient as Record[]} />
       {getComparisonView()}
       <div className="margin-top-3">
         <Button className="margin-right-105">
