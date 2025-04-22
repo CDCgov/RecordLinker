@@ -23,3 +23,4 @@ def test_load_session():
     }
     request = fastapi.Request(scope=scope)
     assert session_store.load_session(request, "test-session") == {"test": "data"}
+    assert session_store.load_session(request, "invalid-session") is None
