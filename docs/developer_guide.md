@@ -54,8 +54,8 @@ following steps should be taken:
 ### Modify the `PIIRecord.feature_iter` Method
 - Update the [PIIRecord.feature_iter](https://github.com/CDCgov/RecordLinker/blob/a672d2b6409cbd1a08f729d94fba5692f57f6fc6/src/recordlinker/schemas/pii.py#L246) method to return the value of the new feature when it's used for comparison.
 
-### Modify the `linking.clean.clean` Function
-- Update the `recordlinker.linking.clean.clean` function to process and remove any data
+### Modify the `linking.skip_values.remove_skip_values` Function
+- Update the `recordlinker.linking.skip_values.remove_skip_values` function to process and remove any data
 that matches the new feature.
 
 ### Extract the FHIR Field in `fhir_record_to_pii_record`
