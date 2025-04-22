@@ -14,7 +14,9 @@ npm install --legacy-peer-deps --prefix "src/ui" > /dev/null
 # Create a default .env file if it doesn't exist
 if [ ! -f .env ]; then
     echo "Creating a default .env file..."
-    echo "DB_URI=sqlite:///db.sqlite3" > .env
+    echo "DB_URI=\"sqlite:///db.sqlite3\"" > .env
+    python3 -c "import secrets; print(f'SECRET_KEY=\"{secrets.token_hex(32)}\"')" >> .env
+
 else
     echo "Default .env file already exists."
 fi

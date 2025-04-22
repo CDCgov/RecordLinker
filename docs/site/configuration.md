@@ -20,6 +20,10 @@ Each setting can be configured as follows:
 
     Example: `postgresql+psycopg2://user:password@localhost/dbname`
 
+`SECRET_KEY (Required)`
+
+:   The secret key used for signing and encrypting data (we recommend using a 32 byte random key).
+
 `DB_TABLE_PREFIX (Optional)`
 
 :   Prefix applied to all database tables, useful for namespace separation.
@@ -95,6 +99,22 @@ Each setting can be configured as follows:
     **Docker Default**: `"/code/build/static"`
 
     **Development Default**: `""`
+
+`SESSION_COOKIE_DOMAIN (Optional)`
+
+:   Domain for the session cookie.
+
+    **Docker Default**: `""`
+
+    **Development Default**: `""`
+
+`SESSION_COOKIE_SECURE (Optional)`
+
+:   Whether the session cookie is only sent over HTTPS
+
+    **Docker Default**: `false`
+
+    **Development Default**: `false`
 
 
 ### Database Options
