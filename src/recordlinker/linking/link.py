@@ -19,7 +19,7 @@ from recordlinker.database import mpi_service
 from recordlinker.schemas.algorithm import SkipValue
 from recordlinker.utils.mock import MockTracer
 
-from . import clean
+from . import skip_values as sv
 
 LOGGER = logging.getLogger(__name__)
 TRACER: typing.Any = None
@@ -37,11 +37,12 @@ class LinkResult:
     """
     A data class designed to represent a single row of the "score tracking" table
     construct, as well as to capture the result of a single linkage to a Person
-    cluster. Instance variables help define the scoring parameters used to 
+    cluster. Instance variables help define the scoring parameters used to
     evaluate match strength. Result rows handle their own updates (e.g. when
     to update relative match score strengths as well as prioritizing certain
     matches over possible matches).
     """
+
     person: models.Person
     accumulated_points: float
     pass_label: str
@@ -50,9 +51,7 @@ class LinkResult:
     cmt: float
     match_grade: schemas.MatchGrade
 
-    def _update_score_tracking_row(
-            self, earned_points, pass_lbl, rms, mmt, cmt, grade
-        ):
+    def _update_score_tracking_row(self, earned_points, pass_lbl, rms, mmt, cmt, grade):
         """
         Helper function to abstract variable update setting to leave
         case-based logic clearer.
@@ -63,10 +62,8 @@ class LinkResult:
         self.match_grade = grade
         self.cmt = cmt
         self.mmt = mmt
-    
-    def check_and_update_score(
-            self, earned_points, pass_lbl, rms, mmt, cmt, grade
-        ):
+
+    def check_and_update_score(self, earned_points, pass_lbl, rms, mmt, cmt, grade):
         """
         Dynamically perform and handle any updates that should be tracked for
         the results of this Person cluster in linking. Updates must consider
@@ -82,21 +79,17 @@ class LinkResult:
         # Start with the easy case: both grades are the same, so use the RMS
         if grade == self.match_grade:
             if rms > self.rms:
-                self._update_score_tracking_row(
-                    earned_points, pass_lbl, rms, mmt, cmt, grade
-                )
-        
+                self._update_score_tracking_row(earned_points, pass_lbl, rms, mmt, cmt, grade)
+
         # Case 2: existing grade is certain, and since grades didn't enter
         # the equality if, new grade is only possible
-        elif self.match_grade == 'certain':
+        elif self.match_grade == "certain":
             pass
 
-        # Case 3: new grade is certain, and since grades didn't enter the 
+        # Case 3: new grade is certain, and since grades didn't enter the
         # equality if, existing grade is only possible
-        elif grade == 'certain':
-            self._update_score_tracking_row(
-                earned_points, pass_lbl, rms, mmt, cmt, grade
-            )
+        elif grade == "certain":
+            self._update_score_tracking_row(earned_points, pass_lbl, rms, mmt, cmt, grade)
 
 
 def compare(
@@ -176,7 +169,7 @@ def compare(
 def grade_rms(rms: float, mmt: float, cmt: float) -> schemas.MatchGrade:
     """
     Helper function to assign a match-grade (derived from FHIR spec terminology)
-    to a linkage result based on whether the result's match strength falls in 
+    to a linkage result based on whether the result's match strength falls in
     relation to the reference window (minimum_threshold, certain_threshold).
     """
     if rms < mmt:
@@ -228,9 +221,11 @@ def link_record_against_mpi(
     }
     # NOTE: this is a temp conversion from model JSON data to a list of SkipValue objects
     # when #223 is completed, this will be removed
-    skip_values: list[SkipValue] = [SkipValue(**d) for d in algorithm.skip_values] if algorithm.skip_values else []
+    skip_values: list[SkipValue] = (
+        [SkipValue(**d) for d in algorithm.skip_values] if algorithm.skip_values else []
+    )
     # clean the incoming record
-    cleaned_record: schemas.PIIRecord = clean.remove_skip_values(record, skip_values)
+    cleaned_record: schemas.PIIRecord = sv.remove_skip_values(record, skip_values)
     for algorithm_pass in algorithm.passes:
         with TRACER.start_as_current_span("link.pass"):
             pass_label = algorithm_pass.label
@@ -254,7 +249,7 @@ def link_record_against_mpi(
                 )
                 for pat in pats:
                     # convert the Patient model into a cleaned PIIRecord for comparison
-                    mpi_record: schemas.PIIRecord = clean.remove_skip_values(
+                    mpi_record: schemas.PIIRecord = sv.remove_skip_values(
                         schemas.PIIRecord.from_patient(pat), skip_values
                     )
                     clusters[pat.person].append(mpi_record)
@@ -269,15 +264,15 @@ def link_record_against_mpi(
                             # track the accumulated points so we can eventually find
                             # the median and normalize it
                             rule_result = compare(
-                                    record,
-                                    mpi_record,
-                                    max_points,
-                                    max_missing_allowed_proportion,
-                                    missing_field_points_proportion,
-                                    algorithm_pass,
-                                    log_odds_points,
-                                    skip_values,
-                                )
+                                record,
+                                mpi_record,
+                                max_points,
+                                max_missing_allowed_proportion,
+                                missing_field_points_proportion,
+                                algorithm_pass,
+                                log_odds_points,
+                                skip_values,
+                            )
                             log_odds_sums.append(rule_result)
 
                     result_counts["persons_compared"] += 1
@@ -309,19 +304,24 @@ def link_record_against_mpi(
                                 rms,
                                 minimum_match_threshold,
                                 certain_match_threshold,
-                                match_grade
+                                match_grade,
                             )
                         # Let the dynamic programming table track its own updates
                         scores[person].check_and_update_score(
-                            cluster_median, pass_label, rms, minimum_match_threshold, certain_match_threshold, match_grade
+                            cluster_median,
+                            pass_label,
+                            rms,
+                            minimum_match_threshold,
+                            certain_match_threshold,
+                            match_grade,
                         )
-    
+
     results: list[LinkResult] = sorted(scores.values(), reverse=True, key=lambda x: x.rms)
-    certain_results = [x for x in results if x.match_grade == 'certain']
+    certain_results = [x for x in results if x.match_grade == "certain"]
     # re-assign the results array since we already have the higher-priority
-    # 'certain' grades if we need them; we return the `results` variable as 
+    # 'certain' grades if we need them; we return the `results` variable as
     # a placeholder later, so we need to keep this around for re-assignment
-    results = [x for x in results if x.match_grade == 'possible']
+    results = [x for x in results if x.match_grade == "possible"]
     final_grade: schemas.MatchGrade = "possible"
     matched_person: typing.Optional[models.Person] = None
 

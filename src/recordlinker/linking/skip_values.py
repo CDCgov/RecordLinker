@@ -1,8 +1,8 @@
 """
-recordlinker.linking.clean
-~~~~~~~~~~~~~~~~~~~~~~~~~~
+recordlinker.linking.skip_values
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-This module is used to clean the data before running the linkage algorithm
+This module is used to process skip values on the data before running the linkage algorithm
 """
 
 import fnmatch
