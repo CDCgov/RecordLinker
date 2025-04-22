@@ -21,6 +21,7 @@ _STATE_CODE_TO_NAME = {v: k for k, v in _STATE_NAME_TO_CODE.items()}
 
 # Load suffix mappings for Name normalization
 _SUFFIX_VARIANTS_TO_STANDARD_SUFFIXES = utils.read_json("assets/suffixes.json")
+_PROCESSED_SUFFIXES = set(_SUFFIX_VARIANTS_TO_STANDARD_SUFFIXES.values())
 
 
 class FeatureAttribute(enum.Enum):
@@ -194,11 +195,14 @@ class Name(StrippedBaseModel):
         normalized: list[str] = []
         if value:
             for sfx in value:
-                # Don't apply title casing here in case suffix isn't one we've mapped
-                # Allows us to append back the original unaltered data
-                suffix = str(sfx)
-                if suffix.title() in _SUFFIX_VARIANTS_TO_STANDARD_SUFFIXES:
-                    suffix = _SUFFIX_VARIANTS_TO_STANDARD_SUFFIXES[suffix.title()]
+                suffix = str(sfx).title()
+                if suffix in _SUFFIX_VARIANTS_TO_STANDARD_SUFFIXES:
+                    suffix = _SUFFIX_VARIANTS_TO_STANDARD_SUFFIXES[suffix]
+                # If the parsed suffix isn't one of our permitted output values at
+                # this point, the user gave us something we don't handle, so revert
+                # back to the raw value
+                if suffix not in _PROCESSED_SUFFIXES:
+                    suffix = str(sfx)
                 normalized.append(suffix)
             return normalized
         return value

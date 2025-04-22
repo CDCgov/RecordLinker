@@ -629,6 +629,12 @@ class TestName:
         name = pii.Name(family="Smith", given=["Joel", "Miller"], suffix=["Senior"])
         assert name.suffix == ["Sr"]
 
+        # Suffix is present but with weird casing
+        name = pii.Name(family="Smith", given=["Joel", "Miller"], suffix=["SR"])
+        assert name.suffix == ["Sr"]
+        name = pii.Name(family="Smith", given=["Joel", "Miller"], suffix=["jr"])
+        assert name.suffix == ["Jr"]
+
         # Suffix not listed
         name = pii.Name(family="Smith", given=["Joel", "Miller"], suffix=["invalid"])
         assert name.suffix == ["invalid"]
