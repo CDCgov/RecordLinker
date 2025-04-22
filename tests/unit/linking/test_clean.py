@@ -12,17 +12,17 @@ from recordlinker.schemas.identifier import IdentifierType
 from recordlinker.schemas.pii import Race
 
 
-class TestMatches:
+class TestMatchSkipValues:
     def test_no_matches(self):
-        assert not clean.matches("foo", ["bar"])
-        assert not clean.matches("foo", ["bar", "baz"])
-        assert not clean.matches("foo", ["b*"])
+        assert not clean._match_skip_values("foo", ["bar"])
+        assert not clean._match_skip_values("foo", ["bar", "baz"])
+        assert not clean._match_skip_values("foo", ["b*"])
 
     def test_matches(self):
-        assert clean.matches("foo", ["foo"])
-        assert clean.matches("foo", ["bar", "Foo"])
-        assert clean.matches("FOO", ["f*"])
-        assert clean.matches("foo", ["f??"])
+        assert clean._match_skip_values("foo", ["foo"])
+        assert clean._match_skip_values("foo", ["bar", "Foo"])
+        assert clean._match_skip_values("FOO", ["f*"])
+        assert clean._match_skip_values("foo", ["f??"])
 
 
 class TestRemoveSkipValues:
