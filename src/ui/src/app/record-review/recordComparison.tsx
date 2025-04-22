@@ -34,7 +34,7 @@ function getComparisonRow(
   return (
     <div key={idx} role="row" className={classNames("grid-row", "flex-row")}>
       <div
-        role="rowlabel"
+        role="rowheader"
         className={classNames(
           "flex-2",
           "text-semibold",
@@ -98,9 +98,9 @@ function getComparisonView() {
       )}
     >
       <div role="row" className={classNames("grid-row", "flex-row")}>
-        <div role="columnlabel" className={classNames("flex-2")}></div>
+        <div className={classNames("flex-2")}></div>
         <div
-          role="columnlabel"
+          role="columnheader"
           className={classNames(
             "flex-4",
             "text-center",
@@ -113,7 +113,7 @@ function getComparisonView() {
           Incoming record
         </div>
         <div
-          role="columnlabel"
+          role="columnheader"
           className={classNames(
             "flex-4",
             "text-center",
