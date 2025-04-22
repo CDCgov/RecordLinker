@@ -21,21 +21,27 @@ class Evaluator(pydantic.BaseModel):
     The schema for an evaluator record.
     """
 
-    model_config = pydantic.ConfigDict(from_attributes=True, use_enum_values=True)
+    model_config = pydantic.ConfigDict(from_attributes=True)
 
-    feature: str = pydantic.Field(json_schema_extra={"enum": Feature.all_options()})
+    feature: Feature = pydantic.Field(json_schema_extra={"enum": Feature.all_options()})
     func: matchers.FeatureFunc
 
     @pydantic.field_validator("feature", mode="before")
-    def validate_feature(cls, value):
+    def validate_feature(cls, value: str) -> Feature:
         """
         Validate the feature is a valid PII feature.
         """
         try:
-            Feature.parse(value)
+            return Feature.parse(value)
         except ValueError as e:
             raise ValueError(f"Invalid feature: '{value}'. {e}")
-        return value
+
+    @pydantic.field_serializer("func")
+    def serialize_func(self, value: matchers.FeatureFunc) -> str:
+        """
+        Serialize the func to a string.
+        """
+        return str(value)
 
 
 class AlgorithmPass(pydantic.BaseModel):
@@ -43,7 +49,7 @@ class AlgorithmPass(pydantic.BaseModel):
     The schema for an algorithm pass record.
     """
 
-    model_config = pydantic.ConfigDict(from_attributes=True, use_enum_values=True)
+    model_config = pydantic.ConfigDict(from_attributes=True)
 
     label: typing.Optional[str] = pydantic.Field(
         None, pattern=r"^[A-Za-z0-9]+(?:[_-][A-Za-z0-9]+)*$", max_length=255
@@ -97,6 +103,13 @@ class AlgorithmPass(pydantic.BaseModel):
                 if key not in allowed:
                     raise ValueError(f"Invalid kwargs key: '{key}'. Allowed keys are: {allowed}")
         return value
+
+    @pydantic.field_serializer("blocking_keys")
+    def serialize_blocking_keys(self, keys: list[BlockingKey]) -> list[str]:
+        """
+        Serialize the blocking keys to a list of strings.
+        """
+        return [str(k) for k in keys]
 
 
 class SkipValue(pydantic.BaseModel):

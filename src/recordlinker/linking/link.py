@@ -16,7 +16,6 @@ from sqlalchemy import orm
 from recordlinker import models
 from recordlinker import schemas
 from recordlinker.database import mpi_service
-from recordlinker.schemas.algorithm import SkipValue
 from recordlinker.utils.mock import MockTracer
 
 from . import skip_values as sv
@@ -98,9 +97,8 @@ def compare(
     max_log_odds_points: float,
     max_allowed_missingness_proportion: float,
     missing_field_points_proportion: float,
-    algorithm_pass: models.AlgorithmPass,
+    algorithm_pass: schemas.AlgorithmPass,
     log_odds_weights: dict[str, float],
-    skip_values: list[SkipValue] = [],
 ) -> float:
     """
     Compare the incoming record to the linked patient and return the calculated
@@ -123,29 +121,22 @@ def compare(
       like which fields to evaluate and how to total log-odds points.
     :param log_odds_weights: A dictionary mapping Field names to float values,
       which are the precomputed log-odds weights associated with that field.
-    :param skip_values: A list of SkipValue objects that contain information
-      about field values that should be skipped during comparison.
     :returns: A boolean indicating whether the incoming record and the supplied
       candidate are a match, as determined by the specific matching rule
       contained in the algorithm_pass object.
     """
-    # all the functions used for comparison
-    evals: list[models.BoundEvaluator] = algorithm_pass.bound_evaluators()
     # keyword arguments to pass to comparison functions
     kwargs: dict[typing.Any, typing.Any] = algorithm_pass.kwargs
 
     missing_field_weights = 0.0
     results: list[float] = []
     details: dict[str, typing.Any] = {}
-    for e in evals:
-        # TODO: can we do this check earlier?
-        feature = schemas.Feature.parse(e.feature)
-        if feature is None:
-            raise ValueError(f"Invalid comparison field: {e.feature}")
-
+    for evaluator in algorithm_pass.evaluators:
+        feature: schemas.Feature = evaluator.feature
+        func: typing.Callable = evaluator.func.callable()
         # Evaluate the comparison function, track missingness, and append the
         # score component to the list
-        result: tuple[float, bool] = e.func(
+        result: tuple[float, bool] = func(
             record, mpi_record, feature, missing_field_points_proportion, **kwargs
         )  # type: ignore
         if result[1]:
@@ -153,7 +144,7 @@ def compare(
             # the candidate is missing overall
             missing_field_weights += log_odds_weights[str(feature.attribute)]
         results.append(result[0])
-        details[f"evaluator.{e.feature}.{e.func.__name__}.result"] = result
+        details[f"evaluator.{feature}.{func.__name__}.result"] = result
 
     # Make sure this score wasn't just accumulated with missing checks
     if missing_field_weights <= max_allowed_missingness_proportion * max_log_odds_points:
@@ -182,7 +173,7 @@ def grade_rms(rms: float, mmt: float, cmt: float) -> schemas.MatchGrade:
 def link_record_against_mpi(
     record: schemas.PIIRecord,
     session: orm.Session,
-    algorithm: models.Algorithm,
+    algorithm: schemas.Algorithm,
     external_person_id: typing.Optional[str] = None,
     persist: bool = True,
 ) -> tuple[models.Patient | None, models.Person | None, list[LinkResult], schemas.MatchGrade]:
@@ -219,22 +210,18 @@ def link_record_against_mpi(
         "persons_compared": 0,
         "patients_compared": 0,
     }
-    # NOTE: this is a temp conversion from model JSON data to a list of SkipValue objects
-    # when #223 is completed, this will be removed
-    skip_values: list[SkipValue] = (
-        [SkipValue(**d) for d in algorithm.skip_values] if algorithm.skip_values else []
-    )
     # clean the incoming record
-    cleaned_record: schemas.PIIRecord = sv.remove_skip_values(record, skip_values)
-    for algorithm_pass in algorithm.passes:
+    cleaned_record: schemas.PIIRecord = sv.remove_skip_values(record, algorithm.skip_values)
+    for idx, algorithm_pass in enumerate(algorithm.passes):
         with TRACER.start_as_current_span("link.pass"):
-            pass_label = algorithm_pass.label
+            pass_label = algorithm_pass.label or f"pass_{idx}"
             minimum_match_threshold, certain_match_threshold = algorithm_pass.possible_match_window
 
+            # FIXME: in #293 rework this logic to use the existing data in algorithm context
+            evaluators: list[schemas.Feature] = [e.feature for e in algorithm_pass.evaluators]
+            log_odds_points: dict[str, float] = algorithm_pass.kwargs["log_odds"]
             # Determine the maximum possible number of log-odds points in this pass
-            evaluators: list[str] = [e["feature"] for e in algorithm_pass.evaluators]
-            log_odds_points = algorithm_pass.kwargs["log_odds"]
-            max_points = sum([log_odds_points[e] for e in evaluators])
+            max_points: float = sum([log_odds_points[str(e)] for e in evaluators])
 
             # initialize a dictionary to hold the clusters of patients for each person
             clusters: dict[models.Person, list[schemas.PIIRecord]] = collections.defaultdict(list)
@@ -250,7 +237,7 @@ def link_record_against_mpi(
                 for pat in pats:
                     # convert the Patient model into a cleaned PIIRecord for comparison
                     mpi_record: schemas.PIIRecord = sv.remove_skip_values(
-                        schemas.PIIRecord.from_patient(pat), skip_values
+                        schemas.PIIRecord.from_patient(pat), algorithm.skip_values
                     )
                     clusters[pat.person].append(mpi_record)
 
@@ -271,7 +258,6 @@ def link_record_against_mpi(
                                 missing_field_points_proportion,
                                 algorithm_pass,
                                 log_odds_points,
-                                skip_values,
                             )
                             log_odds_sums.append(rule_result)
 

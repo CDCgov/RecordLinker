@@ -23,15 +23,19 @@ LOGGER = logging.getLogger(__name__)
 
 class BlockData:
     @classmethod
-    def _ordered_odds(cls, key_ids: list[str], kwargs: typing.Any) -> dict[str, float]:
+    def _ordered_odds(
+        cls, keys: list[models.BlockingKey], kwargs: typing.Any
+    ) -> dict[models.BlockingKey, float]:
         """
         Return a dictionary of key_ids ordered by log_odds values from highest to lowest.
 
-        :param key_ids: list[str]
+        :param keys: list[BlockingKey]
         :param kwargs: typing.Any
-        :return: dict[str, float]
+        :return: dict[BlockingKey, float]
         """
-        result: dict[str, float] = {k: kwargs.get("log_odds", {}).get(k, 0.0) for k in key_ids}
+        result: dict[models.BlockingKey, float] = {
+            k: kwargs.get("log_odds", {}).get(k.value, 0.0) for k in keys
+        }
         return dict(sorted(result.items(), key=lambda item: item[1], reverse=True))
 
     @classmethod
@@ -107,7 +111,7 @@ class BlockData:
         cls,
         session: orm.Session,
         record: schemas.PIIRecord,
-        algorithm_pass: models.AlgorithmPass,
+        algorithm_pass: schemas.AlgorithmPass,
         max_missing_allowed_proportion: float,
     ) -> typing.Sequence[models.Patient]:
         """
@@ -138,11 +142,7 @@ class BlockData:
         # multiple times, once for each Blocking Key.  If a Patient record
         # has a matching Blocking Value for all the Blocking Keys, then it
         # is considered a match.
-        for idx, (key_id, log_odds) in enumerate(key_odds.items()):
-            # get the BlockingKey obj from the id
-            if not hasattr(models.BlockingKey, key_id):
-                raise ValueError(f"No BlockingKey with id {id} found.")
-            key = getattr(models.BlockingKey, key_id)
+        for idx, (key, log_odds) in enumerate(key_odds.items()):
             # Get all the possible values from the data for this key
             blocking_values[key] = [v for v in record.blocking_keys(key)]
             if not blocking_values[key]:
