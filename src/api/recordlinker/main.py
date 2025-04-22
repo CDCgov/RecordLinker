@@ -10,6 +10,7 @@ from recordlinker import middleware
 from recordlinker._version import __version__
 from recordlinker.config import settings
 from recordlinker.routes.algorithm_router import router as algorithm_router
+from recordlinker.routes.demo_router import router as demo_router
 from recordlinker.routes.health_router import router as health_router
 from recordlinker.routes.link_router import router as link_router
 from recordlinker.routes.patient_router import router as patient_router
@@ -61,12 +62,14 @@ api.include_router(algorithm_router, prefix="/algorithm", tags=["algorithm"])
 api.include_router(person_router, prefix="/person", tags=["mpi"])
 api.include_router(patient_router, prefix="/patient", tags=["mpi"])
 api.include_router(seed_router, prefix="/seed", tags=["mpi"])
+api.include_router(demo_router, prefix="/demo", tags=["demo"])
 
 # FIXME: This is going to break the NBS integration, we need to communicate this
 # well in advance
 app.mount("/api", api)
 
 if settings.ui_static_dir:
+
     @app.exception_handler(StarletteHTTPException)
     async def not_found_handler(request, exc):
         """
@@ -90,6 +93,6 @@ if settings.ui_static_dir:
     # [page-rehydration].txt files, images and js/css bundles in _next
     app.mount(
         "/",
-        StaticFiles(directory=os.path.join(settings.ui_static_dir), html = True),
+        StaticFiles(directory=os.path.join(settings.ui_static_dir), html=True),
         name="SpaStatic",
     )

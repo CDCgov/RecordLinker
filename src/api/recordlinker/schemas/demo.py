@@ -7,6 +7,7 @@ This module contains the schema definitions for the demo API endpoints.
 """
 
 import datetime
+import enum
 import typing
 
 import pydantic
@@ -17,9 +18,9 @@ class DataStream(pydantic.BaseModel):
     type: str = pydantic.Field(description="The type of the data stream.")
 
 
-class Record(pydantic.BaseModel):
+class MatchQueueRecord(pydantic.BaseModel):
     """
-    Schema for a demo record.
+    Schema for a demo record on the Record Queue page.
     """
 
     id: int = pydantic.Field(
@@ -43,6 +44,18 @@ class Record(pydantic.BaseModel):
     link_score: typing.Annotated[float, pydantic.Field(ge=0, le=1)] = pydantic.Field(
         description="The confidence score between 0 and 1 for the linkage."
     )
-    linked: bool = pydantic.Field(
-        default=None, description="Whether the record has been linked to another entity."
+    linked: bool | None = pydantic.Field(
+        description="Whether the record has been linked to another entity."
     )
+
+
+class LinkedStatus(enum.Enum):
+    """
+    Enum for the status of a record in the demo API that is used to filter records on
+    the Record Queue page.
+    """
+
+    linked = "linked"
+    unlinked = "unlinked"
+    evaluated = "evaluated"
+    pending = "pending"
