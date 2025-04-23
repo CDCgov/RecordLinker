@@ -1,28 +1,16 @@
-"use client";
-
-import { JSX } from "react";
-import RecordTable from "@/components/recordTable/recordTable";
 import classNames from "classnames";
-import { LinkIcon, LinkOffIcon } from "@/components/Icons/icons";
-import { Button } from "@trussworks/react-uswds";
-import { Record } from "@/models/record";
 import styles from "./recordReview.module.scss";
+import { JSX } from "react";
 
-const patient: unknown = [
-  {
-    id: "123",
-    patient: {
-      firstName: "John",
-      lastName: "Doe",
-      dob: new Date("04/13/1989"),
-    },
-    receivedOn: new Date(),
-    dataStream: {
-      name: "System system",
-      type: "ELR",
-    },
-    linkScore: 0.98,
-  },
+const valueCellClasses = (idx: number) => [
+  "flex-4",
+  "border-x",
+  "border-accent-cool-light",
+  "margin-left-2",
+  "padding-x-105",
+  "padding-y-1",
+  "text-medium",
+  idx % 2 ? "bg-accent-cool-lighter" : "bg-white",
 ];
 
 function getComparisonRow(
@@ -31,6 +19,9 @@ function getComparisonRow(
   incomingValue: string,
   potentialValue: string,
 ): JSX.Element {
+  const valuesDiffer: boolean =
+    !!incomingValue && incomingValue !== potentialValue;
+
   return (
     <div key={idx} role="row" className={classNames("grid-row", "flex-row")}>
       <div
@@ -47,44 +38,36 @@ function getComparisonRow(
       <div
         role="gridcell"
         className={classNames(
-          "flex-4",
-          "border-x",
-          "border-accent-cool-light",
-          "margin-left-2",
-          "padding-x-105",
-          "padding-y-1",
-          "text-medium",
-          incomingValue && incomingValue !== potentialValue
-            ? "text-accent-warm-dark text-bold"
-            : "",
-          idx % 2 ? "bg-accent-cool-lighter" : "bg-white",
+          valueCellClasses(idx),
+          valuesDiffer && "text-accent-warm-dark text-bold",
         )}
       >
         {incomingValue}
+        {valuesDiffer && (
+          <span className="usa-sr-only">
+            different incoming value highlighted
+          </span>
+        )}
       </div>
       <div
         role="gridcell"
         className={classNames(
-          "flex-4",
-          "border-x",
-          "border-accent-cool-light",
-          "margin-left-2",
-          "padding-x-105",
-          "padding-y-1",
-          "text-medium",
-          incomingValue && incomingValue !== potentialValue ? "text-bold" : "",
-          idx % 2 ? "bg-accent-cool-lighter" : "bg-white",
+          valueCellClasses(idx),
+          valuesDiffer && "text-bold",
         )}
       >
         {potentialValue}
+        {valuesDiffer && (
+          <span className="usa-sr-only">
+            different matching value highlighted
+          </span>
+        )}
       </div>
     </div>
   );
 }
 
-function getComparisonView() {
-  // ToDo I need to retrieve the data
-
+const RecordCompare: React.FC = () => {
   return (
     <div
       role="grid"
@@ -132,23 +115,6 @@ function getComparisonView() {
       {getComparisonRow(3, "Last name", "Doe", "Doe")}
     </div>
   );
-}
-
-const RecordComparison: React.FC = () => {
-  return (
-    <>
-      <RecordTable items={patient as Record[]} />
-      {getComparisonView()}
-      <div className="margin-top-3">
-        <Button className="margin-right-105">
-          Link record <LinkIcon size={3} />
-        </Button>
-        <Button>
-          Do not link record <LinkOffIcon size={3} />
-        </Button>
-      </div>
-    </>
-  );
 };
 
-export default RecordComparison;
+export default RecordCompare;

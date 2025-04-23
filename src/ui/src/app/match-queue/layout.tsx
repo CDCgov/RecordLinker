@@ -13,7 +13,7 @@ const RecordQueueLayout: React.FC<React.PropsWithChildren> = ({ children }) => {
 };
 
 export const metadata = {
-  title: "Record linker | Record match queue",
+  title: "Record linker | Match queue",
 };
 
 export default RecordQueueLayout;

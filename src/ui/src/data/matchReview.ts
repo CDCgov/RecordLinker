@@ -1,8 +1,8 @@
-import { Record as RLRecord } from "@/models/record";
-
-export async function getUnreviewedRecords(): Promise<RLRecord[]> {
-  // return (await fetch(`${API_URL}/demo/record`)).json();
-  // return [];
+export async function getRecordMatch(
+  id: string | null,
+): Promise<unknown | null> {
+  // return (await fetch(`${API_URL}/demo/record/${id}`)).json();
+  // return null;
   // return Promise.reject(new Error("oooops"));
   return Promise.resolve([
     {
