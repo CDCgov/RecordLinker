@@ -1,6 +1,7 @@
 import BackToLink from "@/components/backToLink/BackToLink";
 import { PAGES } from "@/utils/constants";
 import RecordView from "./recordView";
+import { Suspense } from "react";
 
 const RecordReview: React.FC = () => {
   return (
@@ -16,7 +17,9 @@ const RecordReview: React.FC = () => {
         Compare the incoming record with the potential match in the queue to
         determine if they refer to the same individual.
       </p>
-      <RecordView />
+      <Suspense>
+        <RecordView />
+      </Suspense>
       <p className="text-italic margin-top-2">
         Linking a record will append a Person ID to the incoming record,
         effectively linking it to the potential match.

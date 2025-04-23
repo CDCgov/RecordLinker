@@ -1,6 +1,7 @@
 export async function getRecordMatch(
   id: string | null,
 ): Promise<unknown | null> {
+  console.log("id:", id);
   // return (await fetch(`${API_URL}/demo/record/${id}`)).json();
   // return null;
   // return Promise.reject(new Error("oooops"));
