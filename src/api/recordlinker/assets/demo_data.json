@@ -14,7 +14,7 @@
             "linked": null,
             "incoming_data": {
                 "person_id": null,
-                "patient_id": "1234",
+                "patient_id": 1234,
                 "first_name": "Jane",
                 "last_name": "Sampson",
                 "mrn": "123-45-6789",
@@ -29,8 +29,8 @@
                 }
             },
             "potential_match": {
-                "person_id": "4567",
-                "patient_id": "2345",
+                "person_id": 4567,
+                "patient_id": 2345,
                 "first_name": "Jan",
                 "last_name": "Sampson",
                 "mrn": "123-45-6789",
@@ -59,7 +59,7 @@
             "linked": null,
             "incoming_data": {
                 "person_id": null,
-                "patient_id": "2323",
+                "patient_id": 2,
                 "first_name": "Jon",
                 "last_name": "Ford",
                 "mrn": "123-45-6789",
@@ -74,8 +74,8 @@
                 }
             },
             "potential_match": {
-                "person_id": "7890",
-                "patient_id": "4545",
+                "person_id": 7890,
+                "patient_id": 4545,
                 "first_name": "John",
                 "last_name": "Ford",
                 "mrn": "123-45-6789",
@@ -104,7 +104,7 @@
             "linked": null,
             "incoming_data": {
                 "person_id": null,
-                "patient_id": "5656",
+                "patient_id": 3,
                 "first_name": "Lisa",
                 "last_name": "Jacobs",
                 "mrn": "123-45-6789",
@@ -119,8 +119,8 @@
                 }
             },
             "potential_match": {
-                "person_id": "7878",
-                "patient_id": "4545",
+                "person_id": 7878,
+                "patient_id": 4545,
                 "first_name": "Lisa",
                 "last_name": "Jacobs",
                 "mrn": "123-45-6789",
@@ -149,7 +149,7 @@
             "linked": null,
             "incoming_data": {
                 "person_id": null,
-                "patient_id": "7878",
+                "patient_id": 4,
                 "first_name": "Sally",
                 "last_name": "May",
                 "mrn": "123-45-6789",
@@ -164,8 +164,8 @@
                 }
             },
             "potential_match": {
-                "person_id": "9191",
-                "patient_id": "7654",
+                "person_id": 9191,
+                "patient_id": 7654,
                 "first_name": "Sally",
                 "last_name": "May",
                 "mrn": "123-45-1234",
@@ -194,7 +194,7 @@
             "linked": false,
             "incoming_data": {
                 "person_id": null,
-                "patient_id": "5689",
+                "patient_id": 5,
                 "first_name": "Iginla",
                 "last_name": "Herb",
                 "mrn": "123-45-6789",
@@ -209,8 +209,8 @@
                 }
             },
             "potential_match": {
-                "person_id": "2301",
-                "patient_id": "9698",
+                "person_id": 2301,
+                "patient_id": 9698,
                 "first_name": "Iginlla",
                 "last_name": "Herbe",
                 "mrn": "123-45-6789",
@@ -239,7 +239,7 @@
             "linked": true,
             "incoming_data": {
                 "person_id": null,
-                "patient_id": "5891",
+                "patient_id": 6,
                 "first_name": "Juan",
                 "last_name": "Suarez",
                 "mrn": "123-45-6789",
@@ -254,8 +254,8 @@
                 }
             },
             "potential_match": {
-                "person_id": "5618",
-                "patient_id": "3688",
+                "person_id": 5618,
+                "patient_id": 3688,
                 "first_name": "Juan Miguel",
                 "last_name": "Suarez",
                 "mrn": null,
