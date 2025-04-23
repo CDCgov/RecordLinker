@@ -20,7 +20,9 @@
                 "mrn": "123-45-6789",
                 "birth_date": "1982-04-04",
                 "address": {
-                    "line": "123 Main St",
+                    "line": [
+                        "123 Main St"
+                    ],
                     "city": "Boston",
                     "state": "MA",
                     "postal_code": "02134"
@@ -34,7 +36,9 @@
                 "mrn": "123-45-6789",
                 "birth_date": "1982-04-04",
                 "address": {
-                    "line": "123 Main St",
+                    "line": [
+                        "123 Main St"
+                    ],
                     "city": "Boston",
                     "state": "MA",
                     "postal_code": "02134"
@@ -61,7 +65,9 @@
                 "mrn": "123-45-6789",
                 "birth_date": "1976-02-21",
                 "address": {
-                    "line": "123 Main St",
+                    "line": [
+                        "123 Main St"
+                    ],
                     "city": "Boston",
                     "state": "MA",
                     "postal_code": "02134"
@@ -75,7 +81,9 @@
                 "mrn": "123-45-6789",
                 "birth_date": "1976-02-22",
                 "address": {
-                    "line": "123 Main St",
+                    "line": [
+                        "123 Main St"
+                    ],
                     "city": "Boston",
                     "state": "MA",
                     "postal_code": "02134"
@@ -102,7 +110,9 @@
                 "mrn": "123-45-6789",
                 "birth_date": "1996-07-12",
                 "address": {
-                    "line": "123 Main St",
+                    "line": [
+                        "123 Main St"
+                    ],
                     "city": "Boston",
                     "state": "MA",
                     "postal_code": "02134"
@@ -116,7 +126,9 @@
                 "mrn": "123-45-6789",
                 "birth_date": "1996-07-12",
                 "address": {
-                    "line": "123 Main St",
+                    "line": [
+                        "123 Main St"
+                    ],
                     "city": "Boston",
                     "state": "MA",
                     "postal_code": "02137"
@@ -143,7 +155,9 @@
                 "mrn": "123-45-6789",
                 "birth_date": "1996-07-12",
                 "address": {
-                    "line": "123 Main St",
+                    "line": [
+                        "123 Main St"
+                    ],
                     "city": "Boston",
                     "state": "MA",
                     "postal_code": "02134"
@@ -157,7 +171,9 @@
                 "mrn": "123-45-1234",
                 "birth_date": "1996-07-12",
                 "address": {
-                    "line": "45 Elm St",
+                    "line": [
+                        "45 Elm St"
+                    ],
                     "city": "Boston",
                     "state": "MA",
                     "postal_code": "02134"
@@ -184,7 +200,9 @@
                 "mrn": "123-45-6789",
                 "birth_date": "1978-07-07",
                 "address": {
-                    "line": "45 Elm St",
+                    "line": [
+                        "45 Elm St"
+                    ],
                     "city": "Boston",
                     "state": "MA",
                     "postal_code": "02134"
@@ -198,7 +216,9 @@
                 "mrn": "123-45-6789",
                 "birth_date": "1979-07-07",
                 "address": {
-                    "line": "45 Elm St",
+                    "line": [
+                        "45 Elm St"
+                    ],
                     "city": "Boston",
                     "state": "MA",
                     "postal_code": "02134"
@@ -225,7 +245,9 @@
                 "mrn": "123-45-6789",
                 "birth_date": "2000-06-10",
                 "address": {
-                    "line": "45 Elm St",
+                    "line": [
+                        "45 Elm St"
+                    ],
                     "city": "Boston",
                     "state": "MA",
                     "postal_code": "02134"
@@ -239,7 +261,9 @@
                 "mrn": null,
                 "birth_date": "2000-06-10",
                 "address": {
-                    "line": "451 Elm St",
+                    "line": [
+                        "451 Elm St"
+                    ],
                     "city": "Boston",
                     "state": "MA",
                     "postal_code": "02134"
