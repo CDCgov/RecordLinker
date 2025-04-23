@@ -42,7 +42,7 @@ in the future, parsing the birthdate will generate an error message and result i
 
 `NAME`
 
-:   The patient's full name. (We recommend only using this field for checking skip values, for feature matching we recommend using `FIRST_NAME` and `LAST_NAME` for best results)
+:   The patient's first and last name. (We recommend only using this field for checking skip values, for feature matching we recommend using `FIRST_NAME` and `LAST_NAME` for best results)
 
 `SUFFIX`
 
@@ -185,9 +185,7 @@ allows users to specify conditions under which these values should be excluded f
 Each `skip_value` has two properties, a `feature` and a `values`.  The `feature` specifies the
 field to which the condition applies, any value from the [Features](#features) list may be used.
 Additionally a `*` wildcard can be used in the `feature` field to apply the condition to all
-fields. The `values` property accepts a list of case-insensitive values to skip. Standard
-[fnmatch](https://docs.python.org/3/library/fnmatch.html) syntax can be used in the values to
-indicate wildcard matches.
+fields. The `values` property accepts a list of case-insensitive values to skip. 
 
 **Example:**
 
@@ -195,11 +193,11 @@ indicate wildcard matches.
 "skip_values": [
   {
     "feature": "NAME",
-    "values": ["John * Doe", "Jane * Doe"]
+    "values": ["John Doe", "Jane Doe"]
   },
   {
     "feature": "IDENTIFIER:SS",
-    "values": ["999-??-9999"]
+    "values": ["999-99-9999"]
   },
   {
     "feature": "*",
@@ -209,6 +207,6 @@ indicate wildcard matches.
 ```
 
 In this example, the algorithm will exclude fields from comparison if they match:
-- `John Doe` or `Jane Doe` in the patient's name, with any characters in between
-- `999-XX-9999` in the patient's social security number, where XX can be any two digits
+- `John Doe` or `Jane Doe` in the patient's name
+- `999-99-9999` in the patient's social security number
 - `unknown` or `not specified` in any patient field

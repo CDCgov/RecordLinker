@@ -16,13 +16,10 @@ class TestMatchSkipValues:
     def test_no_matches(self):
         assert not skip_values._match_skip_values("foo", ["bar"])
         assert not skip_values._match_skip_values("foo", ["bar", "baz"])
-        assert not skip_values._match_skip_values("foo", ["b*"])
 
     def test_matches(self):
         assert skip_values._match_skip_values("foo", ["foo"])
         assert skip_values._match_skip_values("foo", ["bar", "Foo"])
-        assert skip_values._match_skip_values("FOO", ["f*"])
-        assert skip_values._match_skip_values("foo", ["f??"])
 
 
 class TestRemoveSkipValues:
@@ -73,7 +70,7 @@ class TestRemoveSkipValues:
         assert cleaned.sex is None
 
     def test_address(self):
-        skips = [SkipValue(feature="ADDRESS", values=["123 Fake *"])]
+        skips = [SkipValue(feature="ADDRESS", values=["123 Fake ST"])]
         cleaned = skip_values.remove_skip_values(
             schemas.PIIRecord(address=[{"line": ["123 Fake St"]}, {"line": ["53 Fake Ave"]}]), skips
         )
@@ -95,7 +92,7 @@ class TestRemoveSkipValues:
         assert cleaned.address[0].state == ""
 
     def test_zip(self):
-        skips = [SkipValue(feature="ZIP", values=["00000*"])]
+        skips = [SkipValue(feature="ZIP", values=["00000"])]
         cleaned = skip_values.remove_skip_values(
             schemas.PIIRecord(address=[{"postal_code": "00000"}]), skips
         )
@@ -103,7 +100,7 @@ class TestRemoveSkipValues:
         cleaned = skip_values.remove_skip_values(
             schemas.PIIRecord(address=[{"postal_code": "00000-1111"}]), skips
         )
-        assert cleaned.address[0].postal_code == ""
+        assert cleaned.address[0].postal_code == "00000-1111"
 
     def test_county(self):
         skips = [SkipValue(feature="COUNTY", values=["missing"])]
@@ -140,7 +137,7 @@ class TestRemoveSkipValues:
         skips = [
             SkipValue(
                 feature="NAME",
-                values=["John Doe", "John * Doe", "Jon Doe", "Jon * Doe", "Jane Doe", "Jane * Doe"],
+                values=["John Doe", "Jon Doe", "Jane Doe"],
             )
         ]
         cleaned = skip_values.remove_skip_values(
@@ -204,7 +201,7 @@ class TestRemoveSkipValues:
         assert cleaned.telecom[1].value == "+15555555555"
 
     def test_email(self):
-        skips = [SkipValue(feature="EMAIL", values=["fake@*.com"])]
+        skips = [SkipValue(feature="EMAIL", values=["fake@aol.com"])]
         cleaned = skip_values.remove_skip_values(
             schemas.PIIRecord(telecom=[{"system": "email", "value": "fake@aol.com"}]), skips
         )
@@ -217,13 +214,13 @@ class TestRemoveSkipValues:
         assert cleaned.telecom[0].value == "fake@earthlink.net"
 
     def test_identifier(self):
-        skips = [SkipValue(feature="IDENTIFIER", values=["fake:*"])]
+        skips = [SkipValue(feature="IDENTIFIER", values=["fake::DL"])]
         cleaned = skip_values.remove_skip_values(
             schemas.PIIRecord(identifiers=[{"type": "DL", "value": "fake"}]), skips
         )
         assert cleaned.identifiers[0].type == IdentifierType.DL
         assert cleaned.identifiers[0].value == ""
-        skips = [SkipValue(feature="IDENTIFIER:MR", values=["999999999:*"])]
+        skips = [SkipValue(feature="IDENTIFIER:MR", values=["999999999::MR"])]
         cleaned = skip_values.remove_skip_values(
             schemas.PIIRecord(identifiers=[{"type": "DL", "value": "999999999"}]), skips
         )

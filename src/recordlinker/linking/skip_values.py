@@ -5,7 +5,6 @@ recordlinker.linking.skip_values
 This module is used to process skip values on the data before running the linkage algorithm
 """
 
-import fnmatch
 import typing
 
 from recordlinker import schemas
@@ -16,14 +15,14 @@ from recordlinker.schemas.identifier import IdentifierType
 def _match_skip_values(value: str, values: typing.Sequence[str]) -> bool:
     """
     Return whether the value matches any of the values in the list
-    using case-insensitive fnmatch matching.
+    using case-insensitive matching.
 
     :param value: the value to match
     :param values: the list of values to match
     :return: True if the value matches any of the values in the list
     """
     val = value.lower()
-    return any(fnmatch.fnmatch(val, v.lower()) for v in values)
+    return any(val == v.lower() for v in values)
 
 
 def remove_skip_values(record: schemas.PIIRecord, skips: typing.Sequence[SkipValue]) -> schemas.PIIRecord:
@@ -82,7 +81,7 @@ def remove_skip_values(record: schemas.PIIRecord, skips: typing.Sequence[SkipVal
                     cleaned.name[idx].family = ""
         if feat_attr in (schemas.FeatureAttribute.NAME, None):
             for idx, name in enumerate(record.name):
-                nval = f"{' '.join(name.given)} {name.family}"
+                nval = f"{' '.join(name.given[0:1])} {name.family}"
                 if name and _match_skip_values(nval, values):
                     cleaned.name[idx].given = []
                     cleaned.name[idx].family = ""

@@ -471,6 +471,7 @@ class PIIRecord(StrippedBaseModel):
         elif attribute == FeatureAttribute.ZIP:
             for address in self.address:
                 if address.postal_code:
+                    # FIXME: should we normalize zip codes during ingest, rather than here?
                     # only use the first 5 digits for comparison
                     yield address.postal_code[:5]
         elif attribute == FeatureAttribute.GIVEN_NAME:
@@ -489,7 +490,7 @@ class PIIRecord(StrippedBaseModel):
                     yield normalize_text(name.family)
         elif attribute == FeatureAttribute.NAME:
             for name in self.name:
-                yield normalize_text("".join(name.given + [name.family]))
+                yield normalize_text("".join(name.given[0:1] + [name.family]))
         elif attribute == FeatureAttribute.RACE:
             for race in self.race:
                 if race and race not in [Race.UNKNOWN, Race.ASKED_UNKNOWN]:

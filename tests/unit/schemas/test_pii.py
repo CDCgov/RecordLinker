@@ -257,6 +257,7 @@ class TestPIIRecord:
             name=[
                 pii.Name(family="Doe", given=["John", "L"], suffix=["suffix"]),
                 pii.Name(family="Smith", given=["Jane"], suffix=["suffix2"]),
+                pii.Name(family="Smith", given=[]),
             ],
             telecom=[
                 pii.Telecom(value="555-123-4567"),
@@ -314,10 +315,12 @@ class TestPIIRecord:
         assert list(record.feature_iter(pii.Feature(attribute=pii.FeatureAttribute.LAST_NAME))) == [
             "doe",
             "smith",
+            "smith",
         ]
         assert list(record.feature_iter(pii.Feature(attribute=pii.FeatureAttribute.NAME))) == [
-            "johnldoe",
+            "johndoe",
             "janesmith",
+            "smith",
         ]
         assert list(record.feature_iter(pii.Feature(attribute=pii.FeatureAttribute.RACE))) == []
         assert list(record.feature_iter(pii.Feature(attribute=pii.FeatureAttribute.TELECOM))) == [
