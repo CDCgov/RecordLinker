@@ -44,7 +44,6 @@ class TestGetMatchQueueRecordsEndpoint:
     def test_get_records_invalid_status(self, client):
         response = client.get("/api/demo/record?status=invalid")
         assert response.status_code == 422
-        print(response.json())
         assert response.json() == {
             "detail": [
                 {
