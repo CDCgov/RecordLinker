@@ -64,7 +64,8 @@ class StrippedBaseModel(pydantic.BaseModel):
         if isinstance(v, str):
             return v.strip()
         return v
-    
+
+
 class Feature(StrippedBaseModel):
     """
     The schema for a feature.
@@ -74,6 +75,15 @@ class Feature(StrippedBaseModel):
 
     suffix: typing.Optional[IdentifierType] = None
     attribute: FeatureAttribute
+
+    @pydantic.model_serializer()
+    def __str__(self):
+        """
+        Override the default model dump to create a single string for Feature.
+        """
+        if self.suffix:
+            return f"{self.attribute}:{self.suffix}"
+        return str(self.attribute)
 
     @classmethod
     def parse(cls, feature_string: str) -> typing.Self:

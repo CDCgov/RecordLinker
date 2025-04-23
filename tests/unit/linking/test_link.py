@@ -55,10 +55,9 @@ class TestCompare:
         max_allowed_missingness_proportion = 0.5
         missing_field_points_proportion = 0.5
 
-        algorithm_pass = models.AlgorithmPass(
-            id=1,
-            algorithm_id=1,
-            blocking_keys=[1],
+        algorithm_pass = schemas.AlgorithmPass(
+            label="pass",
+            blocking_keys=["BIRTHDATE"],
             evaluators=evaluators,
             possible_match_window=(0.8, 0.925),
             kwargs={"log_odds": log_odds},
@@ -100,10 +99,9 @@ class TestCompare:
         max_points = sum([log_odds[e] for e in eval_fields])
         max_allowed_missingness_proportion = 0.5
         missing_field_points_proportion = 0.5
-        algorithm_pass = models.AlgorithmPass(
-            id=1,
-            algorithm_id=1,
-            blocking_keys=[1],
+        algorithm_pass = schemas.AlgorithmPass(
+            label="pass",
+            blocking_keys=["BIRTHDATE"],
             evaluators=evaluators,
             possible_match_window=(0.8, 0.925),
             kwargs={"log_odds": log_odds},
@@ -154,10 +152,9 @@ class TestCompare:
         max_allowed_missingness_proportion = 0.5
         missing_field_points_proportion = 0.5
 
-        algorithm_pass = models.AlgorithmPass(
-            id=1,
-            algorithm_id=1,
-            blocking_keys=[1],
+        algorithm_pass = schemas.AlgorithmPass(
+            label="pass",
+            blocking_keys=["BIRTHDATE"],
             evaluators=evaluators,
             possible_match_window=(0.8, 0.925),
             kwargs={"log_odds": log_odds},
@@ -208,10 +205,9 @@ class TestCompare:
         max_allowed_missingness_proportion = 0.5
         missing_field_points_proportion = 0.5
 
-        algorithm_pass = models.AlgorithmPass(
-            id=1,
-            algorithm_id=1,
-            blocking_keys=[1],
+        algorithm_pass = schemas.AlgorithmPass(
+            label="pass",
+            blocking_keys=["BIRTHDATE"],
             evaluators=evaluators,
             possible_match_window=(0.8, 0.925),
             kwargs={"log_odds": log_odds},
@@ -220,30 +216,15 @@ class TestCompare:
         #should pass as MR is the same for both
         assert link.compare(rec, pat, max_points, max_allowed_missingness_proportion, missing_field_points_proportion, algorithm_pass, log_odds) == algorithm_pass.kwargs["log_odds"]["IDENTIFIER"]
 
-        algorithm_pass.evaluators = [{"feature": "IDENTIFIER:SS", "func": "COMPARE_PROBABILISTIC_FUZZY_MATCH"}]
+        algorithm_pass = schemas.AlgorithmPass(
+            label="pass",
+            blocking_keys=["BIRTHDATE"],
+            evaluators=[{"feature": "IDENTIFIER:SS", "func": "COMPARE_PROBABILISTIC_FUZZY_MATCH"}],
+            possible_match_window=(0.8, 0.925),
+            kwargs={"log_odds": log_odds},
+        )
         #should fail as SS is different for both
         assert link.compare(rec, pat, max_points, max_allowed_missingness_proportion, missing_field_points_proportion, algorithm_pass, log_odds) == 0.0
-
-    def test_compare_invalid_feature(self):
-        rec = schemas.PIIRecord(
-            **{"name": [{"given": ["John"], "family": "Doe"}]}
-        )
-        pat = models.Patient(
-            data={"name": [{"given": ["John"], "family": "Doey"}]}
-        )
-
-        algorithm_pass = models.AlgorithmPass(
-            id=1,
-            algorithm_id=1,
-            blocking_keys=[1],
-            evaluators=[
-                {"feature": "FIRST_NAME:DL", "func": "COMPARE_PROBABILISTIC_FUZZY_MATCH"},
-            ],
-            kwargs={},
-        )
-
-        with pytest.raises(ValueError):
-            link.compare(rec, pat, 0.0, 0.5, 0.5, algorithm_pass, {})
 
 
 class TestLinkRecordAgainstMpi:
@@ -550,7 +531,7 @@ class TestLinkRecordAgainstMpi:
         ):
         match_grades: dict[str, dict] = collections.defaultdict(dict)
         # Can just set the threshold for certainty higher to catch a possible match
-        default_algorithm.passes[0].certain_match_threshold = 0.95
+        default_algorithm.passes[0].possible_match_window = (0.7, 0.95)
         for i, data in enumerate(possible_match_default_patients):
             (patient, person, results, match_grade) = link.link_record_against_mpi(data, session, default_algorithm)
             match_grades[i] = {
@@ -566,8 +547,8 @@ class TestLinkRecordAgainstMpi:
         assert match_grades[1]["match_grade"] == "certain"
         assert match_grades[2]["match_grade"] == "possible"
         assert match_grades[2]["results"][0].person == match_grades[0]["person"]
-        assert match_grades[2]["results"][0].rms >= default_algorithm.passes[0].minimum_match_threshold
-        assert match_grades[2]["results"][0].rms < default_algorithm.passes[0].certain_match_threshold
+        assert match_grades[2]["results"][0].rms >= default_algorithm.passes[0].possible_match_window[0]
+        assert match_grades[2]["results"][0].rms < default_algorithm.passes[0].possible_match_window[1]
 
     def test_include_multiple_matches_true(
             self,
