@@ -1,0 +1,55 @@
+"""
+recordlinker.routes.demo_router
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+This module implements the demo router for the RecordLinker API. Exposing
+the API endpoints for the demo UI.
+"""
+
+import typing
+
+import fastapi
+
+from recordlinker import schemas
+from recordlinker.utils import path as utils
+
+router = fastapi.APIRouter()
+
+# Load static data for the Match Queue page in the demo UI
+data = utils.read_json("assets/demo_data.json")["demo_data"]
+
+
+def filter_and_sort(
+    data: typing.Dict,
+    status: typing.Optional[schemas.demo.LinkedStatus] = None,
+) -> typing.List[schemas.demo.MatchQueueRecord]:
+    """
+    Filter data by linked status and sort by received_on date.
+    """
+    status_filters = {
+        schemas.demo.LinkedStatus.linked: lambda d: d["linked"] is True,
+        schemas.demo.LinkedStatus.unlinked: lambda d: d["linked"] is False,
+        schemas.demo.LinkedStatus.evaluated: lambda d: d["linked"] is not None,
+        schemas.demo.LinkedStatus.pending: lambda d: d["linked"] is None,
+    }
+
+    filtered = [d for d in data if status_filters[status](d)] if status else data
+    return sorted(
+        filtered,
+        key=lambda x: x["received_on"],
+    )
+
+
+@router.get(
+    "/record",
+    summary="Get record queue demo data",
+)
+def get_demo_data(
+    status: typing.Optional[schemas.demo.LinkedStatus] = None,
+) -> typing.List[schemas.demo.MatchQueueRecord]:
+    """
+    Retrieve static data asset for the record queue page in the demo UI.
+    """
+    filtered_sorted = filter_and_sort(data, status)
+
+    return filtered_sorted
