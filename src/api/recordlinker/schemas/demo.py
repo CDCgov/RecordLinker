@@ -12,6 +12,8 @@ import typing
 
 import pydantic
 
+from recordlinker import schemas
+
 
 class DataStream(pydantic.BaseModel):
     system: str = pydantic.Field(description="The originating system of the data stream.")
@@ -59,3 +61,45 @@ class LinkedStatus(enum.Enum):
     unlinked = "unlinked"
     evaluated = "evaluated"
     pending = "pending"
+
+
+class MatchReviewRecordData(pydantic.BaseModel):
+    """
+    Schema for the data associated with a match review record.
+    """
+
+    person_id: int | None = pydantic.Field(
+        description="The unique identifier for the person associated with the record.",
+        default=None,
+    )
+    patient_id: int = pydantic.Field(
+        "The unique identifier for the patient associated with the record."
+    )
+    first_name: str = pydantic.Field(
+        description="The first name of the patient.",
+    )
+    last_name: str = pydantic.Field(
+        description="The last name of the patient.",
+    )
+    mrn: str = pydantic.Field(
+        description="The social security number of the patient.",
+    )
+    birth_date: typing.Optional[datetime.date] = pydantic.Field(
+        default=None, validation_alias=pydantic.AliasChoices("birth_date", "birthdate", "birthDate")
+    )
+    address: schemas.pii.Address = pydantic.Field(
+        description="The address of the patient.",
+    )
+
+
+class MatchReviewRecord(MatchQueueRecord):
+    """
+    Schema for a demo record on the Match Review page.
+    """
+
+    incoming_data: MatchReviewRecordData = pydantic.Field(
+        description="The incoming patient data that is being reviewed."
+    )
+    potential_match: MatchReviewRecordData = pydantic.Field(
+        description="The potential match details for the record."
+    )

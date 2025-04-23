@@ -48,8 +48,22 @@ def get_demo_data(
     status: typing.Optional[schemas.demo.LinkedStatus] = None,
 ) -> typing.List[schemas.demo.MatchQueueRecord]:
     """
-    Retrieve static data asset for the record queue page in the demo UI.
+    Retrieve static data asset for the Match Queue page in the demo UI.
     """
     filtered_sorted = filter_and_sort(data, status)
 
     return filtered_sorted
+
+
+@router.get(
+    "/record/{patient_reference_id}",
+    summary="Get demo records for match review",
+)
+def get_match_review_records(
+    patient_reference_id: int,
+) -> schemas.demo.MatchReviewRecord:
+    """
+    Retrieve static data asset for the Match Review page in the demo UI by pateint_reference_id.
+    """
+    match_review_record = next((d for d in data if d["id"] == patient_reference_id), None)
+    return match_review_record
