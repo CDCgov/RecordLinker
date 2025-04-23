@@ -79,3 +79,8 @@ class TestGetMatchReviewRecords:
                 }
             ]
         }
+
+    def test_get_records_missing_id(self, client):
+        response = client.get("/api/demo/record/7")
+        assert response.status_code == 404
+        assert response.json() == {"detail": "Not Found"}
