@@ -75,19 +75,19 @@ class MatchReviewRecordData(pydantic.BaseModel):
     patient_id: int = pydantic.Field(
         "The unique identifier for the patient associated with the record."
     )
-    first_name: str = pydantic.Field(
+    first_name: typing.Optional[str] = pydantic.Field(
         description="The first name of the patient.",
     )
-    last_name: str = pydantic.Field(
+    last_name: typing.Optional[str] = pydantic.Field(
         description="The last name of the patient.",
     )
-    mrn: str = pydantic.Field(
+    mrn: typing.Optional[str] = pydantic.Field(
         description="The social security number of the patient.",
     )
     birth_date: typing.Optional[datetime.date] = pydantic.Field(
         default=None, validation_alias=pydantic.AliasChoices("birth_date", "birthdate", "birthDate")
     )
-    address: schemas.pii.Address = pydantic.Field(
+    address: typing.Optional[schemas.pii.Address] = pydantic.Field(
         description="The address of the patient.",
     )
 
