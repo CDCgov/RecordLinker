@@ -55,3 +55,27 @@ class TestGetMatchQueueRecordsEndpoint:
                 }
             ]
         }
+
+
+class TestGetMatchReviewRecords:
+    def test_get_records(self, client):
+        patient_reference_id = 1
+        response = client.get(f"/api/demo/record/{patient_reference_id}")
+        assert response.status_code == 200
+        assert response.json()["id"] == patient_reference_id
+        assert "incoming_data" in response.json()
+        assert "potential_match" in response.json()
+
+    def test_get_records_invalid_id(self, client):
+        response = client.get("/api/demo/record/invalid")
+        assert response.status_code == 422
+        assert response.json() == {
+            "detail": [
+                {
+                    "type": "int_parsing",
+                    "loc": ["path", "patient_reference_id"],
+                    "msg": "Input should be a valid integer, unable to parse string as an integer",
+                    "input": "invalid",
+                }
+            ]
+        }

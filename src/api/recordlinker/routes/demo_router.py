@@ -65,5 +65,8 @@ def get_match_review_records(
     """
     Retrieve static data asset for the Match Review page in the demo UI by pateint_reference_id.
     """
+
     match_review_record = next((d for d in data if d["id"] == patient_reference_id), None)
+    if match_review_record is None:
+        raise fastapi.HTTPException(status_code=fastapi.status.HTTP_404_NOT_FOUND)
     return match_review_record
