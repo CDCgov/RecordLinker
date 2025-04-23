@@ -32,3 +32,16 @@ def load_session(request: fastapi.Request, key: str) -> typing.Optional[dict]:
 
     serializer = itsdangerous.URLSafeSerializer(settings.secret_key)
     return serializer.loads(value)
+
+
+def delete_session(response: fastapi.Response, key: str) -> None:
+    """
+    Delete the session data from the session store.
+    """
+    response.delete_cookie(
+        key,
+        domain=settings.session_cookie_domain,
+        secure=settings.session_cookie_secure,
+        httponly=True,
+        samesite="lax",
+    )
