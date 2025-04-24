@@ -13,17 +13,24 @@ const valueCellClasses = (idx: number) => [
   idx % 2 ? "bg-accent-cool-lighter" : "bg-white",
 ];
 
-function getComparisonRow(
-  idx: number,
-  label: string,
-  incomingValue: string,
-  potentialValue: string,
-): JSX.Element {
+export interface FieldComparisonValues {
+  key: number;
+  label: string;
+  incomingValue: string;
+  potentialValue: string;
+}
+
+function getComparisonRow({
+  key,
+  label,
+  incomingValue,
+  potentialValue,
+}: FieldComparisonValues): JSX.Element {
   const valuesDiffer: boolean =
     !!incomingValue && incomingValue !== potentialValue;
 
   return (
-    <div key={idx} role="row" className={classNames("grid-row", "flex-row")}>
+    <div key={key} role="row" className={classNames("grid-row", "flex-row")}>
       <div
         role="rowheader"
         className={classNames(
@@ -38,7 +45,7 @@ function getComparisonRow(
       <div
         role="gridcell"
         className={classNames(
-          valueCellClasses(idx),
+          valueCellClasses(key),
           valuesDiffer && "text-accent-warm-dark text-bold",
         )}
       >
@@ -52,7 +59,7 @@ function getComparisonRow(
       <div
         role="gridcell"
         className={classNames(
-          valueCellClasses(idx),
+          valueCellClasses(key),
           valuesDiffer && "text-bold",
         )}
       >
@@ -67,7 +74,11 @@ function getComparisonRow(
   );
 }
 
-const RecordCompare: React.FC = () => {
+interface RecordCompareProps {
+  comparisonFields: FieldComparisonValues[];
+}
+
+const RecordCompare: React.FC<RecordCompareProps> = ({ comparisonFields }) => {
   return (
     <div
       role="grid"
@@ -109,10 +120,9 @@ const RecordCompare: React.FC = () => {
           Potential match
         </div>
       </div>
-      {getComparisonRow(0, "Person ID", "", "3502")}
-      {getComparisonRow(1, "Patient ID", "234", "3502")}
-      {getComparisonRow(2, "First name", "Jane", "Jan")}
-      {getComparisonRow(3, "Last name", "Doe", "Doe")}
+      {comparisonFields.map((field: FieldComparisonValues) =>
+        getComparisonRow(field),
+      )}
     </div>
   );
 };

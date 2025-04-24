@@ -6,32 +6,30 @@ export async function getUnmatchedRecords(): Promise<RLRecord[]> {
   // return Promise.reject(new Error("oooops"));
   return Promise.resolve([
     {
-      id: "123",
-      patient: {
-        firstName: "John",
-        lastName: "Doe",
-        dob: new Date("04/13/1989"),
-      },
-      receivedOn: new Date(),
-      dataStream: {
-        name: "System system",
+      id: 123,
+      first_name: "John",
+      last_name: "Doe",
+      birth_date: new Date("01/07/1993"),
+      received_on: new Date("04/22/2021"),
+      data_stream: {
+        system: "System system",
         type: "ELR",
       },
-      linkScore: 0.98,
+      link_score: 0.9,
+      linked: null,
     },
     {
-      id: "124",
-      patient: {
-        firstName: "Jane",
-        lastName: "Doe",
-        dob: new Date("04/15/1989"),
-      },
-      receivedOn: new Date(),
-      dataStream: {
-        name: "System system",
+      id: 124,
+      first_name: "Jane",
+      last_name: "Doe",
+      birth_date: new Date("01/07/1993"),
+      received_on: new Date("04/22/2021"),
+      data_stream: {
+        system: "System system",
         type: "ELR",
       },
-      linkScore: 0.86,
+      link_score: 0.9,
+      linked: null,
     },
   ]);
 }

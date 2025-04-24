@@ -11,6 +11,9 @@ const MatchQueue: React.FC = () => {
   const [recordList, setRecordList] = useState<Record[] | undefined>();
   const [serverError, setServerError] = useState(false);
 
+  /**
+   * Initialize data
+   */
   async function retrieveUnmatchedRecords() {
     try {
       const records = await getUnmatchedRecords();
@@ -24,6 +27,9 @@ const MatchQueue: React.FC = () => {
     retrieveUnmatchedRecords();
   }, []);
 
+  /**
+   * HTML
+   */
   if (serverError) {
     return <ServerError />;
   } else if (recordList && recordList?.length > 0) {

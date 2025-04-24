@@ -15,18 +15,18 @@ function getTableRow(record: Record, withReviewLink: boolean): JSX.Element {
     <tr key={record.id}>
       <td>
         <span className="text-bold text-base-darker">
-          {record.patient.lastName}, {record.patient.firstName}
+          {record.last_name}, {record.first_name}
         </span>
         <br />
         <span className="text-base">
-          DOB: {record.patient.dob.toLocaleDateString()}
+          DOB: {record.birth_date.toLocaleDateString()}
         </span>
       </td>
       <td>
-        <span>{record.receivedOn.toLocaleDateString()}</span>
+        <span>{record.received_on.toLocaleDateString()}</span>
         <br />
         <span className="text-base">
-          {record.receivedOn.toLocaleTimeString([], {
+          {record.received_on.toLocaleTimeString([], {
             hour: "numeric",
             minute: "2-digit",
             hour12: true,
@@ -34,12 +34,12 @@ function getTableRow(record: Record, withReviewLink: boolean): JSX.Element {
         </span>
       </td>
       <td>
-        <span>{record.dataStream.name}</span>
+        <span>{record.data_stream.system}</span>
         <br />
-        <span className="text-base">{record.dataStream.type}</span>
+        <span className="text-base">{record.data_stream.type}</span>
       </td>
       <td width={160} className="text-center">
-        <span className="text-bold text-base-darker">{record.linkScore}</span>
+        <span className="text-bold text-base-darker">{record.link_score}</span>
       </td>
       {withReviewLink && (
         <td width={58} className="text-center">
