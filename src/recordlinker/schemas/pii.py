@@ -460,10 +460,17 @@ class PIIRecord(StrippedBaseModel):
         data = self.to_json(prune_empty=prune_empty)
         return json.loads(data)
 
-    def feature_iter(self, feature: Feature) -> typing.Iterator[str]:
+    def feature_iter(self, feature: Feature, prepend_suffix: bool = False) -> typing.Iterator[str]:
         """
         Given a field name, return an iterator of all string values for that field.
-        Empty strings are not included in the iterator.
+        Empty strings are not included in the iterator. Includes an optional 
+        parameter that can be used when invoking `feature_iter` on the FIRST_NAME
+        field; if this parameter is true, the value yielded is the concatenation
+        `SUFFIX + FIRST_NAME`.
+
+        :param prepend_suffix: An optional boolean indicating whether a suffix 
+          should be prepended to a first name for blocking purposes. Has no
+          effect for features other than FIRST_NAME. 
         """
 
         if not isinstance(feature, Feature):
@@ -504,10 +511,18 @@ class PIIRecord(StrippedBaseModel):
                     yield normalize_text("".join(name.given))
         elif attribute == FeatureAttribute.FIRST_NAME:
             for name in self.name:
-                # We only want the first given name for comparison
+                # We only want the first suffix, and only if it's valid
+                # (i.e. an accepted output of normalization)
+                suffix: str = (name.suffix or [""])[0]
+                if suffix not in _PROCESSED_SUFFIXES:
+                    suffix = ""
+                # We only care about the first given name for comparisons
                 for given in name.given[0:1]:
                     if given:
-                        yield normalize_text(given)
+                        if prepend_suffix:
+                            yield normalize_text(suffix + given)
+                        else:
+                            yield normalize_text(given)
         elif attribute == FeatureAttribute.LAST_NAME:
             for name in self.name:
                 if name.family:
@@ -578,7 +593,7 @@ class PIIRecord(StrippedBaseModel):
             vals.update(self.feature_iter(Feature(attribute=FeatureAttribute.ZIP)))
         elif key == models.BlockingKey.FIRST_NAME:
             vals.update(
-                {x[:4] for x in self.feature_iter(Feature(attribute=FeatureAttribute.FIRST_NAME))}
+                {x[:4] for x in self.feature_iter(Feature(attribute=FeatureAttribute.FIRST_NAME), prepend_suffix=True)}
             )
         elif key == models.BlockingKey.LAST_NAME:
             vals.update(
