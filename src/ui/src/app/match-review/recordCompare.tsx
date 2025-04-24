@@ -2,6 +2,17 @@ import classNames from "classnames";
 import styles from "./recordReview.module.scss";
 import { JSX } from "react";
 
+export interface FieldComparisonValues {
+  key: number;
+  label: string;
+  incomingValue: string;
+  potentialValue: string;
+}
+
+interface RecordCompareProps {
+  comparisonFields: FieldComparisonValues[];
+}
+
 const valueCellClasses = (idx: number) => [
   "flex-4",
   "border-x",
@@ -13,11 +24,26 @@ const valueCellClasses = (idx: number) => [
   idx % 2 ? "bg-accent-cool-lighter" : "bg-white",
 ];
 
-export interface FieldComparisonValues {
-  key: number;
-  label: string;
-  incomingValue: string;
-  potentialValue: string;
+const readableLabel: Record<string, string> = {
+  person_id: "Person ID",
+  patient_id: "Patient ID",
+  birth_date: "DOB",
+  mrn: "MRN",
+  ssn: "SSN",
+};
+
+function convert2ReadableLabel(label: string) {
+  try {
+    if (readableLabel[label]) {
+      return readableLabel[label];
+    }
+    return (label.charAt(0).toUpperCase() + label.slice(1)).replaceAll(
+      "_",
+      " ",
+    );
+  } catch (_) {
+    return label;
+  }
 }
 
 function getComparisonRow({
@@ -40,7 +66,7 @@ function getComparisonRow({
           "padding-y-1",
         )}
       >
-        {label}
+        {convert2ReadableLabel(label)}
       </div>
       <div
         role="gridcell"
@@ -72,10 +98,6 @@ function getComparisonRow({
       </div>
     </div>
   );
-}
-
-interface RecordCompareProps {
-  comparisonFields: FieldComparisonValues[];
 }
 
 const RecordCompare: React.FC<RecordCompareProps> = ({ comparisonFields }) => {
