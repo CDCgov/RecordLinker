@@ -191,7 +191,7 @@
                 "type": "eCR"
             },
             "link_score": 0.82,
-            "linked": false,
+            "linked": null,
             "incoming_data": {
                 "person_id": null,
                 "patient_id": 5,
@@ -236,7 +236,7 @@
                 "type": "VRDR"
             },
             "link_score": 0.87,
-            "linked": true,
+            "linked": null,
             "incoming_data": {
                 "person_id": null,
                 "patient_id": 6,
@@ -269,6 +269,32 @@
                     "postal_code": "02134"
                 }
             }
+        },
+        {
+            "id": 7,
+            "first_name": "Cucumber",
+            "last_name": "Hill",
+            "birth_date": "2024-06-10",
+            "received_on": "2024-07-09T10:12:00Z",
+            "data_stream": {
+                "system": "Vital Records",
+                "type": "VRBR"
+            },
+            "link_score": 0.87,
+            "linked": true
+        },
+        {
+            "id": 8,
+            "first_name": "Watermelon",
+            "last_name": "McGee",
+            "birth_date": "2024-06-10",
+            "received_on": "2024-07-09T10:12:00Z",
+            "data_stream": {
+                "system": "Vital Records",
+                "type": "VRBR"
+            },
+            "link_score": 0.87,
+            "linked": false
         }
     ]
 }
