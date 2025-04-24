@@ -1,6 +1,6 @@
 import classNames from "classnames";
 import styles from "./serverError.module.scss";
-import { InfoIcon } from "../Icons/icons";
+import { InfoIcon } from "../icons/icons";
 
 const ServerError: React.FC = () => {
   return (
