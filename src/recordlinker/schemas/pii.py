@@ -19,6 +19,10 @@ from recordlinker.utils.normalize import normalize_text
 _STATE_NAME_TO_CODE = utils.read_json("assets/states.json")
 _STATE_CODE_TO_NAME = {v: k for k, v in _STATE_NAME_TO_CODE.items()}
 
+# Load suffix mappings for Name normalization
+_SUFFIX_VARIANTS_TO_STANDARD_SUFFIXES = utils.read_json("assets/suffixes.json")
+_PROCESSED_SUFFIXES = set(_SUFFIX_VARIANTS_TO_STANDARD_SUFFIXES.values())
+
 
 class FeatureAttribute(enum.Enum):
     """
@@ -60,6 +64,8 @@ class StrippedBaseModel(pydantic.BaseModel):
         if isinstance(v, str):
             return v.strip()
         return v
+
+
 class Feature(StrippedBaseModel):
     """
     The schema for a feature.
@@ -69,6 +75,15 @@ class Feature(StrippedBaseModel):
 
     suffix: typing.Optional[IdentifierType] = None
     attribute: FeatureAttribute
+
+    @pydantic.model_serializer()
+    def __str__(self):
+        """
+        Override the default model dump to create a single string for Feature.
+        """
+        if self.suffix:
+            return f"{self.attribute}:{self.suffix}"
+        return str(self.attribute)
 
     @classmethod
     def parse(cls, feature_string: str) -> typing.Self:
@@ -181,6 +196,26 @@ class Name(StrippedBaseModel):
     use: typing.Optional[str] = None
     prefix: typing.List[str] = []  # future use
     suffix: typing.List[str] = []
+
+    @pydantic.field_validator("suffix", mode="before")
+    def parse_suffix(cls, value: list[str]) -> list[str]:
+        """
+        Parse and normalize the suffix field into a standard representation.
+        """
+        normalized: list[str] = []
+        if value:
+            for sfx in value:
+                suffix = str(sfx).title()
+                if suffix in _SUFFIX_VARIANTS_TO_STANDARD_SUFFIXES:
+                    suffix = _SUFFIX_VARIANTS_TO_STANDARD_SUFFIXES[suffix]
+                # If the parsed suffix isn't one of our permitted output values at
+                # this point, the user gave us something we don't handle, so revert
+                # back to the raw value
+                if suffix not in _PROCESSED_SUFFIXES:
+                    suffix = str(sfx)
+                normalized.append(suffix)
+            return normalized
+        return value
 
 
 class Address(StrippedBaseModel):
@@ -460,6 +495,7 @@ class PIIRecord(StrippedBaseModel):
         elif attribute == FeatureAttribute.ZIP:
             for address in self.address:
                 if address.postal_code:
+                    # FIXME: should we normalize zip codes during ingest, rather than here?
                     # only use the first 5 digits for comparison
                     yield address.postal_code[:5]
         elif attribute == FeatureAttribute.GIVEN_NAME:
@@ -478,7 +514,7 @@ class PIIRecord(StrippedBaseModel):
                     yield normalize_text(name.family)
         elif attribute == FeatureAttribute.NAME:
             for name in self.name:
-                yield normalize_text("".join(name.given + [name.family]))
+                yield normalize_text("".join(name.given[0:1] + [name.family]))
         elif attribute == FeatureAttribute.RACE:
             for race in self.race:
                 if race and race not in [Race.UNKNOWN, Race.ASKED_UNKNOWN]:

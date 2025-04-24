@@ -257,6 +257,7 @@ class TestPIIRecord:
             name=[
                 pii.Name(family="Doe", given=["John", "L"], suffix=["suffix"]),
                 pii.Name(family="Smith", given=["Jane"], suffix=["suffix2"]),
+                pii.Name(family="Smith", given=[]),
             ],
             telecom=[
                 pii.Telecom(value="555-123-4567"),
@@ -314,10 +315,12 @@ class TestPIIRecord:
         assert list(record.feature_iter(pii.Feature(attribute=pii.FeatureAttribute.LAST_NAME))) == [
             "doe",
             "smith",
+            "smith",
         ]
         assert list(record.feature_iter(pii.Feature(attribute=pii.FeatureAttribute.NAME))) == [
-            "johnldoe",
+            "johndoe",
             "janesmith",
+            "smith",
         ]
         assert list(record.feature_iter(pii.Feature(attribute=pii.FeatureAttribute.RACE))) == []
         assert list(record.feature_iter(pii.Feature(attribute=pii.FeatureAttribute.TELECOM))) == [
@@ -617,6 +620,31 @@ class TestPIIRecord:
                 assert val == "doe"
             else:
                 raise AssertionError(f"Unexpected key: {key}")
+
+
+class TestName:
+    def test_parse_suffix(self):
+        # No suffix specified
+        name = pii.Name(family="Smith", given=["Joel", "Miller"])
+        assert name.suffix == []
+
+        # Suffix is present in mapping
+        name = pii.Name(family="Smith", given=["Joel", "Miller"], suffix=["Senior"])
+        assert name.suffix == ["Sr"]
+
+        # Suffix is present but with weird casing
+        name = pii.Name(family="Smith", given=["Joel", "Miller"], suffix=["SR"])
+        assert name.suffix == ["Sr"]
+        name = pii.Name(family="Smith", given=["Joel", "Miller"], suffix=["jr"])
+        assert name.suffix == ["Jr"]
+
+        # Suffix not listed
+        name = pii.Name(family="Smith", given=["Joel", "Miller"], suffix=["invalid"])
+        assert name.suffix == ["invalid"]
+
+        # Multiple suffixes, mix of some in mapping and some not
+        name = pii.Name(family="Smith", given=["Joel", "Miller"], suffix=["Senior", "Jr.", "fake"])
+        assert name.suffix == ["Sr", "Jr", "fake"]
 
 
 class TestAddress:

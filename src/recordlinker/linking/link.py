@@ -18,6 +18,8 @@ from recordlinker import schemas
 from recordlinker.database import mpi_service
 from recordlinker.utils.mock import MockTracer
 
+from . import skip_values as sv
+
 LOGGER = logging.getLogger(__name__)
 TRACER: typing.Any = None
 try:
@@ -34,11 +36,12 @@ class LinkResult:
     """
     A data class designed to represent a single row of the "score tracking" table
     construct, as well as to capture the result of a single linkage to a Person
-    cluster. Instance variables help define the scoring parameters used to 
+    cluster. Instance variables help define the scoring parameters used to
     evaluate match strength. Result rows handle their own updates (e.g. when
     to update relative match score strengths as well as prioritizing certain
     matches over possible matches).
     """
+
     person: models.Person
     accumulated_points: float
     pass_label: str
@@ -47,9 +50,7 @@ class LinkResult:
     cmt: float
     match_grade: schemas.MatchGrade
 
-    def _update_score_tracking_row(
-            self, earned_points, pass_lbl, rms, mmt, cmt, grade
-        ):
+    def _update_score_tracking_row(self, earned_points, pass_lbl, rms, mmt, cmt, grade):
         """
         Helper function to abstract variable update setting to leave
         case-based logic clearer.
@@ -60,10 +61,8 @@ class LinkResult:
         self.match_grade = grade
         self.cmt = cmt
         self.mmt = mmt
-    
-    def check_and_update_score(
-            self, earned_points, pass_lbl, rms, mmt, cmt, grade
-        ):
+
+    def check_and_update_score(self, earned_points, pass_lbl, rms, mmt, cmt, grade):
         """
         Dynamically perform and handle any updates that should be tracked for
         the results of this Person cluster in linking. Updates must consider
@@ -79,30 +78,26 @@ class LinkResult:
         # Start with the easy case: both grades are the same, so use the RMS
         if grade == self.match_grade:
             if rms > self.rms:
-                self._update_score_tracking_row(
-                    earned_points, pass_lbl, rms, mmt, cmt, grade
-                )
-        
+                self._update_score_tracking_row(earned_points, pass_lbl, rms, mmt, cmt, grade)
+
         # Case 2: existing grade is certain, and since grades didn't enter
         # the equality if, new grade is only possible
-        elif self.match_grade == 'certain':
+        elif self.match_grade == "certain":
             pass
 
-        # Case 3: new grade is certain, and since grades didn't enter the 
+        # Case 3: new grade is certain, and since grades didn't enter the
         # equality if, existing grade is only possible
-        elif grade == 'certain':
-            self._update_score_tracking_row(
-                earned_points, pass_lbl, rms, mmt, cmt, grade
-            )
+        elif grade == "certain":
+            self._update_score_tracking_row(earned_points, pass_lbl, rms, mmt, cmt, grade)
 
 
 def compare(
     record: schemas.PIIRecord,
-    patient: models.Patient,
+    mpi_record: schemas.PIIRecord,
     max_log_odds_points: float,
     max_allowed_missingness_proportion: float,
     missing_field_points_proportion: float,
-    algorithm_pass: models.AlgorithmPass,
+    algorithm_pass: schemas.AlgorithmPass,
     log_odds_weights: dict[str, float],
 ) -> float:
     """
@@ -112,7 +107,7 @@ def compare(
     the potential match candidacy of the linked patient.
 
     :param record: The new, incoming record, as a PIIRecord data type.
-    :param patient: A candidate record returned by blocking from the MPI, whose
+    :param mpi_record: A candidate record returned by blocking from the MPI, whose
       match quality the function call will evaluate.
     :param max_log_odds_points: The maximum available log odds points that can be
       accumulated by a candidate pair during this pass of the algorithm.
@@ -130,25 +125,18 @@ def compare(
       candidate are a match, as determined by the specific matching rule
       contained in the algorithm_pass object.
     """
-    # all the functions used for comparison
-    evals: list[models.BoundEvaluator] = algorithm_pass.bound_evaluators()
     # keyword arguments to pass to comparison functions
     kwargs: dict[typing.Any, typing.Any] = algorithm_pass.kwargs
-    # convert the Patient model into a PIIRecord for comparison
-    mpi_record: schemas.PIIRecord = schemas.PIIRecord.from_patient(patient)
 
     missing_field_weights = 0.0
     results: list[float] = []
-    details: dict[str, typing.Any] = {"patient.reference_id": str(patient.reference_id)}
-    for e in evals:
-        # TODO: can we do this check earlier?
-        feature = schemas.Feature.parse(e.feature)
-        if feature is None:
-            raise ValueError(f"Invalid comparison field: {e.feature}")
-
+    details: dict[str, typing.Any] = {}
+    for evaluator in algorithm_pass.evaluators:
+        feature: schemas.Feature = evaluator.feature
+        func: typing.Callable = evaluator.func.callable()
         # Evaluate the comparison function, track missingness, and append the
         # score component to the list
-        result: tuple[float, bool] = e.func(
+        result: tuple[float, bool] = func(
             record, mpi_record, feature, missing_field_points_proportion, **kwargs
         )  # type: ignore
         if result[1]:
@@ -156,7 +144,7 @@ def compare(
             # the candidate is missing overall
             missing_field_weights += log_odds_weights[str(feature.attribute)]
         results.append(result[0])
-        details[f"evaluator.{e.feature}.{e.func.__name__}.result"] = result
+        details[f"evaluator.{feature}.{func.__name__}.result"] = result
 
     # Make sure this score wasn't just accumulated with missing checks
     if missing_field_weights <= max_allowed_missingness_proportion * max_log_odds_points:
@@ -172,7 +160,7 @@ def compare(
 def grade_rms(rms: float, mmt: float, cmt: float) -> schemas.MatchGrade:
     """
     Helper function to assign a match-grade (derived from FHIR spec terminology)
-    to a linkage result based on whether the result's match strength falls in 
+    to a linkage result based on whether the result's match strength falls in
     relation to the reference window (minimum_threshold, certain_threshold).
     """
     if rms < mmt:
@@ -185,7 +173,7 @@ def grade_rms(rms: float, mmt: float, cmt: float) -> schemas.MatchGrade:
 def link_record_against_mpi(
     record: schemas.PIIRecord,
     session: orm.Session,
-    algorithm: models.Algorithm,
+    algorithm: schemas.Algorithm,
     external_person_id: typing.Optional[str] = None,
     persist: bool = True,
 ) -> tuple[models.Patient | None, models.Person | None, list[LinkResult], schemas.MatchGrade]:
@@ -222,52 +210,59 @@ def link_record_against_mpi(
         "persons_compared": 0,
         "patients_compared": 0,
     }
-    for algorithm_pass in algorithm.passes:
+    # clean the incoming record
+    cleaned_record: schemas.PIIRecord = sv.remove_skip_values(record, algorithm.skip_values)
+    for idx, algorithm_pass in enumerate(algorithm.passes):
         with TRACER.start_as_current_span("link.pass"):
-            pass_label = algorithm_pass.label
+            pass_label = algorithm_pass.label or f"pass_{idx}"
             minimum_match_threshold, certain_match_threshold = algorithm_pass.possible_match_window
 
+            # FIXME: in #293 rework this logic to use the existing data in algorithm context
+            evaluators: list[schemas.Feature] = [e.feature for e in algorithm_pass.evaluators]
+            log_odds_points: dict[str, float] = algorithm_pass.kwargs["log_odds"]
             # Determine the maximum possible number of log-odds points in this pass
-            evaluators: list[str] = [e["feature"] for e in algorithm_pass.evaluators]
-            log_odds_points = algorithm_pass.kwargs["log_odds"]
-            max_points = sum([log_odds_points[e] for e in evaluators])
+            max_points: float = sum([log_odds_points[str(e)] for e in evaluators])
 
             # initialize a dictionary to hold the clusters of patients for each person
-            clusters: dict[models.Person, list[models.Patient]] = collections.defaultdict(list)
+            clusters: dict[models.Person, list[schemas.PIIRecord]] = collections.defaultdict(list)
 
-            # block on the pii_record and the algorithm's blocking criteria, then
+            # block on the cleaned_record and the algorithm's blocking criteria, then
             # iterate over the patients, grouping them by person
             with TRACER.start_as_current_span("link.block"):
                 # get all candidate Patient records identified in blocking
                 # and the remaining Patient records in their Person clusters
                 pats = mpi_service.BlockData.get(
-                    session, record, algorithm_pass, max_missing_allowed_proportion
+                    session, cleaned_record, algorithm_pass, max_missing_allowed_proportion
                 )
                 for pat in pats:
-                    clusters[pat.person].append(pat)
+                    # convert the Patient model into a cleaned PIIRecord for comparison
+                    mpi_record: schemas.PIIRecord = sv.remove_skip_values(
+                        schemas.PIIRecord.from_patient(pat), algorithm.skip_values
+                    )
+                    clusters[pat.person].append(mpi_record)
 
             # evaluate each Person cluster to see if the incoming record is a match
             with TRACER.start_as_current_span("link.evaluate"):
-                for person, pats in clusters.items():
-                    assert pats, "Patient cluster should not be empty"
+                for person, mpi_records in clusters.items():
+                    assert mpi_records, "Patient cluster should not be empty"
                     log_odds_sums = []
-                    for pat in pats:
+                    for mpi_record in mpi_records:
                         with TRACER.start_as_current_span("link.compare"):
                             # track the accumulated points so we can eventually find
                             # the median and normalize it
                             rule_result = compare(
-                                    record,
-                                    pat,
-                                    max_points,
-                                    max_missing_allowed_proportion,
-                                    missing_field_points_proportion,
-                                    algorithm_pass,
-                                    log_odds_points
-                                )
+                                record,
+                                mpi_record,
+                                max_points,
+                                max_missing_allowed_proportion,
+                                missing_field_points_proportion,
+                                algorithm_pass,
+                                log_odds_points,
+                            )
                             log_odds_sums.append(rule_result)
 
                     result_counts["persons_compared"] += 1
-                    result_counts["patients_compared"] += len(pats)
+                    result_counts["patients_compared"] += len(mpi_records)
                     # calculate the relative match score for this person cluster
                     cluster_median = statistics.median(log_odds_sums)
                     rms = cluster_median / max_points
@@ -279,7 +274,7 @@ def link_record_against_mpi(
                             "median log-odds points accumulated": cluster_median,
                             "relative match score": rms,
                             "person.reference_id": str(person.reference_id),
-                            "patients compared in cluster": len(pats),
+                            "patients compared in cluster": len(mpi_records),
                             "algorithm.minimum_match_threshold": minimum_match_threshold,
                             "algorithm.certain_match_threshold": certain_match_threshold,
                         },
@@ -295,19 +290,24 @@ def link_record_against_mpi(
                                 rms,
                                 minimum_match_threshold,
                                 certain_match_threshold,
-                                match_grade
+                                match_grade,
                             )
                         # Let the dynamic programming table track its own updates
                         scores[person].check_and_update_score(
-                            cluster_median, pass_label, rms, minimum_match_threshold, certain_match_threshold, match_grade
+                            cluster_median,
+                            pass_label,
+                            rms,
+                            minimum_match_threshold,
+                            certain_match_threshold,
+                            match_grade,
                         )
-    
+
     results: list[LinkResult] = sorted(scores.values(), reverse=True, key=lambda x: x.rms)
-    certain_results = [x for x in results if x.match_grade == 'certain']
+    certain_results = [x for x in results if x.match_grade == "certain"]
     # re-assign the results array since we already have the higher-priority
-    # 'certain' grades if we need them; we return the `results` variable as 
+    # 'certain' grades if we need them; we return the `results` variable as
     # a placeholder later, so we need to keep this around for re-assignment
-    results = [x for x in results if x.match_grade == 'possible']
+    results = [x for x in results if x.match_grade == "possible"]
     final_grade: schemas.MatchGrade = "possible"
     matched_person: typing.Optional[models.Person] = None
 
