@@ -1,7 +1,7 @@
 import fastapi
-from fastapi import responses
 import pydantic
 import sqlalchemy
+from fastapi import responses
 from sqlalchemy import orm
 
 from recordlinker import middleware
