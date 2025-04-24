@@ -10,7 +10,7 @@ that measures how well an incoming patient
 record matches a group of linked records, defined
 under a single Person ID. It represents match
 quality, not probability, since match thresholds
-are user-defined based on a jurisdiction’s desired
+are user-defined based on a jurisdiction's desired
 balance between automation and manual review.`;
 
 export interface RecordTableProps {
