@@ -1,16 +1,6 @@
 {
     "demo_data": [
         {
-            "id": 1,
-            "first_name": "Jane",
-            "last_name": "Sampson",
-            "birth_date": "1982-04-04",
-            "received_on": "2024-04-28T10:57:00Z",
-            "data_stream": {
-                "system": "Disease Surveillance System",
-                "type": "ELR"
-            },
-            "link_score": 0.88,
             "linked": null,
             "incoming_data": {
                 "person_id": null,
@@ -26,36 +16,38 @@
                     "city": "Boston",
                     "state": "MA",
                     "postal_code": "02134"
+                },
+                "received_on": "2024-04-28T10:57:00Z",
+                "data_stream": {
+                    "system": "Disease Surveillance System",
+                    "type": "ELR"
                 }
             },
-            "potential_match": {
-                "person_id": 4567,
-                "patient_id": 2345,
-                "first_name": "Jan",
-                "last_name": "Sampson",
-                "mrn": "123-45-6789",
-                "birth_date": "1982-04-04",
-                "address": {
-                    "line": [
-                        "123 Main St"
-                    ],
-                    "city": "Boston",
-                    "state": "MA",
-                    "postal_code": "02134"
+            "potential_match": [
+                {
+                    "person_id": 4567,
+                    "link_score": 0.88,
+                    "patients": [
+                        {
+                            "patient_id": 2345,
+                            "first_name": "Jan",
+                            "last_name": "Sampson",
+                            "mrn": "123-45-6789",
+                            "birth_date": "1982-04-04",
+                            "address": {
+                                "line": [
+                                    "123 Main St"
+                                ],
+                                "city": "Boston",
+                                "state": "MA",
+                                "postal_code": "02134"
+                            }
+                        }
+                    ]
                 }
-            }
+            ]
         },
         {
-            "id": 2,
-            "first_name": "Jon",
-            "last_name": "Ford",
-            "birth_date": "1976-02-21",
-            "received_on": "2024-04-30T05:12:00Z",
-            "data_stream": {
-                "system": "Immunization Registry",
-                "type": "VXU"
-            },
-            "link_score": 0.81,
             "linked": null,
             "incoming_data": {
                 "person_id": null,
@@ -71,36 +63,38 @@
                     "city": "Boston",
                     "state": "MA",
                     "postal_code": "02134"
+                },
+                "received_on": "2024-04-30T05:12:00Z",
+                "data_stream": {
+                    "system": "Immunization Registry",
+                    "type": "VXU"
                 }
             },
-            "potential_match": {
-                "person_id": 7890,
-                "patient_id": 4545,
-                "first_name": "John",
-                "last_name": "Ford",
-                "mrn": "123-45-6789",
-                "birth_date": "1976-02-22",
-                "address": {
-                    "line": [
-                        "123 Main St"
-                    ],
-                    "city": "Boston",
-                    "state": "MA",
-                    "postal_code": "02134"
+            "potential_match": [
+                {
+                    "person_id": 7890,
+                    "link_score": 0.81,
+                    "patients": [
+                        {
+                            "patient_id": 4545,
+                            "first_name": "John",
+                            "last_name": "Ford",
+                            "mrn": "123-45-6789",
+                            "birth_date": "1976-02-22",
+                            "address": {
+                                "line": [
+                                    "123 Main St"
+                                ],
+                                "city": "Boston",
+                                "state": "MA",
+                                "postal_code": "02134"
+                            }
+                        }
+                    ]
                 }
-            }
+            ]
         },
         {
-            "id": 3,
-            "first_name": "Jacobs",
-            "last_name": "Lisa",
-            "birth_date": "1996-07-12",
-            "received_on": "2024-05-01T16:57:00Z",
-            "data_stream": {
-                "system": "Disease Surveillance System",
-                "type": "ELR"
-            },
-            "link_score": 0.9,
             "linked": null,
             "incoming_data": {
                 "person_id": null,
@@ -116,36 +110,38 @@
                     "city": "Boston",
                     "state": "MA",
                     "postal_code": "02134"
+                },
+                "received_on": "2024-05-01T16:57:00Z",
+                "data_stream": {
+                    "system": "Disease Surveillance System",
+                    "type": "ELR"
                 }
             },
-            "potential_match": {
-                "person_id": 7878,
-                "patient_id": 4545,
-                "first_name": "Lisa",
-                "last_name": "Jacobs",
-                "mrn": "123-45-6789",
-                "birth_date": "1996-07-12",
-                "address": {
-                    "line": [
-                        "123 Main St"
-                    ],
-                    "city": "Boston",
-                    "state": "MA",
-                    "postal_code": "02137"
+            "potential_match": [
+                {
+                    "person_id": 7878,
+                    "link_score": 0.9,
+                    "patients": [
+                        {
+                            "patient_id": 4545,
+                            "first_name": "Lisa",
+                            "last_name": "Jacobs",
+                            "mrn": "123-45-6789",
+                            "birth_date": "1996-07-12",
+                            "address": {
+                                "line": [
+                                    "123 Main St"
+                                ],
+                                "city": "Boston",
+                                "state": "MA",
+                                "postal_code": "02137"
+                            }
+                        }
+                    ]
                 }
-            }
+            ]
         },
         {
-            "id": 4,
-            "first_name": "Sally",
-            "last_name": "May",
-            "birth_date": "1968-06-30",
-            "received_on": "2024-05-03T02:47:00Z",
-            "data_stream": {
-                "system": "Vital Records",
-                "type": "VRDR"
-            },
-            "link_score": 0.83,
             "linked": null,
             "incoming_data": {
                 "person_id": null,
@@ -161,36 +157,38 @@
                     "city": "Boston",
                     "state": "MA",
                     "postal_code": "02134"
+                },
+                "received_on": "2024-05-03T02:47:00Z",
+                "data_stream": {
+                    "system": "Vital Records",
+                    "type": "VRDR"
                 }
             },
-            "potential_match": {
-                "person_id": 9191,
-                "patient_id": 7654,
-                "first_name": "Sally",
-                "last_name": "May",
-                "mrn": "123-45-1234",
-                "birth_date": "1996-07-12",
-                "address": {
-                    "line": [
-                        "45 Elm St"
-                    ],
-                    "city": "Boston",
-                    "state": "MA",
-                    "postal_code": "02134"
+            "potential_match": [
+                {
+                    "person_id": 9191,
+                    "link_score": 0.83,
+                    "patients": [
+                        {
+                            "patient_id": 7654,
+                            "first_name": "Sally",
+                            "last_name": "May",
+                            "mrn": "123-45-1234",
+                            "birth_date": "1996-07-12",
+                            "address": {
+                                "line": [
+                                    "45 Elm St"
+                                ],
+                                "city": "Boston",
+                                "state": "MA",
+                                "postal_code": "02134"
+                            }
+                        }
+                    ]
                 }
-            }
+            ]
         },
         {
-            "id": 5,
-            "first_name": "Iginla",
-            "last_name": "Herb",
-            "birth_date": "1978-07-07",
-            "received_on": "2024-05-08T21:45:00Z",
-            "data_stream": {
-                "system": "Disease Surveillance System",
-                "type": "eCR"
-            },
-            "link_score": 0.82,
             "linked": null,
             "incoming_data": {
                 "person_id": null,
@@ -206,36 +204,38 @@
                     "city": "Boston",
                     "state": "MA",
                     "postal_code": "02134"
+                },
+                "received_on": "2024-05-08T21:45:00Z",
+                "data_stream": {
+                    "system": "Disease Surveillance System",
+                    "type": "eCR"
                 }
             },
-            "potential_match": {
-                "person_id": 2301,
-                "patient_id": 9698,
-                "first_name": "Iginlla",
-                "last_name": "Herbe",
-                "mrn": "123-45-6789",
-                "birth_date": "1979-07-07",
-                "address": {
-                    "line": [
-                        "45 Elm St"
-                    ],
-                    "city": "Boston",
-                    "state": "MA",
-                    "postal_code": "02134"
+            "potential_match": [
+                {
+                    "person_id": 2301,
+                    "link_score": 0.82,
+                    "patients": [
+                        {
+                            "patient_id": 9698,
+                            "first_name": "Iginla",
+                            "last_name": "Herbe",
+                            "mrn": "123-45-6789",
+                            "birth_date": "1979-07-07",
+                            "address": {
+                                "line": [
+                                    "45 Elm St"
+                                ],
+                                "city": "Boston",
+                                "state": "MA",
+                                "postal_code": "02134"
+                            }
+                        }
+                    ]
                 }
-            }
+            ]
         },
         {
-            "id": 6,
-            "first_name": "Juan",
-            "last_name": "Suarez",
-            "birth_date": "2000-06-10",
-            "received_on": "2024-05-09T10:12:00Z",
-            "data_stream": {
-                "system": "Vital Records",
-                "type": "VRDR"
-            },
-            "link_score": 0.87,
             "linked": null,
             "incoming_data": {
                 "person_id": null,
@@ -251,24 +251,36 @@
                     "city": "Boston",
                     "state": "MA",
                     "postal_code": "02134"
+                },
+                "received_on": "2024-05-09T10:12:00Z",
+                "data_stream": {
+                    "system": "Vital Records",
+                    "type": "VRDR"
                 }
             },
-            "potential_match": {
-                "person_id": 5618,
-                "patient_id": 3688,
-                "first_name": "Juan Miguel",
-                "last_name": "Suarez",
-                "mrn": null,
-                "birth_date": "2000-06-10",
-                "address": {
-                    "line": [
-                        "451 Elm St"
-                    ],
-                    "city": "Boston",
-                    "state": "MA",
-                    "postal_code": "02134"
+            "potential_match": [
+                {
+                    "person_id": 5618,
+                    "link_score": 0.87,
+                    "patients": [
+                        {
+                            "patient_id": 3688,
+                            "first_name": "Juan Miguel",
+                            "last_name": "Suarez",
+                            "mrn": null,
+                            "birth_date": "2000-06-10",
+                            "address": {
+                                "line": [
+                                    "451 Elm St"
+                                ],
+                                "city": "Boston",
+                                "state": "MA",
+                                "postal_code": "02134"
+                            }
+                        }
+                    ]
                 }
-            }
+            ]
         },
         {
             "id": 7,
