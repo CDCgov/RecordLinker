@@ -3,7 +3,7 @@ import { PAGES } from "@/utils/constants";
 import RecordView from "./recordView";
 import { Suspense } from "react";
 
-const RecordReview: React.FC = () => {
+const MatchReview: React.FC = () => {
   return (
     <div className="page-container--lg page-container--full-height padding-top-5 padding-bottom-10">
       <BackToLink
@@ -32,4 +32,4 @@ export const metadata = {
   title: "Record linker | Match review",
 };
 
-export default RecordReview;
+export default MatchReview;
