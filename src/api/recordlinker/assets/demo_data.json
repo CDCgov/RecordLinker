@@ -2,9 +2,9 @@
     "demo_data": [
         {
             "linked": null,
-            "incoming_data": {
+            "incoming_record": {
                 "person_id": null,
-                "patient_id": 1234,
+                "patient_id": 1,
                 "first_name": "Jane",
                 "last_name": "Sampson",
                 "mrn": "123-45-6789",
@@ -49,7 +49,7 @@
         },
         {
             "linked": null,
-            "incoming_data": {
+            "incoming_record": {
                 "person_id": null,
                 "patient_id": 2,
                 "first_name": "Jon",
@@ -96,7 +96,7 @@
         },
         {
             "linked": null,
-            "incoming_data": {
+            "incoming_record": {
                 "person_id": null,
                 "patient_id": 3,
                 "first_name": "Lisa",
@@ -143,7 +143,7 @@
         },
         {
             "linked": null,
-            "incoming_data": {
+            "incoming_record": {
                 "person_id": null,
                 "patient_id": 4,
                 "first_name": "Sally",
@@ -190,7 +190,7 @@
         },
         {
             "linked": null,
-            "incoming_data": {
+            "incoming_record": {
                 "person_id": null,
                 "patient_id": 5,
                 "first_name": "Iginla",
@@ -237,7 +237,7 @@
         },
         {
             "linked": null,
-            "incoming_data": {
+            "incoming_record": {
                 "person_id": null,
                 "patient_id": 6,
                 "first_name": "Juan",
@@ -283,30 +283,52 @@
             ]
         },
         {
-            "id": 7,
-            "first_name": "Cucumber",
-            "last_name": "Hill",
-            "birth_date": "2024-06-10",
-            "received_on": "2024-07-09T10:12:00Z",
-            "data_stream": {
-                "system": "Vital Records",
-                "type": "VRBR"
-            },
-            "link_score": 0.87,
-            "linked": true
+            "linked": true,
+            "incoming_record": {
+                "person_id": 7870,
+                "patient_id": 7,
+                "first_name": "Cucumber",
+                "last_name": "Hill",
+                "mrn": null,
+                "birth_date": "2024-06-10",
+                "address": {
+                    "line": [
+                        "45 Elm St"
+                    ],
+                    "city": "Boston",
+                    "state": "MA",
+                    "postal_code": "02134"
+                },
+                "received_on": "2024-07-09T10:12:00Z",
+                "data_stream": {
+                    "system": "Vital Records",
+                    "type": "VRBR"
+                }
+            }
         },
         {
-            "id": 8,
-            "first_name": "Watermelon",
-            "last_name": "McGee",
-            "birth_date": "2024-06-10",
-            "received_on": "2024-07-09T10:12:00Z",
-            "data_stream": {
-                "system": "Vital Records",
-                "type": "VRBR"
-            },
-            "link_score": 0.87,
-            "linked": false
+            "linked": false,
+            "incoming_record": {
+                "person_id": 5684,
+                "patient_id": 8,
+                "first_name": "Watermelon",
+                "last_name": "McGee",
+                "mrn": null,
+                "birth_date": "2024-06-10",
+                "address": {
+                    "line": [
+                        "45 Elm St"
+                    ],
+                    "city": "Boston",
+                    "state": "MA",
+                    "postal_code": "02134"
+                },
+                "received_on": "2024-07-09T10:12:00Z",
+                "data_stream": {
+                    "system": "Vital Records",
+                    "type": "VRBR"
+                }
+            }
         }
     ]
 }

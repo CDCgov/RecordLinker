@@ -1,7 +1,7 @@
 from .algorithm import Algorithm
 from .algorithm import AlgorithmPass
 from .algorithm import AlgorithmSummary
-from .demo import MatchQueueRecord
+from .demo import MatchReviewRecord
 from .link import LinkFhirInput
 from .link import LinkFhirResponse
 from .link import LinkInput
@@ -63,5 +63,5 @@ __all__ = [
     "ErrorResponse",
     "PaginatedMetaData",
     "PaginatedRefs",
-    "MatchQueueRecord",
+    "MatchReviewRecord",
 ]

@@ -10,6 +10,7 @@ class TestGetMatchQueueRecordsEndpoint:
     def test_get_records(self, client):
         # no status; should return all records
         response = client.get("/api/demo/record")
+
         assert response.status_code == 200
         assert len(response.json()) == 8
 
@@ -17,29 +18,29 @@ class TestGetMatchQueueRecordsEndpoint:
         response = client.get("/api/demo/record?status=linked")
         assert response.status_code == 200
         assert len(response.json()) == 1
-        assert response.json()[0]["id"] == 7
+        assert response.json()[0]["incoming_record"]["patient_id"] == 7
 
     def test_get_records_unlinked(self, client):
         response = client.get("/api/demo/record?status=unlinked")
         assert response.status_code == 200
         assert len(response.json()) == 1
-        assert response.json()[0]["id"] == 8
+        assert response.json()[0]["incoming_record"]["patient_id"] == 8
 
     def test_get_records_evaluated(self, client):
         response = client.get("/api/demo/record?status=evaluated")
         assert response.status_code == 200
         assert len(response.json()) == 2
-        assert response.json()[0]["id"] == 7
-        assert response.json()[1]["id"] == 8
+        assert response.json()[0]["incoming_record"]["patient_id"] == 7
+        assert response.json()[1]["incoming_record"]["patient_id"] == 8
 
     def test_get_records_pending(self, client):
         response = client.get("/api/demo/record?status=pending")
         assert response.status_code == 200
         assert len(response.json()) == 6
-        assert response.json()[0]["id"] == 1
-        assert response.json()[1]["id"] == 2
-        assert response.json()[2]["id"] == 3
-        assert response.json()[3]["id"] == 4
+        assert response.json()[0]["incoming_record"]["patient_id"] == 1
+        assert response.json()[1]["incoming_record"]["patient_id"] == 2
+        assert response.json()[2]["incoming_record"]["patient_id"] == 3
+        assert response.json()[3]["incoming_record"]["patient_id"] == 4
 
     def test_get_records_invalid_status(self, client):
         response = client.get("/api/demo/record?status=invalid")
@@ -62,8 +63,7 @@ class TestGetMatchReviewRecords:
         patient_reference_id = 1
         response = client.get(f"/api/demo/record/{patient_reference_id}")
         assert response.status_code == 200
-        assert response.json()["id"] == patient_reference_id
-        assert "incoming_data" in response.json()
+        assert response.json()["incoming_record"]["patient_id"] == patient_reference_id
         assert "potential_match" in response.json()
 
     def test_get_records_invalid_id(self, client):
