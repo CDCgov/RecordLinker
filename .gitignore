@@ -76,3 +76,15 @@ __pycache__/
 
 # Test result files
 output.csv
+
+# Next.js
+.next
+src/ui/.next
+src/ui/node_modules
+src/ui/coverage
+src/ui/build
+src/ui/npm-debug.log*
+src/ui/.env*
+src/ui/*.tsbuildinfo
+src/ui/next-env.d.ts
+src/ui/out

@@ -125,10 +125,10 @@ def compare_probabilistic_exact_match(
     if log_odds is None:
         raise ValueError(f"Log odds not found for feature {key}")
 
-    # Return early if a field is missing, and log that was the case
     incoming_record_fields = list(record.feature_iter(key))
     mpi_record_fields = list(mpi_record.feature_iter(key))
     if len(incoming_record_fields) == 0 or len(mpi_record_fields) == 0:
+        # Return early if a field is missing, and log that was the case
         return (missing_field_points_proportion * log_odds, True)
 
     agree = 0.0
@@ -176,10 +176,10 @@ def compare_probabilistic_fuzzy_match(
     if log_odds is None:
         raise ValueError(f"Log odds not found for feature {key}")
 
-    # Return early if a field is missing, and log that was the case
     incoming_record_fields = list(record.feature_iter(key))
     mpi_record_fields = list(mpi_record.feature_iter(key))
     if len(incoming_record_fields) == 0 or len(mpi_record_fields) == 0:
+        # Return early if a field is missing, and log that was the case
         return (missing_field_points_proportion * log_odds, True)
 
     similarity_measure, threshold = _get_fuzzy_params(str(key.attribute), **kwargs)
