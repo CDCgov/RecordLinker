@@ -1,10 +1,12 @@
 import fastapi
 import pydantic
 import sqlalchemy
+from fastapi import responses
 from sqlalchemy import orm
 
 from recordlinker import middleware
 from recordlinker._version import __version__
+from recordlinker.config import settings
 from recordlinker.database import get_session
 from recordlinker.routes.algorithm_router import router as algorithm_router
 from recordlinker.routes.link_router import router as link_router
@@ -12,9 +14,20 @@ from recordlinker.routes.patient_router import router as patient_router
 from recordlinker.routes.person_router import router as person_router
 from recordlinker.routes.seed_router import router as seed_router
 
+
+def path(path: str) -> str:
+    """
+    Add the API root path to the path.
+    """
+    return f"{settings.api_root_path}{path}"
+
+
 app = fastapi.FastAPI(
     title="Record Linker",
     version=__version__,
+    docs_url=path("/docs"),
+    redoc_url=path("/redoc"),
+    openapi_url=path("/openapi.json"),
     contact={
         "name": "CDC Public Health Data Infrastructure",
         "url": "https://github.com/CDCgov/RecordLinker",
@@ -40,6 +53,14 @@ app.add_middleware(middleware.CorrelationIdMiddleware)
 app.add_middleware(middleware.AccessLogMiddleware)
 
 
+@app.get("/")
+def root():
+    """
+    Redirect to the OpenAPI documentation.
+    """
+    return responses.RedirectResponse(url=path("/redoc"))
+
+
 class HealthCheckResponse(pydantic.BaseModel):
     """
     The schema for the response from the health check endpoint.
@@ -49,7 +70,7 @@ class HealthCheckResponse(pydantic.BaseModel):
 
 
 @app.get(
-    "/",
+    path(""),
     name="health-check",
     responses={
         200: {
@@ -78,8 +99,8 @@ async def health_check(
         )
 
 
-app.include_router(link_router, tags=["link"])
-app.include_router(algorithm_router, prefix="/algorithm", tags=["algorithm"])
-app.include_router(person_router, prefix="/person", tags=["mpi"])
-app.include_router(patient_router, prefix="/patient", tags=["mpi"])
-app.include_router(seed_router, prefix="/seed", tags=["mpi"])
+app.include_router(link_router, prefix=path(""), tags=["link"])
+app.include_router(algorithm_router, prefix=path("/algorithm"), tags=["algorithm"])
+app.include_router(person_router, prefix=path("/person"), tags=["mpi"])
+app.include_router(patient_router, prefix=path("/patient"), tags=["mpi"])
+app.include_router(seed_router, prefix=path("/seed"), tags=["mpi"])
