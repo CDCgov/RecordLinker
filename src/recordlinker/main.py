@@ -1,4 +1,5 @@
 import fastapi
+from fastapi import responses
 import pydantic
 import sqlalchemy
 from sqlalchemy import orm
@@ -50,6 +51,14 @@ app = fastapi.FastAPI(
 
 app.add_middleware(middleware.CorrelationIdMiddleware)
 app.add_middleware(middleware.AccessLogMiddleware)
+
+
+@app.get("/")
+def root():
+    """
+    Redirect to the OpenAPI documentation.
+    """
+    return responses.RedirectResponse(url=path("/redoc"))
 
 
 class HealthCheckResponse(pydantic.BaseModel):
