@@ -108,7 +108,7 @@ patient data and used during query retrieval. The following blocking key types a
 
 `FIRST_NAME` (ID: **5**)
 
-:   The first 4 characters of the patient's first name.
+:   The first 4 characters of the patient's first name. If the patient's name has a suffix, such as Jr. or Sr., then during blocking, a normalized abbreviation of this suffix is prepended to the patient's name before taking the first four characters. For example, "Michael Senior" would become "srmi" for blocking purposes.
 
 `LAST_NAME` (ID: **6**)
 
