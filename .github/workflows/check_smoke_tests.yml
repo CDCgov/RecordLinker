@@ -60,14 +60,15 @@ jobs:
             export DB_URI="mssql+pyodbc://sa:YourStrong!Passw0rd@localhost:1433/master?driver=ODBC+Driver+18+for+SQL+Server&TrustServerCertificate=yes"
           fi
 
+          API_ROOT="/api"
+          BASE_URL="http://localhost:8080${API_ROOT}"
+
           # Start Record Linker Service
           docker run -d --name rl-service \
             --network="host" \
             -e DB_URI=$DB_URI \
-            -e API_ROOT_PATH="/api" \
+            -e API_ROOT_PATH=$API_ROOT \
             rl-service-image
-
-          BASE_URL="http://localhost:8080/api"
 
           # Wait for the RL Service to be healthy
           TRIES=5
