@@ -36,7 +36,9 @@ dependencies = [
     "cryptography",  # MySQL & MariaDB dependency
     "pyodbc", # Microsoft SQL Server
     # Normalization
-    "phonenumbers"
+    "phonenumbers",
+    # Sessions
+    "itsdangerous"
 ]
 
 [project.optional-dependencies]
@@ -109,6 +111,7 @@ filterwarnings = [
 env = [
     "DB_URI=sqlite:///:memory:",
     "INITIAL_ALGORITHMS=",
+    "SECRET_KEY=fake-secret-key",
 ]
 
 [tool.coverage.run]
