@@ -3,6 +3,15 @@ import { Record } from "@/models/record";
 import Link from "next/link";
 import { JSX } from "react";
 import { PAGES } from "@/utils/constants";
+import InfoTooltip from "../infoTooltip/infoTooltip";
+
+const linkScoreDesc = `Refers to a weighted statistic between 0 and 1
+that measures how well an incoming patient
+record matches a group of linked records, defined
+under a single Person ID. It represents match
+quality, not probability, since match thresholds
+are user-defined based on a jurisdiction’s desired
+balance between automation and manual review.`;
 
 export interface RecordTableProps {
   items: Record[];
@@ -38,7 +47,7 @@ function getTableRow(record: Record, withReviewLink: boolean): JSX.Element {
         <br />
         <span className="text-base">{record.data_stream.type}</span>
       </td>
-      <td width={160} className="text-center">
+      <td width={185} className="text-center">
         <span className="text-bold text-base-darker">{record.link_score}</span>
       </td>
       {withReviewLink && (
@@ -71,7 +80,9 @@ const RecordTable: React.FC<RecordTableProps> = ({
             </span>
           </th>
           <th>Data stream</th>
-          <th>Link Score</th>
+          <th>
+            <InfoTooltip text={linkScoreDesc}>Link Score</InfoTooltip>
+          </th>
           {withReviewLink && <th>Actions</th>}
         </tr>
       </thead>

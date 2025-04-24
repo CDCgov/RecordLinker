@@ -1,6 +1,7 @@
 import classNames from "classnames";
 import styles from "./recordReview.module.scss";
 import { JSX } from "react";
+import InfoTooltip from "@/components/infoTooltip/infoTooltip";
 
 export interface FieldComparisonValues {
   key: number;
@@ -32,18 +33,36 @@ const readableLabel: Record<string, string> = {
   ssn: "SSN",
 };
 
-function convert2ReadableLabel(label: string) {
+const tooltipInfo: Record<string, string> = {
+  person_id: `Refers to the unique identifier assigned to a
+group of linked patient records in our MPI that have
+been matched as belonging to the same individual.`,
+  patient_id: `Refers to the unique identifier assigned to a
+single patient record, representing one
+instance of patient data in our MPI.`,
+};
+
+function convert2ReadableLabel(label: string): JSX.Element {
+  let labelCopy = "";
+
   try {
     if (readableLabel[label]) {
-      return readableLabel[label];
+      labelCopy = readableLabel[label];
+    } else {
+      labelCopy = (label.charAt(0).toUpperCase() + label.slice(1)).replaceAll(
+        "_",
+        " ",
+      );
     }
-    return (label.charAt(0).toUpperCase() + label.slice(1)).replaceAll(
-      "_",
-      " ",
-    );
   } catch (_) {
-    return label;
+    labelCopy = label;
   }
+
+  return tooltipInfo[label] ? (
+    <InfoTooltip text={tooltipInfo[label]}>{labelCopy}</InfoTooltip>
+  ) : (
+    <>{labelCopy}</>
+  );
 }
 
 function getComparisonRow({
