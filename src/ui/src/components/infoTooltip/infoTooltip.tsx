@@ -1,5 +1,5 @@
 import { Tooltip } from "@trussworks/react-uswds";
-import { InfoOutlineIcon } from "../Icons/icons";
+import { InfoOutlineIcon } from "../icons/icons";
 import { JSX } from "react";
 import React from "react";
 
