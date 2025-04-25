@@ -1,7 +1,7 @@
+import { Suspense } from "react";
 import BackToLink from "@/components/backToLink/backToLink";
 import { PAGES } from "@/utils/constants";
 import RecordView from "./recordView";
-import { Suspense } from "react";
 
 const MatchReview: React.FC = () => {
   return (
