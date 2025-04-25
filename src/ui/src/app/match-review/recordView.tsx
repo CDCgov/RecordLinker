@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import RecordTable from "@/components/recordTable/recordTable";
-import { LinkIcon, LinkOffIcon } from "@/components/Icons/icons";
+import { LinkIcon, LinkOffIcon } from "@/components/icons/icons";
 import { Button } from "@trussworks/react-uswds";
 import { IncomingData, PotentialMatch, Record } from "@/models/record";
 import ServerError from "@/components/serverError/serverError";

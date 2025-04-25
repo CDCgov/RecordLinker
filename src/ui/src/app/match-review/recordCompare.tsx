@@ -1,5 +1,5 @@
 import classNames from "classnames";
-import styles from "./recordReview.module.scss";
+import styles from "./matchReview.module.scss";
 import { JSX } from "react";
 import InfoTooltip from "@/components/infoTooltip/infoTooltip";
 
@@ -129,7 +129,7 @@ const RecordCompare: React.FC<RecordCompareProps> = ({ comparisonFields }) => {
         "padding-y-3",
         "border-color-light-blue",
         "border-y-1px",
-        styles.comparisonView,
+        styles.recordCompare,
       )}
     >
       <div role="row" className={classNames("grid-row", "flex-row")}>
