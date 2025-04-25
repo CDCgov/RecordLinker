@@ -1,7 +1,7 @@
 import classNames from "classnames";
-import styles from "./matchReview.module.scss";
 import { JSX } from "react";
 import InfoTooltip from "@/components/infoTooltip/infoTooltip";
+import styles from "./matchReview.module.scss";
 
 export interface FieldComparisonValues {
   key: number;
