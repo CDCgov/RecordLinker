@@ -64,6 +64,12 @@ class TestLoadAlgorithm:
             description="First algorithm",
             max_missing_allowed_proportion=0.5,
             missing_field_points_proportion=0.5,
+            algorithm_context={
+                "log_odds": [
+                    {"feature": "FIRST_NAME", "value": 6.8},
+                    {"feature": "ZIP", "value": 5.0},
+                ]
+            },
             passes=[
                 schemas.AlgorithmPass(
                     blocking_keys=["FIRST_NAME"],
@@ -107,6 +113,12 @@ class TestLoadAlgorithm:
             description="First algorithm",
             max_missing_allowed_proportion=0.5,
             missing_field_points_proportion=0.5,
+            algorithm_context={
+                "log_odds": [
+                    {"feature": "FIRST_NAME", "value": 6.8},
+                    {"feature": "ZIP", "value": 5.0},
+                ]
+            },
             passes=[
                 schemas.AlgorithmPass(
                     blocking_keys=["FIRST_NAME"],

@@ -83,6 +83,47 @@ class SkipValue(pydantic.BaseModel):
         return value
 
 
+class AlgorithmContext(pydantic.BaseModel):
+    """
+    The schema for an algorithm context record.
+    """
+
+    model_config = pydantic.ConfigDict(from_attributes=True)
+
+    include_multiple_matches: bool = True
+    log_odds: typing.Sequence[LogOdd] = []
+    skip_values: typing.Sequence[SkipValue] = []
+
+    @pydantic.model_validator(mode="after")
+    def init_log_odds_helpers(self) -> typing.Self:
+        """
+        Initialize cache helpers for returning log odds values.
+        """
+        self._log_odds_cache: dict[str, float | None] = {}
+        self._log_odds_mapping: dict[str, float] = {str(o.feature): o.value for o in self.log_odds}
+        return self
+
+    def get_log_odds(self, value: Feature | BlockingKey) -> float | None:
+        """
+        Get the log odds for a specific Feature or BlockingKey.
+        """
+        key = str(value)
+        result: float | None = None
+
+        result = self._log_odds_cache.get(key, None)
+        if result:
+            return result
+
+        vals = value.values_to_match() if isinstance(value, Feature) else [str(value)]
+        for val in vals:
+            result = self._log_odds_mapping.get(val, None)
+            if result:
+                break
+
+        self._log_odds_cache[key] = result
+        return result
+
+
 class AlgorithmPass(pydantic.BaseModel):
     """
     The schema for an algorithm pass record.
@@ -151,47 +192,6 @@ class AlgorithmPass(pydantic.BaseModel):
         return [str(k) for k in keys]
 
 
-class AlgorithmContext(pydantic.BaseModel):
-    """
-    The schema for an algorithm context record.
-    """
-
-    model_config = pydantic.ConfigDict(from_attributes=True)
-
-    include_multiple_matches: bool = True
-    log_odds: typing.Sequence[LogOdd] = []
-    skip_values: typing.Sequence[SkipValue] = []
-
-    @pydantic.model_validator(mode="after")
-    def init_log_odds_helpers(self) -> typing.Self:
-        """
-        Initialize cache helpers for returning log odds values.
-        """
-        self._log_odds_cache: dict[str, float | None] = {}
-        self._log_odds_mapping: dict[str, float] = {str(o.feature): o.value for o in self.log_odds}
-        return self
-
-    def get_log_odds(self, value: Feature | BlockingKey) -> float | None:
-        """
-        Get the log odds for a specific Feature or BlockingKey.
-        """
-        key = str(value)
-        result: float | None = None
-
-        result = self._log_odds_cache.get(key, None)
-        if result:
-            return result
-
-        vals = value.values_to_match() if isinstance(value, Feature) else [str(value)]
-        for val in vals:
-            result = self._log_odds_mapping.get(val, None)
-            if result:
-                break
-
-        self._log_odds_cache[key] = result
-        return result
-
-
 class Algorithm(pydantic.BaseModel):
     """
     The schema for an algorithm record.
@@ -207,15 +207,28 @@ class Algorithm(pydantic.BaseModel):
     max_missing_allowed_proportion: float = pydantic.Field(ge=0.0, le=1.0)
     missing_field_points_proportion: float = pydantic.Field(ge=0.0, le=1.0)
 
-
     @pydantic.model_validator(mode="after")
-    def validate_passes(self) -> "Algorithm":
+    def validate_passes(self) -> typing.Self:
         """
         Validate that each pass has a unique label.
         """
         labels = {p.label for p in self.passes}
         if len(labels) != len(self.passes):
             raise ValueError("Each pass must have a unique label.")
+        return self
+
+    @pydantic.model_validator(mode="after")
+    def validate_log_odds_defined(self) -> typing.Self:
+        """
+        Check that log odds values are defined for all blocking keys and evaluators.
+        """
+        for pass_ in self.passes:
+            for blocking_key in pass_.blocking_keys:
+                if not self.algorithm_context.get_log_odds(blocking_key):
+                    raise ValueError("Log odds must be defined for all blocking keys.")
+            for evaluator in pass_.evaluators:
+                if not self.algorithm_context.get_log_odds(evaluator.feature):
+                    raise ValueError("Log odds must be defined for all evaluators.")
         return self
 
 

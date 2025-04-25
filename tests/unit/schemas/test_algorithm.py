@@ -206,3 +206,53 @@ class TestAlgorithm:
                 ),
             ],
         )
+
+    def test_validate_log_odds_defined(self):
+        with pytest.raises(pydantic.ValidationError):
+            Algorithm(
+                label="test",
+                max_missing_allowed_proportion=0.5,
+                missing_field_points_proportion=0.5,
+                passes=[
+                    AlgorithmPass(
+                        blocking_keys=["BIRTHDATE"],
+                        evaluators=[],
+                        possible_match_window=(0.75, 1.0),
+                    )
+                ],
+            )
+        with pytest.raises(pydantic.ValidationError):
+            Algorithm(
+                label="test",
+                max_missing_allowed_proportion=0.5,
+                missing_field_points_proportion=0.5,
+                passes=[
+                    AlgorithmPass(
+                        blocking_keys=[],
+                        evaluators=[
+                            {"feature": "FIRST_NAME", "func": "COMPARE_PROBABILISTIC_FUZZY_MATCH"}
+                        ],
+                        possible_match_window=(0.75, 1.0),
+                    )
+                ],
+            )
+        Algorithm(
+            label="test",
+            max_missing_allowed_proportion=0.5,
+            missing_field_points_proportion=0.5,
+            algorithm_context={
+                "log_odds": [
+                    {"feature": "FIRST_NAME", "value": 7},
+                    {"feature": "BIRTHDATE", "value": 10},
+                ]
+            },
+            passes=[
+                AlgorithmPass(
+                    blocking_keys=["BIRTHDATE"],
+                    evaluators=[
+                        {"feature": "FIRST_NAME", "func": "COMPARE_PROBABILISTIC_FUZZY_MATCH"}
+                    ],
+                    possible_match_window=(0.75, 1.0),
+                )
+            ],
+        )

@@ -52,7 +52,10 @@ class TestGetAlgorithm:
             max_missing_allowed_proportion=0.5,
             missing_field_points_proportion=0.5,
             algorithm_context={
-                "log_odds": [{"feature": "FIRST_NAME", "value": 6.8}],
+                "log_odds": [
+                    {"feature": "FIRST_NAME", "value": 6.8},
+                    {"feature": "BIRTHDATE", "value": 10.0}
+                ],
                 "skip_values": [
                     {"feature": "*", "values": ["unknown"]},
                 ],
@@ -80,7 +83,10 @@ class TestGetAlgorithm:
             "missing_field_points_proportion": 0.5,
             "algorithm_context": {
                 "include_multiple_matches": True,
-                "log_odds": [{"feature": "FIRST_NAME", "value": 6.8}],
+                "log_odds": [
+                    {"feature": "FIRST_NAME", "value": 6.8},
+                    {"feature": "BIRTHDATE", "value": 10.0}
+                ],
                 "skip_values": [
                     {"feature": "*", "values": ["unknown"]},
                 ],
@@ -148,6 +154,12 @@ class TestCreateAlgorithm:
             "description": "Created algorithm",
             "max_missing_allowed_proportion": 0.5,
             "missing_field_points_proportion": 0.5,
+            "algorithm_context": {
+                "log_odds": [
+                    {"feature": "FIRST_NAME", "value": 6.8},
+                    {"feature": "BIRTHDATE", "value": 10.0}
+                ],
+            },
             "passes": [
                 {
                     "blocking_keys": [
@@ -240,6 +252,12 @@ class TestUpdateAlgorithm:
             "description": "Updated algorithm",
             "max_missing_allowed_proportion": 0.5,
             "missing_field_points_proportion": 0.5,
+            "algorithm_context": {
+                "log_odds": [
+                    {"feature": "FIRST_NAME", "value": 6.8},
+                    {"feature": "BIRTHDATE", "value": 10.0}
+                ],
+            },
             "passes": [
                 {
                     "blocking_keys": [
