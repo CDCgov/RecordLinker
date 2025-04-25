@@ -11,6 +11,7 @@ import pytest
 from recordlinker.schemas.algorithm import Algorithm
 from recordlinker.schemas.algorithm import AlgorithmPass
 from recordlinker.schemas.algorithm import SkipValue
+from recordlinker.schemas.algorithm import LogOdd
 
 
 class TestAlgorithmPass:
@@ -143,6 +144,16 @@ class TestAlgorithmPass:
             possible_match_window=[0.8, 0.9]
         )
         assert apass.label == "custom-label"
+
+
+class TestLogOdd:
+    def test_invalid_feature(self):
+        with pytest.raises(pydantic.ValidationError):
+            LogOdd(feature="invalid", value=1.0)
+
+    def test_value_less_than_zero(self):
+        with pytest.raises(pydantic.ValidationError):
+            LogOdd(feature="FIRST_NAME", value=-1.0)
 
 
 class TestSkipValue:
