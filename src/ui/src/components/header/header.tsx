@@ -1,11 +1,15 @@
+import { Suspense } from "react";
 import Image from "next/image";
 import styles from "./header.module.scss";
 import Link from "next/link";
 import classNames from "classnames";
+import Menu from "@/components/menu/menu";
 
 const Header: React.FC = () => {
   return (
-    <header className={`padding-x-10 padding-y-4 ${styles.header}`}>
+    <header
+      className={`grid-row flex-row flex-justify padding-x-10 padding-y-4 ${styles.header}`}
+    >
       <Link
         href="/"
         className={classNames(
@@ -26,6 +30,9 @@ const Header: React.FC = () => {
         />
         Record Linker - Demo Site
       </Link>
+      <Suspense>
+        <Menu />
+      </Suspense>
     </header>
   );
 };
