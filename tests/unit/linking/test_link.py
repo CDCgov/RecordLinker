@@ -48,9 +48,6 @@ class TestCompare:
             {"feature": "FIRST_NAME", "func": "COMPARE_PROBABILISTIC_FUZZY_MATCH"},
             {"feature": "LAST_NAME", "func": "COMPARE_PROBABILISTIC_FUZZY_MATCH"},
         ]
-        log_odds = {"FIRST_NAME": 6.85, "LAST_NAME": 6.35}
-        eval_fields = [e["feature"] for e in evaluators]
-        max_points = sum([log_odds[e] for e in eval_fields])
         max_allowed_missingness_proportion = 0.5
         missing_field_points_proportion = 0.5
 
@@ -59,10 +56,15 @@ class TestCompare:
             blocking_keys=["BIRTHDATE"],
             evaluators=evaluators,
             possible_match_window=(0.8, 0.925),
-            kwargs={"log_odds": log_odds},
+        )
+        context = schemas.AlgorithmContext(
+            log_odds=[
+                {"feature": "FIRST_NAME", "value": 6.85},
+                {"feature": "LAST_NAME", "value": 6.35},
+            ]
         )
 
-        assert round(link.compare(rec, mpi_rec, max_points, max_allowed_missingness_proportion, missing_field_points_proportion, algorithm_pass, log_odds), 3) == 12.830
+        assert round(link.compare(rec, mpi_rec, max_allowed_missingness_proportion, missing_field_points_proportion, algorithm_pass, context), 3) == 12.830
 
     def test_compare_non_match_worthy_score(self):
         rec = schemas.PIIRecord(
@@ -93,9 +95,6 @@ class TestCompare:
             {"feature": "FIRST_NAME", "func": "COMPARE_PROBABILISTIC_FUZZY_MATCH"},
             {"feature": "LAST_NAME", "func": "COMPARE_PROBABILISTIC_FUZZY_MATCH"},
         ]
-        log_odds = {"FIRST_NAME": 6.85, "LAST_NAME": 6.35}
-        eval_fields = [e["feature"] for e in evaluators]
-        max_points = sum([log_odds[e] for e in eval_fields])
         max_allowed_missingness_proportion = 0.5
         missing_field_points_proportion = 0.5
         algorithm_pass = schemas.AlgorithmPass(
@@ -103,10 +102,15 @@ class TestCompare:
             blocking_keys=["BIRTHDATE"],
             evaluators=evaluators,
             possible_match_window=(0.8, 0.925),
-            kwargs={"log_odds": log_odds},
+        )
+        context = schemas.AlgorithmContext(
+            log_odds=[
+                {"feature": "FIRST_NAME", "value": 6.85},
+                {"feature": "LAST_NAME", "value": 6.35},
+            ]
         )
 
-        assert round(link.compare(rec, mpi_rec, max_points, max_allowed_missingness_proportion, missing_field_points_proportion, algorithm_pass, log_odds), 3) == 5.137
+        assert round(link.compare(rec, mpi_rec, max_allowed_missingness_proportion, missing_field_points_proportion, algorithm_pass, context), 3) == 5.137
 
     def test_compare_identifier_match(self):
         rec = schemas.PIIRecord(
@@ -145,9 +149,6 @@ class TestCompare:
         evaluators = [
             {"feature": "IDENTIFIER", "func": "COMPARE_PROBABILISTIC_FUZZY_MATCH"}
         ]
-        log_odds = {"IDENTIFIER": 0.35}
-        eval_fields = [e["feature"] for e in evaluators]
-        max_points = sum([log_odds[e] for e in eval_fields])
         max_allowed_missingness_proportion = 0.5
         missing_field_points_proportion = 0.5
 
@@ -156,10 +157,14 @@ class TestCompare:
             blocking_keys=["BIRTHDATE"],
             evaluators=evaluators,
             possible_match_window=(0.8, 0.925),
-            kwargs={"log_odds": log_odds},
+        )
+        context = schemas.AlgorithmContext(
+            log_odds=[
+                {"feature": "IDENTIFIER", "value": 0.35},
+            ]
         )
 
-        assert link.compare(rec, mpi_rec, max_points, max_allowed_missingness_proportion, missing_field_points_proportion, algorithm_pass, log_odds) == algorithm_pass.kwargs["log_odds"]["IDENTIFIER"]
+        assert link.compare(rec, mpi_rec, max_allowed_missingness_proportion, missing_field_points_proportion, algorithm_pass, context) == 0.35
 
     def test_compare_identifier_with_suffix(self):
         rec = schemas.PIIRecord(
@@ -198,9 +203,6 @@ class TestCompare:
         evaluators = [
             {"feature": "IDENTIFIER", "func": "COMPARE_PROBABILISTIC_FUZZY_MATCH"}
         ]
-        log_odds = {"IDENTIFIER": 0.35}
-        eval_fields = [e["feature"] for e in evaluators]
-        max_points = sum([log_odds[e] for e in eval_fields])
         max_allowed_missingness_proportion = 0.5
         missing_field_points_proportion = 0.5
 
@@ -209,21 +211,24 @@ class TestCompare:
             blocking_keys=["BIRTHDATE"],
             evaluators=evaluators,
             possible_match_window=(0.8, 0.925),
-            kwargs={"log_odds": log_odds},
+        )
+        context = schemas.AlgorithmContext(
+            log_odds=[
+                {"feature": "IDENTIFIER", "value": 0.35},
+            ]
         )
 
         #should pass as MR is the same for both
-        assert link.compare(rec, mpi_rec, max_points, max_allowed_missingness_proportion, missing_field_points_proportion, algorithm_pass, log_odds) == algorithm_pass.kwargs["log_odds"]["IDENTIFIER"]
+        assert link.compare(rec, mpi_rec, max_allowed_missingness_proportion, missing_field_points_proportion, algorithm_pass, context) == 0.35
 
         algorithm_pass = schemas.AlgorithmPass(
             label="pass",
             blocking_keys=["BIRTHDATE"],
             evaluators=[{"feature": "IDENTIFIER:SS", "func": "COMPARE_PROBABILISTIC_FUZZY_MATCH"}],
             possible_match_window=(0.8, 0.925),
-            kwargs={"log_odds": log_odds},
         )
         #should fail as SS is different for both
-        assert link.compare(rec, mpi_rec, max_points, max_allowed_missingness_proportion, missing_field_points_proportion, algorithm_pass, log_odds) == 0.0
+        assert link.compare(rec, mpi_rec, max_allowed_missingness_proportion, missing_field_points_proportion, algorithm_pass, context) == 0.0
 
 
 class TestLinkRecordAgainstMpi:
@@ -501,15 +506,17 @@ class TestLinkRecordAgainstMpi:
         # Create scenario described above: each pass will have 10 total points,
         # the missing field will represent a small number of these points, but
         # the total result should still be disqualified
-        log_odds = {
-            "FIRST_NAME": 2.5, "LAST_NAME": 7.5, "BIRTHDATE": 7.5, "ADDRESS": 2.5
-        }
+        log_odds = [
+            {"feature": "FIRST_NAME", "log_odds": 2.5},
+            {"feature": "LAST_NAME", "log_odds": 7.5},
+            {"feature": "BIRTHDATE", "log_odds": 7.5},
+            {"feature": "ADDRESS", "log_odds": 2.5}
+        ]
         default_algorithm.max_missing_allowed_proportion = 0.2
         default_algorithm.missing_field_points_proportion = 0.7
+        default_algorithm.algorithm_context.log_odds = log_odds
         default_algorithm.passes[0].possible_match_window = [0.7, 0.8]
-        default_algorithm.passes[0].kwargs["log_odds"] = log_odds
         default_algorithm.passes[1].possible_match_window = [0.7, 0.8]
-        default_algorithm.passes[1].kwargs["log_odds"] = log_odds
         matches: list[bool] = []
         mapped_patients: dict[str, int] = collections.defaultdict(int)
         for data in patients[:2]:
@@ -589,7 +596,7 @@ class TestLinkRecordAgainstMpi:
             multiple_matches_patients: list[schemas.PIIRecord]
         ):
         match_grades: dict[str, dict] = collections.defaultdict(dict)
-        default_algorithm.include_multiple_matches = False
+        default_algorithm.algorithm_context.include_multiple_matches = False
         for i, data in enumerate(multiple_matches_patients):
             (patient, person, results, match_grade) = link.link_record_against_mpi(data, session, default_algorithm)
             match_grades[i] = {

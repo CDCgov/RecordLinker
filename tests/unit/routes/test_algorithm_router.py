@@ -24,10 +24,13 @@ class TestListAlgorithms:
                 "label": "default",
                 "is_default": True,
                 "description": "First algorithm",
-                "include_multiple_matches": True,
+                "algorithm_context": {
+                    "include_multiple_matches": True,
+                    "log_odds": [],
+                    "skip_values": [],
+                },
                 "max_missing_allowed_proportion": 0.5,
                 "missing_field_points_proportion": 0.5,
-                "skip_values": [],
                 "pass_count": 0,
             },
         ]
@@ -48,9 +51,12 @@ class TestGetAlgorithm:
             description="First algorithm",
             max_missing_allowed_proportion=0.5,
             missing_field_points_proportion=0.5,
-            skip_values=[
-                {"feature": "*", "values": ["unknown"]},
-            ],
+            algorithm_context={
+                "log_odds": [{"feature": "FIRST_NAME", "value": 6.8}],
+                "skip_values": [
+                    {"feature": "*", "values": ["unknown"]},
+                ],
+            },
             passes=[{
                 "blocking_keys": ["BIRTHDATE"],
                 "evaluators": [{
@@ -58,7 +64,7 @@ class TestGetAlgorithm:
                     "func": "COMPARE_PROBABILISTIC_FUZZY_MATCH",
                 }],
                 "possible_match_window": (0.75, 1.0),
-                "kwargs": {"similarity_measure": "JaroWinkler", "log_odds": {"FIRST_NAME": 6.8}},
+                "kwargs": {"similarity_measure": "JaroWinkler"},
             }],
         )
         client.session.add(algo)
@@ -70,12 +76,15 @@ class TestGetAlgorithm:
             "label": "default",
             "is_default": True,
             "description": "First algorithm",
-            "include_multiple_matches": True,
             "max_missing_allowed_proportion": 0.5,
             "missing_field_points_proportion": 0.5,
-            "skip_values": [
-                {"feature": "*", "values": ["unknown"]},
-            ],
+            "algorithm_context": {
+                "include_multiple_matches": True,
+                "log_odds": [{"feature": "FIRST_NAME", "value": 6.8}],
+                "skip_values": [
+                    {"feature": "*", "values": ["unknown"]},
+                ],
+            },
             "passes": [
                 {
                     "label": "BLOCK_birthdate_MATCH_first_name",
@@ -90,7 +99,6 @@ class TestGetAlgorithm:
                     "possible_match_window": [0.75, 1.0],
                     "kwargs": {
                         "similarity_measure": "JaroWinkler",
-                        "log_odds": {"FIRST_NAME": 6.8}
                     },
                 }
             ],

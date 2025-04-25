@@ -94,11 +94,10 @@ class LinkResult:
 def compare(
     record: schemas.PIIRecord,
     mpi_record: schemas.PIIRecord,
-    max_log_odds_points: float,
     max_allowed_missingness_proportion: float,
     missing_field_points_proportion: float,
     algorithm_pass: schemas.AlgorithmPass,
-    log_odds_weights: dict[str, float],
+    context: schemas.AlgorithmContext,
 ) -> float:
     """
     Compare the incoming record to the linked patient and return the calculated
@@ -109,8 +108,6 @@ def compare(
     :param record: The new, incoming record, as a PIIRecord data type.
     :param mpi_record: A candidate record returned by blocking from the MPI, whose
       match quality the function call will evaluate.
-    :param max_log_odds_points: The maximum available log odds points that can be
-      accumulated by a candidate pair during this pass of the algorithm.
     :param max_allowed_missingness_proportion: The maximum proportion of log-odds
       weights that can be missing across all fields used in evaluating this pass.
     :param missing_field_points_proportion: The proportion of log-odds points
@@ -119,8 +116,7 @@ def compare(
     :algorithm_pass: A data structure containing information about the pass of
       the algorithm in which this comparison is being run. Holds information
       like which fields to evaluate and how to total log-odds points.
-    :param log_odds_weights: A dictionary mapping Field names to float values,
-      which are the precomputed log-odds weights associated with that field.
+    :context: A AlgorithmContext data structure containing data about the algorithm
     :returns: A boolean indicating whether the incoming record and the supplied
       candidate are a match, as determined by the specific matching rule
       contained in the algorithm_pass object.
@@ -128,21 +124,24 @@ def compare(
     # keyword arguments to pass to comparison functions
     kwargs: dict[typing.Any, typing.Any] = algorithm_pass.kwargs
 
-    missing_field_weights = 0.0
+    missing_field_weights: float = 0.0
     results: list[float] = []
     details: dict[str, typing.Any] = {}
+    max_log_odds_points: float = 0.0
     for evaluator in algorithm_pass.evaluators:
         feature: schemas.Feature = evaluator.feature
         func: typing.Callable = evaluator.func.callable()
+        log_odds: float = context.get_log_odds(feature) or 0.0
+        max_log_odds_points += log_odds
         # Evaluate the comparison function, track missingness, and append the
         # score component to the list
         result: tuple[float, bool] = func(
-            record, mpi_record, feature, missing_field_points_proportion, **kwargs
+            record, mpi_record, feature, log_odds, missing_field_points_proportion, **kwargs
         )  # type: ignore
         if result[1]:
             # The field was missing, so update the running tally of how much
             # the candidate is missing overall
-            missing_field_weights += log_odds_weights[str(feature.attribute)]
+            missing_field_weights += log_odds
         results.append(result[0])
         details[f"evaluator.{feature}.{func.__name__}.result"] = result
 
@@ -204,6 +203,8 @@ def link_record_against_mpi(
     # proportions for missingness calculation: points awarded, and max allowed
     missing_field_points_proportion = algorithm.missing_field_points_proportion
     max_missing_allowed_proportion = algorithm.max_missing_allowed_proportion
+    # get the algorithm context
+    context: schemas.AlgorithmContext = algorithm.algorithm_context
 
     # initialize counters to track evaluation results to log
     result_counts: dict[str, int] = {
@@ -211,17 +212,15 @@ def link_record_against_mpi(
         "patients_compared": 0,
     }
     # clean the incoming record
-    cleaned_record: schemas.PIIRecord = sv.remove_skip_values(record, algorithm.skip_values)
+    cleaned_record: schemas.PIIRecord = sv.remove_skip_values(record, context.skip_values)
     for idx, algorithm_pass in enumerate(algorithm.passes):
         with TRACER.start_as_current_span("link.pass"):
             pass_label = algorithm_pass.label or f"pass_{idx}"
             minimum_match_threshold, certain_match_threshold = algorithm_pass.possible_match_window
-
-            # FIXME: in #293 rework this logic to use the existing data in algorithm context
-            evaluators: list[schemas.Feature] = [e.feature for e in algorithm_pass.evaluators]
-            log_odds_points: dict[str, float] = algorithm_pass.kwargs["log_odds"]
             # Determine the maximum possible number of log-odds points in this pass
-            max_points: float = sum([log_odds_points[str(e)] for e in evaluators])
+            max_points: float = sum(
+                [context.get_log_odds(e.feature) or 0.0 for e in algorithm_pass.evaluators]
+            )
 
             # initialize a dictionary to hold the clusters of patients for each person
             clusters: dict[models.Person, list[schemas.PIIRecord]] = collections.defaultdict(list)
@@ -237,7 +236,7 @@ def link_record_against_mpi(
                 for pat in pats:
                     # convert the Patient model into a cleaned PIIRecord for comparison
                     mpi_record: schemas.PIIRecord = sv.remove_skip_values(
-                        schemas.PIIRecord.from_patient(pat), algorithm.skip_values
+                        schemas.PIIRecord.from_patient(pat), context.skip_values
                     )
                     clusters[pat.person].append(mpi_record)
 
@@ -253,11 +252,10 @@ def link_record_against_mpi(
                             rule_result = compare(
                                 record,
                                 mpi_record,
-                                max_points,
                                 max_missing_allowed_proportion,
                                 missing_field_points_proportion,
                                 algorithm_pass,
-                                log_odds_points,
+                                context,
                             )
                             log_odds_sums.append(rule_result)
 
@@ -322,7 +320,7 @@ def link_record_against_mpi(
         # Match (1 or many)
         final_grade = "certain"
         matched_person = certain_results[0].person
-        if not algorithm.include_multiple_matches:
+        if not context.include_multiple_matches:
             # reduce results to only the highest match
             results = [certain_results[0]]
         else:
