@@ -1,7 +1,7 @@
 import Link from "next/link";
 import classNames from "classnames";
 import { BackArrowIcon } from "../icons/icons";
-import style from "./BackToLink.module.scss";
+import style from "./backToLink.module.scss";
 
 export interface BackToLinkProps {
   text: string;
