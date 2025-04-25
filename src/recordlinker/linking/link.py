@@ -231,7 +231,7 @@ def link_record_against_mpi(
                 # get all candidate Patient records identified in blocking
                 # and the remaining Patient records in their Person clusters
                 pats = mpi_service.BlockData.get(
-                    session, cleaned_record, algorithm_pass, max_missing_allowed_proportion
+                    session, cleaned_record, algorithm_pass, context, max_missing_allowed_proportion
                 )
                 for pat in pats:
                     # convert the Patient model into a cleaned PIIRecord for comparison

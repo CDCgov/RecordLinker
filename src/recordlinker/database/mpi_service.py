@@ -24,18 +24,16 @@ LOGGER = logging.getLogger(__name__)
 class BlockData:
     @classmethod
     def _ordered_odds(
-        cls, keys: list[models.BlockingKey], kwargs: typing.Any
+        cls, keys: list[models.BlockingKey], context: schemas.AlgorithmContext
     ) -> dict[models.BlockingKey, float]:
         """
         Return a dictionary of key_ids ordered by log_odds values from highest to lowest.
 
         :param keys: list[BlockingKey]
-        :param kwargs: typing.Any
+        :param context: AlgorithmContext
         :return: dict[BlockingKey, float]
         """
-        result: dict[models.BlockingKey, float] = {
-            k: kwargs.get("log_odds", {}).get(k.value, 0.0) for k in keys
-        }
+        result: dict[models.BlockingKey, float] = {k: context.get_log_odds(k) or 0.0 for k in keys}
         return dict(sorted(result.items(), key=lambda item: item[1], reverse=True))
 
     @classmethod
@@ -112,6 +110,7 @@ class BlockData:
         session: orm.Session,
         record: schemas.PIIRecord,
         algorithm_pass: schemas.AlgorithmPass,
+        context: schemas.AlgorithmContext,
         max_missing_allowed_proportion: float,
     ) -> typing.Sequence[models.Patient]:
         """
@@ -123,15 +122,14 @@ class BlockData:
         :param session: The database session
         :param record: The PIIRecord to match
         :param algorithm_pass: The AlgorithmPass to use
+        :param context: The AlgorithmContext
         :param max_missing_allowed_proportion: The maximum proportion of missing values allowed
         :return: The matching Patients
         """
         # Create the base query
         base: expression.Select = expression.select(models.Patient.person_id).distinct()
-        # Get the pass kwargs or create an empty dict
-        kwargs: dict[str, typing.Any] = algorithm_pass.kwargs or {}
         # Get an ordered dict of blocking keys and their log odds
-        key_odds = cls._ordered_odds(algorithm_pass.blocking_keys, kwargs)
+        key_odds = cls._ordered_odds(algorithm_pass.blocking_keys, context)
         # Total log odds from all blocking keys
         total_odds = sum(key_odds.values())
         # Total log odds for keys with missing values
