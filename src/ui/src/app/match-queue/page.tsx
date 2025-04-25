@@ -5,15 +5,18 @@ import ServerError from "@/components/serverError/serverError";
 import EmptyQueue from "./emptyQueue";
 import RecordTable from "@/components/recordTable/recordTable";
 import { Record } from "@/models/record";
-import { getUnreviewedRecords } from "@/data/recordQueue";
+import { getUnmatchedRecords } from "@/data/matchQueue";
 
-const UnreviewedRecordQueue: React.FC = () => {
+const MatchQueue: React.FC = () => {
   const [recordList, setRecordList] = useState<Record[] | undefined>();
   const [serverError, setServerError] = useState(false);
 
-  async function retrieveUnreviewedRecords() {
+  /**
+   * Initialize data
+   */
+  async function retrieveUnmatchedRecords() {
     try {
-      const records = await getUnreviewedRecords();
+      const records = await getUnmatchedRecords();
       setRecordList(records);
     } catch (_) {
       setServerError(true);
@@ -21,13 +24,16 @@ const UnreviewedRecordQueue: React.FC = () => {
   }
 
   useEffect(() => {
-    retrieveUnreviewedRecords();
+    retrieveUnmatchedRecords();
   }, []);
 
+  /**
+   * HTML
+   */
   if (serverError) {
     return <ServerError />;
   } else if (recordList && recordList?.length > 0) {
-    return <RecordTable items={recordList} withReviewLink />;
+    return <RecordTable items={recordList} withReviewLink withSortIndicator />;
   } else if (recordList && recordList?.length === 0) {
     return <EmptyQueue />;
   }
@@ -35,4 +41,4 @@ const UnreviewedRecordQueue: React.FC = () => {
   return null;
 };
 
-export default UnreviewedRecordQueue;
+export default MatchQueue;

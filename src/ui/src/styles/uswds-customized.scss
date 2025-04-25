@@ -19,11 +19,18 @@
   $theme-color-primary-dark: "violet-warm-70",
   $theme-link-color: "violet-warm-60",
   $theme-link-hover-color: "violet-warm-70",
-  // General font colors
+  // General palette colors
+  // base: blue cool, accent-cool: gray-cool, primary: violet warm
   $theme-color-base-family: "blue-cool",
   $theme-text-color: "blue-cool-90",
   $theme-color-base-darker: "blue-cool-80",
   $theme-color-base-ink: "blue-cool-90",
+  $theme-color-accent-cool-family: "gray-cool",
+  $theme-color-accent-cool-dark: "gray-cool-80",
+  $theme-color-accent-cool-lighter: "gray-cool-2",
+  $theme-color-accent-cool-light: "gray-cool-20",
+  $theme-color-accent-warm-family: "gold-vivid",
+  $theme-color-accent-warm-dark: "gold-60v",
 
   // Components
   $theme-hero-image: "../../../../dist/img/hero.jpg",
@@ -40,9 +47,11 @@
 
   $theme-font-role-heading: "serif",
   $theme-font-role-body: "sans",
+  $theme-font-role-ui: "sans",
   $theme-font-role-code: "mono",
   $theme-font-role-alt: "serif",
   $theme-font-weight-thin: 200,
+  $theme-font-weight-medium: 500,
   $theme-font-weight-semibold: 600,
   $theme-type-scale-xl: 12,
   $theme-type-scale-lg: 11,

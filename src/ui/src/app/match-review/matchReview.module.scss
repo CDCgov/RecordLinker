@@ -1,0 +1,21 @@
+@use "../../styles/variables.scss" as *;
+
+.recordCompare {
+  div[role="row"]:nth-child(2) {
+    div:nth-child(2),
+    div:nth-child(3) {
+      border-top-left-radius: 0.25rem;
+      border-top-right-radius: 0.25rem;
+      border-top: solid 0.063rem $gray-cool-gray-cool-20;
+    }
+  }
+
+  div[role="row"]:last-child {
+    div:nth-child(2),
+    div:nth-child(3) {
+      border-bottom-left-radius: 0.25rem;
+      border-bottom-right-radius: 0.25rem;
+      border-bottom: solid 0.063rem #c6cace;
+    }
+  }
+}

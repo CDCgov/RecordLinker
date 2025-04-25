@@ -1,0 +1,14 @@
+@use "../../styles/variables.scss" as *;
+
+.backToLink {
+  color: $blue-cool-blue-cool-60;
+  width: fit-content;
+
+  &:visited {
+    color: $blue-cool-blue-cool-60;
+  }
+
+  &:hover {
+    color: $blue-cool-blue-cool-70;
+  }
+}

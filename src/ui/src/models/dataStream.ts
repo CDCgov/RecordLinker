@@ -1,4 +1,4 @@
 export interface DataStream {
-  name: string;
-  type: "ELR" | "eCR";
+  system: string;
+  type: string;
 }
