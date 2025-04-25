@@ -113,7 +113,6 @@ class TestAlgorithmPass:
                 "similarity_measure": "JaroWinkler",
                 "thresholds": {"CITY": 0.95, "ADDRESS": 0.98},
                 "threshold": 0.9,
-                "log_odds": {"CITY": 12.0, "ADDRESS": 15.0},
             },
         )
 

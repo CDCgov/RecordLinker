@@ -59,7 +59,6 @@ class AvailableKwarg(enum.Enum):
     SIMILARITY_MEASURE = "similarity_measure"
     THRESHOLD = "threshold"
     THRESHOLDS = "thresholds"
-    LOG_ODDS = "log_odds"
 
 
 def _get_fuzzy_params(col: str, **kwargs) -> tuple[SIMILARITY_MEASURES, float]:
