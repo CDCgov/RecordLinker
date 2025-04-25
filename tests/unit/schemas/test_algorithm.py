@@ -10,8 +10,8 @@ import pytest
 
 from recordlinker.schemas.algorithm import Algorithm
 from recordlinker.schemas.algorithm import AlgorithmPass
-from recordlinker.schemas.algorithm import SkipValue
 from recordlinker.schemas.algorithm import LogOdd
+from recordlinker.schemas.algorithm import SkipValue
 
 
 class TestAlgorithmPass:
