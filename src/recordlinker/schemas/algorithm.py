@@ -25,6 +25,14 @@ class Evaluator(pydantic.BaseModel):
 
     feature: Feature = pydantic.Field(json_schema_extra={"enum": Feature.all_options()})
     func: matchers.FeatureFunc
+    fuzzy_match_threshold: Annotated[float, pydantic.Field(ge=0, le=1)] | None = pydantic.Field(
+        default=None,
+        description="[Optional] Set to override the default fuzzy match threshold for this evaluator.",
+    )
+    fuzzy_match_measure: matchers.SIMILARITY_MEASURES | None = pydantic.Field(
+        default=None,
+        description="[Optional] Set to override the default fuzzy match measure for this evaluator.",
+    )
 
     @pydantic.field_validator("feature", mode="before")
     def validate_feature(cls, value: str) -> Feature:

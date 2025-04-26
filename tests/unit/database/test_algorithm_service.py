@@ -113,6 +113,8 @@ class TestLoadAlgorithm:
                 {
                     "feature": "ZIP",
                     "func": "COMPARE_PROBABILISTIC_FUZZY_MATCH",
+                    "fuzzy_match_threshold": None,
+                    "fuzzy_match_measure": None,
                 }
             ],
             "possible_match_window": (0.75, 1.0),
@@ -177,6 +179,8 @@ class TestLoadAlgorithm:
                 {
                     "feature": "ZIP",
                     "func": "COMPARE_PROBABILISTIC_FUZZY_MATCH",
+                    "fuzzy_match_threshold": None,
+                    "fuzzy_match_measure": None,
                 }
             ],
             "possible_match_window": (0.75, 1.0),

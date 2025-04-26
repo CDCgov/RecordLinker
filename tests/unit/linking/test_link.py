@@ -102,7 +102,8 @@ class TestCompare:
             log_odds=[
                 {"feature": "FIRST_NAME", "value": 6.85},
                 {"feature": "LAST_NAME", "value": 6.35},
-            ]
+            ],
+            advanced={"fuzzy_match_threshold": 0.7}
         )
 
         assert round(link.compare(rec, mpi_rec, algorithm_pass, context), 3) == 5.137

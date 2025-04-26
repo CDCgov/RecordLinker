@@ -91,6 +91,27 @@ class LinkResult:
             self._update_score_tracking_row(earned_points, pass_lbl, rms, mmt, cmt, grade)
 
 
+def invoke(
+    evaluator: schemas.Evaluator,
+    record: schemas.PIIRecord,
+    mpi_record: schemas.PIIRecord,
+    context: schemas.AlgorithmContext,
+) -> tuple[float, bool]:
+    """
+    Invoke the evaluator function and return the result
+    """
+    fn: typing.Callable = evaluator.func.callable()
+    kwargs = {
+        "log_odds": context.get_log_odds(evaluator.feature) or 0.0,
+        "missing_field_points_proportion": context.advanced.missing_field_points_proportion,
+        "fuzzy_match_threshold": evaluator.fuzzy_match_threshold
+        or context.advanced.fuzzy_match_threshold,
+        "fuzzy_match_measure": evaluator.fuzzy_match_measure
+        or context.advanced.fuzzy_match_measure,
+    }
+    return fn(record, mpi_record, evaluator.feature, **kwargs)
+
+
 def compare(
     record: schemas.PIIRecord,
     mpi_record: schemas.PIIRecord,
@@ -114,31 +135,23 @@ def compare(
       candidate are a match, as determined by the specific matching rule
       contained in the algorithm_pass object.
     """
-    # keyword arguments to pass to comparison functions
-    kwargs: dict[typing.Any, typing.Any] = algorithm_pass.kwargs
-
     missing_field_weights: float = 0.0
     results: list[float] = []
     details: dict[str, typing.Any] = {}
     max_log_odds_points: float = 0.0
-    missing_field_propotion: float = context.advanced.missing_field_points_proportion
     max_missing_proportion: float = context.advanced.max_missing_allowed_proportion
     for evaluator in algorithm_pass.evaluators:
-        feature: schemas.Feature = evaluator.feature
-        func: typing.Callable = evaluator.func.callable()
-        log_odds: float = context.get_log_odds(feature) or 0.0
+        log_odds: float = context.get_log_odds(evaluator.feature) or 0.0
         max_log_odds_points += log_odds
         # Evaluate the comparison function, track missingness, and append the
         # score component to the list
-        result: tuple[float, bool] = func(
-            record, mpi_record, feature, log_odds, missing_field_propotion, **kwargs
-        )  # type: ignore
+        result: tuple[float, bool] = invoke(evaluator, record, mpi_record, context)
         if result[1]:
             # The field was missing, so update the running tally of how much
             # the candidate is missing overall
             missing_field_weights += log_odds
         results.append(result[0])
-        details[f"evaluator.{feature}.{func.__name__}.result"] = result
+        details[f"evaluator.{evaluator.feature}.{evaluator.func}.result"] = result
 
     # Make sure this score wasn't just accumulated with missing checks
     if missing_field_weights <= (max_missing_proportion * max_log_odds_points):
