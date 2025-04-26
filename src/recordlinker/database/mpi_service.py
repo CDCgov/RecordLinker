@@ -111,7 +111,6 @@ class BlockData:
         record: schemas.PIIRecord,
         algorithm_pass: schemas.AlgorithmPass,
         context: schemas.AlgorithmContext,
-        max_missing_allowed_proportion: float,
     ) -> typing.Sequence[models.Patient]:
         """
         Get all of the matching Patients for the given data using the provided
@@ -123,7 +122,6 @@ class BlockData:
         :param record: The PIIRecord to match
         :param algorithm_pass: The AlgorithmPass to use
         :param context: The AlgorithmContext
-        :param max_missing_allowed_proportion: The maximum proportion of missing values allowed
         :return: The matching Patients
         """
         # Create the base query
@@ -147,7 +145,7 @@ class BlockData:
                 # Add the missing log odds to the total and check if we should abort
                 missing_odds += log_odds
                 if not cls._should_continue_blocking(
-                    total_odds, missing_odds, max_missing_allowed_proportion
+                    total_odds, missing_odds, context.advanced.max_missing_allowed_proportion
                 ):
                     return []
                 # This key doesn't have values, skip the joining query

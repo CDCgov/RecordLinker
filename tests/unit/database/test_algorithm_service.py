@@ -90,8 +90,20 @@ class TestLoadAlgorithm:
         assert obj.id == 1
         assert obj.label == "dibbs-test"
         assert obj.description == "First algorithm"
-        assert obj.max_missing_allowed_proportion == 0.5
-        assert obj.missing_field_points_proportion == 0.5
+        assert obj.algorithm_context == {
+            "include_multiple_matches": True,
+            "log_odds": [
+                {"feature": "FIRST_NAME", "value": 6.8},
+                {"feature": "ZIP", "value": 5.0},
+            ],
+            "skip_values": [],
+            "advanced": {
+                "fuzzy_match_threshold": 0.9,
+                "fuzzy_match_measure": "JaroWinkler",
+                "max_missing_allowed_proportion": 0.5,
+                "missing_field_points_proportion": 0.5,
+            },
+        }
         assert len(obj.passes) == 1
         assert obj.passes[0] == {
             "label": "BLOCK_first_name_MATCH_zip",
@@ -142,8 +154,20 @@ class TestLoadAlgorithm:
         assert obj.id == 1
         assert obj.label == "dibbs-test"
         assert obj.description == "Updated description"
-        assert obj.max_missing_allowed_proportion == 0.5
-        assert obj.missing_field_points_proportion == 0.5
+        assert obj.algorithm_context == {
+            "include_multiple_matches": True,
+            "log_odds": [
+                {"feature": "FIRST_NAME", "value": 6.8},
+                {"feature": "ZIP", "value": 5.0},
+            ],
+            "skip_values": [],
+            "advanced": {
+                "fuzzy_match_threshold": 0.9,
+                "fuzzy_match_measure": "JaroWinkler",
+                "max_missing_allowed_proportion": 0.5,
+                "missing_field_points_proportion": 0.5,
+            },
+        }
         assert len(obj.passes) == 1
         assert obj.passes[0] == {
             "label": "BLOCK_first_name_MATCH_zip",

@@ -94,8 +94,6 @@ class LinkResult:
 def compare(
     record: schemas.PIIRecord,
     mpi_record: schemas.PIIRecord,
-    max_allowed_missingness_proportion: float,
-    missing_field_points_proportion: float,
     algorithm_pass: schemas.AlgorithmPass,
     context: schemas.AlgorithmContext,
 ) -> float:
@@ -108,11 +106,6 @@ def compare(
     :param record: The new, incoming record, as a PIIRecord data type.
     :param mpi_record: A candidate record returned by blocking from the MPI, whose
       match quality the function call will evaluate.
-    :param max_allowed_missingness_proportion: The maximum proportion of log-odds
-      weights that can be missing across all fields used in evaluating this pass.
-    :param missing_field_points_proportion: The proportion of log-odds points
-      that a field missing data will earn during comparison (i.e. a fraction of
-      its regular log-odds weight value).
     :algorithm_pass: A data structure containing information about the pass of
       the algorithm in which this comparison is being run. Holds information
       like which fields to evaluate and how to total log-odds points.
@@ -128,6 +121,8 @@ def compare(
     results: list[float] = []
     details: dict[str, typing.Any] = {}
     max_log_odds_points: float = 0.0
+    missing_field_propotion: float = context.advanced.missing_field_points_proportion
+    max_missing_proportion: float = context.advanced.max_missing_allowed_proportion
     for evaluator in algorithm_pass.evaluators:
         feature: schemas.Feature = evaluator.feature
         func: typing.Callable = evaluator.func.callable()
@@ -136,7 +131,7 @@ def compare(
         # Evaluate the comparison function, track missingness, and append the
         # score component to the list
         result: tuple[float, bool] = func(
-            record, mpi_record, feature, log_odds, missing_field_points_proportion, **kwargs
+            record, mpi_record, feature, log_odds, missing_field_propotion, **kwargs
         )  # type: ignore
         if result[1]:
             # The field was missing, so update the running tally of how much
@@ -146,7 +141,7 @@ def compare(
         details[f"evaluator.{feature}.{func.__name__}.result"] = result
 
     # Make sure this score wasn't just accumulated with missing checks
-    if missing_field_weights <= max_allowed_missingness_proportion * max_log_odds_points:
+    if missing_field_weights <= (max_missing_proportion * max_log_odds_points):
         rule_result = sum(results)
     else:
         rule_result = 0.0
@@ -200,9 +195,6 @@ def link_record_against_mpi(
     # Membership scores need to persist across linkage passes so that we can
     # find the highest scoring match across all passes
     scores: dict[models.Person, LinkResult] = {}
-    # proportions for missingness calculation: points awarded, and max allowed
-    missing_field_points_proportion = algorithm.missing_field_points_proportion
-    max_missing_allowed_proportion = algorithm.max_missing_allowed_proportion
     # get the algorithm context
     context: schemas.AlgorithmContext = algorithm.algorithm_context
 
@@ -230,9 +222,7 @@ def link_record_against_mpi(
             with TRACER.start_as_current_span("link.block"):
                 # get all candidate Patient records identified in blocking
                 # and the remaining Patient records in their Person clusters
-                pats = mpi_service.BlockData.get(
-                    session, cleaned_record, algorithm_pass, context, max_missing_allowed_proportion
-                )
+                pats = mpi_service.BlockData.get(session, cleaned_record, algorithm_pass, context)
                 for pat in pats:
                     # convert the Patient model into a cleaned PIIRecord for comparison
                     mpi_record: schemas.PIIRecord = sv.remove_skip_values(
@@ -252,8 +242,6 @@ def link_record_against_mpi(
                             rule_result = compare(
                                 record,
                                 mpi_record,
-                                max_missing_allowed_proportion,
-                                missing_field_points_proportion,
                                 algorithm_pass,
                                 context,
                             )

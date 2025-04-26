@@ -48,9 +48,6 @@ class TestCompare:
             {"feature": "FIRST_NAME", "func": "COMPARE_PROBABILISTIC_FUZZY_MATCH"},
             {"feature": "LAST_NAME", "func": "COMPARE_PROBABILISTIC_FUZZY_MATCH"},
         ]
-        max_allowed_missingness_proportion = 0.5
-        missing_field_points_proportion = 0.5
-
         algorithm_pass = schemas.AlgorithmPass(
             label="pass",
             blocking_keys=["BIRTHDATE"],
@@ -64,7 +61,7 @@ class TestCompare:
             ]
         )
 
-        assert round(link.compare(rec, mpi_rec, max_allowed_missingness_proportion, missing_field_points_proportion, algorithm_pass, context), 3) == 12.830
+        assert round(link.compare(rec, mpi_rec, algorithm_pass, context), 3) == 12.830
 
     def test_compare_non_match_worthy_score(self):
         rec = schemas.PIIRecord(
@@ -95,8 +92,6 @@ class TestCompare:
             {"feature": "FIRST_NAME", "func": "COMPARE_PROBABILISTIC_FUZZY_MATCH"},
             {"feature": "LAST_NAME", "func": "COMPARE_PROBABILISTIC_FUZZY_MATCH"},
         ]
-        max_allowed_missingness_proportion = 0.5
-        missing_field_points_proportion = 0.5
         algorithm_pass = schemas.AlgorithmPass(
             label="pass",
             blocking_keys=["BIRTHDATE"],
@@ -110,7 +105,7 @@ class TestCompare:
             ]
         )
 
-        assert round(link.compare(rec, mpi_rec, max_allowed_missingness_proportion, missing_field_points_proportion, algorithm_pass, context), 3) == 5.137
+        assert round(link.compare(rec, mpi_rec, algorithm_pass, context), 3) == 5.137
 
     def test_compare_identifier_match(self):
         rec = schemas.PIIRecord(
@@ -149,8 +144,6 @@ class TestCompare:
         evaluators = [
             {"feature": "IDENTIFIER", "func": "COMPARE_PROBABILISTIC_FUZZY_MATCH"}
         ]
-        max_allowed_missingness_proportion = 0.5
-        missing_field_points_proportion = 0.5
 
         algorithm_pass = schemas.AlgorithmPass(
             label="pass",
@@ -164,7 +157,7 @@ class TestCompare:
             ]
         )
 
-        assert link.compare(rec, mpi_rec, max_allowed_missingness_proportion, missing_field_points_proportion, algorithm_pass, context) == 0.35
+        assert link.compare(rec, mpi_rec, algorithm_pass, context) == 0.35
 
     def test_compare_identifier_with_suffix(self):
         rec = schemas.PIIRecord(
@@ -203,9 +196,6 @@ class TestCompare:
         evaluators = [
             {"feature": "IDENTIFIER", "func": "COMPARE_PROBABILISTIC_FUZZY_MATCH"}
         ]
-        max_allowed_missingness_proportion = 0.5
-        missing_field_points_proportion = 0.5
-
         algorithm_pass = schemas.AlgorithmPass(
             label="pass",
             blocking_keys=["BIRTHDATE"],
@@ -219,7 +209,7 @@ class TestCompare:
         )
 
         #should pass as MR is the same for both
-        assert link.compare(rec, mpi_rec, max_allowed_missingness_proportion, missing_field_points_proportion, algorithm_pass, context) == 0.35
+        assert link.compare(rec, mpi_rec, algorithm_pass, context) == 0.35
 
         algorithm_pass = schemas.AlgorithmPass(
             label="pass",
@@ -228,7 +218,7 @@ class TestCompare:
             possible_match_window=(0.8, 0.925),
         )
         #should fail as SS is different for both
-        assert link.compare(rec, mpi_rec, max_allowed_missingness_proportion, missing_field_points_proportion, algorithm_pass, context) == 0.0
+        assert link.compare(rec, mpi_rec, algorithm_pass, context) == 0.0
 
 
 class TestLinkRecordAgainstMpi:
@@ -434,7 +424,7 @@ class TestLinkRecordAgainstMpi:
         patients.append(duplicate)
 
         # Test whether too many missing points causes failure
-        default_algorithm.max_missing_allowed_proportion = 0.3
+        default_algorithm.algorithm_context.advanced.max_missing_allowed_proportion = 0.3
         matches: list[bool] = []
         mapped_patients: dict[str, int] = collections.defaultdict(int)
         for data in patients[:2]:
@@ -464,8 +454,8 @@ class TestLinkRecordAgainstMpi:
         # We'll test lower log-odds cutoffs and show that even if a record
         # would regularly have the points to match, it's disqualified if it
         # violates the user missingness constraint.
-        default_algorithm.max_missing_allowed_proportion = 0.0
-        default_algorithm.missing_field_points_proportion = 0.0
+        default_algorithm.algorithm_context.advanced.max_missing_allowed_proportion = 0.0
+        default_algorithm.algorithm_context.advanced.missing_field_points_proportion = 0.0
         default_algorithm.passes[0].possible_match_window = [0.2, 0.3]
         default_algorithm.passes[1].possible_match_window = [0.2, 0.3]
         matches: list[bool] = []
@@ -512,8 +502,8 @@ class TestLinkRecordAgainstMpi:
             {"feature": "BIRTHDATE", "log_odds": 7.5},
             {"feature": "ADDRESS", "log_odds": 2.5}
         ]
-        default_algorithm.max_missing_allowed_proportion = 0.2
-        default_algorithm.missing_field_points_proportion = 0.7
+        default_algorithm.algorithm_context.advanced.max_missing_allowed_proportion = 0.2
+        default_algorithm.algorithm_context.advanced.missing_field_points_proportion = 0.7
         default_algorithm.algorithm_context.log_odds = log_odds
         default_algorithm.passes[0].possible_match_window = [0.7, 0.8]
         default_algorithm.passes[1].possible_match_window = [0.7, 0.8]
