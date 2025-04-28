@@ -100,16 +100,12 @@ class TestLinkMatch:
             == response.json()["potential_match"][0]["person_id"]
         )
 
-        session_data = session_store.load_session(
-            response,
-            key="linked_status",
-        )
-
-        assert session_data["incoming_record"]["patient_id"] == patient_reference_id
-        assert session_data["linked"] is True
         assert (
-            session_data["incoming_record"]["person_id"]
-            == session_data["potential_match"][0]["person_id"]
+            session_store.load_session(
+                response,
+                key="linked_status",
+            )
+            is True
         )
 
     def test_link_match_invalid_id(self, client):
@@ -141,13 +137,13 @@ class TestUnlinkMatch:
         assert response.json()["linked"] is False
         assert response.json()["incoming_record"]["person_id"] is None
 
-        session_data = session_store.load_session(
-            response,
-            key="linked_status",
+        assert (
+            session_store.load_session(
+                response,
+                key="linked_status",
+            )
+            is False
         )
-        assert session_data["incoming_record"]["patient_id"] == patient_reference_id
-        assert session_data["linked"] is False
-        assert session_data["incoming_record"]["person_id"] is None
 
     def test_unlink_match_invalid_id(self, client):
         response = client.post("/api/demo/record/invalid/unlink")

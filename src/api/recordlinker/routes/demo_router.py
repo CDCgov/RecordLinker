@@ -105,7 +105,7 @@ def link_match(
     session_store.save_session(
         response,
         key="linked_status",
-        data=match_review_record,
+        data=match_review_record["linked"],
     )
     return match_review_record
 
@@ -137,6 +137,6 @@ def unlink_match(
     session_store.save_session(
         response,
         key="linked_status",
-        data=match_review_record,
+        data=match_review_record["linked"],
     )
     return match_review_record
