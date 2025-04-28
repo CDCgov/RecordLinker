@@ -130,6 +130,7 @@ def unlink_match(
 
     # Update the linked status
     match_review_record["linked"] = False
+    match_review_record["incoming_record"]["person_id"] = None
     # TODO: Remove potential match from the match_review_record since they were deemed not a match
 
     # Save session
