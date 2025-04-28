@@ -55,10 +55,7 @@ class AvailableKwarg(enum.Enum):
     defined keyword arguments. However, only a subset will be used in matching,
     based on the configuration of the algorithm.
     """
-
-    SIMILARITY_MEASURE = "similarity_measure"
-    THRESHOLD = "threshold"
-    THRESHOLDS = "thresholds"
+    pass
 
 
 def _get_fuzzy_params(col: str, **kwargs) -> tuple[SIMILARITY_MEASURES, float]:

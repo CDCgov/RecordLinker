@@ -110,11 +110,7 @@ class TestAlgorithmPass:
             blocking_keys=[],
             evaluators=[],
             possible_match_window=(0.75, 1.0),
-            kwargs={
-                "similarity_measure": "JaroWinkler",
-                "thresholds": {"CITY": 0.95, "ADDRESS": 0.98},
-                "threshold": 0.9,
-            },
+            kwargs={},
         )
 
     def test_default_label(self):

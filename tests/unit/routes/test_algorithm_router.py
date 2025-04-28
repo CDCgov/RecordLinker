@@ -69,7 +69,6 @@ class TestGetAlgorithm:
                     "func": "COMPARE_PROBABILISTIC_FUZZY_MATCH",
                 }],
                 "possible_match_window": (0.75, 1.0),
-                "kwargs": {"similarity_measure": "JaroWinkler"},
             }],
         )
         client.session.add(algo)
@@ -111,9 +110,7 @@ class TestGetAlgorithm:
                         }
                     ],
                     "possible_match_window": [0.75, 1.0],
-                    "kwargs": {
-                        "similarity_measure": "JaroWinkler",
-                    },
+                    "kwargs": {},
                 }
             ],
         }
