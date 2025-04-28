@@ -84,3 +84,100 @@ class TestGetMatchReviewRecords:
         response = client.get("/api/demo/record/9")
         assert response.status_code == 404
         assert response.json() == {"detail": "Not Found"}
+
+
+class TestLinkMatch:
+    def test_link_match(self, client):
+        patient_reference_id = 1
+        response = client.post(f"/api/demo/record/{patient_reference_id}/link")
+        assert response.status_code == 200
+        assert response.json()["incoming_record"]["patient_id"] == patient_reference_id
+        assert response.json()["linked"] is True
+        assert (
+            response.json()["incoming_record"]["person_id"]
+            == response.json()["potential_match"][0]["person_id"]
+        )
+
+    def test_link_match_invalid_id(self, client):
+        response = client.post("/api/demo/record/invalid/link")
+        assert response.status_code == 422
+        assert response.json() == {
+            "detail": [
+                {
+                    "type": "int_parsing",
+                    "loc": ["path", "patient_reference_id"],
+                    "msg": "Input should be a valid integer, unable to parse string as an integer",
+                    "input": "invalid",
+                }
+            ]
+        }
+
+    def test_link_match_missing_id(self, client):
+        response = client.post("/api/demo/record/9/link")
+        assert response.status_code == 404
+        assert response.json() == {"detail": "Not Found"}
+
+
+class TestUnlinkMatch:
+    def test_unlink_match(self, client):
+        patient_reference_id = 1
+        response = client.post(f"/api/demo/record/{patient_reference_id}/unlink")
+        assert response.status_code == 200
+        assert response.json()["incoming_record"]["patient_id"] == patient_reference_id
+        assert response.json()["linked"] is False
+        assert response.json()["incoming_record"]["person_id"] is None
+
+    def test_unlink_match_invalid_id(self, client):
+        response = client.post("/api/demo/record/invalid/unlink")
+        assert response.status_code == 422
+        assert response.json() == {
+            "detail": [
+                {
+                    "type": "int_parsing",
+                    "loc": ["path", "patient_reference_id"],
+                    "msg": "Input should be a valid integer, unable to parse string as an integer",
+                    "input": "invalid",
+                }
+            ]
+        }
+
+    def test_unlink_match_missing_id(self, client):
+        response = client.post("/api/demo/record/9/unlink")
+        assert response.status_code == 404
+        assert response.json() == {"detail": "Not Found"}
+
+
+class TestGetLinkStatusFromSession:
+    def test_get_link_status(self, client):
+        patient_reference_id = 1
+        post_response = client.post(f"/api/demo/record/{patient_reference_id}/link")
+        assert post_response.status_code == 200
+
+        get_response = client.get(f"/api/demo/record/{patient_reference_id}/linked_status")
+        assert get_response.status_code == 200
+        assert get_response.json()["linked"] is True
+
+        post_response = client.post(f"/api/demo/record/{patient_reference_id}/unlink")
+        assert post_response.status_code == 200
+        get_response = client.get(f"/api/demo/record/{patient_reference_id}/linked_status")
+        assert get_response.status_code == 200
+        assert get_response.json()["linked"] is False
+
+    def test_get_link_status_invalid_id(self, client):
+        response = client.get("/api/demo/record/invalid/linked_status")
+        assert response.status_code == 422
+        assert response.json() == {
+            "detail": [
+                {
+                    "type": "int_parsing",
+                    "loc": ["path", "patient_reference_id"],
+                    "msg": "Input should be a valid integer, unable to parse string as an integer",
+                    "input": "invalid",
+                }
+            ]
+        }
+
+    def test_get_link_status_missing_id(self, client):
+        response = client.get("/api/demo/record/9/linked_status")
+        assert response.status_code == 404
+        assert response.json() == {"detail": "No session data found."}
