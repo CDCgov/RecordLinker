@@ -162,4 +162,4 @@ def get_linked_status(
             status_code=fastapi.status.HTTP_404_NOT_FOUND, detail="No session data found."
         )
 
-    return session_data
+    return schemas.demo.MatchReviewRecord.model_validate(session_data)
