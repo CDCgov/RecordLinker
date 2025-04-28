@@ -104,7 +104,7 @@ def link_match(
     # Save session (modifies the real response)
     session_store.save_session(
         response,
-        key=f"linked_status_{patient_reference_id}",
+        key="linked_status",
         data=match_review_record,
     )
     return match_review_record
@@ -136,30 +136,7 @@ def unlink_match(
     # Save session
     session_store.save_session(
         response,
-        key=f"linked_status_{patient_reference_id}",
+        key="linked_status",
         data=match_review_record,
     )
     return match_review_record
-
-
-@router.get(
-    "/record/{patient_reference_id}/linked_status",
-    summary="Check linked status from session",
-)
-def get_linked_status(
-    patient_reference_id: int,
-    request: fastapi.Request,
-) -> schemas.demo.MatchReviewRecord:
-    """
-    Get linked status from session.
-    """
-    session_data = session_store.load_session(
-        request,
-        key=f"linked_status_{patient_reference_id}",
-    )
-    if session_data is None:
-        raise fastapi.HTTPException(
-            status_code=fastapi.status.HTTP_404_NOT_FOUND, detail="No session data found."
-        )
-
-    return schemas.demo.MatchReviewRecord.model_validate(session_data)
