@@ -24,3 +24,7 @@ export const LinkIcon: React.FC<RecordLinkerIconProp> = (props) => (
 export const LinkOffIcon: React.FC<RecordLinkerIconProp> = (props) => (
   <Icon.LinkOff {...props} role="" />
 );
+
+export const LaunchIcon: React.FC<RecordLinkerIconProp> = (props) => (
+  <Icon.Launch {...props} role="" />
+);

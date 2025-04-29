@@ -126,7 +126,8 @@ const RecordCompare: React.FC<RecordCompareProps> = ({ comparisonFields }) => {
       className={classNames(
         "margin-top-3",
         "padding-x-5",
-        "padding-y-3",
+        "padding-top-3",
+        "padding-bottom-5",
         "border-color-light-blue",
         "border-y-1px",
         styles.recordCompare,
