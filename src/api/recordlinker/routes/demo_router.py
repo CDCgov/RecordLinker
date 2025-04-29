@@ -89,8 +89,8 @@ def get_demo_data(
     if linked_status:
         for record in data:
             patient_id = record["incoming_record"]["patient_id"]
-            if patient_id in linked_status:
-                record["linked"] = linked_status[patient_id]
+            if str(patient_id) in linked_status:
+                record["linked"] = linked_status[str(patient_id)]
 
     # Filter and sort the data based on the linked status
     filtered_sorted = filter_and_sort(data, status)
