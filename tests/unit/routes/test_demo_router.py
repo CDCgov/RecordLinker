@@ -5,6 +5,8 @@ unit.routes.test_demo_router.py
 This module contains the unit tests for the recordlinker.routes.demo_router module.
 """
 
+import fastapi
+
 from recordlinker import session_store
 
 
@@ -86,6 +88,30 @@ class TestGetMatchReviewRecords:
         response = client.get("/api/demo/record/9")
         assert response.status_code == 404
         assert response.json() == {"detail": "Not Found"}
+
+    def test_get_records_with_session_update(self, client):
+        # First call — no session yet
+        patient_reference_id = 1
+        response = client.get(f"/api/demo/record/{patient_reference_id}")
+        assert response.status_code == 200
+        assert response.json()["linked"] is None
+
+        # Simulate a session store update
+        dummy_response = fastapi.Response()
+        session_store.save_session(
+            dummy_response, key="linked_status", data={patient_reference_id: True}
+        )
+
+        # Extract Set-Cookie header from response and apply it to client
+        set_cookie_header = dummy_response.headers["set-cookie"]
+        cookie_parts = set_cookie_header.split(";")[0]
+        key, value = cookie_parts.split("=", 1)
+        client.cookies.set(key, value)  # Apply the cookie to the test client
+
+        # Second call — session should now be updated
+        response = client.get(f"/api/demo/record/{patient_reference_id}")
+        assert response.status_code == 200
+        assert response.json()["linked"] is True
 
 
 class TestLinkMatch:

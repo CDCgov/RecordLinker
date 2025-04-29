@@ -42,16 +42,57 @@ def filter_and_sort(
     return [schemas.demo.MatchReviewRecord(**item) for item in sorted_data]
 
 
+def update_session_linked_status(
+    request: fastapi.Request,
+    response: fastapi.Response,
+    patient_reference_id: int,
+    linked_status: bool,
+) -> None:
+    """
+    Update the linked_status in the session store.
+    """
+    # Load session data
+    d = (
+        session_store.load_session(
+            request,
+            key="linked_status",
+        )
+        or {}
+    )
+
+    # Update the session data & save
+    d.update({patient_reference_id: linked_status})
+    session_store.save_session(
+        response,
+        key="linked_status",
+        data=d,
+    )
+
+
 @router.get(
     "/record",
     summary="Get demo records for match queue",
 )
 def get_demo_data(
+    request: fastapi.Request,
     status: typing.Optional[schemas.demo.LinkedStatus] = None,
 ) -> typing.List[schemas.demo.MatchReviewRecord]:
     """
     Retrieve static data asset for the Match Queue page in the demo UI.
     """
+    # Update the linked status based on the session store
+    linked_status = session_store.load_session(
+        request,
+        key="linked_status",
+    )
+
+    if linked_status:
+        for record in data:
+            patient_id = record["incoming_record"]["patient_id"]
+            if patient_id in linked_status:
+                record["linked"] = linked_status[patient_id]
+
+    # Filter and sort the data based on the linked status
     filtered_sorted = filter_and_sort(data, status)
 
     return filtered_sorted
@@ -63,6 +104,7 @@ def get_demo_data(
 )
 def get_match_review_records(
     patient_reference_id: int,
+    request: fastapi.Request,
 ) -> schemas.demo.MatchReviewRecord:
     """
     Retrieve static data asset for the Match Review page in the demo UI by pateint_reference_id.
@@ -73,6 +115,14 @@ def get_match_review_records(
     )
     if match_review_record is None:
         raise fastapi.HTTPException(status_code=fastapi.status.HTTP_404_NOT_FOUND)
+
+    # Update the linked status based on the session store
+    linked_status = session_store.load_session(
+        request,
+        key="linked_status",
+    )
+    if linked_status and str(patient_reference_id) in linked_status:
+        match_review_record["linked"] = linked_status[str(patient_reference_id)]
     return match_review_record
 
 
@@ -102,21 +152,12 @@ def link_match(
         "person_id"
     ]
 
-    # Load session data
-    d = (
-        session_store.load_session(
-            request,
-            key="linked_status",
-        )
-        or {}
-    )
-
-    # Update the session data & save
-    d.update({str(patient_reference_id): match_review_record["linked"]})
-    session_store.save_session(
+    # Update linked status in the session store
+    update_session_linked_status(
+        request,
         response,
-        key="linked_status",
-        data=d,
+        patient_reference_id,
+        match_review_record["linked"],
     )
 
     return match_review_record
@@ -146,21 +187,12 @@ def unlink_match(
     match_review_record["incoming_record"]["person_id"] = None
     # TODO: Remove potential match from the match_review_record since they were deemed not a match
 
-    # Load session data
-    d = (
-        session_store.load_session(
-            request,
-            key="linked_status",
-        )
-        or {}
-    )
-
-    # Update the session data & save
-    d.update({str(patient_reference_id): match_review_record["linked"]})
-    session_store.save_session(
+    # Update linked status in the session store
+    update_session_linked_status(
+        request,
         response,
-        key="linked_status",
-        data=d,
+        patient_reference_id,
+        match_review_record["linked"],
     )
 
     return match_review_record
