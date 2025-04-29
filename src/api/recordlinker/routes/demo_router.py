@@ -83,6 +83,7 @@ def get_match_review_records(
 def link_match(
     patient_reference_id: int,
     response: fastapi.Response,
+    request: fastapi.Request,
 ) -> schemas.demo.MatchReviewRecord:
     """
     Link demo records for match review.
@@ -101,12 +102,23 @@ def link_match(
         "person_id"
     ]
 
-    # Save session (modifies the real response)
+    # Load session data
+    d = (
+        session_store.load_session(
+            request,
+            key="linked_status",
+        )
+        or {}
+    )
+
+    # Update the session data & save
+    d.update({str(patient_reference_id): match_review_record["linked"]})
     session_store.save_session(
         response,
         key="linked_status",
-        data=match_review_record["linked"],
+        data=d,
     )
+
     return match_review_record
 
 
@@ -117,6 +129,7 @@ def link_match(
 def unlink_match(
     patient_reference_id: int,
     response: fastapi.Response,
+    request: fastapi.Request,
 ) -> schemas.demo.MatchReviewRecord:
     """
     Unlink demo records for match review.
@@ -133,10 +146,21 @@ def unlink_match(
     match_review_record["incoming_record"]["person_id"] = None
     # TODO: Remove potential match from the match_review_record since they were deemed not a match
 
-    # Save session
+    # Load session data
+    d = (
+        session_store.load_session(
+            request,
+            key="linked_status",
+        )
+        or {}
+    )
+
+    # Update the session data & save
+    d.update({str(patient_reference_id): match_review_record["linked"]})
     session_store.save_session(
         response,
         key="linked_status",
-        data=match_review_record["linked"],
+        data=d,
     )
+
     return match_review_record

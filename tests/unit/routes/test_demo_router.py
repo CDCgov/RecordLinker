@@ -104,7 +104,7 @@ class TestLinkMatch:
             session_store.load_session(
                 response,
                 key="linked_status",
-            )
+            )[str(patient_reference_id)]
             is True
         )
 
@@ -141,7 +141,7 @@ class TestUnlinkMatch:
             session_store.load_session(
                 response,
                 key="linked_status",
-            )
+            )[str(patient_reference_id)]
             is False
         )
 
