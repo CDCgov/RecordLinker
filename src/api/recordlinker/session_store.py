@@ -14,7 +14,6 @@ def save_session(response: fastapi.Response, key: str, data: dict, **kwargs: typ
     response.set_cookie(
         key,
         value=serializer.dumps(data),
-        max_age=3600,
         domain=settings.session_cookie_domain,
         secure=settings.session_cookie_secure,
         httponly=True,
