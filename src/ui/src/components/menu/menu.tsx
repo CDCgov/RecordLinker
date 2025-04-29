@@ -10,7 +10,7 @@ const Menu: React.FC = () => {
   const pathname = usePathname();
 
   return (
-    <nav>
+    <nav className={classNames("grid-row", "flex-row", "flex-align-center")}>
       {pathname !== PAGES.LANDING && (
         <a
           href="/files/config-preview.pdf"
