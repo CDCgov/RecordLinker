@@ -1,0 +1,9 @@
+@use "../../styles/variables.scss" as *;
+
+.algoConfigLink {
+  font-size: 1.125rem;
+
+  &:hover {
+    color: $blue-cool-blue-cool-20;
+  }
+}

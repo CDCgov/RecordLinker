@@ -1,8 +1,10 @@
 "use client";
 
+import classNames from "classnames";
 import { usePathname } from "next/navigation";
-import { LaunchIcon } from "../icons/icons";
 import { PAGES } from "@/utils/constants";
+import { LaunchIcon } from "../icons/icons";
+import styles from "./menu.module.scss";
 
 const Menu: React.FC = () => {
   const pathname = usePathname();
@@ -14,10 +16,15 @@ const Menu: React.FC = () => {
           href="/files/config-preview.pdf"
           target="_blank"
           rel="noopener noreferrer"
-          className="text-white text-semibold text-no-underline"
+          className={classNames(
+            "text-white",
+            "text-semibold",
+            "text-no-underline",
+            styles.algoConfigLink,
+          )}
         >
-          <span className="font-sans-sm">Preview algorithm configuration</span>
-          <LaunchIcon size={1} className="text-middle margin-left-1" />
+          Preview algorithm configuration
+          <LaunchIcon size={1} className="text-sub margin-left-1" />
         </a>
       )}
     </nav>
