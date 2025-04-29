@@ -9,6 +9,10 @@ export const InfoIcon: React.FC<RecordLinkerIconProp> = (props) => (
   <Icon.Info {...props} role="" />
 );
 
+export const InfoOutlineIcon: React.FC<RecordLinkerIconProp> = (props) => (
+  <Icon.InfoOutline {...props} role="" />
+);
+
 export const BackArrowIcon: React.FC<RecordLinkerIconProp> = (props) => (
   <Icon.ArrowBack {...props} role="" />
 );

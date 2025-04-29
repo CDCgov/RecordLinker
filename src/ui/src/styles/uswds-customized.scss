@@ -17,6 +17,7 @@
   // primary color for elements and hover
   $theme-color-primary: "violet-warm-60",
   $theme-color-primary-dark: "violet-warm-70",
+  $theme-color-primary-light: "violet-warm-50",
   $theme-link-color: "violet-warm-60",
   $theme-link-hover-color: "violet-warm-70",
   // General palette colors
@@ -35,6 +36,7 @@
   // Components
   $theme-hero-image: "../../../../dist/img/hero.jpg",
   $theme-accordion-button-background-color: "blue-cool-60",
+  $theme-tooltip-background-color: "blue-cool-70",
 
   // Typography
   $theme-font-path: "../../../../../../dist/fonts",
@@ -148,4 +150,10 @@ h5 {
       }
     }
   }
+}
+
+.usa-tooltip__body {
+  text-transform: none;
+  font-weight: 400;
+  text-align: center;
 }
