@@ -55,7 +55,10 @@ function getTableRow(
       </td>
       <td width={185} className="text-center">
         <span className="text-bold text-base-darker">
-          {record.potential_match?.[0].link_score}
+          {record.potential_match?.[0].link_score
+            .toFixed(2)
+            .toString()
+            .replace(/^0./g, ".")}
         </span>
       </td>
       {withReviewLink && (
