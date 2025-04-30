@@ -6,7 +6,38 @@
         "include_multiple_matches": true,
         "max_missing_allowed_proportion": 0.5,
         "missing_field_points_proportion": 0.5,
-        "skip_values": [],
+        "skip_values": [
+            {
+                "feature": "FIRST_NAME",
+                "values": [
+                    "Anon",
+                    "Anonymous"
+                ]
+            },
+            {
+                "feature": "LAST_NAME",
+                "values": [
+                    "Anon",
+                    "Anonymous"
+                ]
+            },
+            {
+                "feature": "NAME",
+                "values": [
+                    "John Doe",
+                    "Jane Doe",
+                    "Baby Boy",
+                    "Baby Girl"
+                ]
+            },
+            {
+                "feature": "*",
+                "values": [
+                    "Unk",
+                    "Unknown"
+                ]
+            }
+        ],
         "passes": [
             {
                 "label": "BLOCK_birthdate_identifier_sex_MATCH_first_name_last_name",
