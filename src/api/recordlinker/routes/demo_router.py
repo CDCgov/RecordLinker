@@ -6,6 +6,7 @@ This module implements the demo router for the RecordLinker API. Exposing
 the API endpoints for the demo UI.
 """
 
+import copy
 import typing
 
 import fastapi
@@ -59,7 +60,6 @@ def update_session_linked_status(
         )
         or {}
     )
-
     # Update the session data & save
     d.update({patient_reference_id: linked_status})
     session_store.save_session(
@@ -85,15 +85,15 @@ def get_demo_data(
         request,
         key="linked_status",
     )
-
+    d = copy.deepcopy(data)  # copy to avoid modifying the original data
     if linked_status:
-        for record in data:
+        for record in d:
             patient_id = record["incoming_record"]["patient_id"]
             if str(patient_id) in linked_status:
                 record["linked"] = linked_status[str(patient_id)]
 
     # Filter and sort the data based on the linked status
-    filtered_sorted = filter_and_sort(data, status)
+    filtered_sorted = filter_and_sort(d, status)
 
     return filtered_sorted
 
@@ -115,15 +115,19 @@ def get_match_review_records(
     )
     if match_review_record is None:
         raise fastapi.HTTPException(status_code=fastapi.status.HTTP_404_NOT_FOUND)
+    # Copy the record to avoid modifying the original data
+    record_copy = copy.deepcopy(match_review_record)
 
     # Update the linked status based on the session store
     linked_status = session_store.load_session(
         request,
         key="linked_status",
     )
+
     if linked_status and str(patient_reference_id) in linked_status:
-        match_review_record["linked"] = linked_status[str(patient_reference_id)]
-    return match_review_record
+        record_copy["linked"] = linked_status[str(patient_reference_id)]
+
+    return record_copy
 
 
 @router.post(

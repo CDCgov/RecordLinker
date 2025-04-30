@@ -6,22 +6,66 @@ This module contains the unit tests for the recordlinker.routes.demo_router modu
 """
 
 import fastapi
-import pytest
 
 from recordlinker import session_store
 
 
-@pytest.fixture(autouse=True)
-def clear_client_cookies_after_each_test(client):
-    yield  # Let the test run
-    client.cookies.clear()  # Clean up all cookies after the test
+class TestGetMatchReviewRecords:
+    def test_get_records(self, client):
+        patient_reference_id = 1
+        response = client.get(f"/api/demo/record/{patient_reference_id}")
+        assert response.status_code == 200
+        assert response.json()["incoming_record"]["patient_id"] == patient_reference_id
+        assert "potential_match" in response.json()
+
+    def test_get_records_invalid_id(self, client):
+        response = client.get("/api/demo/record/invalid")
+        assert response.status_code == 422
+        assert response.json() == {
+            "detail": [
+                {
+                    "type": "int_parsing",
+                    "loc": ["path", "patient_reference_id"],
+                    "msg": "Input should be a valid integer, unable to parse string as an integer",
+                    "input": "invalid",
+                }
+            ]
+        }
+
+    def test_get_records_missing_id(self, client):
+        response = client.get("/api/demo/record/9")
+        assert response.status_code == 404
+        assert response.json() == {"detail": "Not Found"}
+
+    def test_get_match_review_records_with_session_update(self, client):
+        # First call — no session yet
+        patient_reference_id = 1
+        response = client.get(f"/api/demo/record/{patient_reference_id}")
+        assert response.status_code == 200
+        assert response.json()["linked"] is None
+
+        # Simulate a session store update
+        dummy_response = fastapi.Response()
+        session_store.save_session(
+            dummy_response, key="linked_status", data={str(patient_reference_id): True}
+        )
+
+        # Extract Set-Cookie header from response and apply it to client
+        set_cookie_header = dummy_response.headers["set-cookie"]
+        cookie_parts = set_cookie_header.split(";")[0]
+        key, value = cookie_parts.split("=", 1)
+        client.cookies.set(key, value)  # Apply the cookie to the test client
+
+        # Second call — session should now be updated
+        response = client.get(f"/api/demo/record/{patient_reference_id}")
+        assert response.status_code == 200
+        assert response.json()["linked"] is True
 
 
 class TestGetMatchQueueRecordsEndpoint:
     def test_get_records(self, client):
         # no status; should return all records
         response = client.get("/api/demo/record")
-
         assert response.status_code == 200
         assert len(response.json()) == 8
 
@@ -68,64 +112,12 @@ class TestGetMatchQueueRecordsEndpoint:
             ]
         }
 
-    # def test_get_records_with_session_update(self, client):
-    #     patient_reference_id = 1
-    #     # First call — no session yet
-    #     response = client.get("/api/demo/record")
-    #     assert response.status_code == 200
-    #     assert response.json()[0]["linked"] is None
-
-    #     # Simulate a session store update
-    #     dummy_response = fastapi.Response()
-    #     session_store.save_session(
-    #         dummy_response, key="linked_status", data={str(patient_reference_id): True}
-    #     )
-
-    #     # Extract Set-Cookie header from response and apply it to client
-    #     set_cookie_header = dummy_response.headers["set-cookie"]
-    #     cookie_parts = set_cookie_header.split(";")[0]
-    #     key, value = cookie_parts.split("=", 1)
-    #     client.cookies.set(key, value)  # Apply the cookie to the test client
-
-    #     # Second call — session should now be updated
-    #     response = client.get("/api/demo/record")
-    #     assert response.status_code == 200
-    #     assert response.json()[0]["linked"] is True
-
-
-class TestGetMatchReviewRecords:
-    def test_get_records(self, client):
+    def test_get_match_queue_records_with_session_update(self, client):
         patient_reference_id = 1
-        response = client.get(f"/api/demo/record/{patient_reference_id}")
-        assert response.status_code == 200
-        assert response.json()["incoming_record"]["patient_id"] == patient_reference_id
-        assert "potential_match" in response.json()
-
-    def test_get_records_invalid_id(self, client):
-        response = client.get("/api/demo/record/invalid")
-        assert response.status_code == 422
-        assert response.json() == {
-            "detail": [
-                {
-                    "type": "int_parsing",
-                    "loc": ["path", "patient_reference_id"],
-                    "msg": "Input should be a valid integer, unable to parse string as an integer",
-                    "input": "invalid",
-                }
-            ]
-        }
-
-    def test_get_records_missing_id(self, client):
-        response = client.get("/api/demo/record/9")
-        assert response.status_code == 404
-        assert response.json() == {"detail": "Not Found"}
-
-    def test_get_records_with_session_update(self, client):
         # First call — no session yet
-        patient_reference_id = 1
-        response = client.get(f"/api/demo/record/{patient_reference_id}")
+        response = client.get("/api/demo/record")
         assert response.status_code == 200
-        assert response.json()["linked"] is None
+        assert response.json()[0]["linked"] is None
 
         # Simulate a session store update
         dummy_response = fastapi.Response()
@@ -140,9 +132,9 @@ class TestGetMatchReviewRecords:
         client.cookies.set(key, value)  # Apply the cookie to the test client
 
         # Second call — session should now be updated
-        response = client.get(f"/api/demo/record/{patient_reference_id}")
+        response = client.get("/api/demo/record")
         assert response.status_code == 200
-        assert response.json()["linked"] is True
+        assert response.json()[0]["linked"] is True
 
 
 class TestLinkMatch:
