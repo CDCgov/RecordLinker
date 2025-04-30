@@ -1,7 +1,12 @@
 import classNames from "classnames";
 import Image from "next/image";
+import styles from "./emptyFallback.module.scss";
 
-const EmptyQueue: React.FC = () => {
+export interface EmptyFallbackProps {
+  message: React.ReactNode;
+}
+
+const EmptyFallback: React.FC<EmptyFallbackProps> = ({ message }) => {
   return (
     <div
       className={classNames(
@@ -14,16 +19,17 @@ const EmptyQueue: React.FC = () => {
       <Image src="/images/empty-folder.png" width={300} height={300} alt="" />
       <p
         className={classNames(
-          "font-body-lg",
           "text-base-dark",
           "margin-top-2",
           "margin-bottom-3",
+          "text-center",
+          styles.message,
         )}
       >
-        No cases left to review
+        {message}
       </p>
     </div>
   );
 };
 
-export default EmptyQueue;
+export default EmptyFallback;

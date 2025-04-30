@@ -1,6 +1,6 @@
 import { RecordMatch } from "@/models/recordMatch";
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+/* eslint-disable @typescript-eslint/no-explicit-any */
 export function deserializeToRecordMatch(
   jsonResponse: Record<string, any>,
 ): RecordMatch {
@@ -11,7 +11,6 @@ export function deserializeToRecordMatch(
       birth_date: new Date(jsonResponse.incoming_record.birth_date),
       received_on: new Date(jsonResponse.incoming_record.received_on),
     },
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     potential_match: jsonResponse.potential_match.map(
       (matchGroup: Record<string, string | any>) => ({
         ...matchGroup,
@@ -27,3 +26,4 @@ export function deserializeToRecordMatch(
 
   return recordMatch;
 }
+/* eslint-enable @typescript-eslint/no-explicit-any */

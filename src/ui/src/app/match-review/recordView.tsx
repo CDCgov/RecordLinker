@@ -14,6 +14,7 @@ import ServerError from "@/components/serverError/serverError";
 import { getRecordMatch } from "@/data/matchReview";
 import RecordCompare, { FieldComparisonValues } from "./recordCompare";
 import { Patient } from "@/models/patient";
+import EmptyFallback from "@/components/emptyFallback/emptyFallback";
 
 function formatFieldValue(value: Patient[keyof Patient] | undefined): string {
   if (value instanceof Date) {
@@ -44,7 +45,6 @@ function breakRecordIntoFields(
   if (incomingRecord && potentialPerson) {
     // Person ID
     fields.push({
-      key: fields.length,
       label: "person_id",
       incomingValue: "",
       potentialValue: potentialMatch.person_id,
@@ -54,9 +54,8 @@ function breakRecordIntoFields(
     fields = fields.concat(
       Object.keys(potentialMatch.patients[0])
         .filter((label: string) => simpleFields.includes(label))
-        .map((label: string, i: number) => {
+        .map((label: string) => {
           return {
-            key: i + 1,
             label: label,
             incomingValue: formatFieldValue(
               incomingRecord[label as keyof Patient],
@@ -70,17 +69,15 @@ function breakRecordIntoFields(
 
     // complex fields
     fields.push({
-      key: fields.length,
-      label: "Address 1",
-      incomingValue: `${incomingRecord.address?.city}, ${incomingRecord.address?.state} ${incomingRecord.address?.postal_code}`,
-      potentialValue: `${potentialPerson.address?.city}, ${potentialPerson.address?.state} ${potentialPerson.address?.postal_code}`,
+      label: "Address",
+      incomingValue: incomingRecord.address?.line?.[0],
+      potentialValue: potentialPerson.address?.line?.[0],
     });
 
     fields.push({
-      key: fields.length,
-      label: "Address 2",
-      incomingValue: incomingRecord.address?.line?.[0],
-      potentialValue: potentialPerson.address?.line?.[0],
+      label: "City, State, Zip",
+      incomingValue: `${incomingRecord.address?.city}, ${incomingRecord.address?.state} ${incomingRecord.address?.postal_code}`,
+      potentialValue: `${potentialPerson.address?.city}, ${potentialPerson.address?.state} ${potentialPerson.address?.postal_code}`,
     });
   }
 
@@ -94,7 +91,9 @@ const RecordView: React.FC = () => {
   const [selectedRecord, setSelectedRecord] = useState<
     RecordMatch | undefined
   >();
-  const [serverError, setServerError] = useState(false);
+  const [serverError, setServerError] = useState<
+    undefined | "server" | "not_found"
+  >();
 
   /**
    * Initialize data
@@ -105,7 +104,11 @@ const RecordView: React.FC = () => {
       setSelectedRecord(recordInfo);
     } catch (e) {
       console.error(e);
-      setServerError(true);
+      if (e == "Error: 404") {
+        setServerError("not_found");
+      } else {
+        setServerError("server");
+      }
     }
   }
 
@@ -116,8 +119,10 @@ const RecordView: React.FC = () => {
   /**
    * HTML
    */
-  if (serverError) {
+  if (serverError == "server") {
     return <ServerError />;
+  } else if (serverError == "not_found") {
+    return <EmptyFallback message="Record not found." />;
   } else if (selectedRecord) {
     return (
       <>
