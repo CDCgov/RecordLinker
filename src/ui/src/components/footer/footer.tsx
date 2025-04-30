@@ -15,12 +15,14 @@ const Footer: React.FC = () => {
         styles.footer,
       )}
     >
-      <Image
-        src="/images/cdc-logo.svg"
-        height={47}
-        width={200}
-        alt="CDC logo. U.S. centers for disease control and prevention"
-      />
+      <a href="https://www.cdc.gov/">
+        <Image
+          src="/images/cdc-logo.svg"
+          height={47}
+          width={200}
+          alt="CDC U.S. centers for disease control and prevention"
+        />
+      </a>
       <p className="text-white">
         For more information about this solution, send us an email at{" "}
         <a className="text-white text-bold" href="mailto:dibbs@cdc.gov">

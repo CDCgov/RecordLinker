@@ -1,5 +1,5 @@
 import { Table } from "@trussworks/react-uswds";
-import { Record } from "@/models/record";
+import { RecordMatch } from "@/models/recordMatch";
 import Link from "next/link";
 import { JSX } from "react";
 import { PAGES } from "@/utils/constants";
@@ -14,28 +14,32 @@ are user-defined based on a jurisdiction's desired
 balance between automation and manual review.`;
 
 export interface RecordTableProps {
-  items: Record[];
+  items: RecordMatch[];
   withReviewLink?: boolean;
   withSortIndicator?: boolean;
 }
 
-function getTableRow(record: Record, withReviewLink: boolean): JSX.Element {
+function getTableRow(
+  record: RecordMatch,
+  withReviewLink: boolean,
+): JSX.Element {
   return (
-    <tr key={record.id}>
+    <tr key={record.incoming_record?.patient_id}>
       <td>
         <span className="text-bold text-base-darker">
-          {record.last_name}, {record.first_name}
+          {record.incoming_record?.last_name},{" "}
+          {record.incoming_record?.first_name}
         </span>
         <br />
         <span className="text-base">
-          DOB: {record.birth_date.toLocaleDateString()}
+          DOB: {record.incoming_record?.birth_date?.toLocaleDateString()}
         </span>
       </td>
       <td>
-        <span>{record.received_on.toLocaleDateString()}</span>
+        <span>{record.incoming_record?.received_on?.toLocaleDateString()}</span>
         <br />
         <span className="text-base">
-          {record.received_on.toLocaleTimeString([], {
+          {record.incoming_record?.received_on?.toLocaleTimeString([], {
             hour: "numeric",
             minute: "2-digit",
             hour12: true,
@@ -43,18 +47,22 @@ function getTableRow(record: Record, withReviewLink: boolean): JSX.Element {
         </span>
       </td>
       <td>
-        <span>{record.data_stream.system}</span>
+        <span>{record.incoming_record?.data_stream.system}</span>
         <br />
-        <span className="text-base">{record.data_stream.type}</span>
+        <span className="text-base">
+          {record.incoming_record?.data_stream?.type}
+        </span>
       </td>
       <td width={185} className="text-center">
-        <span className="text-bold text-base-darker">{record.link_score}</span>
+        <span className="text-bold text-base-darker">
+          {record.potential_match?.[0].link_score}
+        </span>
       </td>
       {withReviewLink && (
         <td width={58} className="text-center">
           <Link
             className="usa-link"
-            href={`${PAGES.RECORD_REVIEW}?id=${record.id}`}
+            href={`${PAGES.RECORD_REVIEW}?id=${record.incoming_record?.patient_id}`}
           >
             Review
           </Link>
@@ -87,7 +95,9 @@ const RecordTable: React.FC<RecordTableProps> = ({
         </tr>
       </thead>
       <tbody>
-        {items.map((record: Record) => getTableRow(record, withReviewLink))}
+        {items.map((record: RecordMatch) =>
+          getTableRow(record, withReviewLink),
+        )}
       </tbody>
     </Table>
   );

@@ -4,11 +4,11 @@ import { useEffect, useState } from "react";
 import ServerError from "@/components/serverError/serverError";
 import EmptyQueue from "./emptyQueue";
 import RecordTable from "@/components/recordTable/recordTable";
-import { Record } from "@/models/record";
+import { RecordMatch } from "@/models/recordMatch";
 import { getUnmatchedRecords } from "@/data/matchQueue";
 
 const MatchQueue: React.FC = () => {
-  const [recordList, setRecordList] = useState<Record[] | undefined>();
+  const [recordList, setRecordList] = useState<RecordMatch[] | undefined>();
   const [serverError, setServerError] = useState(false);
 
   /**
@@ -18,7 +18,8 @@ const MatchQueue: React.FC = () => {
     try {
       const records = await getUnmatchedRecords();
       setRecordList(records);
-    } catch (_) {
+    } catch (e) {
+      console.error(e);
       setServerError(true);
     }
   }

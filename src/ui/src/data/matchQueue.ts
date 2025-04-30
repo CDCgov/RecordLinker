@@ -1,35 +1,15 @@
-import { Record as RLRecord } from "@/models/record";
+import { RecordMatch } from "@/models/recordMatch";
+import { API_URL } from "@/utils/constants";
+import { deserializeToRecordMatch } from "@/utils/deserializers";
 
-export async function getUnmatchedRecords(): Promise<RLRecord[]> {
-  // return (await fetch(`${API_URL}/demo/record`)).json();
-  // return [];
-  // return Promise.reject(new Error("oooops"));
-  return Promise.resolve([
-    {
-      id: 123,
-      first_name: "John",
-      last_name: "Doe",
-      birth_date: new Date("01/07/1993"),
-      received_on: new Date("04/22/2021"),
-      data_stream: {
-        system: "System system",
-        type: "ELR",
-      },
-      link_score: 0.9,
-      linked: null,
-    },
-    {
-      id: 124,
-      first_name: "Jane",
-      last_name: "Doe",
-      birth_date: new Date("01/07/1993"),
-      received_on: new Date("04/22/2021"),
-      data_stream: {
-        system: "System system",
-        type: "ELR",
-      },
-      link_score: 0.9,
-      linked: null,
-    },
-  ]);
+export async function getUnmatchedRecords(): Promise<RecordMatch[]> {
+  const response = await fetch(`${API_URL}/demo/record?status=pending`);
+
+  if (response.ok) {
+    return response.json().then((response: Record<string, unknown>[]) => {
+      return response.map((matchItem) => deserializeToRecordMatch(matchItem));
+    });
+  } else {
+    throw new Error(response.status.toString());
+  }
 }

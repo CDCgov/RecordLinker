@@ -5,14 +5,17 @@ import { useSearchParams } from "next/navigation";
 import RecordTable from "@/components/recordTable/recordTable";
 import { LinkIcon, LinkOffIcon } from "@/components/icons/icons";
 import { Button } from "@trussworks/react-uswds";
-import { IncomingData, PotentialMatch, Record } from "@/models/record";
+import {
+  IncomingRecord,
+  PotentialMatch,
+  RecordMatch,
+} from "@/models/recordMatch";
 import ServerError from "@/components/serverError/serverError";
 import { getRecordMatch } from "@/data/matchReview";
 import RecordCompare, { FieldComparisonValues } from "./recordCompare";
+import { Patient } from "@/models/patient";
 
-function formatFieldValue(
-  value: PotentialMatch[keyof PotentialMatch] | undefined,
-): string {
+function formatFieldValue(value: Patient[keyof Patient] | undefined): string {
   if (value instanceof Date) {
     return value.toLocaleDateString();
   } else if (value) {
@@ -22,40 +25,62 @@ function formatFieldValue(
   return "";
 }
 
-function breakRecordIntoFields(record: Record): FieldComparisonValues[] {
-  let fields: FieldComparisonValues[] = [];
-  const complexFields = ["address"];
+function breakRecordIntoFields(
+  incomingRecord: IncomingRecord,
+  potentialMatch: PotentialMatch,
+): FieldComparisonValues[] {
+  const potentialPerson = potentialMatch.patients?.[0];
 
-  if (record.potential_match && record.incoming_data) {
+  let fields: FieldComparisonValues[] = [];
+  const simpleFields = [
+    "patient_id",
+    "first_name",
+    "last_name",
+    "mrn",
+    "birth_date",
+    "email",
+  ];
+
+  if (incomingRecord && potentialPerson) {
+    // Person ID
+    fields.push({
+      key: fields.length,
+      label: "person_id",
+      incomingValue: "",
+      potentialValue: potentialMatch.person_id,
+    });
+
     // simple fields
-    fields = Object.keys(record.potential_match)
-      .filter((label: string) => !complexFields.includes(label))
-      .map((label: string, i: number) => {
-        return {
-          key: i,
-          label: label,
-          incomingValue: formatFieldValue(
-            record.incoming_data?.[label as keyof IncomingData],
-          ),
-          potentialValue: formatFieldValue(
-            record.potential_match?.[label as keyof PotentialMatch],
-          ),
-        } as FieldComparisonValues;
-      });
+    fields = fields.concat(
+      Object.keys(potentialMatch.patients[0])
+        .filter((label: string) => simpleFields.includes(label))
+        .map((label: string, i: number) => {
+          return {
+            key: i + 1,
+            label: label,
+            incomingValue: formatFieldValue(
+              incomingRecord[label as keyof Patient],
+            ),
+            potentialValue: formatFieldValue(
+              potentialPerson[label as keyof Patient],
+            ),
+          } as FieldComparisonValues;
+        }),
+    );
 
     // complex fields
     fields.push({
       key: fields.length,
       label: "Address 1",
-      incomingValue: `${record.incoming_data?.address?.city}, ${record.incoming_data?.address?.state} ${record.incoming_data?.address?.postal_code}`,
-      potentialValue: `${record.potential_match?.address?.city}, ${record.potential_match?.address?.state} ${record.potential_match?.address?.postal_code}`,
+      incomingValue: `${incomingRecord.address?.city}, ${incomingRecord.address?.state} ${incomingRecord.address?.postal_code}`,
+      potentialValue: `${potentialPerson.address?.city}, ${potentialPerson.address?.state} ${potentialPerson.address?.postal_code}`,
     });
 
     fields.push({
       key: fields.length,
       label: "Address 2",
-      incomingValue: record.incoming_data?.address?.line,
-      potentialValue: record.potential_match?.address?.line,
+      incomingValue: incomingRecord.address?.line?.[0],
+      potentialValue: potentialPerson.address?.line?.[0],
     });
   }
 
@@ -66,7 +91,9 @@ const RecordView: React.FC = () => {
   const searchParams = useSearchParams();
   const recordId = searchParams.get("id");
 
-  const [selectedRecord, setSelectedRecord] = useState<Record | undefined>();
+  const [selectedRecord, setSelectedRecord] = useState<
+    RecordMatch | undefined
+  >();
   const [serverError, setServerError] = useState(false);
 
   /**
@@ -74,9 +101,10 @@ const RecordView: React.FC = () => {
    */
   async function retrieveRecordMatchInfo() {
     try {
-      const recordInfo: Record = await getRecordMatch(recordId);
+      const recordInfo: RecordMatch = await getRecordMatch(recordId);
       setSelectedRecord(recordInfo);
-    } catch (_) {
+    } catch (e) {
+      console.error(e);
       setServerError(true);
     }
   }
@@ -95,7 +123,10 @@ const RecordView: React.FC = () => {
       <>
         <RecordTable items={[selectedRecord]} />
         <RecordCompare
-          comparisonFields={breakRecordIntoFields(selectedRecord)}
+          comparisonFields={breakRecordIntoFields(
+            selectedRecord.incoming_record,
+            selectedRecord.potential_match?.[0],
+          )}
         />
         <div className="margin-top-3">
           <Button className="margin-right-105">

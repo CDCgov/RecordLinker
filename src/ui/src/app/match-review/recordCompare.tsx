@@ -54,7 +54,8 @@ function convert2ReadableLabel(label: string): JSX.Element {
         " ",
       );
     }
-  } catch (_) {
+  } catch (e) {
+    console.error(e);
     labelCopy = label;
   }
 
