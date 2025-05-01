@@ -4,7 +4,7 @@ import { deserializeRecordMatch } from "@/utils/deserializers";
 import { AppError } from "@/utils/errors";
 
 export async function getRecordMatch(id: string | null): Promise<RecordMatch> {
-  const response = await fetch(`${API_URL}/demo/records/${id}`);
+  const response = await fetch(`${API_URL}/demo/record/${id}`);
 
   if (response.ok) {
     const serializedRecordMatch = await response.json();
