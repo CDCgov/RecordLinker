@@ -85,6 +85,14 @@ class Feature(StrippedBaseModel):
             return f"{self.attribute}:{self.suffix}"
         return str(self.attribute)
 
+    def values_to_match(self) -> typing.Iterator[str]:
+        """
+        Return an iterator of all possible values for this feature that can be used for comparison.
+        """
+        yield str(self)
+        if self.suffix:
+            yield str(self.attribute)
+
     @classmethod
     def parse(cls, feature_string: str) -> typing.Self:
         """

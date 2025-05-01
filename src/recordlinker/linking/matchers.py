@@ -59,7 +59,6 @@ class AvailableKwarg(enum.Enum):
     SIMILARITY_MEASURE = "similarity_measure"
     THRESHOLD = "threshold"
     THRESHOLDS = "thresholds"
-    LOG_ODDS = "log_odds"
 
 
 def _get_fuzzy_params(col: str, **kwargs) -> tuple[SIMILARITY_MEASURES, float]:
@@ -96,6 +95,7 @@ def compare_probabilistic_exact_match(
     record: PIIRecord,
     mpi_record: PIIRecord,
     key: Feature,
+    log_odds: float,
     missing_field_points_proportion: float,
     **kwargs: typing.Any,
 ) -> tuple[float, bool]:
@@ -113,6 +113,7 @@ def compare_probabilistic_exact_match(
     :param record: The incoming record to evaluate.
     :param mpi_record: The MPI record to compare against.
     :param key: The name of the column being evaluated (e.g. "city").
+    :param log_odds: The log-odds weight-points for this field
     :param missing_field_points_proportion: The proportion of log-odds points to
       award if one of the records is missing information in the given field.
     :param **kwargs: Optionally, a dictionary including specifications for
@@ -121,10 +122,6 @@ def compare_probabilistic_exact_match(
     :return: A tuple containing: a float of the score the feature comparison
       earned, and a boolean indicating whether one of the Fields was missing.
     """
-    log_odds = kwargs.get("log_odds", {}).get(str(key.attribute))
-    if log_odds is None:
-        raise ValueError(f"Log odds not found for feature {key}")
-
     incoming_record_fields = list(record.feature_iter(key))
     mpi_record_fields = list(mpi_record.feature_iter(key))
     if len(incoming_record_fields) == 0 or len(mpi_record_fields) == 0:
@@ -145,6 +142,7 @@ def compare_probabilistic_fuzzy_match(
     record: PIIRecord,
     mpi_record: PIIRecord,
     key: Feature,
+    log_odds: float,
     missing_field_points_proportion: float,
     **kwargs: typing.Any,
 ) -> tuple[float, bool]:
@@ -164,6 +162,7 @@ def compare_probabilistic_fuzzy_match(
     :param record: The incoming record to evaluate.
     :param mpi_record: The MPI record to compare against.
     :param key: The name of the column being evaluated (e.g. "city").
+    :param log_odds: The log-odds weight-points for this field
     :param missing_field_points_proportion: The proportion of log-odds points
       to award if one of the records is missing information in the given field.
     :param **kwargs: Optionally, a dictionary including specifications for
@@ -172,10 +171,6 @@ def compare_probabilistic_fuzzy_match(
     :return: A tuple containing: a float of the score the feature comparison
       earned, and a boolean indicating whether one of the Fields was missing.
     """
-    log_odds = kwargs.get("log_odds", {}).get(str(key.attribute))
-    if log_odds is None:
-        raise ValueError(f"Log odds not found for feature {key}")
-
     incoming_record_fields = list(record.feature_iter(key))
     mpi_record_fields = list(mpi_record.feature_iter(key))
     if len(incoming_record_fields) == 0 or len(mpi_record_fields) == 0:

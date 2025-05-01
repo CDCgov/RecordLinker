@@ -10,6 +10,7 @@ import pytest
 
 from recordlinker.schemas.algorithm import Algorithm
 from recordlinker.schemas.algorithm import AlgorithmPass
+from recordlinker.schemas.algorithm import LogOdd
 from recordlinker.schemas.algorithm import SkipValue
 
 
@@ -113,7 +114,6 @@ class TestAlgorithmPass:
                 "similarity_measure": "JaroWinkler",
                 "thresholds": {"CITY": 0.95, "ADDRESS": 0.98},
                 "threshold": 0.9,
-                "log_odds": {"CITY": 12.0, "ADDRESS": 15.0},
             },
         )
 
@@ -144,6 +144,16 @@ class TestAlgorithmPass:
             possible_match_window=[0.8, 0.9]
         )
         assert apass.label == "custom-label"
+
+
+class TestLogOdd:
+    def test_invalid_feature(self):
+        with pytest.raises(pydantic.ValidationError):
+            LogOdd(feature="invalid", value=1.0)
+
+    def test_value_less_than_zero(self):
+        with pytest.raises(pydantic.ValidationError):
+            LogOdd(feature="FIRST_NAME", value=-1.0)
 
 
 class TestSkipValue:
@@ -205,5 +215,55 @@ class TestAlgorithm:
                     evaluators=[],
                     possible_match_window=[0.8, 0.9]
                 ),
+            ],
+        )
+
+    def test_validate_log_odds_defined(self):
+        with pytest.raises(pydantic.ValidationError):
+            Algorithm(
+                label="test",
+                max_missing_allowed_proportion=0.5,
+                missing_field_points_proportion=0.5,
+                passes=[
+                    AlgorithmPass(
+                        blocking_keys=["BIRTHDATE"],
+                        evaluators=[],
+                        possible_match_window=(0.75, 1.0),
+                    )
+                ],
+            )
+        with pytest.raises(pydantic.ValidationError):
+            Algorithm(
+                label="test",
+                max_missing_allowed_proportion=0.5,
+                missing_field_points_proportion=0.5,
+                passes=[
+                    AlgorithmPass(
+                        blocking_keys=[],
+                        evaluators=[
+                            {"feature": "FIRST_NAME", "func": "COMPARE_PROBABILISTIC_FUZZY_MATCH"}
+                        ],
+                        possible_match_window=(0.75, 1.0),
+                    )
+                ],
+            )
+        Algorithm(
+            label="test",
+            max_missing_allowed_proportion=0.5,
+            missing_field_points_proportion=0.5,
+            algorithm_context={
+                "log_odds": [
+                    {"feature": "FIRST_NAME", "value": 7},
+                    {"feature": "BIRTHDATE", "value": 10},
+                ]
+            },
+            passes=[
+                AlgorithmPass(
+                    blocking_keys=["BIRTHDATE"],
+                    evaluators=[
+                        {"feature": "FIRST_NAME", "func": "COMPARE_PROBABILISTIC_FUZZY_MATCH"}
+                    ],
+                    possible_match_window=(0.75, 1.0),
+                )
             ],
         )

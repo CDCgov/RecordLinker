@@ -3,41 +3,54 @@
         "label": "dibbs-default",
         "description": "The core DIBBs Log-Odds Algorithm. This default, recommended algorithm uses statistical correction to adjust the links between incoming records and previously processed patients (it does so by taking advantage of the fact that some fields are more informative than others—e.g., two records matching on MRN is stronger evidence that they should be linked than if the records matched on zip code). It can be used if additional granularity in matching links is desired. However, while the DIBBs Log-Odds Algorithm can create higher-quality links, it is dependent on statistical updating and pre-calculated population analysis, which requires some work on the part of the user. For those cases where additional precision or stronger matching criteria are required, the Log-Odds algorithm is detailed below.",
         "is_default": true,
-        "include_multiple_matches": true,
+        "algorithm_context": {
+          "include_multiple_matches": true,
+          "log_odds": [
+            { "feature": "ADDRESS", "value": 8.438284928858774 },
+            { "feature": "BIRTHDATE", "value": 10.126641103800338 },
+            { "feature": "CITY", "value": 2.438553006137189 },
+            { "feature": "FIRST_NAME", "value": 6.849475906891162 },
+            { "feature": "LAST_NAME", "value": 6.350720397426025 },
+            { "feature": "IDENTIFIER", "value": 0.3051262572525359 },
+            { "feature": "SEX", "value": 0.7510419059643679 },
+            { "feature": "STATE", "value": 0.022376768992488694 },
+            { "feature": "ZIP", "value": 4.975031471124867 }
+          ],
+          "skip_values": [
+              {
+                  "feature": "FIRST_NAME",
+                  "values": [
+                      "Anon",
+                      "Anonymous"
+                  ]
+              },
+              {
+                  "feature": "LAST_NAME",
+                  "values": [
+                      "Anon",
+                      "Anonymous"
+                  ]
+              },
+              {
+                  "feature": "NAME",
+                  "values": [
+                      "John Doe",
+                      "Jane Doe",
+                      "Baby Boy",
+                      "Baby Girl"
+                  ]
+              },
+              {
+                  "feature": "*",
+                  "values": [
+                      "Unk",
+                      "Unknown"
+                  ]
+              }
+          ]
+        },
         "max_missing_allowed_proportion": 0.5,
         "missing_field_points_proportion": 0.5,
-        "skip_values": [
-            {
-                "feature": "FIRST_NAME",
-                "values": [
-                    "Anon",
-                    "Anonymous"
-                ]
-            },
-            {
-                "feature": "LAST_NAME",
-                "values": [
-                    "Anon",
-                    "Anonymous"
-                ]
-            },
-            {
-                "feature": "NAME",
-                "values": [
-                    "John Doe",
-                    "Jane Doe",
-                    "Baby Boy",
-                    "Baby Girl"
-                ]
-            },
-            {
-                "feature": "*",
-                "values": [
-                    "Unk",
-                    "Unknown"
-                ]
-            }
-        ],
         "passes": [
             {
                 "label": "BLOCK_birthdate_identifier_sex_MATCH_first_name_last_name",
@@ -69,17 +82,6 @@
                         "ADDRESS": 0.9,
                         "CITY": 0.92,
                         "ZIP": 0.95
-                    },
-                    "log_odds": {
-                        "ADDRESS": 8.438284928858774,
-                        "BIRTHDATE": 10.126641103800338,
-                        "CITY": 2.438553006137189,
-                        "FIRST_NAME": 6.849475906891162,
-                        "LAST_NAME": 6.350720397426025,
-                        "IDENTIFIER:MR": 0.3051262572525359,
-                        "SEX": 0.7510419059643679,
-                        "STATE": 0.022376768992488694,
-                        "ZIP": 4.975031471124867
                     }
                 }
             },
@@ -114,17 +116,6 @@
                         "ADDRESS": 0.9,
                         "CITY": 0.92,
                         "ZIP": 0.95
-                    },
-                    "log_odds": {
-                        "ADDRESS": 8.438284928858774,
-                        "BIRTHDATE": 10.126641103800338,
-                        "CITY": 2.438553006137189,
-                        "FIRST_NAME": 6.849475906891162,
-                        "LAST_NAME": 6.350720397426025,
-                        "IDENTIFIER:MR": 0.3051262572525359,
-                        "SEX": 0.7510419059643679,
-                        "STATE": 0.022376768992488694,
-                        "ZIP": 4.975031471124867
                     }
                 }
             }

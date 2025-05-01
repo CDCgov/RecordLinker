@@ -1,4 +1,5 @@
 from .algorithm import Algorithm
+from .algorithm import AlgorithmContext
 from .algorithm import AlgorithmPass
 from .algorithm import AlgorithmSummary
 from .link import LinkFhirInput
@@ -32,6 +33,7 @@ from .seed import PersonGroup
 
 __all__ = [
     "Algorithm",
+    "AlgorithmContext",
     "AlgorithmPass",
     "AlgorithmSummary",
     "Feature",
