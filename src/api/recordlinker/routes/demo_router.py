@@ -213,9 +213,17 @@ def reset_demo_data(
     Reset demo records to their original state.
     """
 
-    session_store.delete_session(
-        response,
-        key="linked_status",
-    )
+    try:
+        session_store.delete_session(
+            response,
+            key="linked_status",
+        )
+    except KeyError:
+        pass  # gracefully handle the case where the session does not exist
+    except Exception:
+        raise fastapi.HTTPException(
+            status_code=fastapi.status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to reset demo session.",
+        )
 
     return {"message": "Demo data reset successfully."}
