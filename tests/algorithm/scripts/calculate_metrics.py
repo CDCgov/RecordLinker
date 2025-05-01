@@ -1,5 +1,3 @@
-RESULTS_FILE = "output.csv"
-
 MATCH_GRADE_MAPPER = {"certain": "match", "certainly-not": "no_match", "possible": "possible_match"}
 
 def compare_and_calculate_result_metrics(results_file):
