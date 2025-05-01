@@ -103,7 +103,6 @@ class BlockData:
         # and no true-value agreement, we exclude
         return agree_count == len(blocking_values)
 
-    # FIXME: after kwargs refactor, remove max_missing_allowed_proportion parameter
     @classmethod
     def get(
         cls,

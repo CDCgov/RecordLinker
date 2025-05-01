@@ -121,7 +121,6 @@ class AlgorithmContext(pydantic.BaseModel):
         """
         Initialize cache helpers for returning log odds values.
         """
-        self._log_odds_cache: dict[str, float | None] = {}
         self._log_odds_mapping: dict[str, float] = {str(o.feature): o.value for o in self.log_odds}
         return self
 
@@ -129,12 +128,7 @@ class AlgorithmContext(pydantic.BaseModel):
         """
         Get the log odds for a specific Feature or BlockingKey.
         """
-        key = str(value)
         result: float | None = None
-
-        result = self._log_odds_cache.get(key, None)
-        if result:
-            return result
 
         vals = value.values_to_match() if isinstance(value, Feature) else [str(value)]
         for val in vals:
@@ -142,7 +136,6 @@ class AlgorithmContext(pydantic.BaseModel):
             if result:
                 break
 
-        self._log_odds_cache[key] = result
         return result
 
 

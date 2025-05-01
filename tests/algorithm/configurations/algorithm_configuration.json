@@ -15,7 +15,38 @@
         { "feature": "STATE", "value": 0.022376768992488694 },
         { "feature": "ZIP", "value": 4.975031471124867 }
       ],
-      "skip_values": [],
+      "skip_values": [
+          {
+              "feature": "FIRST_NAME",
+              "values": [
+                  "Anon",
+                  "Anonymous"
+              ]
+          },
+          {
+              "feature": "LAST_NAME",
+              "values": [
+                  "Anon",
+                  "Anonymous"
+              ]
+          },
+          {
+              "feature": "NAME",
+              "values": [
+                  "John Doe",
+                  "Jane Doe",
+                  "Baby Boy",
+                  "Baby Girl"
+              ]
+          },
+          {
+              "feature": "*",
+              "values": [
+                  "Unk",
+                  "Unknown"
+              ]
+          }
+      ],
       "advanced": {
         "fuzzy_match_threshold": 0.9,
         "fuzzy_match_measure": "JaroWinkler",
