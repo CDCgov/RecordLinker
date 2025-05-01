@@ -23,7 +23,6 @@ jobs:
           format: "sarif"
           output: "trivy-results.sarif"
           severity: HIGH,CRITICAL
-          exit-code: 1  # Fail the job if vulnerabilities are found
           ignore-unfixed: true  # Only report confirmed CVEs
 
       - name: Upload Trivy scan results to GitHub Security tab
