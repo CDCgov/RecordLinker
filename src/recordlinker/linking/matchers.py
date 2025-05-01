@@ -58,36 +58,6 @@ class AvailableKwarg(enum.Enum):
     pass
 
 
-def _get_fuzzy_params(col: str, **kwargs) -> tuple[SIMILARITY_MEASURES, float]:
-    """
-    Helper method to quickly determine the appropriate similarity measure
-    and fuzzy matching threshold to use for fuzzy-comparing a particular
-    field between two records.
-
-    :param col: The string name of the column being used in a fuzzy
-      comparison.
-    :param kwargs: Optionally, a dictionary of keyword arguments containing
-      values for a similarity metric and appropriate fuzzy thresholds.
-    :return: A tuple containing the similarity metric to use and the
-      fuzzy comparison threshold to measure against.
-    """
-    similarity_measure: SIMILARITY_MEASURES = "JaroWinkler"
-    if "similarity_measure" in kwargs:
-        similarity_measure = kwargs["similarity_measure"]
-        # Ensure the similarity measure is valid
-        if similarity_measure not in typing.get_args(SIMILARITY_MEASURES):
-            raise ValueError(f"Invalid similarity measure: {similarity_measure}")
-
-    threshold: float = 0.7
-    if "thresholds" in kwargs:
-        if col in kwargs["thresholds"]:
-            threshold = kwargs["thresholds"][col]
-    elif "threshold" in kwargs:
-        threshold = kwargs["threshold"]
-
-    return (similarity_measure, threshold)
-
-
 def compare_probabilistic_exact_match(
     record: PIIRecord,
     mpi_record: PIIRecord,
