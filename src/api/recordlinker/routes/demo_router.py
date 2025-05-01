@@ -200,3 +200,22 @@ def unlink_match(
     )
 
     return match_review_record
+
+
+@router.post(
+    "/reset",
+    summary="Reset demo records",
+)
+def reset_demo_data(
+    response: fastapi.Response,
+) -> typing.Dict[str, str]:
+    """
+    Reset demo records to their original state.
+    """
+
+    session_store.delete_session(
+        response,
+        key="linked_status",
+    )
+
+    return {"message": "Demo data reset successfully."}
