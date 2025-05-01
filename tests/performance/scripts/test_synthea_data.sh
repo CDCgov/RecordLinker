@@ -25,7 +25,7 @@ mkdir -p $(dirname $POSTGRES_LOG) && echo "" > $POSTGRES_LOG
 time scripts/send_linkage_requests.sh "${SYNTHEA_OUTPUT_DIR}/fhir" $LINKAGE_API_URL $ITERATIONS
 
 # GENERATE PDBADGER REPORT
-pgbadger $POSTGRES_LOG -o $PGBADGER_REPORT
+pgbadger -f stderr -o "$PGBADGER_REPORT" "$POSTGRES_LOG"
 
 # HANG THE SCRIPT
 # This will keep the script running indefinitely, allowing you to inspect the

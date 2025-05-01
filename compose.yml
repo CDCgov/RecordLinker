@@ -10,6 +10,7 @@ services:
       - ./tests/performance/conf/postgresql.conf:/etc/postgresql/postgresql.conf
       - ./tests/performance/conf/init.sql:/docker-entrypoint-initdb.d/init.sql
       - ./tests/performance/tmp/results/psql/:/var/log/psql/
+    command: postgres -c config_file=/etc/postgresql/postgresql.conf
     healthcheck:
       test: [ "CMD-SHELL", "pg_isready" ]
 
@@ -65,7 +66,7 @@ services:
       - tests/performance/rlpt.env
     environment:
       DB_URL: "postgres://postgres:pw@db:5432/postgres"
-      LINKAGE_API_URL: "http://api:8080"
+      LINKAGE_API_URL: "http://api:8080/api"
       SYNTHEA_OUTPUT_DIR: "results/synthea_output/"
       POSTGRES_LOG: "/code/results/psql/postgresql.log"
       PGBADGER_REPORT: "/code/results/psql/pgbadger.html"
