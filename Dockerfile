@@ -20,14 +20,9 @@ ENV USE_OTEL=${USE_OTEL}
 ARG LOG_CONFIG=assets/production_log_config.json
 ENV LOG_CONFIG=${LOG_CONFIG}
 
-# Updgrade system packages
-RUN apt-get update && apt-get upgrade -y
+# Updgrade system packages and install curl
+RUN apt-get update && apt-get upgrade -y && apt-get install curl -y
 RUN pip install --upgrade pip
-
-# Avoid interactive prompts and upgrade linux-libc-dev and curl
-RUN DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
-    linux-libc-dev curl && \
-    rm -rf /var/lib/apt/lists/*
 
 # Conditionally install ODBC driver for SQL Server.
 RUN if [ "$USE_MSSQL" = "true" ]; then \
