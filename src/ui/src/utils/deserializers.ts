@@ -1,5 +1,4 @@
 import { RecordMatch } from "@/models/recordMatch";
-import { AppError } from "./errors";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 export function deserializeRecordMatch(
