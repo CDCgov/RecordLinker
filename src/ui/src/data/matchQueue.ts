@@ -1,15 +1,21 @@
 import { RecordMatch } from "@/models/recordMatch";
 import { API_URL } from "@/utils/constants";
-import { deserializeToRecordMatch } from "@/utils/deserializers";
+import { deserializeRecordMatch } from "@/utils/deserializers";
+import { AppError } from "@/utils/errors";
 
 export async function getUnmatchedRecords(): Promise<RecordMatch[]> {
   const response = await fetch(`${API_URL}/demo/record?status=pending`);
-
   if (response.ok) {
-    return response.json().then((response: Record<string, unknown>[]) => {
-      return response.map((matchItem) => deserializeToRecordMatch(matchItem));
-    });
+    const serializedMatchList: Record<string, unknown>[] =
+      await response.json();
+    return serializedMatchList.map((matchItem) =>
+      deserializeRecordMatch(matchItem),
+    );
   } else {
-    throw new Error(response.status.toString());
+    throw new AppError(
+      "getUnmatchedRecords",
+      "unsuccessful HTTP response",
+      response.status,
+    );
   }
 }

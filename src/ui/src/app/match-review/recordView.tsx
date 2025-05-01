@@ -15,6 +15,7 @@ import { getRecordMatch } from "@/data/matchReview";
 import RecordCompare, { FieldComparisonValues } from "./recordCompare";
 import { Patient } from "@/models/patient";
 import EmptyFallback from "@/components/emptyFallback/emptyFallback";
+import { AppError, PAGE_ERRORS } from "@/utils/errors";
 
 function formatFieldValue(value: Patient[keyof Patient] | undefined): string {
   if (value instanceof Date) {
@@ -91,9 +92,7 @@ const RecordView: React.FC = () => {
   const [selectedRecord, setSelectedRecord] = useState<
     RecordMatch | undefined
   >();
-  const [serverError, setServerError] = useState<
-    undefined | "server" | "not_found"
-  >();
+  const [pageError, setPageError] = useState<undefined | PAGE_ERRORS>();
 
   /**
    * Initialize data
@@ -104,10 +103,10 @@ const RecordView: React.FC = () => {
       setSelectedRecord(recordInfo);
     } catch (e) {
       console.error(e);
-      if (e == "Error: 404") {
-        setServerError("not_found");
+      if (e instanceof AppError && e.httpCode == 404) {
+        setPageError(PAGE_ERRORS.RESOURCE_NOT_FOUND);
       } else {
-        setServerError("server");
+        setPageError(PAGE_ERRORS.SERVER_ERROR);
       }
     }
   }
@@ -119,9 +118,9 @@ const RecordView: React.FC = () => {
   /**
    * HTML
    */
-  if (serverError == "server") {
+  if (pageError == PAGE_ERRORS.SERVER_ERROR) {
     return <ServerError />;
-  } else if (serverError == "not_found") {
+  } else if (pageError == PAGE_ERRORS.RESOURCE_NOT_FOUND) {
     return <EmptyFallback message="Record not found." />;
   } else if (selectedRecord) {
     return (
