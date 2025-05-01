@@ -91,7 +91,7 @@ class LinkResult:
             self._update_score_tracking_row(earned_points, pass_lbl, rms, mmt, cmt, grade)
 
 
-def invoke(
+def invoke_evaluator(
     evaluator: schemas.Evaluator,
     record: schemas.PIIRecord,
     mpi_record: schemas.PIIRecord,
@@ -145,7 +145,7 @@ def compare(
         max_log_odds_points += log_odds
         # Evaluate the comparison function, track missingness, and append the
         # score component to the list
-        result: tuple[float, bool] = invoke(evaluator, record, mpi_record, context)
+        result: tuple[float, bool] = invoke_evaluator(evaluator, record, mpi_record, context)
         if result[1]:
             # The field was missing, so update the running tally of how much
             # the candidate is missing overall

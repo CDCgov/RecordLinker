@@ -17,7 +17,7 @@ from recordlinker.hl7 import fhir
 from recordlinker.linking import link
 
 
-class TestInvoke:
+class TestInvokeEvaluator:
     def test_with_override(self):
         evaluator = schemas.Evaluator(
             feature="FIRST_NAME",
@@ -37,7 +37,7 @@ class TestInvoke:
             }
         )
 
-        result, _ = link.invoke(evaluator, rec, mpi_rec, context)
+        result, _ = link.invoke_evaluator(evaluator, rec, mpi_rec, context)
         assert result == 7.5
 
     def test_with_default(self):
@@ -57,7 +57,7 @@ class TestInvoke:
             }
         )
 
-        result, _ = link.invoke(evaluator, rec, mpi_rec, context)
+        result, _ = link.invoke_evaluator(evaluator, rec, mpi_rec, context)
         assert pytest.approx(result, 0.01) == 9.33
 
 
