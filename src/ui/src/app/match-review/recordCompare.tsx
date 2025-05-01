@@ -4,7 +4,6 @@ import InfoTooltip from "@/components/infoTooltip/infoTooltip";
 import styles from "./matchReview.module.scss";
 
 export interface FieldComparisonValues {
-  key: number;
   label: string;
   incomingValue: string;
   potentialValue: string;
@@ -54,7 +53,8 @@ function convert2ReadableLabel(label: string): JSX.Element {
         " ",
       );
     }
-  } catch (_) {
+  } catch (e) {
+    console.error(e);
     labelCopy = label;
   }
 
@@ -65,32 +65,25 @@ function convert2ReadableLabel(label: string): JSX.Element {
   );
 }
 
-function getComparisonRow({
-  key,
-  label,
-  incomingValue,
-  potentialValue,
-}: FieldComparisonValues): JSX.Element {
+function getComparisonRow(
+  idx: number,
+  { label, incomingValue, potentialValue }: FieldComparisonValues,
+): JSX.Element {
   const valuesDiffer: boolean =
     !!incomingValue && incomingValue !== potentialValue;
 
   return (
-    <div key={key} role="row" className={classNames("grid-row", "flex-row")}>
+    <div key={label} role="row" className={classNames("grid-row", "flex-row")}>
       <div
         role="rowheader"
-        className={classNames(
-          "flex-2",
-          "text-semibold",
-          "text-accent-cool-dark",
-          "padding-y-1",
-        )}
+        className={classNames("flex-2", "text-accent-cool-dark", "padding-y-1")}
       >
         {convert2ReadableLabel(label)}
       </div>
       <div
         role="gridcell"
         className={classNames(
-          valueCellClasses(key),
+          valueCellClasses(idx),
           valuesDiffer && "text-accent-warm-dark text-bold",
         )}
       >
@@ -104,7 +97,7 @@ function getComparisonRow({
       <div
         role="gridcell"
         className={classNames(
-          valueCellClasses(key),
+          valueCellClasses(idx),
           valuesDiffer && "text-bold",
         )}
       >
@@ -162,8 +155,8 @@ const RecordCompare: React.FC<RecordCompareProps> = ({ comparisonFields }) => {
           Potential match
         </div>
       </div>
-      {comparisonFields.map((field: FieldComparisonValues) =>
-        getComparisonRow(field),
+      {comparisonFields.map((field: FieldComparisonValues, i) =>
+        getComparisonRow(i, field),
       )}
     </div>
   );
