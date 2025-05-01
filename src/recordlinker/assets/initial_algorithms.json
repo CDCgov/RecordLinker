@@ -76,8 +76,7 @@
                 "possible_match_window": [
                     0.8,
                     0.925
-                ],
-                "kwargs": {}
+                ]
             },
             {
                 "label": "BLOCK_zip_first_name_last_name_sex_MATCH_address_birthdate",
@@ -101,8 +100,7 @@
                 "possible_match_window": [
                     0.815,
                     0.915
-                ],
-                "kwargs": {}
+                ]
             }
         ]
     }

@@ -160,7 +160,6 @@ class AlgorithmPass(pydantic.BaseModel):
     possible_match_window: tuple[
         Annotated[float, pydantic.Field(ge=0, le=1)], Annotated[float, pydantic.Field(ge=0, le=1)]
     ]
-    kwargs: dict[str, typing.Any] = {}
 
     @pydantic.field_validator("possible_match_window", mode="before")
     def validate_possible_match_window(cls, value):
@@ -182,22 +181,6 @@ class AlgorithmPass(pydantic.BaseModel):
             matches = ["MATCH"] + [str(e.feature).lower() for e in self.evaluators]
             self.label = "_".join(blocks + matches)
         return self
-
-    @pydantic.field_validator("kwargs", mode="before")
-    def validate_kwargs(cls, value):
-        """
-        Validate the kwargs keys are valid.
-        """
-        # TODO: possibly a better way to validate is to take two PIIRecords
-        # and compare them using the AlgorithmPass.  If it doesn't raise an
-        # exception, then the kwargs are valid.
-        if value:
-            allowed = {k.value for k in matchers.AvailableKwarg}
-            # Validate each key in kwargs
-            for key, val in value.items():
-                if key not in allowed:
-                    raise ValueError(f"Invalid kwargs key: '{key}'. Allowed keys are: {allowed}")
-        return value
 
     @pydantic.field_serializer("blocking_keys")
     def serialize_blocking_keys(self, keys: list[BlockingKey]) -> list[str]:

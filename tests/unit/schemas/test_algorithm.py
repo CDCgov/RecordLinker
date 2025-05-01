@@ -98,21 +98,6 @@ class TestAlgorithmPass:
                 possible_match_window=(0.75, 1.0),
             )
 
-    def test_kwargs(self):
-        with pytest.raises(pydantic.ValidationError):
-            AlgorithmPass(
-                blocking_keys=[],
-                evaluators=[],
-                possible_match_window=(0.75, 1.0),
-                kwargs={"invalid": "key"},
-            )
-        AlgorithmPass(
-            blocking_keys=[],
-            evaluators=[],
-            possible_match_window=(0.75, 1.0),
-            kwargs={},
-        )
-
     def test_default_label(self):
         apass = AlgorithmPass(
             blocking_keys=[],
