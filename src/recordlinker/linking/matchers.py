@@ -122,8 +122,8 @@ def compare_probabilistic_exact_match(
     :return: A tuple containing: a float of the score the feature comparison
       earned, and a boolean indicating whether one of the Fields was missing.
     """
-    incoming_record_fields = list(record.feature_iter(key))
-    mpi_record_fields = list(mpi_record.feature_iter(key))
+    incoming_record_fields = list(record.feature_iter(key, prepend_suffix=True))
+    mpi_record_fields = list(mpi_record.feature_iter(key, prepend_suffix=True))
     if len(incoming_record_fields) == 0 or len(mpi_record_fields) == 0:
         # Return early if a field is missing, and log that was the case
         return (missing_field_points_proportion * log_odds, True)
@@ -171,8 +171,8 @@ def compare_probabilistic_fuzzy_match(
     :return: A tuple containing: a float of the score the feature comparison
       earned, and a boolean indicating whether one of the Fields was missing.
     """
-    incoming_record_fields = list(record.feature_iter(key))
-    mpi_record_fields = list(mpi_record.feature_iter(key))
+    incoming_record_fields = list(record.feature_iter(key, prepend_suffix=True))
+    mpi_record_fields = list(mpi_record.feature_iter(key, prepend_suffix=True))
     if len(incoming_record_fields) == 0 or len(mpi_record_fields) == 0:
         # Return early if a field is missing, and log that was the case
         return (missing_field_points_proportion * log_odds, True)
