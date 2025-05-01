@@ -111,8 +111,6 @@ def compare_probabilistic_fuzzy_match(
     key: Feature,
     log_odds: float,
     missing_field_points_proportion: float,
-    fuzzy_match_measure: SIMILARITY_MEASURES,
-    fuzzy_match_threshold: float,
     **kwargs: typing.Any,
 ) -> tuple[float, bool]:
     """
@@ -134,28 +132,33 @@ def compare_probabilistic_fuzzy_match(
     :param log_odds: The log-odds weight-points for this field
     :param missing_field_points_proportion: The proportion of log-odds points
       to award if one of the records is missing information in the given field.
-    :param fuzzy_match_measure: The string comparison metric to use
-    :param fuzzy_match_threshold: The cutoff score beyond which to classify the strings as a partial match
     :param **kwargs: Optionally, a dictionary including specifications for
       the string comparison metric to use, as well as the cutoff score
       beyond which to classify the strings as a partial match.
     :return: A tuple containing: a float of the score the feature comparison
       earned, and a boolean indicating whether one of the Fields was missing.
     """
+    fuzzy_match_measure: typing.Any  = kwargs.get("fuzzy_match_measure", None)
+    fuzzy_match_threshold: typing.Any = kwargs.get("fuzzy_match_threshold", None)
+    assert fuzzy_match_measure in typing.get_args(SIMILARITY_MEASURES), f"Invalid similarity measure: {fuzzy_match_measure}"
+    assert isinstance(fuzzy_match_threshold, float), f"Invalid similarity threshold: {fuzzy_match_threshold}"
+    measure: SIMILARITY_MEASURES = fuzzy_match_measure
+    threshold: float = float(fuzzy_match_threshold)
+
     incoming_record_fields = list(record.feature_iter(key))
     mpi_record_fields = list(mpi_record.feature_iter(key))
     if len(incoming_record_fields) == 0 or len(mpi_record_fields) == 0:
         # Return early if a field is missing, and log that was the case
         return (missing_field_points_proportion * log_odds, True)
 
-    comp_func = getattr(rapidfuzz.distance, fuzzy_match_measure).normalized_similarity
+    comp_func = getattr(rapidfuzz.distance, measure).normalized_similarity
     max_score = 0.0
     for x in incoming_record_fields:
         for y in mpi_record_fields:
             # for each permutation of values, find the score and record it if its
             # larger than any previous score
             max_score = max(comp_func(x, y), max_score)
-    if max_score < fuzzy_match_threshold:
+    if max_score < threshold:
         # return 0 if our max score is less than the threshold
         return (0.0, False)
     return (max_score * log_odds, False)

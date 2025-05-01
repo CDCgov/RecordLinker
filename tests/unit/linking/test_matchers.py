@@ -18,13 +18,13 @@ class TestFeatureFunc:
         for rule in matchers.FeatureFunc:
             signature = inspect.signature(rule.callable())
             params = list(signature.parameters.values())
-            assert len(params) >= 6
+            assert len(params) == 6
             assert params[0].annotation == schemas.PIIRecord
             assert params[1].annotation == schemas.PIIRecord
             assert params[2].annotation == schemas.Feature
             assert params[3].annotation is float
             assert params[4].annotation is float
-            assert params[-1].annotation == typing.Any
+            assert params[5].annotation == typing.Any
             assert signature.return_annotation == tuple[float, bool]
 
     def test_callable(self):
