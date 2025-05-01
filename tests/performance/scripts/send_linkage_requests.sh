@@ -10,7 +10,7 @@ set -e
 cd "$(dirname "$0")/.."
 
 DATA=${1:-"data/"}
-API_URL=${2:-"http://localhost:8080"}
+API_URL=${2:-"http://localhost:8080/api"}
 ITERATIONS=${3:-"1"}
 
 # Loop over the synthetic patient data N times, this will help
@@ -21,7 +21,7 @@ for ((i=1; i<=ITERATIONS; i++)); do
     for file in "${DATA}"/*; do
         # check that the file is a JSON file
         if [[ -f "$file" && "$file" == *.json ]]; then
-            if grep -qFx 'null' $file; then
+            if grep -qFx 'null' "$file"; then
                 # skip the file if it contains 'null'
                 echo "Skipping $file as it contains 'null'"
                 continue
@@ -37,11 +37,11 @@ for ((i=1; i<=ITERATIONS; i++)); do
             payload="{\"bundle\": ${bundle}}"
             # record the response to response.txt and capture the status code from STDOUT
             response=$(curl -s -o response.txt -w "%{http_code}" \
-                --header "Content-Type: application/json" --header "$simple_header" \
+                --header "Content-Type: application/json" \
                 -X POST -d "$payload" "${API_URL}/link/fhir")
             status_code="${response: -3}"
             # parse the response to see if a MPI match was found
-            match=$(jq '.prediction' response.txt)
+            match=$(jq '.match_grade' response.txt)
             # print the status code, match and file name
             echo -e "STATUS:${status_code}\tMATCH:${match}\tFILE:${file}"
         fi
