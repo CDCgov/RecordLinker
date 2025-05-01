@@ -52,6 +52,7 @@ def client():
         # scope of the test
         main.api.dependency_overrides[database.get_session] = lambda: session
         with TestClient(main.app) as c:
+            c.cookies.clear()
             c.session = session
             yield c
 
