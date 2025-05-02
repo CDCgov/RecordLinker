@@ -25,6 +25,14 @@ class Evaluator(pydantic.BaseModel):
 
     feature: Feature = pydantic.Field(json_schema_extra={"enum": Feature.all_options()})
     func: matchers.FeatureFunc
+    fuzzy_match_threshold: Annotated[float, pydantic.Field(ge=0, le=1)] | None = pydantic.Field(
+        default=None,
+        description="[Optional] Set to override the default fuzzy match threshold for this evaluator.",
+    )
+    fuzzy_match_measure: matchers.SIMILARITY_MEASURES | None = pydantic.Field(
+        default=None,
+        description="[Optional] Set to override the default fuzzy match measure for this evaluator.",
+    )
 
     @pydantic.field_validator("feature", mode="before")
     def validate_feature(cls, value: str) -> Feature:
@@ -83,6 +91,19 @@ class SkipValue(pydantic.BaseModel):
         return value
 
 
+class AlgorithmAdvanced(pydantic.BaseModel):
+    """
+    The schema for an advanced algorithm settings.
+    """
+
+    model_config = pydantic.ConfigDict(from_attributes=True)
+
+    fuzzy_match_threshold: Annotated[float, pydantic.Field(ge=0, le=1)] = 0.9
+    fuzzy_match_measure: matchers.SIMILARITY_MEASURES = "JaroWinkler"
+    max_missing_allowed_proportion: Annotated[float, pydantic.Field(ge=0.0, le=1.0)] = 0.5
+    missing_field_points_proportion: Annotated[float, pydantic.Field(ge=0.0, le=1.0)] = 0.5
+
+
 class AlgorithmContext(pydantic.BaseModel):
     """
     The schema for an algorithm context record.
@@ -93,6 +114,7 @@ class AlgorithmContext(pydantic.BaseModel):
     include_multiple_matches: bool = True
     log_odds: typing.Sequence[LogOdd] = []
     skip_values: typing.Sequence[SkipValue] = []
+    advanced: AlgorithmAdvanced = AlgorithmAdvanced()
 
     @pydantic.model_validator(mode="after")
     def init_log_odds_helpers(self) -> typing.Self:
@@ -197,8 +219,6 @@ class Algorithm(pydantic.BaseModel):
     is_default: bool = False
     algorithm_context: AlgorithmContext = AlgorithmContext()
     passes: typing.Sequence[AlgorithmPass]
-    max_missing_allowed_proportion: float = pydantic.Field(ge=0.0, le=1.0)
-    missing_field_points_proportion: float = pydantic.Field(ge=0.0, le=1.0)
 
     @pydantic.model_validator(mode="after")
     def validate_passes(self) -> typing.Self:

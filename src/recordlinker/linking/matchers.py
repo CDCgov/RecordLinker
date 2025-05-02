@@ -56,39 +56,7 @@ class AvailableKwarg(enum.Enum):
     based on the configuration of the algorithm.
     """
 
-    SIMILARITY_MEASURE = "similarity_measure"
-    THRESHOLD = "threshold"
-    THRESHOLDS = "thresholds"
-
-
-def _get_fuzzy_params(col: str, **kwargs) -> tuple[SIMILARITY_MEASURES, float]:
-    """
-    Helper method to quickly determine the appropriate similarity measure
-    and fuzzy matching threshold to use for fuzzy-comparing a particular
-    field between two records.
-
-    :param col: The string name of the column being used in a fuzzy
-      comparison.
-    :param kwargs: Optionally, a dictionary of keyword arguments containing
-      values for a similarity metric and appropriate fuzzy thresholds.
-    :return: A tuple containing the similarity metric to use and the
-      fuzzy comparison threshold to measure against.
-    """
-    similarity_measure: SIMILARITY_MEASURES = "JaroWinkler"
-    if "similarity_measure" in kwargs:
-        similarity_measure = kwargs["similarity_measure"]
-        # Ensure the similarity measure is valid
-        if similarity_measure not in typing.get_args(SIMILARITY_MEASURES):
-            raise ValueError(f"Invalid similarity measure: {similarity_measure}")
-
-    threshold: float = 0.7
-    if "thresholds" in kwargs:
-        if col in kwargs["thresholds"]:
-            threshold = kwargs["thresholds"][col]
-    elif "threshold" in kwargs:
-        threshold = kwargs["threshold"]
-
-    return (similarity_measure, threshold)
+    pass
 
 
 def compare_probabilistic_exact_match(
@@ -116,9 +84,8 @@ def compare_probabilistic_exact_match(
     :param log_odds: The log-odds weight-points for this field
     :param missing_field_points_proportion: The proportion of log-odds points to
       award if one of the records is missing information in the given field.
-    :param **kwargs: Optionally, a dictionary including specifications for
-      the string comparison metric to use, as well as the cutoff score
-      beyond which to classify the strings as a partial match.
+    :param **kwargs: Optionally, a dictionary that may include parameters required for other
+        compare_ functions.
     :return: A tuple containing: a float of the score the feature comparison
       earned, and a boolean indicating whether one of the Fields was missing.
     """
@@ -144,6 +111,8 @@ def compare_probabilistic_fuzzy_match(
     key: Feature,
     log_odds: float,
     missing_field_points_proportion: float,
+    fuzzy_match_measure: SIMILARITY_MEASURES,
+    fuzzy_match_threshold: float,
     **kwargs: typing.Any,
 ) -> tuple[float, bool]:
     """
@@ -165,9 +134,10 @@ def compare_probabilistic_fuzzy_match(
     :param log_odds: The log-odds weight-points for this field
     :param missing_field_points_proportion: The proportion of log-odds points
       to award if one of the records is missing information in the given field.
-    :param **kwargs: Optionally, a dictionary including specifications for
-      the string comparison metric to use, as well as the cutoff score
-      beyond which to classify the strings as a partial match.
+    :param fuzzy_match_measure: The string comparison metric to use
+    :param fuzzy_match_threshold: The cutoff score beyond which to classify the strings as a partial match
+    :param **kwargs: Optionally, a dictionary that may include parameters required for other
+        compare_ functions.
     :return: A tuple containing: a float of the score the feature comparison
       earned, and a boolean indicating whether one of the Fields was missing.
     """
@@ -177,15 +147,14 @@ def compare_probabilistic_fuzzy_match(
         # Return early if a field is missing, and log that was the case
         return (missing_field_points_proportion * log_odds, True)
 
-    similarity_measure, threshold = _get_fuzzy_params(str(key.attribute), **kwargs)
-    comp_func = getattr(rapidfuzz.distance, similarity_measure).normalized_similarity
+    comp_func = getattr(rapidfuzz.distance, fuzzy_match_measure).normalized_similarity
     max_score = 0.0
     for x in incoming_record_fields:
         for y in mpi_record_fields:
             # for each permutation of values, find the score and record it if its
             # larger than any previous score
             max_score = max(comp_func(x, y), max_score)
-    if max_score < threshold:
+    if max_score < fuzzy_match_threshold:
         # return 0 if our max score is less than the threshold
         return (0.0, False)
     return (max_score * log_odds, False)

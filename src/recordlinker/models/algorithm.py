@@ -33,12 +33,6 @@ class Algorithm(Base):
     is_default: orm.Mapped[bool] = orm.mapped_column(default=False, index=True)
     label: orm.Mapped[str] = orm.mapped_column(sqltypes.String(255), unique=True)
     description: orm.Mapped[str] = orm.mapped_column(sqltypes.Text(), nullable=True)
-    max_missing_allowed_proportion: orm.Mapped[float] = orm.mapped_column(
-        sqltypes.Float, default=0.5
-    )
-    missing_field_points_proportion: orm.Mapped[float] = orm.mapped_column(
-        sqltypes.Float, default=0.5
-    )
     algorithm_context: orm.Mapped[dict] = orm.mapped_column(sqltypes.JSON, default=dict)
     passes: orm.Mapped[list[dict]] = orm.mapped_column(sqltypes.JSON, default=list)
 

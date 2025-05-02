@@ -18,13 +18,13 @@ class TestFeatureFunc:
         for rule in matchers.FeatureFunc:
             signature = inspect.signature(rule.callable())
             params = list(signature.parameters.values())
-            assert len(params) == 6
+            assert len(params) >= 6
             assert params[0].annotation == schemas.PIIRecord
             assert params[1].annotation == schemas.PIIRecord
             assert params[2].annotation == schemas.Feature
             assert params[3].annotation is float
             assert params[4].annotation is float
-            assert params[5].annotation == typing.Any
+            assert params[-1].annotation == typing.Any
             assert signature.return_annotation == tuple[float, bool]
 
     def test_callable(self):
@@ -46,18 +46,6 @@ class TestFeatureFunc:
             str(matchers.FeatureFunc["COMPARE_PROBABILISTIC_FUZZY_MATCH"])
             == "COMPARE_PROBABILISTIC_FUZZY_MATCH"
         )
-
-
-def test_get_fuzzy_params():
-    assert matchers._get_fuzzy_params("last_name") == ("JaroWinkler", 0.7)
-
-    kwargs = {
-        "similarity_measure": "Levenshtein",
-        "thresholds": {"city": 0.95, "address": 0.98},
-    }
-    assert matchers._get_fuzzy_params("city", **kwargs) == ("Levenshtein", 0.95)
-    assert matchers._get_fuzzy_params("address", **kwargs) == ("Levenshtein", 0.98)
-    assert matchers._get_fuzzy_params("first_name", **kwargs) == ("Levenshtein", 0.7)
 
 
 def test_compare_probabilistic_exact_match():
@@ -165,6 +153,8 @@ def test_compare_probabilistic_fuzzy_match():
         schemas.Feature(attribute=schemas.FeatureAttribute.FIRST_NAME),
         4.0,
         missing_points_proportion,
+        fuzzy_match_measure="JaroWinkler",
+        fuzzy_match_threshold=0.7,
     ) == (4.0, False)
 
     result = matchers.compare_probabilistic_fuzzy_match(
@@ -173,6 +163,8 @@ def test_compare_probabilistic_fuzzy_match():
         schemas.Feature(attribute=schemas.FeatureAttribute.LAST_NAME),
         6.5,
         missing_points_proportion,
+        fuzzy_match_measure="JaroWinkler",
+        fuzzy_match_threshold=0.7,
     )
     assert round(result[0], 3) == 6.129
     assert not result[1]
@@ -183,6 +175,8 @@ def test_compare_probabilistic_fuzzy_match():
         schemas.Feature(attribute=schemas.FeatureAttribute.BIRTHDATE),
         9.8,
         missing_points_proportion,
+        fuzzy_match_measure="JaroWinkler",
+        fuzzy_match_threshold=0.7,
     )
     assert round(result[0], 3) == 7.859
     assert not result[1]
@@ -193,6 +187,8 @@ def test_compare_probabilistic_fuzzy_match():
         schemas.Feature(attribute=schemas.FeatureAttribute.ADDRESS),
         3.7,
         missing_points_proportion,
+        fuzzy_match_measure="JaroWinkler",
+        fuzzy_match_threshold=0.7,
     )
     assert round(result[0], 3) == 0.0
     assert not result[1]
@@ -209,6 +205,8 @@ def test_compare_probabilistic_fuzzy_match():
         schemas.Feature(attribute=schemas.FeatureAttribute.FIRST_NAME),
         4.0,
         missing_points_proportion,
+        fuzzy_match_measure="JaroWinkler",
+        fuzzy_match_threshold=0.7,
     )
     assert round(result[0], 3) == 2.0
     assert result[1]
@@ -230,6 +228,8 @@ def test_compare_probabilistic_fuzzy_match():
         schemas.Feature(attribute=schemas.FeatureAttribute.FIRST_NAME),
         6.85,
         missing_points_proportion,
+        fuzzy_match_measure="JaroWinkler",
+        fuzzy_match_threshold=0.7,
     )
     assert round(result[0], 3) == 6.089
 
@@ -246,6 +246,8 @@ def test_compare_probabilistic_fuzzy_match():
         schemas.Feature(attribute=schemas.FeatureAttribute.FIRST_NAME),
         6.85,
         missing_points_proportion,
+        fuzzy_match_measure="JaroWinkler",
+        fuzzy_match_threshold=0.7,
     )
     assert round(result[0], 3) == 5.137
 
@@ -262,6 +264,8 @@ def test_compare_probabilistic_fuzzy_match():
         schemas.Feature(attribute=schemas.FeatureAttribute.FIRST_NAME),
         6.85,
         missing_points_proportion,
+        fuzzy_match_measure="JaroWinkler",
+        fuzzy_match_threshold=0.7,
     )
     assert round(result[0], 3) == 6.850
 
@@ -278,6 +282,8 @@ def test_compare_probabilistic_fuzzy_match():
         schemas.Feature(attribute=schemas.FeatureAttribute.FIRST_NAME),
         6.85,
         missing_points_proportion,
+        fuzzy_match_measure="JaroWinkler",
+        fuzzy_match_threshold=0.7,
     )
     assert round(result[0], 3) == 0.0
     
