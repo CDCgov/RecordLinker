@@ -7,6 +7,7 @@ const ResetDemoButton: React.FC = () => {
   const handleResetDemo = async () => {
     const response = await fetch(`${API_URL}/demo/reset`, {
       method: "POST",
+      credentials: "include",
       headers: {
         "Content-Type": "application/json",
       },
