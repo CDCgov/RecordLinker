@@ -60,7 +60,14 @@ class LogOdd(pydantic.BaseModel):
     model_config = pydantic.ConfigDict(from_attributes=True)
 
     feature: Feature = pydantic.Field(json_schema_extra={"enum": Feature.all_options()})
-    value: Annotated[float, pydantic.Field(ge=0)]
+    value: Annotated[float, pydantic.Field(ge=0)] = pydantic.Field(
+        description=(
+            "A weight to capture the information value of this field in a healthcare "
+            "record for the purpose of patient matching. These values are in reference "
+            "to one another, and should be produced by a domain expert who is familiar "
+            "with running a log odds training procedure on an existing data set."
+        )
+    )
 
     @pydantic.field_validator("feature", mode="before")
     def validate_feature(cls, value):
@@ -75,8 +82,14 @@ class LogOdd(pydantic.BaseModel):
 
 class SkipValue(pydantic.BaseModel):
     feature: str = pydantic.Field(json_schema_extra={"enum": Feature.all_options() + ["*"]})
-    values: list[str] = pydantic.Field(min_length=1)
-
+    values: list[str] = pydantic.Field(
+        min_length=1,
+        description=(
+            "A list of values that denote possible field entries that the algorithm should "
+            "regard as 'meaningless' and ignore during blocking and evaluation."
+        ),
+        examples=["John Doe", "unknown", "anonymous"],
+    )
     @pydantic.field_validator("feature", mode="before")
     def validate_feature(cls, value):
         """
@@ -98,11 +111,42 @@ class AlgorithmAdvanced(pydantic.BaseModel):
 
     model_config = pydantic.ConfigDict(from_attributes=True)
 
-    fuzzy_match_threshold: Annotated[float, pydantic.Field(ge=0, le=1)] = 0.9
-    fuzzy_match_measure: matchers.SIMILARITY_MEASURES = "JaroWinkler"
-    max_missing_allowed_proportion: Annotated[float, pydantic.Field(ge=0.0, le=1.0)] = 0.5
-    missing_field_points_proportion: Annotated[float, pydantic.Field(ge=0.0, le=1.0)] = 0.5
-
+    fuzzy_match_threshold: Annotated[float, pydantic.Field(ge=0, le=1)] = pydantic.Field(
+        default=0.9,
+        description=(
+            "When using fuzzy matching, the minimum similarity two records must have on a "
+            "given field, for that field to contribute to a match. If the similarity meets "
+            "or exceeds this threshold, the field contributes its log-odds points towards a "
+            "potential match's score. If the similarity is below this threshold, it is set "
+            "to zero to avoid the buildup of small errors from weak similarities."
+        ),
+    )
+    fuzzy_match_measure: matchers.SIMILARITY_MEASURES = pydantic.Field(
+        default="JaroWinkler",
+        description=(
+            "The type of fuzzy comparison used when judging how similar a field is across "
+            "two patient records."
+        ),
+    )
+    max_missing_allowed_proportion: Annotated[float, pydantic.Field(ge=0.0, le=1.0)] = pydantic.Field(
+        default=0.5,
+        description=(
+            "The proportion of log-odds points that can be missing from a record’s fields "
+            "before that record stops being eligible as a potential match. When too many "
+            "fields are missing from a record, making match decisions for that record "
+            "becomes impossible. This parameter controls the extent to which information "
+            "can be absent before some processing is automatically skipped."
+        )
+    )
+    missing_field_points_proportion: Annotated[float, pydantic.Field(ge=0.0, le=1.0)] = pydantic.Field(
+        default=0.5,
+        description=(
+            "The proportion of a field's log-odds points earned when making a comparison "
+            "in which at least one record is missing information. This parameter only "
+            "applies when a record is missing some field information but does not have more "
+            "missingness than permitted by max_missing_allowed_proportion."
+        )
+    )
 
 class AlgorithmContext(pydantic.BaseModel):
     """
@@ -111,7 +155,14 @@ class AlgorithmContext(pydantic.BaseModel):
 
     model_config = pydantic.ConfigDict(from_attributes=True)
 
-    include_multiple_matches: bool = True
+    include_multiple_matches: bool = pydantic.Field(
+        default=True,
+        description=(
+            "A boolean flag indicating whether the algorithm should return only the "
+            "highest scoring match to the caller, or whether it should return all "
+            "match candidates who scored an equivalently high grade with the best match."
+        )
+    )
     log_odds: typing.Sequence[LogOdd] = []
     skip_values: typing.Sequence[SkipValue] = []
     advanced: AlgorithmAdvanced = AlgorithmAdvanced()
@@ -159,7 +210,14 @@ class AlgorithmPass(pydantic.BaseModel):
     evaluators: list[Evaluator]
     possible_match_window: tuple[
         Annotated[float, pydantic.Field(ge=0, le=1)], Annotated[float, pydantic.Field(ge=0, le=1)]
-    ]
+    ] = pydantic.Field(...,
+        description=(
+            "A range of decimal values consisting of two endpoint thresholds: a Minimum "
+            "Match Threshold—representing an RMS value below which a candidate record is "
+            "labeled 'certainly-not' a match—and a Certain Match Threshold, an RMS value "
+            "above which a candidate record is labeled a 'certain' match."
+        )
+    )
 
     @pydantic.field_validator("possible_match_window", mode="before")
     def validate_possible_match_window(cls, value):
