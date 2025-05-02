@@ -7,7 +7,7 @@ This module contains the unit tests for the recordlinker.routes.demo_router modu
 
 import fastapi
 
-from recordlinker import session_store
+from recordlinker import cookie_store
 
 
 class TestGetMatchReviewRecords:
@@ -46,7 +46,7 @@ class TestGetMatchReviewRecords:
 
         # Simulate a session store update
         dummy_response = fastapi.Response()
-        session_store.save_session(
+        cookie_store.save_cookie(
             dummy_response, key="linked_status", data={str(patient_reference_id): True}
         )
 
@@ -121,7 +121,7 @@ class TestGetMatchQueueRecordsEndpoint:
 
         # Simulate a session store update
         dummy_response = fastapi.Response()
-        session_store.save_session(
+        cookie_store.save_cookie(
             dummy_response, key="linked_status", data={str(patient_reference_id): True}
         )
 
@@ -150,7 +150,7 @@ class TestLinkMatch:
         )
 
         assert (
-            session_store.load_session(
+            cookie_store.load_cookie(
                 response,
                 key="linked_status",
             )[str(patient_reference_id)]
@@ -187,7 +187,7 @@ class TestUnlinkMatch:
         assert response.json()["incoming_record"]["person_id"] is None
 
         assert (
-            session_store.load_session(
+            cookie_store.load_cookie(
                 response,
                 key="linked_status",
             )[str(patient_reference_id)]
@@ -229,7 +229,7 @@ class TestResetDemo:
         assert response.json()["incoming_record"]["person_id"] is None
 
         assert (
-            session_store.load_session(
+            cookie_store.load_cookie(
                 response,
                 key="linked_status",
             )[str(patient_reference_id)]
@@ -245,7 +245,7 @@ class TestResetDemo:
         resp = client.get("/api/demo/record")
         assert resp.status_code == 200
         assert (
-            session_store.load_session(
+            cookie_store.load_cookie(
                 resp,
                 key="linked_status",
             )
