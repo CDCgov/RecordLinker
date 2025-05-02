@@ -1,0 +1,29 @@
+name: "scan GHCR images for vulnerabilities"
+
+on:
+  schedule:
+    # Run everyday at 03:00 Eastern
+    - cron: "0 3 * * *"
+
+jobs:
+  trivy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Create package name from repo name
+        run: echo "PACKAGE_NAME=$(echo '${{ github.repository }}' | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
+
+      - name: Scan image with Trivy
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: ghcr.io/${{ env.PACKAGE_NAME }}:latest
+          format: "sarif"
+          output: "trivy-results.sarif"
+          severity: HIGH,CRITICAL
+          ignore-unfixed: true  # Only report confirmed CVEs
+
+      - name: Upload Trivy scan results to GitHub Security tab
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: "trivy-results.sarif"

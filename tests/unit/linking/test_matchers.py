@@ -98,6 +98,38 @@ def test_compare_probabilistic_exact_match():
         missing_points_proportion,
     ) == (4.9, True)
 
+    # Suffix comparison cases
+    rec = schemas.PIIRecord(
+        name=[{"given": ["Joel"], "family": "Miller", "suffix": ["Senior"]}],
+    )
+    pat = models.Patient(
+        data={
+            "name": [{"given": ["Joel"], "family": "Miller"}],
+            "birthDate": "1970-06-07",
+        }
+    )
+    assert matchers.compare_probabilistic_exact_match(
+        rec,
+        schemas.PIIRecord.from_patient(pat),
+        schemas.Feature(attribute=schemas.FeatureAttribute.FIRST_NAME),
+        6.85,
+        missing_points_proportion,
+    ) == (0.0, False)
+
+    pat = models.Patient(
+        data={
+            "name": [{"given": ["Joel"], "family": "Miller", "suffix": ["Sr"]}],
+            "birthDate": "1970-06-07",
+        }
+    )
+    assert matchers.compare_probabilistic_exact_match(
+        rec,
+        schemas.PIIRecord.from_patient(pat),
+        schemas.Feature(attribute=schemas.FeatureAttribute.FIRST_NAME),
+        6.85,
+        missing_points_proportion,
+    ) == (6.85, False)
+
 
 def test_compare_probabilistic_fuzzy_match():
     missing_points_proportion = 0.5
@@ -178,3 +210,79 @@ def test_compare_probabilistic_fuzzy_match():
     )
     assert round(result[0], 3) == 2.0
     assert result[1]
+
+    # Test fuzzy comparisons with suffix
+    # Test 1: Same name, spelled correctly, one with suffix, other without
+    rec = schemas.PIIRecord(
+        name=[{"given": ["Joel"], "family": "Miller", "suffix": ["Senior"]}],
+    )
+    pat = models.Patient(
+        data={
+            "name": [{"given": ["Joel"], "family": "Miller"}],
+            "birthDate": "1970-06-07",
+        }
+    )
+    result = matchers.compare_probabilistic_fuzzy_match(
+        rec,
+        schemas.PIIRecord.from_patient(pat),
+        schemas.Feature(attribute=schemas.FeatureAttribute.FIRST_NAME),
+        6.85,
+        missing_points_proportion,
+        fuzzy_match_measure="JaroWinkler",
+        fuzzy_match_threshold=0.7,
+    )
+    assert round(result[0], 3) == 6.089
+
+    # Test 2: Same name, spelled incorrectly, one with suffix, other without
+    pat = models.Patient(
+        data={
+            "name": [{"given": ["Jeol"], "family": "Miller"}],
+            "birthDate": "1970-06-07",
+        }
+    )
+    result = matchers.compare_probabilistic_fuzzy_match(
+        rec,
+        schemas.PIIRecord.from_patient(pat),
+        schemas.Feature(attribute=schemas.FeatureAttribute.FIRST_NAME),
+        6.85,
+        missing_points_proportion,
+        fuzzy_match_measure="JaroWinkler",
+        fuzzy_match_threshold=0.7,
+    )
+    assert round(result[0], 3) == 5.137
+
+    # Test 3: Same name, spelled correctly, both with suffixes
+    pat = models.Patient(
+        data={
+            "name": [{"given": ["Joel"], "family": "Miller", "suffix": ["Sr"]}],
+            "birthDate": "1970-06-07",
+        }
+    )
+    result = matchers.compare_probabilistic_fuzzy_match(
+        rec,
+        schemas.PIIRecord.from_patient(pat),
+        schemas.Feature(attribute=schemas.FeatureAttribute.FIRST_NAME),
+        6.85,
+        missing_points_proportion,
+        fuzzy_match_measure="JaroWinkler",
+        fuzzy_match_threshold=0.7,
+    )
+    assert round(result[0], 3) == 6.850
+
+    # Test 4: Different name, each with suffix
+    pat = models.Patient(
+        data={
+            "name": [{"given": ["Ellie"], "family": "Williams", "suffix": ["Jr"]}],
+            "birthDate": "2019-04-11",
+        }
+    )
+    result = matchers.compare_probabilistic_fuzzy_match(
+        rec,
+        schemas.PIIRecord.from_patient(pat),
+        schemas.Feature(attribute=schemas.FeatureAttribute.FIRST_NAME),
+        6.85,
+        missing_points_proportion,
+        fuzzy_match_measure="JaroWinkler",
+        fuzzy_match_threshold=0.7,
+    )
+    assert round(result[0], 3) == 0.0
