@@ -4,14 +4,6 @@
 
 @use "variables" as *;
 
-:root {
-  /*toastify overrides*/
-  --toastify-toast-min-height: 30px;
-  --toastify-toast-bd-radius: 0.25rem;
-  --toastify-toast-padding: 0;
-  --toastify-toast-width: 550px;
-}
-
 * {
   box-sizing: border-box;
   padding: 0;
