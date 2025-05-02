@@ -9,6 +9,12 @@
   padding: 0;
   margin: 0;
   line-height: 140%;
+
+  // toastify
+  --toastify-toast-min-height: 2rem;
+  --toastify-toast-bd-radius: 0.25rem;
+  --toastify-toast-padding: 0;
+  --toastify-toast-width: 34rem;
 }
 
 body {
@@ -73,7 +79,6 @@ th .descending-order {
 /*
  *  Toast
  */
-
 .Toastify__toast-container {
   .usa-alert__heading {
     font-size: inherit;
