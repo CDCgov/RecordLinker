@@ -4,6 +4,14 @@
 
 @use "variables" as *;
 
+:root {
+  /*toastify overrides*/
+  --toastify-toast-min-height: 30px;
+  --toastify-toast-bd-radius: 0.25rem;
+  --toastify-toast-padding: 0;
+  --toastify-toast-width: 550px;
+}
+
 * {
   box-sizing: border-box;
   padding: 0;
@@ -68,4 +76,25 @@ th .descending-order {
     position: relative;
     top: -0.188rem;
   }
+}
+
+/*
+ *  Toast
+ */
+
+.Toastify__toast-container {
+  .usa-alert__heading {
+    font-size: inherit;
+  }
+
+  .usa-alert__body {
+    border-radius: 0.25rem;
+    &::before {
+      mask-size: 2rem 2rem;
+    }
+  }
+}
+
+.Toastify__toast-icon {
+  display: none;
 }

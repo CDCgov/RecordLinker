@@ -16,6 +16,7 @@ import RecordCompare, { FieldComparisonValues } from "./recordCompare";
 import { Patient } from "@/models/patient";
 import EmptyFallback from "@/components/emptyFallback/emptyFallback";
 import { AppError, PAGE_ERRORS } from "@/utils/errors";
+import { showToast, ToastType } from "@/components/toast/toast";
 
 function formatFieldValue(value: Patient[keyof Patient] | undefined): string {
   if (value instanceof Date) {
@@ -133,7 +134,15 @@ const RecordView: React.FC = () => {
           )}
         />
         <div className="margin-top-3">
-          <Button className="margin-right-105">
+          <Button
+            className="margin-right-105"
+            onClick={() =>
+              showToast(
+                ToastType.SUCCESS,
+                "The record has been reviewed and cleared from your queue.",
+              )
+            }
+          >
             Link record <LinkIcon size={3} />
           </Button>
           <Button>
