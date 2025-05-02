@@ -529,6 +529,115 @@ class TestLinkRecordAgainstMpi:
         # low-value missing field, but fails user's overall completeness constraint
         assert matches == [False, False]
 
+    def test_no_match_one_suffix_one_not(
+        self,
+        session,
+        default_algorithm,
+        patients: list[schemas.PIIRecord]
+    ):
+        # Make a deep copy of the first patient, give it a suffix
+        patients = [patients[0]]
+        duplicate = copy.deepcopy(patients[0])
+        duplicate.external_id = str(uuid.uuid4())
+        duplicate.name[0].suffix = ["Sr"]
+        patients.append(duplicate)
+
+        matches: list[bool] = []
+        mapped_patients: dict[str, int] = collections.defaultdict(int)
+        for data in patients[:2]:
+            (_, person, results, _) = link.link_record_against_mpi(data, session, default_algorithm)
+            matches.append(bool(person and results))
+            mapped_patients[person.reference_id] += 1
+
+        # First patient inserted into empty MPI, no match
+        # Second patient fails eval in first pass and blocking in second
+        # due to suffix
+        assert matches == [False, False]
+
+    def test_no_match_same_name_diff_suffixes(
+        self,
+        session,
+        default_algorithm,
+        patients: list[schemas.PIIRecord]
+    ):
+        '''
+        NOTE: This catches the Jr/Sr edge case of a parent and child
+        living at the same address with the same first name. It even
+        goes a step farther and gives them the same birthday.
+        '''
+        # Give both patients the same name before duplication, change
+        # suffixes after
+        patients = [patients[0]]
+        duplicate = copy.deepcopy(patients[0])
+        patients[0].name[0].suffix = ["Sr"]
+        duplicate.external_id = str(uuid.uuid4())
+        duplicate.name[0].suffix = ["Jr"]
+        patients.append(duplicate)
+
+        matches: list[bool] = []
+        mapped_patients: dict[str, int] = collections.defaultdict(int)
+        for data in patients[:2]:
+            (_, person, results, _) = link.link_record_against_mpi(data, session, default_algorithm)
+            matches.append(bool(person and results))
+            mapped_patients[person.reference_id] += 1
+
+        # First patient inserted into empty MPI, no match
+        # Second patient fails eval in first pass and blocking in second
+        # due to suffix being different
+        assert matches == [False, False]
+
+    def test_no_match_diff_names_same_suffix(
+        self,
+        session,
+        default_algorithm,
+        patients: list[schemas.PIIRecord]
+    ):
+        # Give each copy the same suffix, duplicate, then change name
+        patients = [patients[0]]
+        patients[0].name[0].suffix = ["Sr"]
+        duplicate = copy.deepcopy(patients[0])
+        duplicate.external_id = str(uuid.uuid4())
+        duplicate.name[0].given[0] = "Jason"
+        patients.append(duplicate)
+
+        matches: list[bool] = []
+        mapped_patients: dict[str, int] = collections.defaultdict(int)
+        for data in patients[:2]:
+            (_, person, results, _) = link.link_record_against_mpi(data, session, default_algorithm)
+            matches.append(bool(person and results))
+            mapped_patients[person.reference_id] += 1
+
+        # First patient inserted into empty MPI, no match
+        # Second patient fails eval in first pass and blocking in second
+        # due to suffix
+        assert matches == [False, False]
+
+    def test_match_name_with_suffix(
+        self,
+        session,
+        default_algorithm,
+        patients: list[schemas.PIIRecord]
+    ):
+        # Give patient a suffix, duplicate, then introduce a small typo
+        # to make sure we can fuzzy match it still
+        patients = [patients[0]]
+        patients[0].name[0].suffix = ["Sr"]
+        duplicate = copy.deepcopy(patients[0])
+        duplicate.external_id = str(uuid.uuid4())
+        duplicate.name[0].given[0] = "Jon"
+        patients.append(duplicate)
+
+        matches: list[bool] = []
+        mapped_patients: dict[str, int] = collections.defaultdict(int)
+        for data in patients[:2]:
+            (_, person, results, _) = link.link_record_against_mpi(data, session, default_algorithm)
+            matches.append(bool(person and results))
+            mapped_patients[person.reference_id] += 1
+
+        # First patient inserted into empty MPI, no match
+        # Second patient blocks in first pass, then passes evaluation, match
+        assert matches == [False, True]
+    
     def test_default_possible_match(
             self,
             session,
