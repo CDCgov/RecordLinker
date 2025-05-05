@@ -82,7 +82,7 @@ th .descending-order {
     font-size: inherit;
   }
   .usa-alert__body {
-    border-radius: 0.25rem;
+    border-radius: $record-linker-border-radius;
     &::before {
       mask-size: 2rem 2rem;
     }
