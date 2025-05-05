@@ -83,22 +83,17 @@ def get_demo_data(
     """
 
     # Update the linked status based on the session store
-    print("request.cookies:", request.cookies)
     linked_status = cookie_store.load_cookie(
         request,
         key="linked_status",
     )
-    print("session_data:", linked_status)
     d = copy.deepcopy(data)  # copy to avoid modifying the original data
-    for record in d:
-        print("record id", record["incoming_record"]["patient_id"], ":", record["linked"])
     if linked_status:
         for record in d:
             patient_id = record["incoming_record"]["patient_id"]
             if str(patient_id) in linked_status:
                 record["linked"] = linked_status[str(patient_id)]
     else:
-        print("No linked status found in session store;saving one now")
         cookie_store.save_cookie(
             response,
             key="linked_status",
@@ -155,7 +150,6 @@ def link_match(
     """
     Link demo records for match review.
     """
-    print("hello")
     record = next(
         (d for d in data if d["incoming_record"]["patient_id"] == patient_reference_id), None
     )
@@ -178,7 +172,6 @@ def link_match(
         patient_reference_id,
         match_review_record["linked"],
     )
-    print("DATA:", data[0]["linked"])
 
     return match_review_record
 
@@ -196,13 +189,14 @@ def unlink_match(
     Unlink demo records for match review.
     """
 
-    match_review_record = next(
+    record = next(
         (d for d in data if d["incoming_record"]["patient_id"] == patient_reference_id), None
     )
-    if match_review_record is None:
+    if record is None:
         raise fastapi.HTTPException(status_code=fastapi.status.HTTP_404_NOT_FOUND)
 
     # Update the linked status
+    match_review_record = copy.deepcopy(record)
     match_review_record["linked"] = False
     match_review_record["incoming_record"]["person_id"] = None
     # TODO: Remove potential match from the match_review_record since they were deemed not a match
@@ -224,13 +218,10 @@ def unlink_match(
 )
 def reset_demo_data(
     response: fastapi.Response,
-    request: fastapi.Request,
 ) -> typing.Dict[str, str]:
     """
     Reset demo records to their original state.
     """
-    session_data = cookie_store.load_cookie(request, key="linked_status")
-    print("session_data:", session_data)
 
     cookie_store.reset_cookie(response, key="linked_status")
 
