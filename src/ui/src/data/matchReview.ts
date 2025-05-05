@@ -21,10 +21,11 @@ export async function getRecordMatch(id: string | null): Promise<RecordMatch> {
 }
 
 export async function linkRecordAndMatch(
-  id: string | null,
+  id: string | null
 ): Promise<RecordMatch> {
   const response = await fetch(`${API_URL}/demo/record/${id}/link`, {
     method: "POST",
+    credentials: "include",
   });
 
   if (response.ok) {
@@ -34,16 +35,17 @@ export async function linkRecordAndMatch(
     throw new AppError(
       "linkRecordAndMatch",
       "unsuccessful HTTP response",
-      response.status,
+      response.status
     );
   }
 }
 
 export async function unlinkRecordAndMatch(
-  id: string | null,
+  id: string | null
 ): Promise<RecordMatch> {
   const response = await fetch(`${API_URL}/demo/record/${id}/unlink`, {
     method: "POST",
+    credentials: "include",
   });
 
   if (response.ok) {
@@ -53,7 +55,7 @@ export async function unlinkRecordAndMatch(
     throw new AppError(
       "unlinkRecordAndMatch",
       "unsuccessful HTTP response",
-      response.status,
+      response.status
     );
   }
 }
