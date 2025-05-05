@@ -117,8 +117,7 @@ class TestLoadAlgorithm:
                     "fuzzy_match_measure": None,
                 }
             ],
-            "possible_match_window": (0.75, 1.0),
-            "kwargs": {},
+            "possible_match_window": (0.75, 1.0)
         }
 
     def test_load_algorithm_updated(self, session):
@@ -183,8 +182,7 @@ class TestLoadAlgorithm:
                     "fuzzy_match_measure": None,
                 }
             ],
-            "possible_match_window": (0.75, 1.0),
-            "kwargs": {},
+            "possible_match_window": (0.75, 1.0)
         }
 
 

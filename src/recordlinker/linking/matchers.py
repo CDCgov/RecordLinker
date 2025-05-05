@@ -46,19 +46,6 @@ class FeatureFunc(enum.Enum):
         return self._callable
 
 
-class AvailableKwarg(enum.Enum):
-    """
-    Enum for the different types of keyword arguments that can be used in the
-    AlgorithmPass schema. This is the universe of all possible keyword arguments
-    that a user can choose from when configuring their algorithm.  When data is
-    loaded into the MPI, all possible AvailableKwargs will be created for the
-    defined keyword arguments. However, only a subset will be used in matching,
-    based on the configuration of the algorithm.
-    """
-
-    pass
-
-
 def compare_probabilistic_exact_match(
     record: PIIRecord,
     mpi_record: PIIRecord,

@@ -286,4 +286,3 @@ def test_compare_probabilistic_fuzzy_match():
         fuzzy_match_threshold=0.7,
     )
     assert round(result[0], 3) == 0.0
-    

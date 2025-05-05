@@ -109,8 +109,7 @@ class TestGetAlgorithm:
                             "fuzzy_match_measure": None,
                         }
                     ],
-                    "possible_match_window": [0.75, 1.0],
-                    "kwargs": {},
+                    "possible_match_window": [0.75, 1.0]
                 }
             ],
         }
@@ -200,8 +199,7 @@ class TestCreateAlgorithm:
                     "fuzzy_match_measure": None,
                 }
             ],
-            "possible_match_window": [0.75, 1.0],
-            "kwargs": {},
+            "possible_match_window": [0.75, 1.0]
         }
 
 
@@ -314,8 +312,7 @@ class TestUpdateAlgorithm:
                     "fuzzy_match_measure": None,
                 }
             ],
-            "possible_match_window": (0.75, 1.0),
-            "kwargs": {},
+            "possible_match_window": (0.75, 1.0)
         }
 
 
