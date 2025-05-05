@@ -26,13 +26,13 @@ const Home: React.FC = () => {
         >
           <div className="grid-col-6">
             <h1 className="font-alt-xl margin-bottom-2 margin-top-0">
-              Lorem ipsum title
+              Control how patient records are matched and merged
             </h1>
             <p>
-              Short overview description of Record Linker, Lorem ipsum dolor sit
-              amet, consectetur adipiscing elit. Etiam sed condimentum mauris.
-              Duis a felis nec mi convallis feugiat. Suspendisse commodo tellus
-              vitae sodales euismod. Cras vitae tellus dolor.
+              Record Linker offers a best-in-class algorithm that allows your
+              jurisdiction to link incomplete and disparate patient records —
+              both within and across public health systems — giving you more
+              complete and accurate patient health profiles.
             </p>
             <Link
               className="usa-button padding-x-7 margin-top-2"
