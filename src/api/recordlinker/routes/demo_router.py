@@ -11,7 +11,8 @@ import typing
 
 import fastapi
 
-from recordlinker import cookie_store, schemas
+from recordlinker import cookie_store
+from recordlinker import schemas
 from recordlinker.utils import path as utils
 
 router = fastapi.APIRouter()
@@ -58,7 +59,6 @@ def update_session_linked_status(
         )
         or {}
     )
-    print("session data before update:", d)
     # Update the session data & save
     d.update({str(patient_reference_id): linked_status})
     cookie_store.save_cookie(
@@ -66,7 +66,6 @@ def update_session_linked_status(
         key="linked_status",
         data=d,
     )
-    print("session data after update:", d)
 
 
 @router.get(
@@ -88,7 +87,7 @@ def get_demo_data(
         key="linked_status",
     )
     d = copy.deepcopy(data)  # copy to avoid modifying the original data
-    if linked_status:
+    if linked_status and linked_status != {}:
         for record in d:
             patient_id = record["incoming_record"]["patient_id"]
             if str(patient_id) in linked_status:

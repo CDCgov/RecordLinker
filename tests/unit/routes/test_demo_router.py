@@ -249,4 +249,4 @@ class TestResetDemo:
                 resp,
                 key="linked_status",
             )
-        ) is None
+        ) == {}
