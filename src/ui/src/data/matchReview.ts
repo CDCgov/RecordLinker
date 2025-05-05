@@ -19,3 +19,41 @@ export async function getRecordMatch(id: string | null): Promise<RecordMatch> {
     );
   }
 }
+
+export async function linkRecordAndMatch(
+  id: string | null,
+): Promise<RecordMatch> {
+  const response = await fetch(`${API_URL}/demo/record/${id}/link`, {
+    method: "POST",
+  });
+
+  if (response.ok) {
+    const serializedRecordMatch = await response.json();
+    return deserializeRecordMatch(serializedRecordMatch);
+  } else {
+    throw new AppError(
+      "linkRecordAndMatch",
+      "unsuccessful HTTP response",
+      response.status,
+    );
+  }
+}
+
+export async function unlinkRecordAndMatch(
+  id: string | null,
+): Promise<RecordMatch> {
+  const response = await fetch(`${API_URL}/demo/record/${id}/unlink`, {
+    method: "POST",
+  });
+
+  if (response.ok) {
+    const serializedRecordMatch = await response.json();
+    return deserializeRecordMatch(serializedRecordMatch);
+  } else {
+    throw new AppError(
+      "unlinkRecordAndMatch",
+      "unsuccessful HTTP response",
+      response.status,
+    );
+  }
+}

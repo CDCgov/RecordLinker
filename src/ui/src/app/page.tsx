@@ -15,6 +15,7 @@ const Home: React.FC = () => {
       <div className={style.hero}>
         <div
           className={classNames(
+            "page-container",
             "page-container--lg",
             "padding-y-10",
             "grid-row",
@@ -51,6 +52,7 @@ const Home: React.FC = () => {
       </div>
       <div
         className={classNames(
+          "page-container",
           "page-container--lg",
           "padding-top-7",
           "padding-x-6",
@@ -130,6 +132,7 @@ const Home: React.FC = () => {
       </div>
       <div
         className={classNames(
+          "page-container",
           "page-container--lg",
           "padding-top-4",
           "padding-bottom-6",

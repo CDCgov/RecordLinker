@@ -9,6 +9,12 @@
   padding: 0;
   margin: 0;
   line-height: 140%;
+
+  // toastify
+  --toastify-toast-min-height: 2rem;
+  --toastify-toast-bd-radius: 0.25rem;
+  --toastify-toast-padding: 0;
+  --toastify-toast-width: 34rem;
 }
 
 body {
@@ -21,12 +27,10 @@ body {
   margin: 0 auto;
 
   &--lg {
-    @extend .page-container;
     max-width: 50rem;
   }
 
   &--xl {
-    @extend .page-container;
     max-width: 75rem;
   }
 
@@ -68,4 +72,38 @@ th .descending-order {
     position: relative;
     top: -0.188rem;
   }
+}
+
+/*
+ *  Toast
+ */
+.Toastify__toast-container {
+  .usa-alert__heading {
+    font-size: inherit;
+  }
+  .usa-alert__body {
+    border-radius: $record-linker-border-radius;
+    &::before {
+      mask-size: 2rem 2rem;
+    }
+  }
+
+  // alert types
+  .usa-alert--success .usa-alert__body {
+    &::before {
+      background-color: $green-cool-vivid-80v;
+    }
+    color: $green-cool-vivid-80v;
+  }
+
+  .usa-alert--error .usa-alert__body {
+    &::before {
+      background-color: $red-cool-80v;
+    }
+    color: $red-cool-80v;
+  }
+}
+
+.Toastify__toast-icon {
+  display: none;
 }
