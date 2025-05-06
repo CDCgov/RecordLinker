@@ -33,19 +33,6 @@ def load_cookie(request: fastapi.Request, key: str) -> typing.Optional[dict]:
     return serializer.loads(value)
 
 
-def delete_cookie(response: fastapi.Response, key: str) -> None:
-    """
-    Delete the session data from the session store.
-    """
-    response.delete_cookie(
-        key,
-        domain=settings.session_cookie_domain,
-        secure=settings.session_cookie_secure,
-        httponly=True,
-        samesite="lax",
-    )
-
-
 def reset_cookie(response: fastapi.Response, key: str) -> None:
     """
     Reset the session data in the session store.
