@@ -105,7 +105,10 @@ class TestCompare:
             ]
         )
 
-        assert round(link.compare(rec, mpi_rec, algorithm_pass, context), 3) == 12.830
+        res, feature_scores = link.compare(rec, mpi_rec, algorithm_pass, context)
+        assert round(res, 3)== 12.830
+        assert feature_scores["FIRST_NAME"] == 6.85
+        assert round(feature_scores["LAST_NAME"], 3) == 5.980
 
     def test_compare_non_match_worthy_score(self):
         rec = schemas.PIIRecord(
@@ -150,7 +153,10 @@ class TestCompare:
             advanced={"fuzzy_match_threshold": 0.7},
         )
 
-        assert round(link.compare(rec, mpi_rec, algorithm_pass, context), 3) == 5.137
+        res, feature_scores = link.compare(rec, mpi_rec, algorithm_pass, context)
+        assert round(res, 3) == 5.137
+        assert feature_scores["LAST_NAME"] == 0.0
+        assert round(feature_scores["FIRST_NAME"], 3) == 5.137
 
     def test_compare_identifier_match(self):
         rec = schemas.PIIRecord(
@@ -184,7 +190,9 @@ class TestCompare:
             ]
         )
 
-        assert link.compare(rec, mpi_rec, algorithm_pass, context) == 0.35
+        res, feature_scores = link.compare(rec, mpi_rec, algorithm_pass, context)
+        assert res == 0.35
+        assert feature_scores == {"IDENTIFIER": 0.35}
 
     def test_compare_identifier_with_suffix(self):
         rec = schemas.PIIRecord(
@@ -218,7 +226,9 @@ class TestCompare:
         )
 
         # should pass as MR is the same for both
-        assert link.compare(rec, mpi_rec, algorithm_pass, context) == 0.35
+        res, feature_scores = link.compare(rec, mpi_rec, algorithm_pass, context)
+        assert res == 0.35
+        assert feature_scores == {"IDENTIFIER": 0.35}
 
         algorithm_pass = schemas.AlgorithmPass(
             label="pass",
@@ -227,7 +237,9 @@ class TestCompare:
             possible_match_window=(0.8, 0.925),
         )
         # should fail as SS is different for both
-        assert link.compare(rec, mpi_rec, algorithm_pass, context) == 0.0
+        res, feature_scores = link.compare(rec, mpi_rec, algorithm_pass, context)
+        assert res == 0.0
+        assert feature_scores == {"IDENTIFIER:SS": 0.0}
 
 
 class TestLinkRecordAgainstMpi:
@@ -266,24 +278,33 @@ class TestLinkRecordAgainstMpi:
         # Test various null data values in incoming record
         matches: list[bool] = []
         mapped_patients: dict[str, int] = collections.defaultdict(int)
+        all_results = []
         for data in patients[:2]:
             (_, person, results, _) = link.link_record_against_mpi(data, session, default_algorithm)
             matches.append(bool(person and results))
+            all_results.append(results)
             mapped_patients[person.reference_id] += 1
 
         # First patient inserted into empty MPI, no match
         # Second patient blocks with first patient in first pass, then fuzzy matches name
         assert matches == [False, True]
         assert sorted(list(mapped_patients.values())) == [2]
+        # Median contributions don't exist when matches aren't found
+        assert all_results[0] == []
+        # They do exist for the second fuzzy match though
+        assert round(all_results[1][0].median_features["FIRST_NAME"], 3) == 6.393
+        assert round(all_results[1][0].median_features["LAST_NAME"], 3) == 6.351
 
     def test_default_match_two(self, session, default_algorithm, patients):
         matches: list[bool] = []
         matching_passes: list[int] = []
         mapped_patients: dict[str, int] = collections.defaultdict(int)
+        all_results = []
         for data in patients:
             (_, person, results, _) = link.link_record_against_mpi(data, session, default_algorithm)
             made_match = bool(person and results)
             matches.append(made_match)
+            all_results.append(results)
             if made_match:
                 matching_passes.append(results[0].pass_label)
 
@@ -304,6 +325,16 @@ class TestLinkRecordAgainstMpi:
             "BLOCK_zip_first_name_last_name_sex_MATCH_address_birthdate",
         ]
         assert sorted(list(mapped_patients.values())) == [1, 1, 1, 3]
+        # Median contributions shouldn't exist for any patients that didn't match
+        assert all_results[0] == []
+        assert all_results [2] == []
+        assert all_results [4] == []
+        assert all_results[5] == []
+        # The records that did match will have scaled medians
+        assert round(all_results[1][0].median_features["FIRST_NAME"], 3) == 6.393
+        assert round(all_results[1][0].median_features["LAST_NAME"], 3) == 6.351
+        assert round(all_results[3][0].median_features["ADDRESS"], 3) == 8.438
+        assert round(all_results[3][0].median_features["BIRTHDATE"], 3) == 10.127
 
     def test_default_match_three(
         self, session, default_algorithm, patients: list[schemas.PIIRecord]
@@ -315,9 +346,11 @@ class TestLinkRecordAgainstMpi:
         patients.append(patient0_copy)
         matches: list[bool] = []
         mapped_patients: dict[str, int] = collections.defaultdict(int)
+        all_results = []
         for data in patients:
             (_, person, results, _) = link.link_record_against_mpi(data, session, default_algorithm)
             matches.append(bool(person and results))
+            all_results.append(results)
             mapped_patients[person.reference_id] += 1
 
         # First patient inserted into empty MPI, no match
@@ -331,6 +364,9 @@ class TestLinkRecordAgainstMpi:
         #  finds greatest strength match and correctly assigns to larger cluster
         assert matches == [False, True, False, True, False, False, True]
         assert sorted(list(mapped_patients.values())) == [1, 1, 1, 4]
+        # Only the newly duplicated patient is one we haven't already checked in another test
+        assert round(all_results[6][0].median_features["FIRST_NAME"], 3) == 6.336
+        assert round(all_results[6][0].median_features["LAST_NAME"], 3) == 6.351
 
     def test_match_with_certain_first_pass(
         self, session, default_algorithm, patients: list[schemas.PIIRecord]
@@ -404,15 +440,20 @@ class TestLinkRecordAgainstMpi:
         default_algorithm.passes[0].possible_match_window = [0.7, 0.75]
         matches: list[bool] = []
         mapped_patients: dict[str, int] = collections.defaultdict(int)
+        all_results = []
         for data in patients[:2]:
             (_, person, results, _) = link.link_record_against_mpi(data, session, default_algorithm)
             matches.append(bool(person and results))
+            all_results.append(results)
             mapped_patients[person.reference_id] += 1
 
         # First patient inserted into empty MPI, no match
         # Second patient blocks in each pass, is missing a field, but is allowed to match
         assert matches == [False, True]
         assert sorted(list(mapped_patients.values())) == [2]
+        # Test whether we correctly catch a missing feature score in medians
+        assert round(all_results[1][0].median_features["FIRST_NAME"], 3) == 6.849
+        assert round(all_results[1][0].median_features["LAST_NAME"], 3) == 3.175
 
     def test_reject_too_many_missing_field(
         self, session, default_algorithm, patients: list[schemas.PIIRecord]
@@ -429,14 +470,18 @@ class TestLinkRecordAgainstMpi:
         default_algorithm.algorithm_context.advanced.max_missing_allowed_proportion = 0.3
         matches: list[bool] = []
         mapped_patients: dict[str, int] = collections.defaultdict(int)
+        all_results = []
         for data in patients[:2]:
             (_, person, results, _) = link.link_record_against_mpi(data, session, default_algorithm)
             matches.append(bool(person and results))
             mapped_patients[person.reference_id] += 1
+            all_results.append(results)
 
         # First patient inserted into empty MPI, no match
         # Second patient blocks in each pass but missing too much data, fails
         assert matches == [False, False]
+        # Too much missingness means no match results, should mean no medians
+        assert all_results == [[], []]
 
     def test_both_missingness_params_zero(
         self, session, default_algorithm, patients: list[schemas.PIIRecord]
