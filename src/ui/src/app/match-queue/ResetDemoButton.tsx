@@ -1,17 +1,11 @@
 "use client";
 
-import { API_URL } from "@/utils/constants";
 import { Button } from "@trussworks/react-uswds";
+import { resetDemoData } from "@/data/matchQueue";
 
 const ResetDemoButton: React.FC = () => {
   const handleResetDemo = async () => {
-    const response = await fetch(`${API_URL}/demo/reset`, {
-      method: "POST",
-      credentials: "include",
-      headers: {
-        "Content-Type": "application/json",
-      },
-    });
+    const response = await resetDemoData();
     if (response.ok) {
       window.location.reload();
     } else {
@@ -22,8 +16,7 @@ const ResetDemoButton: React.FC = () => {
     <Button
       type="button"
       outline
-      className="margin-left-2"
-      style={{ whiteSpace: "nowrap" }}
+      className="margin-left-2 text-no-wrap"
       onClick={handleResetDemo}
     >
       Reset match queue

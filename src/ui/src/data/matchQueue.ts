@@ -21,3 +21,21 @@ export async function getUnmatchedRecords(): Promise<RecordMatch[]> {
     );
   }
 }
+
+export async function resetDemoData(): Promise<Response> {
+  const response = await fetch(`${API_URL}/demo/reset`, {
+    method: "POST",
+    credentials: "include",
+    headers: {
+      "Content-Type": "application/json",
+    },
+  });
+  if (!response.ok) {
+    throw new AppError(
+      "resetDemoData",
+      "unsuccessful HTTP response",
+      response.status
+    );
+  }
+  return response;
+}
