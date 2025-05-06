@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, redirect } from "next/navigation";
 import RecordTable from "@/components/recordTable/recordTable";
 import { LinkIcon, LinkOffIcon } from "@/components/icons/icons";
 import { Button } from "@trussworks/react-uswds";
@@ -11,11 +11,17 @@ import {
   RecordMatch,
 } from "@/models/recordMatch";
 import ServerError from "@/components/serverError/serverError";
-import { getRecordMatch } from "@/data/matchReview";
+import {
+  getRecordMatch,
+  linkRecordAndMatch,
+  unlinkRecordAndMatch,
+} from "@/data/matchReview";
 import RecordCompare, { FieldComparisonValues } from "./recordCompare";
 import { Patient } from "@/models/patient";
 import EmptyFallback from "@/components/emptyFallback/emptyFallback";
 import { AppError, PAGE_ERRORS } from "@/utils/errors";
+import { showToast, ToastType } from "@/components/toast/toast";
+import { PAGES } from "@/utils/constants";
 
 function formatFieldValue(value: Patient[keyof Patient] | undefined): string {
   if (value instanceof Date) {
@@ -116,6 +122,47 @@ const RecordView: React.FC = () => {
   }, []);
 
   /**
+   * Event handlers
+   */
+  async function linkRecord() {
+    try {
+      await linkRecordAndMatch(recordId);
+
+      showToast(
+        ToastType.SUCCESS,
+        "The record has been reviewed and cleared from your queue.",
+      );
+    } catch (e) {
+      console.error(e);
+      showToast(
+        ToastType.ERROR,
+        "We were unable to process your request. Please try again.",
+      );
+    } finally {
+      redirect(PAGES.RECORD_QUEUE);
+    }
+  }
+
+  async function unlinkRecord() {
+    try {
+      await unlinkRecordAndMatch(recordId);
+
+      showToast(
+        ToastType.SUCCESS,
+        "The record has been reviewed and cleared from your queue.",
+      );
+    } catch (e) {
+      console.error(e);
+      showToast(
+        ToastType.ERROR,
+        "We were unable to process your request. Please try again.",
+      );
+    } finally {
+      redirect(PAGES.RECORD_QUEUE);
+    }
+  }
+
+  /**
    * HTML
    */
   if (pageError == PAGE_ERRORS.SERVER_ERROR) {
@@ -133,10 +180,10 @@ const RecordView: React.FC = () => {
           )}
         />
         <div className="margin-top-3">
-          <Button className="margin-right-105">
+          <Button className="margin-right-105" onClick={linkRecord}>
             Link record <LinkIcon size={3} />
           </Button>
-          <Button>
+          <Button onClick={unlinkRecord}>
             Do not link record <LinkOffIcon size={3} />
           </Button>
         </div>

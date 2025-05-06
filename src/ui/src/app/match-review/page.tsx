@@ -5,7 +5,7 @@ import RecordView from "./recordView";
 
 const MatchReview: React.FC = () => {
   return (
-    <div className="page-container--lg page-container--full-height padding-top-5 padding-bottom-10">
+    <div className="page-container page-container--lg page-container--full-height padding-top-5 padding-bottom-10">
       <BackToLink
         href={PAGES.RECORD_QUEUE}
         text="Return to record match queue"

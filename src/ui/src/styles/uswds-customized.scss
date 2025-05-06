@@ -94,7 +94,7 @@ h5 {
 }
 
 .usa-table--record-linker {
-  border-radius: 0.25rem;
+  border-radius: $record-linker-border-radius;
   box-shadow: 0 0.25rem 0.5rem 0 rgba(0, 0, 0, 0.15);
   border-collapse: separate !important;
   background-color: transparent;

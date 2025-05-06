@@ -1,6 +1,6 @@
 const MatchQueueLayout: React.FC<React.PropsWithChildren> = ({ children }) => {
   return (
-    <div className="page-container--xl page-container--full-height padding-top-5 padding-bottom-10">
+    <div className="page-container page-container--xl page-container--full-height padding-top-5 padding-bottom-10">
       <h1 className="font-alt-xl margin-bottom-0">Record match queue</h1>
       <p className="subheading margin-bottom-4">
         Based on your algorithm configuration rules, Record Linker found no
