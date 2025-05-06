@@ -1,4 +1,4 @@
-import ResetDemoButton from "@/components/ResetDemoButton";
+import ResetDemoButton from "@/app/match-queue/ResetDemoButton";
 
 const MatchQueueLayout: React.FC<React.PropsWithChildren> = ({ children }) => {
   return (
