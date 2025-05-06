@@ -79,7 +79,9 @@ const Home: React.FC = () => {
         </p>
         <ProcessList className="margin-top-1 margin-bottom-2">
           <ProcessListItem>
-            <ProcessListHeading type="h3">Blocking Phase</ProcessListHeading>
+            <ProcessListHeading type="h3" className="font-sans-md">
+              Blocking Phase
+            </ProcessListHeading>
             <p>
               Uses coarse field-matching parameters to identify “roughly
               similar” records from the database. For example, it can retrieve
@@ -89,7 +91,9 @@ const Home: React.FC = () => {
             </p>
           </ProcessListItem>
           <ProcessListItem>
-            <ProcessListHeading type="h3">Evaluation Phase</ProcessListHeading>
+            <ProcessListHeading type="h3" className="font-sans-md">
+              Evaluation Phase
+            </ProcessListHeading>
             <p>
               Uses fine-grained fuzzy matching to assess how closely related the
               blocked matches are, based on different attributes than those used
@@ -98,7 +102,9 @@ const Home: React.FC = () => {
             </p>
           </ProcessListItem>
           <ProcessListItem>
-            <ProcessListHeading type="h3">Pass Phase</ProcessListHeading>
+            <ProcessListHeading type="h3" className="font-sans-md">
+              Pass Phase
+            </ProcessListHeading>
             <p>
               Repeats the blocking and evaluation steps as needed to catch
               matches that might be missed in a single run, accounting for
@@ -107,7 +113,9 @@ const Home: React.FC = () => {
             </p>
           </ProcessListItem>
           <ProcessListItem>
-            <ProcessListHeading type="h3">Aggregation Phase</ProcessListHeading>
+            <ProcessListHeading type="h3" className="font-sans-md">
+              Aggregation Phase
+            </ProcessListHeading>
             <p>
               Combines scores from the evaluation phase and sorts the results to
               determine the most likely patient match.
