@@ -23,6 +23,7 @@ export async function linkRecordAndMatch(
 ): Promise<RecordMatch> {
   const response = await fetch(`${API_URL}/demo/record/${id}/link`, {
     method: "POST",
+     credentials: "include",
   });
 
   if (response.ok) {
