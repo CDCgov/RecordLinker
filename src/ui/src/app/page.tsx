@@ -1,6 +1,6 @@
 import Link from "next/link";
-import Image from "next/image";
 import classNames from "classnames";
+import Image from "next/image";
 import style from "./home.module.scss";
 import {
   ProcessList,
@@ -8,6 +8,7 @@ import {
   ProcessListItem,
 } from "@trussworks/react-uswds";
 import { PAGES } from "@/utils/constants";
+import CaptionedImage from "@/components/captionedImage/captionedImage";
 
 const Home: React.FC = () => {
   return (
@@ -113,18 +114,23 @@ const Home: React.FC = () => {
             </p>
           </ProcessListItem>
         </ProcessList>
-        <Image
+        <CaptionedImage
           width={792}
           height={372}
           src="/images/record-linker-process-min.png"
           alt="record linker algorithm steps explained"
+          caption={
+            <>
+              Record Linker process diagram &mdash;{" "}
+              <a href="#" className="usa-link">
+                download a diagram
+              </a>{" "}
+              with additional details.
+            </>
+          }
         />
-        <p className="text-center text-italic margin-bottom-8">
-          Record Linker process diagram - download a diagram with additional
-          details.
-        </p>
-        <h2>Where we&apos;re going </h2>
-        <p className="margin-top-1">
+        <h2 className="margin-top-8">Where we&apos;re going </h2>
+        <p className="margin-top-1 margin-bottom-4">
           Record Linker is currently at the product validation stage. Our team
           is working with users at several public health jurisdictions to
           develop a standalone Master Patient Index that enables patient
@@ -132,20 +138,18 @@ const Home: React.FC = () => {
           records, and immunization information systems), thereby improving
           interoperability between these datasets.
         </p>
-        <Image
+        <CaptionedImage
           width={470}
           height={371}
+          className="margin-bottom-5"
           src="/images/record-linker-data-flow-min.png"
           alt="multiple health data sources convey into a single one"
+          caption="Record Linker can match records across internal public health tools."
         />
-        <p className="text-center text-italic margin-bottom-5">
-          Record Linker can match records across internal public health tools.
-        </p>
       </div>
       <div
         className={classNames(
           "page-container--lg",
-          "margin-top-4",
           "padding-top-4",
           "padding-bottom-6",
           "border-top-1px",
