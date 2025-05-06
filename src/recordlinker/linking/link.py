@@ -49,8 +49,9 @@ class LinkResult:
     mmt: float
     cmt: float
     match_grade: schemas.MatchGrade
+    median_features: dict[str, float]
 
-    def _update_score_tracking_row(self, earned_points, pass_lbl, rms, mmt, cmt, grade):
+    def _update_score_tracking_row(self, earned_points, pass_lbl, rms, mmt, cmt, grade, median_features):
         """
         Helper function to abstract variable update setting to leave
         case-based logic clearer.
@@ -61,8 +62,9 @@ class LinkResult:
         self.match_grade = grade
         self.cmt = cmt
         self.mmt = mmt
+        self.median_features = median_features
 
-    def check_and_update_score(self, earned_points, pass_lbl, rms, mmt, cmt, grade):
+    def check_and_update_score(self, earned_points, pass_lbl, rms, mmt, cmt, grade, median_features):
         """
         Dynamically perform and handle any updates that should be tracked for
         the results of this Person cluster in linking. Updates must consider
@@ -78,7 +80,7 @@ class LinkResult:
         # Start with the easy case: both grades are the same, so use the RMS
         if grade == self.match_grade:
             if rms > self.rms:
-                self._update_score_tracking_row(earned_points, pass_lbl, rms, mmt, cmt, grade)
+                self._update_score_tracking_row(earned_points, pass_lbl, rms, mmt, cmt, grade, median_features)
 
         # Case 2: existing grade is certain, and since grades didn't enter
         # the equality if, new grade is only possible
@@ -88,7 +90,7 @@ class LinkResult:
         # Case 3: new grade is certain, and since grades didn't enter the
         # equality if, existing grade is only possible
         elif grade == "certain":
-            self._update_score_tracking_row(earned_points, pass_lbl, rms, mmt, cmt, grade)
+            self._update_score_tracking_row(earned_points, pass_lbl, rms, mmt, cmt, grade, median_features)
 
 
 def invoke_evaluator(
@@ -117,7 +119,7 @@ def compare(
     mpi_record: schemas.PIIRecord,
     algorithm_pass: schemas.AlgorithmPass,
     context: schemas.AlgorithmContext,
-) -> float:
+) -> typing.Tuple[float, dict[str, float]]:
     """
     Compare the incoming record to the linked patient and return the calculated
     evaluation score. If a proportion of score points is accumulated via comparisons
@@ -140,6 +142,7 @@ def compare(
     details: dict[str, typing.Any] = {}
     max_log_odds_points: float = 0.0
     max_missing_proportion: float = context.advanced.max_missing_allowed_proportion
+    feature_scores: dict[str, float] = collections.defaultdict(float)
     for evaluator in algorithm_pass.evaluators:
         log_odds: float = context.get_log_odds(evaluator.feature) or 0.0
         max_log_odds_points += log_odds
@@ -151,6 +154,7 @@ def compare(
             # the candidate is missing overall
             missing_field_weights += log_odds
         results.append(result[0])
+        feature_scores[str(evaluator.feature)] = result[0]
         details[f"evaluator.{evaluator.feature}.{evaluator.func}.result"] = result
 
     # Make sure this score wasn't just accumulated with missing checks
@@ -161,7 +165,7 @@ def compare(
     details["rule.probabilistic_sum.results"] = rule_result
     # TODO: this may add a lot of noise, consider moving to debug
     LOGGER.info("patient comparison", extra=details)
-    return rule_result
+    return rule_result, feature_scores
 
 
 def grade_rms(rms: float, mmt: float, cmt: float) -> schemas.MatchGrade:
@@ -248,21 +252,27 @@ def link_record_against_mpi(
                 for person, mpi_records in clusters.items():
                     assert mpi_records, "Patient cluster should not be empty"
                     log_odds_sums = []
+                    feature_scores_dicts = []
                     for mpi_record in mpi_records:
                         with TRACER.start_as_current_span("link.compare"):
                             # track the accumulated points so we can eventually find
                             # the median and normalize it
-                            rule_result = compare(
+                            rule_result, feature_scores = compare(
                                 record,
                                 mpi_record,
                                 algorithm_pass,
                                 context,
                             )
                             log_odds_sums.append(rule_result)
+                            feature_scores_dicts.append(feature_scores)
 
                     result_counts["persons_compared"] += 1
                     result_counts["patients_compared"] += len(mpi_records)
-                    # calculate the relative match score for this person cluster
+                    # Calculate median feature contributions from each match
+                    median_features = {}
+                    for e in algorithm_pass.evaluators:
+                        median_features[str(e.feature)] = statistics.median([fd[str(e.feature)] for fd in feature_scores_dicts])
+                    # Calculate the relative match score for this person cluster
                     cluster_median = statistics.median(log_odds_sums)
                     rms = cluster_median / max_points
                     match_grade = grade_rms(rms, minimum_match_threshold, certain_match_threshold)
@@ -290,6 +300,7 @@ def link_record_against_mpi(
                                 minimum_match_threshold,
                                 certain_match_threshold,
                                 match_grade,
+                                median_features
                             )
                         # Let the dynamic programming table track its own updates
                         scores[person].check_and_update_score(
@@ -299,6 +310,7 @@ def link_record_against_mpi(
                             minimum_match_threshold,
                             certain_match_threshold,
                             match_grade,
+                            median_features
                         )
 
     results: list[LinkResult] = sorted(scores.values(), reverse=True, key=lambda x: x.rms)
