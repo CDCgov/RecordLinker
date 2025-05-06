@@ -25,7 +25,7 @@ const Home: React.FC = () => {
             style.section,
           )}
         >
-          <div className="grid-col-6">
+          <div className="grid-col-7">
             <h1 className="font-alt-xl margin-bottom-2 margin-top-0">
               Control how patient records are matched and merged
             </h1>
@@ -122,7 +122,11 @@ const Home: React.FC = () => {
           caption={
             <>
               Record Linker process diagram &mdash;{" "}
-              <a href="#" className="usa-link">
+              <a
+                href="/files/record_linker_process_diagram.pdf"
+                download
+                className="usa-link"
+              >
                 download a diagram
               </a>{" "}
               with additional details.
