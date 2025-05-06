@@ -29,11 +29,14 @@ def test_load_cookie():
     assert cookie_store.load_cookie(request, "invalid-session") is None
 
 
-def test_delete_cookie():
+def test_reset_cookie():
     response = fastapi.Response()
     assert "set-cookie" not in response.headers
-    cookie_store.delete_cookie(response, "test-session")
+    cookie_store.reset_cookie(response, "test-session")
     assert "set-cookie" in response.headers
     assert response.headers["set-cookie"].startswith("test-session=")
-    val = response.headers["set-cookie"].split(";")[0].split("=")[1]
-    assert val == '""'
+
+    # Check if the cookie is reset to an empty dictionary
+    assert response.headers["set-cookie"].split(";")[0].split("=")[
+        1
+    ] == itsdangerous.URLSafeSerializer(settings.secret_key).dumps({})
