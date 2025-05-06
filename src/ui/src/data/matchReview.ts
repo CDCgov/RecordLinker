@@ -4,7 +4,9 @@ import { deserializeRecordMatch } from "@/utils/deserializers";
 import { AppError } from "@/utils/errors";
 
 export async function getRecordMatch(id: string | null): Promise<RecordMatch> {
-  const response = await fetch(`${API_URL}/demo/record/${id}`);
+  const response = await fetch(`${API_URL}/demo/record/${id}`, {
+    credentials: "include",
+  });
 
   if (response.ok) {
     const serializedRecordMatch = await response.json();
@@ -13,17 +15,17 @@ export async function getRecordMatch(id: string | null): Promise<RecordMatch> {
     throw new AppError(
       "getRecordMatch",
       "unsuccessful HTTP response",
-      response.status,
+      response.status
     );
   }
 }
 
 export async function linkRecordAndMatch(
-  id: string | null,
+  id: string | null
 ): Promise<RecordMatch> {
   const response = await fetch(`${API_URL}/demo/record/${id}/link`, {
     method: "POST",
-     credentials: "include",
+    credentials: "include",
   });
 
   if (response.ok) {
@@ -33,17 +35,17 @@ export async function linkRecordAndMatch(
     throw new AppError(
       "linkRecordAndMatch",
       "unsuccessful HTTP response",
-      response.status,
+      response.status
     );
   }
 }
 
 export async function unlinkRecordAndMatch(
-  id: string | null,
+  id: string | null
 ): Promise<RecordMatch> {
   const response = await fetch(`${API_URL}/demo/record/${id}/unlink`, {
     method: "POST",
-   credentials: "include",
+    credentials: "include",
   });
 
   if (response.ok) {
@@ -53,7 +55,8 @@ export async function unlinkRecordAndMatch(
     throw new AppError(
       "unlinkRecordAndMatch",
       "unsuccessful HTTP response",
-      response.status,
+      response.status
     );
   }
 }
+

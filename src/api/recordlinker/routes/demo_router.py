@@ -11,8 +11,8 @@ import typing
 
 import fastapi
 
+from recordlinker import cookie_store
 from recordlinker import schemas
-from recordlinker import session_store
 from recordlinker.utils import path as utils
 
 router = fastapi.APIRouter()
@@ -34,7 +34,6 @@ def filter_and_sort(
         schemas.demo.LinkedStatus.evaluated: lambda d: d["linked"] is not None,
         schemas.demo.LinkedStatus.pending: lambda d: d["linked"] is None,
     }
-
     filtered = [d for d in data if status_filters[status](d)] if status else data
     sorted_data = sorted(
         filtered,
@@ -54,15 +53,15 @@ def update_session_linked_status(
     """
     # Load session data
     d = (
-        session_store.load_session(
+        cookie_store.load_cookie(
             request,
             key="linked_status",
         )
         or {}
     )
     # Update the session data & save
-    d.update({patient_reference_id: linked_status})
-    session_store.save_session(
+    d.update({str(patient_reference_id): linked_status})
+    cookie_store.save_cookie(
         response,
         key="linked_status",
         data=d,
@@ -75,22 +74,30 @@ def update_session_linked_status(
 )
 def get_demo_data(
     request: fastapi.Request,
+    response: fastapi.Response,
     status: typing.Optional[schemas.demo.LinkedStatus] = None,
 ) -> typing.List[schemas.demo.MatchReviewRecord]:
     """
     Retrieve static data asset for the Match Queue page in the demo UI.
     """
+
     # Update the linked status based on the session store
-    linked_status = session_store.load_session(
+    linked_status = cookie_store.load_cookie(
         request,
         key="linked_status",
     )
     d = copy.deepcopy(data)  # copy to avoid modifying the original data
-    if linked_status:
+    if linked_status and linked_status != {}:
         for record in d:
             patient_id = record["incoming_record"]["patient_id"]
             if str(patient_id) in linked_status:
                 record["linked"] = linked_status[str(patient_id)]
+    else:
+        cookie_store.save_cookie(
+            response,
+            key="linked_status",
+            data={},
+        )
 
     # Filter and sort the data based on the linked status
     filtered_sorted = filter_and_sort(d, status)
@@ -119,7 +126,7 @@ def get_match_review_records(
     record_copy = copy.deepcopy(match_review_record)
 
     # Update the linked status based on the session store
-    linked_status = session_store.load_session(
+    linked_status = cookie_store.load_cookie(
         request,
         key="linked_status",
     )
@@ -142,13 +149,14 @@ def link_match(
     """
     Link demo records for match review.
     """
-
-    match_review_record = next(
+    record = next(
         (d for d in data if d["incoming_record"]["patient_id"] == patient_reference_id), None
     )
-    if match_review_record is None:
+    if record is None:
         raise fastapi.HTTPException(status_code=fastapi.status.HTTP_404_NOT_FOUND)
 
+    # Make a copy of the match_review_record to avoid modifying the original data
+    match_review_record = copy.deepcopy(record)
     # Update the linked status
     match_review_record["linked"] = True
     # Update the incoming record with the person_id from the potential match
@@ -180,13 +188,14 @@ def unlink_match(
     Unlink demo records for match review.
     """
 
-    match_review_record = next(
+    record = next(
         (d for d in data if d["incoming_record"]["patient_id"] == patient_reference_id), None
     )
-    if match_review_record is None:
+    if record is None:
         raise fastapi.HTTPException(status_code=fastapi.status.HTTP_404_NOT_FOUND)
 
     # Update the linked status
+    match_review_record = copy.deepcopy(record)
     match_review_record["linked"] = False
     match_review_record["incoming_record"]["person_id"] = None
     # TODO: Remove potential match from the match_review_record since they were deemed not a match
@@ -213,9 +222,6 @@ def reset_demo_data(
     Reset demo records to their original state.
     """
 
-    session_store.delete_session(
-        response,
-        key="linked_status",
-    )
+    cookie_store.reset_cookie(response, key="linked_status")
 
     return {"message": "Demo data reset successfully."}
