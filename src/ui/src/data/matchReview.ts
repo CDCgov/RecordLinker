@@ -42,6 +42,7 @@ export async function unlinkRecordAndMatch(
 ): Promise<RecordMatch> {
   const response = await fetch(`${API_URL}/demo/record/${id}/unlink`, {
     method: "POST",
+   credentials: "include",
   });
 
   if (response.ok) {
