@@ -10,10 +10,10 @@ export interface CaptionedImageProps extends ImageProps {
 }
 
 const CaptionedImage: React.FC<CaptionedImageProps> = (props) => {
-  const { caption, className, ...imgProps } = props;
+  const { caption, className, alt, ...imgProps } = props;
   return (
     <div className={classNames("grid-row", "flex-justify-center", className)}>
-      <Image {...imgProps} />
+      <Image alt={alt} {...imgProps} />
       <p className="text-center text-italic margin-top-205">{caption}</p>
     </div>
   );
