@@ -61,7 +61,7 @@ const Home: React.FC = () => {
       >
         <h2>What is it?</h2>
         <p className="margin-top-1 margin-bottom-6">
-          The Record Linker is an open-source tool that uses a configurable,
+          Record Linker is an open-source tool that uses a configurable,
           multi-phase algorithm to efficiently link and deduplicate patient
           records across public health systems and jurisdictions. Compared to
           existing record linkage tools, our solution offers a high degree of
@@ -82,19 +82,19 @@ const Home: React.FC = () => {
         <ProcessList className="margin-top-1 margin-bottom-2">
           <ProcessListItem>
             <ProcessListHeading type="h3" className="font-sans-md">
-              Blocking Phase
+              Blocking phase
             </ProcessListHeading>
             <p>
               Uses coarse field-matching parameters to identify “roughly
               similar” records from the database. For example, it can retrieve
               all records where the first name starts with “John” and the last
-              name starts with “Smit.” This narrows down the dataset of
-              potential matches, keeping the process efficient.
+              name starts with “Smit.” This narrows down the set of potential
+              matches, keeping the process efficient.
             </p>
           </ProcessListItem>
           <ProcessListItem>
             <ProcessListHeading type="h3" className="font-sans-md">
-              Evaluation Phase
+              Evaluation phase
             </ProcessListHeading>
             <p>
               Uses fine-grained fuzzy matching to assess how closely related the
@@ -105,7 +105,7 @@ const Home: React.FC = () => {
           </ProcessListItem>
           <ProcessListItem>
             <ProcessListHeading type="h3" className="font-sans-md">
-              Pass Phase
+              Pass phase
             </ProcessListHeading>
             <p>
               Repeats the blocking and evaluation steps as needed to catch
@@ -116,7 +116,7 @@ const Home: React.FC = () => {
           </ProcessListItem>
           <ProcessListItem>
             <ProcessListHeading type="h3" className="font-sans-md">
-              Aggregation Phase
+              Aggregation phase
             </ProcessListHeading>
             <p>
               Combines scores from the evaluation phase and sorts the results to
