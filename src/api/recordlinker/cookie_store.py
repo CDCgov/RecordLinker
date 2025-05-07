@@ -6,7 +6,7 @@ import itsdangerous
 from recordlinker.config import settings
 
 
-def save_session(response: fastapi.Response, key: str, data: dict, **kwargs: typing.Any) -> None:
+def save_cookie(response: fastapi.Response, key: str, data: dict, **kwargs: typing.Any) -> None:
     """
     Save the session data to the session store.
     """
@@ -21,7 +21,7 @@ def save_session(response: fastapi.Response, key: str, data: dict, **kwargs: typ
     )
 
 
-def load_session(request: fastapi.Request, key: str) -> typing.Optional[dict]:
+def load_cookie(request: fastapi.Request, key: str) -> typing.Optional[dict]:
     """
     Load the session data from the session store.
     """
@@ -33,14 +33,8 @@ def load_session(request: fastapi.Request, key: str) -> typing.Optional[dict]:
     return serializer.loads(value)
 
 
-def delete_session(response: fastapi.Response, key: str) -> None:
+def reset_cookie(response: fastapi.Response, key: str) -> None:
     """
-    Delete the session data from the session store.
+    Reset the session data in the session store.
     """
-    response.delete_cookie(
-        key,
-        domain=settings.session_cookie_domain,
-        secure=settings.session_cookie_secure,
-        httponly=True,
-        samesite="lax",
-    )
+    save_cookie(response, key, {})
