@@ -2,7 +2,6 @@ import { API_URL } from "./constants";
 
 const credentials = API_URL.includes("localhost") ? "include" : "same-origin";
 
-console.log(credentials);
 const commonHeaders = {
   "Content-Type": "application/json",
 };
