@@ -1,12 +1,10 @@
 import { RecordMatch } from "@/models/recordMatch";
-import { API_URL } from "@/utils/constants";
 import { deserializeRecordMatch } from "@/utils/deserializers";
 import { AppError } from "@/utils/errors";
+import { get, post } from "@/utils/http";
 
 export async function getUnmatchedRecords(): Promise<RecordMatch[]> {
-  const response = await fetch(`${API_URL}/demo/record?status=pending`, {
-    credentials: "include",
-  });
+  const response = await get(`/demo/record?status=pending`);
   if (response.ok) {
     const serializedMatchList: Record<string, unknown>[] =
       await response.json();
@@ -23,13 +21,7 @@ export async function getUnmatchedRecords(): Promise<RecordMatch[]> {
 }
 
 export async function resetDemoData(): Promise<Response> {
-  const response = await fetch(`${API_URL}/demo/reset`, {
-    method: "POST",
-    credentials: "include",
-    headers: {
-      "Content-Type": "application/json",
-    },
-  });
+  const response = await post(`/demo/reset`);
   if (!response.ok) {
     throw new AppError(
       "resetDemoData",
