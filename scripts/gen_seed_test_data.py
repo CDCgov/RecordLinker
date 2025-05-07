@@ -75,7 +75,7 @@ def _generate_random_pii_record(faker):
                 use=random.choice(["home", "work", "mobile"]),
             )
         ],
-        race=random.choice(list(Race)),
+        race=str(random.choice(list(Race))),
         identifiers=list(_generate_random_identifiers(random.randint(1, 3), faker)),
     )
 
