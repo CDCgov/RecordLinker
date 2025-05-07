@@ -45,17 +45,17 @@ api = fastapi.FastAPI(
 
 api.add_middleware(middleware.CorrelationIdMiddleware)
 api.add_middleware(middleware.AccessLogMiddleware)
-if settings.ui_host:
-    # Add CORS for local development
-    api.add_middleware(
-        CORSMiddleware,
-        allow_origins=[settings.ui_host],
-        allow_credentials=True,
-        allow_methods=["*"],
-        allow_headers=["*"],
-    )
 
-    app.add_middleware(GZipMiddleware, minimum_size=500, compresslevel=5)
+    # Add CORS for local development
+api.add_middleware(
+    CORSMiddleware,
+    allow_origins=[settings.ui_host],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+app.add_middleware(GZipMiddleware, minimum_size=500, compresslevel=5)
 
 
 # FIXME: Change health check endpoint to /api/health
