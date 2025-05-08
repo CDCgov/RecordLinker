@@ -78,7 +78,7 @@ const Home: React.FC = () => {
         <br />
         <p className="text-bold">
           Record Linker analyzes patient records using a four-phase linkage
-          process:{" "}
+          process:
         </p>
         <ProcessList className="margin-top-1 margin-bottom-2">
           <ProcessListItem>
