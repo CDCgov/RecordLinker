@@ -2,16 +2,22 @@
 
 import { Button } from "@trussworks/react-uswds";
 import { resetDemoData } from "@/data/matchQueue";
+import { showToast, ToastType } from "@/components/toast/toast";
 
 const ResetDemoButton: React.FC = () => {
   const handleResetDemo = async () => {
-    const response = await resetDemoData();
-    if (response.ok) {
+    try {
+      await resetDemoData();
       window.location.reload();
-    } else {
-      console.error("Failed to reset demo data");
+    } catch (e) {
+      console.error(e);
+      showToast(
+        ToastType.ERROR,
+        "We were unable to process your request. Please try again.",
+      );
     }
   };
+
   return (
     <Button
       type="button"

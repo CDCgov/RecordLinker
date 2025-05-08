@@ -3,16 +3,15 @@ import ResetDemoButton from "@/app/match-queue/ResetDemoButton";
 const MatchQueueLayout: React.FC<React.PropsWithChildren> = ({ children }) => {
   return (
     <div className="page-container page-container--xl page-container--full-height padding-top-5 padding-bottom-10">
-      <h1 className="font-alt-xl margin-bottom-0">Record match queue</h1>
-      <div className="display-flex flex-align-center margin-bottom-4">
-        <p className="subheading margin-right-10">
-          Based on your algorithm configuration rules, Record Linker found no
-          automatic matches for the patient records listed below. Please review
-          each record for field similarity to make a manual match decision.
+      <h1 className="font-alt-xl margin-bottom-0">Match queue</h1>
+      <div className="display-flex flex-align-end margin-bottom-4">
+        <p className="subheading margin-right-5">
+          Based on your algorithm configuration rules, Record Linker
+          automatically matched a subset of records. The remaining records below
+          are possible matches that need manual review.
         </p>
         <ResetDemoButton />
       </div>
-
       {children}
     </div>
   );

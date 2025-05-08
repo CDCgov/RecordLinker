@@ -109,7 +109,7 @@ const RecordView: React.FC = () => {
       setSelectedRecord(recordInfo);
     } catch (e) {
       console.error(e);
-      if (e instanceof AppError && e.httpCode == 404) {
+      if (e instanceof AppError && (e.httpCode == 404 || e.httpCode == 422)) {
         setPageError(PAGE_ERRORS.RESOURCE_NOT_FOUND);
       } else {
         setPageError(PAGE_ERRORS.SERVER_ERROR);
@@ -168,7 +168,11 @@ const RecordView: React.FC = () => {
   if (pageError == PAGE_ERRORS.SERVER_ERROR) {
     return <ServerError />;
   } else if (pageError == PAGE_ERRORS.RESOURCE_NOT_FOUND) {
-    return <EmptyFallback message="Record not found." />;
+    return (
+      <EmptyFallback
+        message={recordId ? "Record not found." : "Invalid record."}
+      />
+    );
   } else if (selectedRecord) {
     return (
       <>

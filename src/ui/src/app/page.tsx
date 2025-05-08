@@ -1,6 +1,6 @@
 import Link from "next/link";
-import Image from "next/image";
 import classNames from "classnames";
+import Image from "next/image";
 import style from "./home.module.scss";
 import {
   ProcessList,
@@ -8,6 +8,7 @@ import {
   ProcessListItem,
 } from "@trussworks/react-uswds";
 import { PAGES } from "@/utils/constants";
+import CaptionedImage from "@/components/captionedImage/captionedImage";
 
 const Home: React.FC = () => {
   return (
@@ -25,21 +26,21 @@ const Home: React.FC = () => {
             style.section,
           )}
         >
-          <div className="grid-col-6">
+          <div className="grid-col-7">
             <h1 className="font-alt-xl margin-bottom-2 margin-top-0">
-              Lorem ipsum title
+              Control how patient records are matched and merged
             </h1>
             <p>
-              Short overview description of Record Linker, Lorem ipsum dolor sit
-              amet, consectetur adipiscing elit. Etiam sed condimentum mauris.
-              Duis a felis nec mi convallis feugiat. Suspendisse commodo tellus
-              vitae sodales euismod. Cras vitae tellus dolor.
+              Record Linker offers a best-in-class algorithm that allows your
+              jurisdiction to link incomplete and disparate patient records —
+              both within and across public health systems — giving you more
+              complete and accurate patient health profiles.
             </p>
             <Link
               className="usa-button padding-x-7 margin-top-2"
               href={PAGES.RECORD_QUEUE}
             >
-              Launch Demo
+              Launch demo
             </Link>
           </div>
           <Image
@@ -55,80 +56,112 @@ const Home: React.FC = () => {
           "page-container",
           "page-container--lg",
           "padding-top-7",
-          "padding-x-6",
           style.section,
         )}
       >
         <h2>What is it?</h2>
-        <p className="margin-top-1">
-          Nunc hendrerit efficitur lorem ut molestie. Suspendisse eleifend eros
-          mi, congue varius nibh sagittis sed. Phasellus quis ex non odio
-          sollicitudin convallis. Pellentesque libero nulla, fermentum non erat
-          at, vulputate facilisis nisl. Nam vitae pulvinar massa, vitae
-          vulputate sapien. Sed nec urna nec felis dictum luctus. Pellentesque
-          iaculis nisl nisi, at auctor mauris auctor id. Class aptent taciti
-          sociosqu ad litora torquent per conubia nostra, per inceptos
-          himenaeos. Vivamus posuere vitae dui eget auctor. Aenean massa sapien,
-          placerat ac ipsum non, lobortis maximus dui. Suspendisse at tincidunt
-          sapien.
+        <p className="margin-top-1 margin-bottom-6">
+          Record Linker is an open-source tool that uses a configurable,
+          multi-phase algorithm to efficiently link and deduplicate patient
+          records across public health systems and jurisdictions. Compared to
+          existing record linkage tools, our solution offers a high degree of
+          transparency, customization, and precision, allowing your jurisdiction
+          to control exactly how patient records are matched and merged.
         </p>
-        <Image
-          className="margin-y-5"
-          width={710}
-          height={310}
-          src="/images/record-linker-diagram-2.png"
-          alt="multiple health data sources convey into a single one"
-        />
         <h2>How does it work?</h2>
         <p className="margin-top-1">
-          Nunc hendrerit efficitur lorem ut molestie. Suspendisse eleifend eros
-          mi, congue varius nibh sagittis sed. Phasellus quis ex non odio
-          sollicitudin convallis. Pellentesque libero nulla, fermentum non erat
-          at, vulputate facilisis nisl. Nam vitae pulvinar massa, vitae
-          vulputate sapien. Sed nec urna nec felis dictum luctus. Pellentesque
-          iaculis nisl nisi, at auctor mauris auctor id. Class aptent taciti
-          sociosqu ad litora torquent per conubia nostra, per inceptos
-          himenaeos. Vivamus posuere vitae dui eget auctor. Aenean massa sapien,
-          placerat ac ipsum non, lobortis maximus dui. Suspendisse at tincidunt
-          sapien.
+          With the Record Linker demo, public health staff can look under the
+          hood to see how our algorithm matches and scores patient records,
+          highlighting edge cases that show the logic behind each match
+          decision.
         </p>
-
-        <ProcessList className="margin-y-3">
+        <br />
+        <p className="text-bold">
+          Record Linker analyzes patient records using a four-phase linkage
+          process:
+        </p>
+        <ProcessList className="margin-top-1 margin-bottom-2">
           <ProcessListItem>
-            <ProcessListHeading type="h3">Frame the problem</ProcessListHeading>
+            <ProcessListHeading type="h3" className="font-sans-md">
+              Blocking phase
+            </ProcessListHeading>
             <p>
-              Lorem ipsum dolor sit amet, consectetur adipiscing elit. Etiam sed
-              condimentum mauris.
+              Uses coarse field-matching parameters to identify “roughly
+              similar” records from the database. For example, when searching
+              for candidates to match with Jonathan Smith, Record Linker would
+              retrieve all records whose first name starts with “Jona” and whose
+              last name starts with “Smit.” This narrows down the set of
+              potential matches.
             </p>
           </ProcessListItem>
           <ProcessListItem>
-            <ProcessListHeading type="h3">
-              Determine data sources
+            <ProcessListHeading type="h3" className="font-sans-md">
+              Evaluation phase
             </ProcessListHeading>
             <p>
-              Lorem ipsum dolor sit amet, consectetur adipiscing elit. Etiam sed
-              condimentum mauris.
+              Uses fine-grained fuzzy matching to assess how closely the blocked
+              candidates compare with the incoming records across several
+              different attributes. Each candidate then receives a Link Score
+              reflecting its quality as a potential match.
             </p>
           </ProcessListItem>
           <ProcessListItem>
-            <ProcessListHeading type="h3">
-              Configure the algorithm
+            <ProcessListHeading type="h3" className="font-sans-md">
+              Pass phase
             </ProcessListHeading>
             <p>
-              Lorem ipsum dolor sit amet, consectetur adipiscing elit. Etiam sed
-              condimentum mauris.
+              Performs the blocking and evaluation steps again for each
+              combination of fields based on a user-specified number of passes.
+              This lets Record Linker account for missing data and changes over
+              time (such as a person moving and updating their address).
             </p>
           </ProcessListItem>
           <ProcessListItem>
-            <ProcessListHeading type="h3">
-              Test (and adjust as needed)
+            <ProcessListHeading type="h3" className="font-sans-md">
+              Aggregation phase
             </ProcessListHeading>
             <p>
-              Lorem ipsum dolor sit amet, consectetur adipiscing elit. Etiam sed
-              condimentum mauris.
+              Collects the Link Scores calculated across all passes and sorts
+              the results to determine the most likely patient match.
             </p>
           </ProcessListItem>
         </ProcessList>
+        <CaptionedImage
+          width={792}
+          height={372}
+          src="/images/record-linker-process-min.png"
+          alt="record linker algorithm steps explained"
+          caption={
+            <>
+              Record Linker process diagram &mdash;{" "}
+              <a
+                href="/files/record_linker_process_diagram.pdf"
+                download
+                className="usa-link"
+              >
+                download a diagram
+              </a>{" "}
+              with additional details.
+            </>
+          }
+        />
+        <h2 className="margin-top-8">Where we&apos;re going </h2>
+        <p className="margin-top-1 margin-bottom-4">
+          Record Linker is currently at the product validation stage. Our team
+          is working with users at several public health departments to develop
+          a standalone Master Patient Index that enables patient matching across
+          internal tools (e.g., disease surveillance, vital records, and
+          immunization information systems), thereby improving interoperability
+          between these datasets.
+        </p>
+        <CaptionedImage
+          width={470}
+          height={371}
+          className="margin-bottom-5"
+          src="/images/record-linker-data-flow-min.png"
+          alt="multiple health data sources convey into a single one"
+          caption="Record Linker can match records across internal public health tools."
+        />
       </div>
       <div
         className={classNames(
@@ -145,17 +178,15 @@ const Home: React.FC = () => {
           style.footnotes,
         )}
       >
-        <h2>Footer header title lorem ipsum</h2>
+        <h2>Explore Record Linker</h2>
         <p className="text-center text-thin">
-          Check out the Record Linker demo to try
-          <br />
-          out features using sample data.
+          Try out our demo using sample data.
         </p>
         <Link
           className="usa-button padding-x-7 margin-top-2"
           href={PAGES.RECORD_QUEUE}
         >
-          Launch Demo
+          Launch demo
         </Link>
       </div>
     </>
