@@ -40,7 +40,7 @@ const Home: React.FC = () => {
               className="usa-button padding-x-7 margin-top-2"
               href={PAGES.RECORD_QUEUE}
             >
-              Launch Demo
+              Launch demo
             </Link>
           </div>
           <Image
@@ -72,7 +72,8 @@ const Home: React.FC = () => {
         <p className="margin-top-1">
           With the Record Linker demo, public health staff can look under the
           hood to see how our algorithm matches and scores patient records,
-          highlighting edge cases that show the logic behind each Link Score.
+          highlighting edge cases that show the logic behind each match
+          decision.
         </p>
         <br />
         <p className="text-bold">
@@ -86,10 +87,11 @@ const Home: React.FC = () => {
             </ProcessListHeading>
             <p>
               Uses coarse field-matching parameters to identify “roughly
-              similar” records from the database. For example, it can retrieve
-              all records where the first name starts with “John” and the last
-              name starts with “Smit.” This narrows down the set of potential
-              matches, keeping the process efficient.
+              similar” records from the database. For example, when searching
+              for candidates to match with Jonathan Smith, Record Linker would
+              retrieve all records whose first name starts with “Jona” and whose
+              last name starts with “Smit.” This narrows down the set of
+              potential matches.
             </p>
           </ProcessListItem>
           <ProcessListItem>
@@ -97,10 +99,10 @@ const Home: React.FC = () => {
               Evaluation phase
             </ProcessListHeading>
             <p>
-              Uses fine-grained fuzzy matching to assess how closely related the
-              blocked matches are, based on different attributes than those used
-              for blocking. Each record receives a Link Score reflecting how
-              closely its values align.
+              Uses fine-grained fuzzy matching to assess how closely the blocked
+              candidates compare with the incoming records across several
+              different attributes. Each candidate then receives a Link Score
+              reflecting its quality as a potential match.
             </p>
           </ProcessListItem>
           <ProcessListItem>
@@ -108,10 +110,10 @@ const Home: React.FC = () => {
               Pass phase
             </ProcessListHeading>
             <p>
-              Repeats the blocking and evaluation steps as needed to catch
-              matches that might be missed in a single run, accounting for
-              missing fields or changes over time (e.g., a person moving and
-              updating their address).
+              Performs the blocking and evaluation steps again for each
+              combination of fields based on a user-specified number of passes.
+              This lets Record Linker account for missing data and changes over
+              time (such as a person moving and updating their address).
             </p>
           </ProcessListItem>
           <ProcessListItem>
@@ -119,8 +121,8 @@ const Home: React.FC = () => {
               Aggregation phase
             </ProcessListHeading>
             <p>
-              Combines scores from the evaluation phase and sorts the results to
-              determine the most likely patient match.
+              Collects the Link Scores calculated across all passes and sorts
+              the results to determine the most likely patient match.
             </p>
           </ProcessListItem>
         </ProcessList>
@@ -146,11 +148,11 @@ const Home: React.FC = () => {
         <h2 className="margin-top-8">Where we&apos;re going </h2>
         <p className="margin-top-1 margin-bottom-4">
           Record Linker is currently at the product validation stage. Our team
-          is working with users at several public health jurisdictions to
-          develop a standalone Master Patient Index that enables patient
-          matching across internal tools (e.g., disease surveillance, vital
-          records, and immunization information systems), thereby improving
-          interoperability between these datasets.
+          is working with users at several public health departments to develop
+          a standalone Master Patient Index that enables patient matching across
+          internal tools (e.g., disease surveillance, vital records, and
+          immunization information systems), thereby improving interoperability
+          between these datasets.
         </p>
         <CaptionedImage
           width={470}
@@ -184,7 +186,7 @@ const Home: React.FC = () => {
           className="usa-button padding-x-7 margin-top-2"
           href={PAGES.RECORD_QUEUE}
         >
-          Launch Demo
+          Launch demo
         </Link>
       </div>
     </>
