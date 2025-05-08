@@ -1,0 +1,431 @@
+Test Case #,Match Id,ID,BIRTHDATE,FIRST,LAST,SUFFIX,MAIDEN,RACE,ETHNICITY,GENDER,ADDRESS,CITY,STATE,COUNTY,ZIP,SSN,Expected Result
+12,315,4673900,1947-10-19,Will,Potter,III,Swanson,Asian,Unknown,F,,Claireberg,ME,Briggsshire County,5845,086-55-9906,match
+44,1013,5262117,1934-02-27,OHahn,Mora,,Williamson,Other,Hispanic,M,621 Meadowbrook Drive,Sullivanburgh,KY,Lake Stevenborough County,69945,180-81-5534,match
+42,1005,6861089,1976-02-15,Unk,Unk,,Garcia,Black,Hispanic,F,0378 Traci Extensions Apt. 050,West Elizabeth,FM,Roblesmouth County,54435,641-84-2152,possible_match
+40,1005,6861088,1975-02-15,Anonymous,Anonymous,,Garcia,Black,Hispanic,F,036 Traci Extensions Apt. 050,West Elizabeth,FM,Roblesmouth County,54435,641-84-2151,match
+42,1005,6861089,1976-02-15,k,k,,Garcia,Black,Hispanic,,0378 Traci Extensions Apt. 050,West Elizabeth,FM,Roblesmouth County,54435,641-8-4152,possible_match
+9,305,8293025,2003-10-08,Bobby,Washington,IV,Washington,Other,Unknown,M,3461 Adams Neck,Sarahbury,MA,Charlesburgh County,64832,551-79-0423,match
+15,8,1457608,19X65-09-01,Rachel,Romero,,Moran,Asian,Unknown,F,870 Deborah Meadow Suite 523,North Samantha,UT,Mccannmouth County,78320,720-32-6399,match
+29,38,9497558,1943-01-06,Emily,Weber,II,Wood,Asian,Unknown,F,23018 Morgan Ln. Apt. 896,Trevinoside,GA,Susanfort County,7141,523-44-1472,match
+49,1022,1017678,1991-06-03,Baby,Girl,Sr,Robinson,Black,Non-Hispanic,F,361 Paul Manors,Port Lisa,OR,South Sherylside County,35657,794-02-8452,no_match
+4,2,9488697,1942-08-03,Singleton,Jose,Sr,Ingram,Asian,Hispanic,M,631 Fowler Causeway,Port Williamfurt,IN,Wardburgh County,90637,587-60-3668,match
+76,1040,1000784,1997-02-17,,Gibsom,IV,Collins,Asian,Non-Hispanic,F,"Crawford and Sons Prison,76597 Gonzales Union",,PW,Mariaport County,32148,157-72-7211,match
+60,1031,9556562,1958-10-16,Jasmine,iLn,II,Baker,White,Hispanic,F,"c/o EAmergency Mail Program,22401 Christine Islan dApt. 660",Lake Brian,UT,Francismouth County,W112Q96,232-98-7615,no_match
+29,38,9497558,1943-01-06,Emily,Weber,II,Wood,Asian,Unknown,F,23018 Morgan Ln. Apt. 896,Trevinoside,GA,Susanfort County,7141,523-44-1472,match
+81,1042,9002773,1982-12-25,Amy,Doe,II,Burns,Black,Unknown,F,"Duncan and Sons College Dorm,830 Gutierrez Corner",Sanchezfurt,IN,Herrerashire County,78158,123-38-9156,no_match
+9,305,8293025,2003-10-08,Bobby,Washington,IV,Washington,Other,Unknown,M,3461 Adams Neck,Sarahbury,MA,Charlesburgh County,64832,551-79-0423,match
+44,1013,5262117,1934-02-27,OHahn,Mora,,Williamson,Other,Hispanic,M,621 Meadowbrook Drive,Sullivanburgh,KY,Lake Stevenborough County,69945,180-81-5534,match
+75,1040,1000884,1997-02-17,Amy,Bell,IV,Collins,Asian,Non-Hispanic,F,"Crawford and Sons Prison,76597 Gonzales Union",West Matthew,PW,Mariaport County,32148,157-72-7210,no_match
+45,1019,2565549,1948-06-08,Valerie,D Dougherty,III,Silva,Hispanic,Unknown,F,055 Wyatt Ferry,Carterport,VT,Julieton County,59672,446-25-5155,match
+37,1004,1730261,1942-09-28,Unknown,Unknown,,Walsh,Hispanic,Unknown,M,968 King Port Suite 568,Port Jesse,ME,West Brandonmouth County,90185,646-04-4866,no_match
+39,1004,1730241,1942-09-28,Anonymous,Anonymous,,Walsh,Hispanic,Unknown,M,968 King Port Suite 566,Port Jesse,ME,West Brandonmouth County,90185,646-04-4566,match
+67,1036,3858020,1934-04-15,Patricia,Jackson,IV,Walton,Black,Hispanic,M,"USPS Store,9705 Ashley Cape  Suite 699",Alexanderport,WY,Kristenbury County,2669,466-59-4124,match
+50,1023,5950629,1943-07-19,Baby,Boy,Sr,Walsh,Hispanic,Unknown,M,968 King Port Suite 567,Alexisberg,VA,West Heather County,,501-42-8781,no_match
+14,5,1332302,1972-08-26,Angie,Johnson,Sr,Mcmahon,Black,Non-Hispanic,F,60015 Edward Vista Suite 518,Lake Andreaview,UT,North Rodney County,46540,740-16-5170,match
+1,13,5516990,1977-04-20,Jon,Morales,II,Rogers,Other,Hispanic,M,2115 Elizabeth Way,East Allisonhaven,VI,Crystalstad County,5308,540-12-1415,match
+75,1040,1000884,1997-02-17,Amy,Bell,IV,Collins,Asian,Non-Hispanic,F,"Crawford and Sons Prison,76597 Gonzales Union",West Matthew,PW,Mariaport County,32148,157-72-7210,no_match
+34,1001,5732092,1972-01-17,Anonymous,Anonymous,,Skinner,Black,Unknown,M,9488 Welch Center,Shawnburgh,OH,Port Monicaton County,41959,,no_match
+8,305,8293025,2003-10-08,Rob,Washington,IV,Washington,Other,Unknown,M,3461 Adams Neck,Sarahbury,MA,Charlesburgh County,64832,551-79-0423,match
+54,1026,4985289,1942-09-10,Karen,Lloyd,Jr,Sims,Other,Non-Hispanic,F,PO BOX 2425,New Gregorymouth,GA,Lake Erica County,27333,669-78-0106,no_match
+45,1019,2565549,1948-06-08,Valerie,D Dougherty,III,Silva,Hispanic,Unknown,sZF,505c Wyatt Ferry,Carterport,VT,Julieton County,59672,446-25-5155,match
+11,315,4673900,1947-10-19,Willy,Potter,III,Swanson,Asian,Unknown,F,56067 Jenna Hill,Claireberg,ME,Briggsshire County,5845,086-55-9906,match
+51,1014,5594815,,Minnie,Torres,,Jordan,Asian,Non-Hispanic,FiP,1140 Sunset Boulevard,Amberville,LA,South Crystal County,38790,359-4F1-7516,match
+31,54,9699065,1969-04-12,Misty,,Sr,Romero,White,Hispanic,F,42771 Christina St.,Port Williamchester,NY,Gutierrezland County,88690,,match
+2,13,5516990,1977-04-20,Joe,Morales,II,Rogers,Other,Hispanic,M,2115 Elizabeth Way,East Allisonhaven,VI,Crystalstad County,5308,540-12- 2324,no_match
+48,1016,2374638,1937-05-16,John,Doe,,Jordan,Asian,Non-Hispanic,M,221 Baker Street,North Andrew,SD,Richardsontown County,42851,214-80-2852,possible_match
+29,38,9497558,1943-01-06,Emily,Weber,II,Wood,Asian,Unknown,,23018 Morgan Ln. Apt. 896,Trevinoside,GA,Susanfort County,7141,523-44-1472,match
+14,5,1332302,172-0826,,oJhnson,Sr,Mcmahon,Black,Non-Hispanic,F,60015 Edward Vista Suite 518,,UT,North Rodney County,46540,740c-16-517,match
+60,1031,9556562,1958-10-16,Jasmine,Lin,II,Baker,White,Hispanic,,"c/o Emergency Mail Program,22401 Christine Island Apt. 660",Lake Brian,UT,Francismouth County,11296,232-98-7615,no_match
+75,1040,1000884,1997-02-17,Amy,,IV,Collins,Asian,Non-Hispanic,F,"Crawford and Sons Prison,76597 Gonzales Union",,PW,Mariaport County,32148,157-72-7210,no_match
+6,4,1792678,1950-08-10,,Brady,II,Cobb,White,Unknown,,944 Hayes Port,Jonesville,FM,Jonesview County,6015,272-78-9905,match
+17,10,8183532,1905-04-28,Matthew,Palmer,IV,Gonzales,White,Unknown,F,3864 Kane Row Suite 601,Samuelberg,ME,Paulville County,92416,137-23-5176,match
+73,1044,2117930,1939-02-09,Eric,Bell,Jr,Stewart,Hispanic,Non-Hispanic,M,3435 henry canyon,new sarah,MH,vanessafort county,64633,306-67-9638,match
+83,1007,8844807,2006-05-02,Kala,Dorsey,,Garcia,Black,Hispanic,M,3431 Shanan St,West Alex,OH,Kelleymouth County,30740,834-74-7118,match
+34,1001,5732092,1972-01-17,Anonymous,Anonymous,,Skinner,Black,Unknown,M,9488 Welch Center,,OH,Port Monicaton County,41959,682-g52-1603,no_match
+13,360,7121953,1975-04-03,Kristopher,Stewart,II,Delgado,Hispanic,Unknown,M,70056 Suzanne Fields,West Denise,KY,Deanfort County,97572,4i18-72-0917,match
+63,1032,9582958,1952-10-10,Michael,Schmidt,II,Moore,Asian,Unknown,F,"c/o Emergency Mail Program,27518 Frazier Isle Suite 999",Edwardshire,GU,Williamsport County,81524,177-78-8241,match
+74,1040,1020784,1997-02-17,,Gibson,IV,Collins,Asian,Non-Hispanic,UFd,"Crawford and Sons Priso,765F97 Gonzales Union",West Matthew,PW,Mariaport County,,157-72-7229,no_match
+72,1043,2318941,1936-02-22,Michael,Hernandez,II,Patel,Black,Hispanic,M,85126 KARA CREST,WARRENMOUTH,GU,BENSONTON COUNTY,21422,277-42-4348,match
+59,1030,1670963,1966-02-14,aDvid,Nor,,Johnson,Other,Non-Hispanic,M,GENERAL DELIVERY,Lake Jennaview,KS,Port Wendymouth County,03613i,2802-4-0951,match
+79,1041,1545236,2005-10-01,Mel,Hernands,II,Barker,Asian,Unknown,F,,East Eduardofurt,WI,Timothymouth County,51286,,match
+36,1003,9989926,1981-12-25,Anon,Anon,,Robinson,Black,Non-Hispanic,M,,New Donna,FL,Port Janetshire County,11155,230-27-3224,match
+53,1025,4673331,1949-09-12,Mark,Doe,III,Skinner,Black,Unknown,M,PO BOX 1600,Dustinshire,UT,North Daniel County,33258,133-55-2860,match
+39,1004,1730241,1942-09-28,Anonymous,Anonymous,,Walsh,Hispanic,Unknown,,968 King Port Suite 566,Port Jesse,ME,West Brandonmouth County,90185,646-04-4566,match
+39,1004,1730241,1942-09-28,Anonmous,Anonymous,,Walsh,Hispanic,Unknown,pM,968 King Port Suite 566,Port Jesse,ME,West Brandonmouth County,90185,646-04-4566,match
+76,1040,1000784,1997-02-17,Ami,Gibsom,IV,Collins,Asian,Non-Hispanic,F,"Crawford and Sons Prison,76597 Gonzales Union",West Matthew,PW,Mariaport County,32148,157-72-7211,match
+19,11,3977646,2000-12-32,Dawn,Ayala,Jr,Warren,Hispanic,Hispanic,F,5236 Fischer Way,Moralesstad,AS,West Jeffreyborough County,47592,069-78-3909,possible_match
+79,1041,1545236,,Mel,Hernands,II,Barker,Asian,Unknown,F,"Ramirez-Brown Nursing Home,1605 Shelly Harbors Suite 415",East Eduardofurt,WI,Timothymouth County,,56-6-6513,match
+32,27,3103702,1995-03-12,William,Klin,IV,Dunlap,White,Unknown,F,0070 9Hoovre Prairie,East Dylan,PA,Mcdonaldburgh County,59332,555-54-4200,possible_match
+50,1023,5950629,1943-07-19,Baby,Boy,Sr,Walsh,Hispanic,Unknown,M,,Alexisberg,VA,West Heather County,87477,501-42-8781,no_match
+50,1023,5950629,1943-07-19,Baby,Boy,Sr,Walsh,Hispanic,Unknown,M,968 King Port Suite 567,Alexisberg,VA,West Heather County,87477,501-42-8781,no_match
+54,1026,4985289,,Karen,Lloyd,Jr,Sims,Other,Non-Hispanic,F,PO BOX 2425,New Greoryomuth,GA,Lake Erica County,273,,no_match
+16,9,6600555,1964-10,aMary,qSaEnders,Sr,Duran,White,Unknown,M,,North Alice,CO,Lisachester County,85485,320-46-8857,match
+26,32,2187171,1989-0q3-20,Sean,Scott,Sr,Barnes,Black,Unknown,F,7524 Mejia Grove Apt 708,Colemanshire,NH,Jessicamouth County,35274,03q-864-6215,match
+39,1004,1730241,1942-09-28,,Anonymous,,Walsh,Hispanic,Unknown,M,968 King Port Suite 566,Port Jesse,ME,West Brandonmouth County,90815,646x-40-4566,match
+33,28,9192146,,Valerie,Mnan,VIh,Riley,Other,Unknown,M,18812 Joshua Fall,Gentryville,MO,New Joannfurt County,998g32,0049,match
+79,1041,1545236,2005-10-01,Mel,Hernands,II,Barker,Asian,Unknown,F,"Ramirez-Brown Nursing Home,1605 Shelly Harbors Suite 415",East Eduardofurt,WI,Timothymouth County,51286,356-46-6513,match
+65,1034,3302426,11/11/1897,Tony,Nelson,IV,Gardner,Other,Non-Hispanic,M,"USPS Store,2094 Kyle Mills  Suite 983",East Meghan,PA,New Christian County,65583,668-20-2517,match
+35,1002,8396459,1950-7-16,Anonymous,Anonymous,,Sims,Other,Non-Hispanic,F,9592 Charles Groves Apt. 122,Port Jeffrey,ME,New Richardland County,2761,,match
+30,582,9744302,,Jacob,Mejia,Sr,Solomon,White,Non-Hispanic,M,72485 Kelly Dr.,New Ronaldburgh,OR,Port Jamesmouth County,,570-87-8191,match
+31,54,9699065,1969-04-12,Misty,Martin,Sr,Romero,White,Hispanic,F,42771 CHhritsina St.,Port Williamchvester,NY,Gutierrezland County,,181-5-8017,match
+8,305,8293025,2003-10-08,Rob,Washington,IV,Washington,Other,Unknown,M,3461 Adams Neck,Sarahbury,MA,Charlesburgh County,64832,551-79-0423,match
+80,1042,9012753,1982-12-25,Nancy,Gay,II,Burns,Black,Unknown,F,"Duncan and Sons College Dorm,830 Gutierrez Corner",Sanchezfurt,IN,Herrerashire County,78158,,no_match
+46,1020,4673398,1949-09-13,Mark,DJones,,Skinner,Black,Unknown,M,,Dustinshire,UT,North Daniel County,33258,133-55-2860,match
+84,1010,4862100,1976-08-20,Je,Mora,,Williamson,Other,Hispanic,F,,West Davidmouth,ME,Whitefurt County,93030,071-88-3821,match
+1,13,5516990,1977-04-20,Jon,Morales,II,Rogers,Other,Hispanic,M,2115 Elizabeth Way,East Allisonhaven,VI,Crystalstad County,5308,540-12-1415,match
+35,1002,8396459,,Anonymous,Anonymous,,Sims,Other,Non-Hispanic,F,9592 Charles Groves Apt. 122,,ME,New Richardland County,27691,215-81-0959,match
+40,1005,6861088,1975-02-15,Anonymous,Anonymous,,Garcia,Black,Hispanic,F,036 Traci Extensions Apt. 050,,FM,Roblesmouth County,54435,641-84-2151,match
+5,3,1805504,1963-01-29,Ryan,Law-rence,IV,Armstrong,Black,Non-Hispanic,M,5256 Lisa Light,Port Monica,GA,South Christine County,51813,371-33-0433,match
+7,4,1792678,1950-08-10,ThoMas,Brady,II,Cobb,White,Unknown,,944 Hayes Port,Jonesville,FM,Jonesview County,6015,272-78-9905,match
+38,1004,1730241,1942-09-28,Unk,Unk,,Walsh,Hispanic,Unknown,,968 King Port Suite 566,Potr Jesse,ME,West Brandonmouth County,09185,646-04-4566,match
+55,1026,4981789,1962-09-10,,,Jr,Sims,Other,Non-Hispanic,rFO,PO BOX 2425,New Gregorymouth,GA,Lake Erica County,27333,669-78-6106,possible_match
+38,1004,1730241,1942-09-28,Unk,Unk,,Walsh,Hispanic,Unknown,M,,Port Jesse,ME,West Brandonmouth County,,646-04-4566,match
+9,305,8293025,2003-10-08,Bobby,Washington,IV,Washington,Other,Unknown,M,3461 Adams Neck,Sarahbury,MA,Charlesburgh County,64832,551-79-0423,match
+8,305,8293025,2003-10-08,Rob,Washington,IV,Washington,Other,Unknown,M,3461 Adams Neck,Sarahbury,MA,Charlesburgh County,6B48h32,551-79-0423,match
+19,11,3977646,2000-12-32,Dawn,Ayala,Jr,Warren,Hispanic,Hispanic,F,5236 Fischer Way,Moralesstad,AS,West Jeffreyborough County,47592,069-78-3909,possible_match
+47,1009,1513596,2020-01-16,Jane,Doe,,Garcia,Black,Hispanic,,036 Traci Extensions Apt. 050,Hendersonburgh,NY,New Joshuaburgh County,93225,500-94-2504,possible_match
+1,13,5516990,1977-04-20,Jon,Morales,II,Rogers,Other,Hispanic,M,2115 Elizabeth Way,East Allisonhaven,VI,Crystalstad County,5308,540-12-1415,match
+60,1031,9556562,1958-10-16,Jasmine,in,NII,Baker,White,Hispanic,F,"c/o Emergency Mail Program,22401 Christine Island Apt. 660",Lake Brian,UT,Francismouth County,11296,32-987615,no_match
+26,32,2187171,9189-03-20,Sean,Spcott,Sr,Barnes,Black,Unknown,F,7524 Mejia Grove Apt 708,Coleamnshre,NH,Jessicamouth County,35274,038-64-6215,match
+1,13,5516990,K197704-20,Jon,Morales,II,Rogers,Other,Hispanic,M,2115 Elizabeth Way,East Allisonhaven,VI,Crystalstad County,5308,S5401-2-1415,match
+56,1028,1507236,,Melvin,Hernandez,II,Barker,Asian,Unknown,,GENERAL DELIVERY,East Eduardofurt,WI,Timothymouth County,,356-36-6513,possible_match
+13,360,7121953,1975-04-03,Kristopher,Seawrt,II,Delgado,Hispanic,Unknown,M,,West Denise,KY,Deanfort County,97572,481-72-0917,match
+43,1006,1648024,1961-12-16,,Dorsey,,Garcia,Black,Hispanic,F,9592 Ortega Groves Apt. 737,Barrfurt,VT,North Justinport County,U29032,237-97-8467,match
+32,27,3103702,1995-03-12,William,Klein,,Dunlap,White,Unknown,F,00709 Hoover Prairie,,PA,Mcdonaldburgh County,59332,555-54-4200,possible_match
+18,11,3977646,2000-13-01,Dawn,Ayala,Jr,Warren,Hispanic,Hispanic,xHF,5236 Fischer Way,Moralesstad,AS,West Jeffreyborough County,47529,609-78-390v9,possible_match
+10,315,4673900,1947-10-19,Bill,Ptter,III,Swanson,Asian,Unknown,F,50667 Jenna Hll,Claireberg,ME,Briggsshire County,5845,086-55-9906,match
+80,1042,9012753,1982-12-25,Nancy,Gay,II,Burns,Black,Unknown,F,"Duncan and Sons College Dorm,830 Gutierrez Corner",Sanchezfurt,IN,Herrerashire County,78158,123-68-9108,no_match
+41,1005,6861088,1975-02-15,Unknown,,,Garcia,Black,Hispanic,F,036 Traci Extensions Apt. 050,West Elizabeth,FM,Roblesmouth County,54435,641-84-2151,match
+32,27,3103702,1995-03-12,,Klein,IV,Dunlap,White,Unknown,F,00709 Hoover Prairie,East Dylan,PA,Mcdonaldburgh County,,555-54-4200,possible_match
+21,12,1315559,"Missing, but age 23",Pamela,Flores,Sr,Parks,Hispanic,Hispanic,F,3705 Tristan Mill Suite 210,Sherryhaven,NC,Hillton County,72414,009-71-995,possible_match
+56,1028,1507236,2001-10-01,Melvin,Hernandez,II,Barker,Asian,Unknown,F,GENERAL DELIVERY,East Eduardofurt,WI,Timothymouth County,51286,356-36-6513,possible_match
+54,1026,4985289,1942-09-10,Karen,Lloyd,Jr,Sims,Other,Non-Hispanic,F,,New Gregorymouth,GA,Lake Erica County,27333,669-78-0106,no_match
+56,1028,1507236,2001-10-01,Melvin,Hernandez,II,Barker,Asian,Unknown,F,GEwNEARL DELIVERY,East Eduardofurt,WI,Timothymouth County,51286,356-36-6513,possible_match
+43,1006,1648024,1961-12-16,O Bailey,Drsey,,Garcia,Black,Hispanic,,9592 Ortega Groves Apt. 737,Barrfurt,VT,North Justinport County,29032,,match
+21,12,1315559,"Missing, but age 23",Pamela,Flores,Sr,Parks,Hispanic,Hispanic,F,3705 Tristan Mill Suite 210,Sherryhaven,NC,Hillton County,72414,009-71-9954,possible_match
+84,1010,4862100,1976-08-20,Joe,Mora,,Williamson,Other,Hispanic,F,,West Davidmouth,ME,Whitefurt County,,071-88-3821,match
+74,1040,1020784,1997-02-17,mAi,Gibson,Il,Collins,Asian,Non-Hispanic,F,"Cyrawford and Sons Prison,76597 Gonzales Union",West Matthew,PW,Mariaport County,32148,157-72-7229,no_match
+55,1026,4981789,1962-09-10,Karen,Doe,Jr,Sims,Other,Non-Hispanic,F,PO BOX 2425,New Gregorymouth,GA,Lake Erica County,27333,669-78-6106,possible_match
+61,1032,9585958,1962-10-10,Mike,Schmidt,II,Moore,Asian,Unknown,F,"c/o Emergency Mail Program,27518 Frazier Isle Suite 990",Edwardshire,GU,Williamsport County,81524,17-778-8241,match
+2,13,5516990,1977-04-20,Joe,Morales,II,Rogers,Other,Hispanic,M,2115 Elizabeth Way,East Allisonhaven,VI,Crystalstad County,5308,540-12- 2324,no_match
+39,1004,1730241,194-09-28,,Anoynmus,,Walsh,Hispanic,Unknown,M,968 King Port Suite 566,Port Jesse,ME,West Brandonmouth County,,646-04-4566,match
+82,1042,9087753,1982-12-25,Ami,Gaylord,II,Burns,Black,Unknown,F,"Duncan and Sons College Dorm,830 Gutierrez Corner",Sanchezfurt,IN,Herrerashire County,78158,123-38-9108,match
+56,1028,1507236,2001-10-01,Melvin,Hernandez,II,Barker,Asian,Unknown,F,GENERAL DELIVERY,East Eduardofurt,WI,Timothymouth County,51286,356-36-6513,possible_match
+38,1004,1730241,1942t-09-28,nU,Unk,,Walsh,Hispanic,Unknown,M,968 King Port Suite 566,Port Jesse,ME,West Brandonmouth County,90185,646T04-4566,match
+74,1040,1020784,1997-02-17,Ami,Gibson,IV,Collins,Asian,Non-Hispanic,F,"Crawford and Sons Prison,76597 Gonzales Union",West Matthew,PW,Mariaport County,32148,157-72-7229,no_match
+43,1006,1648024,1961-12-16,,Dorsey,,Garcia,Black,Hispanic,F,9592 Ortega Groves Apt. 737,Barrfurt,VT,North Justinport County,29032,237-97-8467,match
+59,1030,1670963,1966-02-14,David,Nor,Sr,Johnson,Other,Non-Hispanic,M,GENERAL DELIVERY,,KS,Port Wendymouth County,30613,,match
+3,1,3020167,1951-06-02,Linda,Nash,Jr,Gutierrez,Asian,Hispanic,F,968 Gonzalez Mount,South Emilybury,GU,North Kennethburgh County,93236,675-79-1449,no_match
+48,1016,2374638,1397-05-6,oJhn,Doe,,Jordan,Asian,Non-Hispanic,,221 Baker Street,North Andrew,SD,Richardsontown County,42851,,possible_match
+28,124,8166572,1967-03-29,Vincent,Ramirez,IV,Kidd,Asian,Hispanic,M,,New Kevin,WY,Racheltown County,47069,617-33-7311,match
+59,1030,1670963,1966-02-14,David,Nor,Sr,Johnson,Other,Non-Hispanic,M,GENERAL DELIVERY,Lake Jennaview,KS,Port Wendymouth County,30613,280-24-0951,match
+70,1039,1679903,1976-02-14,David,Norlan,SQ,Johnson,Other,Non-Hispanic,q,"Ramirez-Brown,1605 Shelly Harbors Suite 415",Lake Jennaview,KS,Port Wendymouth County,30613,280-24090,possible_match
+23,23,1158334,1965-08-03,Morgan,,IV,Harding,Black,Unknown,M,,NORTH REBEKAHMOUTH,SD,Port Tamihaven County,16256,041-96-1240,match
+30,582,9744302,1958-01-18,Jacob,Mejia,Sr,Solomon,White,Non-Hispanic,M,,New Ronaldburgh,OR,Port Jamesmouth County,15160,570-87-8191,match
+56,1028,1507236,2001-10-01,Melvin,Hernandez,II,Barker,Asian,Unknown,F,GENERAL DELIVERY,East Eduardofurt,WI,Timothymouth County,51286,356-36-6513,possible_match
+2,13,5516990,1977-04-20,Joe,Morales,II,Rogers,Other,Hispanic,M,2115 Elizabeth Way,,VI,Crystalstad County,5308,540-12- 2324,no_match
+9,305,8293025,2003-10-08,Bobby,Washington,IV,Washington,Other,Unknown,M,3461 Adams Neck,Sarahbury,MA,Charlesburgh County,64832,551-79-0423,match
+35,1002,8396459,1995-07-16,,Anonymous,,Sims,Other,Non-Hispanic,F,9592 Charles Groves Apt. 122,Port Jeffrey,ME,New Richardland County,27691,215-81-0959,match
+35,1002,8396459,1995-07-16,Anonymous,Anonymosu,,Sims,Other,Non-Hispanic,F,9592 Charles Groves Apt. 122,Prot Jeffrey,ME,New Richardland County,27691,251-81-095D9,match
+38,1004,1730241,1942-09-28,Unk,Unk,,Walsh,Hispanic,Unknown,M,968 King Port Suite 566,Port Jesse,ME,West Brandonmouth County,90185,646-04-4566,match
+24,24,9957377,1970-05-09,Scott,Miller,IV,Chung,White,Non-Hispanic,F,1122 davis station apt. 353,dayberg,or,West Kathleenport County,49165,632-27-8686,match
+61,1032,9585958,1962-10-10,Mike,Schmidt,II,Moore,Asian,Unknown,F,"c/o Emergency Mail Program,27518 Frazier Isle Suite 990",Edwardshire,GU,Williamsport County,,177-78-8241,match
+78,1041,1590036,2005-10-01,Melvin,Smith,II,Barker,Asian,Unknown,F,"Ramirez-Brown Nursing Home,1605 Shelyl Harbors Suit e415",East Eduardofurt,WI,Timothymouth County,,356-46-7713,possible_match
+81,1042,9002773,1982-12-25,Amy,Doe,,Burns,Black,Unknown,F,"Duncan and Sons College Dorm,830 Gutierrez Corner",Sanchezfurt,IN,Herrerashire County,78158,123-38-9156,no_match
+12,315,4673900,1947-10-19,Will,Ptote,III,Swanson,Asian,Unknown,F,56067 Jenna Hill,Claireberg,ME,Briggsshire County,5845,086-55-9906,match
+72,1043,2318941,1936-2-22,Michael,Hernandez,,Patel,Black,Hispanic,M,,WARRENMOUTH,GU,BENSONTON COUNTY,21422,727-4-4348,match
+54,1026,4985289,1942-09-10,Karen,Lloyd,Jr,Sims,Other,Non-Hispanic,F,PO BOX 2425,New Gregorymouth,GA,Lake Erica County,27333,669-78-0106,no_match
+72,1043,2318941,1936-02-22,Mihale,Hernandez,RII,Patel,Black,Hispanic,M,851j26 KRAA CREST,WARRENMOUTH,GU,BENSONTON COUNTY,21422,277-42-4348,match
+4,2,9488697,,Singleton,Jose,Sr,Ingram,Asian,Hispanic,M,631 Fowler CAauseway,Port Williamfurt,IN,Wardburgh County,90637,,match
+82,1042,9087753,1982-12-25,Ami,Gaylord,II,Burns,Black,Unknown,F,"Duncan and Sons College Dorm,830 Gutierrez Corner",Sanchezfurt,IN,Herrerashire County,78158,123-38-9108,match
+84,1010,4862100,1976-08-20,Joe,Mora,,Williamson,Other,Hispanic,F,1354 Elm Street,West Davidmouth,ME,Whitefurt County,39030,071-88-3821,match
+56,1028,1507236,2001-10-01,Melvin,Hernandez,II,Barker,Asian,Unknown,F,GENERAL DELIVERY,East Eduardofurt,WI,Timothymouth County,51286,356-36-6513,possible_match
+49,1022,1017678,1991-06-03,Baby,Girl,Sr,Robinson,Black,Non-Hispanic,F,361 Paul Manors,Port Lisa,OR,South Sherylside County,35657,,no_match
+42,1005,6861089,197-02-15,Unk,UnSk,,Garcia,Black,Hispanic,,0378 Traci Extensions Apt. 050,West Elizabeth,FM,Roblesmouth County,54435,461-84-2152,possible_match
+2,13,5516990,1977-04-20,Joe,Morales,II,Rogers,Other,Hispanic,M,2115 Elizabeth Way,East Allisonhaven,VI,Crystalstad County,5380a,540-12- 2324,no_match
+15,8,1457608,,Rachel,Romero,IV,Moran,Asian,Unknown,F,,North Samantha,UT,Mccannmouth County,78320,720-2-6399,match
+81,1042,9002773,1982-12-25,Amy,Doe,II,Burns,Black,Unknown,F,"Duncan and Sons College Dorm,830 Gutierrez Corner",Sanchezfurt,IN,Herrerashire County,78158,123-38-9156,no_match
+71,1039,1679963,1976-02-14,David,Norman,Sr,Johnson,Other,Non-Hispanic,M,"Ramirez Brown,1605 Shelly Harbors Suite 416",Lake Jennaview,KS,Port Wendymouth County,,280-24-0951,match
+59,1030,1670963,1966-02-14,David,Nor,,Johnson,Other,Non-Hispanic,M,GENERAL DELIVERY,Lake Jennaview,KS,Port Wendymouth County,30613,280-24-0951,match
+80,1042,9012753,1982-1-25,Nancy,Gay,II,Burns,Black,Unknown,F,"Duncan and Sons College Dorm,830 Gutierrez Corner",Sanchezfurt,IN,Herrerashire County,78158,123-68-9108,no_match
+18,11,3977646,2000-13-01,Dawn,Ayala,,Warren,Hispanic,Hispanic,F,5236 Fischer Way,oralestsad,AS,West Jeffreyborough County,47592,069-78-3909,possible_match
+4,2,9488697,1942-08-03,Singleton,Jose,Sr,Ingram,Asian,Hispanic,M,,Port Williamfurt,IN,Wardburgh County,,587-60-3668,match
+69,1038,1563079,1935-03-07,Adan,Smith,III,Ballard,White,Hispanic,M,"Church Group,874 Carr Circles Suite 751",Allenchester,ME,Angelamouth County,17547,,match
+80,1042,9012753,1982-12-25,Nancy,Gay,II,Burns,Black,Unknown,F,"Duncan and Sons College Dorm,830 Gutierrez Corner",Sanchezfurt,IN,Herrerashire County,78158,123-68-9108,no_match
+60,1031,9556562,1958-10-16,Jasmine,Lin,II,Baker,White,Hispanic,F,"c/o Emergency Mail Program,22401 Christine Island Apt. 660",Lake Brian,UT,Francismouth County,11296,232-98-7615,no_match
+1,13,5516990,1977-04-20,no,,II,Rogers,Other,Hispanic,T,2115 Elizabeth Way,East Allisonhaven,VI,Crystalstad County,3580,,match
+5,3,1805504,1963-01-29,Rya,Law-rence,V,Armstrong,Black,Non-Hispanic,M,5256 Lisa Light,Port Monica,GA,South Christine County,51813,371-33-0433,match
+17,10,8183532,1905-04-28,Matthew,Palmer,IV,Gonzales,White,Unknown,F,3864 Kane Row SuiUte 601,SamuelbelrOg,ME,Paulville County,92416,137-23-5176,match
+62,1032,9582958,1952-10-10,Michael,Smith,II,Moore,Asian,Unknown,F,"c/o Emergency Mail Program,27518 Frazier Isle Suite 990",Edwardshire,GU,Williamsport County,81524,177-78-7241,no_match
+26,32,2187171,1989-03-20,Sean,Scott,Sr,Barnes,Black,Unknown,F,7524 Mejia Grove Apt 708,Colemanshire,NH,Jessicamouth County,35274,038-64-6215,match
+62,1032,9582958,1952-10-10,Michael,Smith,II,Moore,Asian,Unknown,q,"/o Emergency Mail Program,27518 Frazier Isle Suite 990",Edwardshire,GU,Williamsport County,81524,177-78-7241,no_match
+69,1038,1563079,1935-03-07,AQdan,Smith,,Ballard,White,Hispanic,M,"Chuch Group,874 Carr Circles Suite751",Allenchester,ME,Angelamouth County,17547,500-7-4005,match
+38,1004,1730241,1942-09-28,Unk,Unk,,Walsh,Hispanic,Unknown,M,968 King Port Suite 566,Port Jesse,ME,West Brandonmouth County,90185,646-04-4566,match
+83,1007,8844807,2006-05-02,Kala,Dorsyeg,,Garcia,Black,Hispanic,M,3431 Shanan St,Wes tAlex,OH,Kelleymouth County,37040,834-74-7118,match
+22,22,1565331,1961-12-07,Tammy,Anderson,IV,Pierce,Hispanic,Non-Hispanic,F,016 Jennifer Via Apt. 705,North Thomashaven,VA,Russellstad County,83377,372-26-2081,possible_match
+73,1044,2117930,1939-02-09,,Bell,Jr,Stewart,Hispanic,Non-Hispanic,M,3435 henry canyon,new sarah,MH,vanessafort county,64633,,match
+37,1004,1730261,1942-09-28,,Unknown,,Walsh,Hispanic,Unknown,M,968 King Port Suite 568,Port Jesse,ME,West Brandonmouth County,,646-04-4866,no_match
+47,1009,1513596,2020-01-16,Jane,Doe,,Garcia,Black,Hispanic,AFv,036 Traci Extensions Apt. 050,Hendersonburgh,NY,New Joshuaburgh County,93225,500j-94-254,possible_match
+43,1006,1648024,1961-12-16,O Bailey,Dorsey,,Garcia,Black,Hispanic,F,9592 Ortega Groves Apt. 737,Barrfurt,VT,North Justinport County,29032,237-97-8467,match
+4,2,9488697,1942-08-03,Singleton,Jose,JrS,Ingram,Asian,Hispanic,M,631 Fowler Causeway,Port Williamfurt,IN,Wardburgh County,90637,5-60-3668,match
+4,2,9488697,1942-08-03,Singleton,oJse,r,Ingram,Asian,Hispanic,W,631 Fowler Causeway,Port Williamfurt,IN,Wardburgh County,90637,587-60-3668,match
+39,1004,1730241,1942-09-28,Anonymous,Anonymous,,Walsh,Hispanic,Unknown,,968 King Port Suite 566,Port Jesse,ME,West Brandonmouth County,,646-04-4566,match
+7,4,1792678,1950-08-10,ThoMas,Brady,II,Cobb,White,Unknown,M,944 Hayes Port,Jonesville,FM,Jonesview County,6015,272-78-9905,match
+7,4,1792678,1950-08-10,ThoMas,Brady,II,Cobb,White,Unknown,M,944 Hayes Port,Jonesville,FM,Jonesview County,6015,272-78-9905,match
+66,1035,3361996,1953-09-13,Daniel,Madel,Sr,Winters,Asian,Non-Hispanic,F,"USPS Store,4225 Chambers Park Suite 455",Smithside,NV,Robertsborough County,29621,596-06-8041,no_match
+57,1029,1563279,1936-03-07,Adam,Smithsonia,III,Ballard,White,Hispanic,M,GENERAL DELIVERY,Allenchester,ME,Angelamouth County,17547,500-77-4015,no_match
+58,1030,1679963,1976-02-14,DaVvdi,Norman,Sr,Johnson,Other,Non-Hispanic,M,GENERAL DELIVERY,Lake Jennaview,KS,Port Wendymouth County,03263,280-24-091,match
+35,1002,8396459,1995-07-16,Anonymous,Anonymous,,Sims,Other,Non-Hispanic,F,9592 Charles Groves Apt. 122,Port Jeffrey,ME,New Richardland County,27691,215-81-0959,match
+7,4,1792678,1950-08-10,ThoMas,,II,Cobb,White,Unknown,M,944 HyaesP ort,Jonesivll,FM,Jonesview County,6051,,match
+77,1041,1599236,2005-10-l0Z1,Mike,Hernandez,II,Barker,Asian,Unknown,F,"Ramirez-Brown Nursing Home,1605 Shelly Harbors Suite 415",East EduarofuKrt,WI,Timothymouth County,51286,356-40-6513,no_match
+55,1026,4981789,1962-09-10,Karen,Doe,JKrd,Sims,Other,Non-Hispanic,F,PO BOX 2425,New Gregorymouth,GA,Lake Erica County,27333,669-C78-6106,possible_match
+66,1035,3361996,1953-09-13,Daniel,Madel,Sr,Winters,Asian,Non-Hispanic,F,"USPS Store,4225 Chambers Park Suite 455",Smithside,NV,Robertsborough County,29621,596-06-8041,no_match
+82,1042,9087753,1982-12-25,,Gaylord,II,Burns,Black,Unknown,F,"Duncan and Sons College Dorm,830 Gutierrez Corner",Sanchezfurt,IN,Herrerashire County,78158,123-38-9108,match
+66,1035,3361996,1953-09-13,Daniel,Madel,Sr,Winters,Asian,Non-Hispanic,F,"USPS Store,4225 Chambers Park Suite 455",Smithside,NV,Robertsborough County,29621,596-06-8041,no_match
+60,1031,9556562,1958-10-16,JLamine,Lin,II,Baker,White,Hispanic,F,"c/o Emergency Mail Program,22401 Christine Island Apt. 660",Lake Brian,UT,Francismouth County,12196,232-98-7615,no_match
+11,315,4673900,1947-10-19,Willy,Potter,III,Swanson,Asian,Unknown,,56067 Jenna Hill,Claireberg,ME,Briggsshire County,5845,086-55-9906,match
+69,1038,1563079,1935-03-07,,Sth,yIIIG,Ballard,White,Hispanic,M,"Church Group,874 Carr Circles Suite 751",Allenchester,ME,Angelamouth County,547,500-77-4005,match
+82,1042,9087753,1982-12-25,Ami,Gaylord,II,Burns,Black,Unknown,F,,Sanchezfurt,IN,Herrerashire County,78158,,match
+83,1007,8844807,2006-05-02,Kala,Dorsey,,Garcia,Black,Hispanic,M,3431 Shanan St,West Alex,OH,Kelleymouth County,30740,834-74-7118,match
+51,1014,5594815,1938-05-14,Minnie,Torres,,Jordan,Asian,Non-Hispanic,F,1140 Sunset Boulevard,Amberville,LA,South Crystal County,38790,359-41-7516,match
+6,4,1792678,1950-08-10,Tho-mas,Brady,II,Cobb,White,Unknown,M,944 Hayes Port,Jonesville,FM,Jonesview County,6015,272-78-9905,match
+83,1007,8844807,2006-05-02,Kala,Dorsey,,Garcia,Black,Hispanic,M,3431 Shanan St,West Alex,OH,Kelleymouth County,30740,834-74-7118,match
+51,1014,5594815,1938-05-14,Minnie,Torres,,Jordan,Asian,Non-Hispanic,F,,Amberville,LA,South Crystal County,38790,359-41-7516,match
+62,1032,9582958,1952-10-10,Michael,Smith,II,Moore,Asian,Unknown,F,"c/o Emergency Mail Program,27518 Frazier Isle Suite 990",Edwardshire,GU,Williamsport County,81524,177-87-241,no_match
+50,1023,5950629,1943-07-19,Baby,Boy,Sr,Walsh,Hispanic,Unknown,M,968 King Port Suite 567,Alexisberg,VA,West Heather County,87477,501-42-8781,no_match
+39,1004,1730241,1942-09-28,Anonymouss,Anonymous,,Walsh,Hispanic,Unknown,M,968 King Port Suite 566,Port Jesse,ME,West Brandonmouth County,90185,646-04-4566,match
+53,1025,4673331,1949-09-12,vMrak,Doe,VIII,Skinner,Black,Unknown,M,PO BOX 1600,DustXinshire,UT,North Daniel County,33258,133-55-2860,match
+44,1013,5262117,1934-02-27,OHahn,Mora,,Williamson,Other,Hispanic,M,621 Meadowbrook Drive,Sullivanburgh,KY,Lake Stevenborough County,69945,180-81-5534,match
+58,1030,1679963,1976-02-14,David,,,Johnson,Other,Non-Hispanic,M,GENERAL DELIVERY,Lake Jennaview,KS,Port Wendymouth County,30623,280-24-0951,match
+61,1032,9585958,1962-10-10,Mike,Schmidt,II,Moore,Asian,Unknown,F,"c/o Emergency Mail Program,27518 Frazier Isle Suite 990",Edwardshire,GU,Williamsport County,81524,177-78-8241,match
+61,1032,9585958,1962-10-10,Mike,Schmt,kI,Moore,Asian,Unknown,F,"c/o EmergencyMail Program,27518 Frazier Isle Suite 990",Edwardshire,GU,Williamsport County,81524,177-78-8241,match
+73,1044,2117930,1939-02-09,,Bell,Jr,Stewart,Hispanic,Non-Hispanic,M,,new sarah,MH,vanessafort county,64633,306-67-9638,match
+59,1030,1670963,1966-02-14,,,Sr,Johnson,Other,Non-Hispanic,M,GENERAL DELIERIY,Laek ennaview,KS,Port Wendymouth County,30613,280-24-0951,match
+34,1001,5732092,1972-01-17,Anonymous,Anonymous,,Skinner,Black,Unknown,M,9488 Welch Center,Shawnburgh,OH,Port Monicaton County,41959,682-52-1603,no_match
+15,8,1457608,1695-09-1,Rachel,Romero,IV,Moran,Asian,Unknown,F,870 Deborah Meadow Suite 523,North Samantah,UT,Mccannmouth County,78320,720-32-6399,match
+29,38,9497558,1943-01-06,Emily,Weber,II,Wood,Asian,Unknown,F,23018 Morgan Ln. Apt. 896,Trevinoside,GA,Susanfort County,7141,523-44-1472,match
+74,1040,1020784,1997-02-17,Ami,Gibson,IV,Collins,Asian,Non-Hispanic,F,"Crawford and Sons Prison,76597 Gonzales Union",West Matthew,PW,Mariaport County,32148,157-72-7229,no_match
+59,1030,1670963,1966-02-14,David,Nor,Sr,Johnson,Other,Non-Hispanic,M,GENERAL DELIVERY,Lake Jennaview,KS,Port Wendymouth County,30613,280-24-0951,match
+30,582,9744302,1958-01-18,Jacob,Mejia,Sr,Solomon,White,Non-Hispanic,M,72485 Kelly Dr.,New Ronaldburgh,OR,Port Jamesmouth County,15160,570-87-8191,match
+5,3,1805504,,,Law-rence,IV,Armstrong,Black,Non-Hispanic,M,5256 Lisa Light,Port Monica,GA,South Christine County,51813,371-33-0433,match
+61,1032,9585958,1962-10-10,Mike,Schmidt,II,Moore,Asian,Unknown,F,"c/o Emergency Mail Program,27518 Frazier Isle Suite 990",Edwardshire,GU,Williamsport County,81524,177-78-8241,match
+65,1034,3302426,11/11/1987,ony,Nelson,IV,Gardner,Other,Non-Hispanic,,"USPS Store,2094 Kyle Mills  Suite 983",East Meghan,PA,New Christian County,65583,668-20-2517,match
+13,360,7121953,1975-04-03,Kristopher,Stewart,II,Delgado,Hispanic,Unknown,M,70056 Suzanne Fields,West Denise,KY,Deanfort County,97572,481-72-0917,match
+36,1003,9989926,1981-12-25,Anon,Anon,,Robinson,Black,Non-Hispanic,M,36621 Paul Manors,New Donna,FL,Port Janetshire County,11155,230-27-3224,match
+30,582,9744302,1958-01-18,Jacob,Mejia,Sr,Solomon,White,Non-Hispanic,M,72485 Kelly Dr.,New Ronaldburgh,OR,Port Jamesmouth County,15160,570-87-8191,match
+67,1036,3858020,1934-04-15,Patricia,Jackson,IV,Walton,Black,Hispanic,M,"USPS Store,9705 Ashley Cape  Suite 699",Alexanderport,WY,Kristenbury County,82669,466-59-4124,match
+34,1001,5732092,1972-01-17,Anonyhmous,Anonymous,,Skinner,Black,Unknown,M,9488 Welch Center,Shawbnrgh,OH,Port Monicaton County,41959,682-52-1603,no_match
+20,11,3977646,3000-01-01,Dawn,Ayala,Jr,Warren,Hispanic,Hispanic,F,5236 Fischer Way,Moralesstad,AS,West Jeffreyborough County,47592,069-78-3909,possible_match
+6,4,1792678,,Tho-mas,Brady,II,Cobb,White,Unknown,M,944 Hayes Port,Jonesville,FM,Jonesview County,6015,272-78-9905,match
+27,32,2187171,1989-03-20,Sean,cStot,Sr,Barnes,Black,Unknown,F,"7524 Mejia Grove, Apt. 708",Colanshire,NH,Jessicamouth County,3d5274,038-64-6215,match
+25,47,2464429,1970-04-15,Gina,Thompson,III,Mccarty,Black,Hispanic,F,27559 Good Motor Way Suite 257,Lake Samantha,OH,North Catherine County,55070,650-86-7189,match
+67,1036,3858020,139t4-04-15,Patricia,JcksoLn,IV,Walton,Black,Hispanic,M,"USPS Store,9705 Ashley Cape  Suite 699",Alexanderport,WY,Kristenbury County,82669,466-5A-94124,match
+80,1042,9012753,1982-12-25,,GaVy,II,Burns,Black,Unknown,aFW,"Duncan and Sons College Dorm,830 Gutierrez Corner",,IN,Herrerashire County,78158,123-68-9108,no_match
+37,1004,1730261,1942-09-28,Unknown,Unknown,,Walsh,Hispanic,Unknown,M,968 King Port Suite 568,Port Jesse,ME,West Brandonmouth County,90185,646-04-4866,no_match
+31,54,9699065,1969-04-12,Misty,Martin,Sr,Romero,White,Hispanic,F,42771 Christina St.,Port Williamchester,NY,Gutierrezland County,88690,181-75-8017,match
+69,1038,1563079,1935-03-07,Adan,Smith,III,Ballard,White,Hispanic,M,"Church Group,874 Carr Circles Suite 751",Allenchester,ME,Angelamouth County,17547,500-77-4005,match
+47,1009,1513596,2020-01-6,Jane,Doe,,Garcia,Black,Hispanic,,036 Traci Extensions Apt. 050,Hendersnburgh,NY,New Joshuaburgh County,93225,500-94-2504,possible_match
+48,1016,2374638,1937-05-16,John,oDe,,Jordan,Asian,Non-Hispanic,M,221 Baker Street,North Andrew,SD,Richardsontown County,42851,214-80-2852,possible_match
+25,47,2464429,1970-04-15,Gina,Thompson,III,Mccarty,Black,Hispanic,F,27559 Good oMtr Way Suite 257,Lake Samantha,OH,North Catherine County,55070,650-86-7189,match
+21,12,1315559,"Missing, but age 23",Pamela,Flores,,Parks,Hispanic,Hispanic,F,3705 Tristan Mill Suite 210,Sherryhaven,NC,Hillton County,72414,009-71-9954,possible_match
+45,1019,2565549,1948-06-08,Valerie,D Dougherty,III,Silva,Hispanic,Unknown,F,055 Wyatt Ferry,Carterprt,VT,Julieton County,59672,446-25-5155,match
+75,1040,1000884,1997-o02-17,Amy,Bell,IV,Collins,Asian,Non-Hispanic,F,"Crawford and Sons Prison,76597 Gonzales Union",West Matthew,PW,Mariaport County,32148,157-72-720,no_match
+17,10,8183532,1905-04-28,MCatthew,,,Gonzales,White,Unknown,,3864 Kane RowSuit e601,Samuelberg,ME,Paulville County,92416,137-23-5176,match
+55,1026,4981789,1962-09-10,Karen,Doe,Jr,Sims,Other,Non-Hispanic,F,PO BOX 2425,New Gregorymouth,GA,Lake Erica County,27333,669-78-6106,possible_match
+54,1026,4985289,1942-09-10,Karen,Lloyd,Jr,Sims,Other,Non-Hispanic,F,PO BOX 2425,New Gregorymouth,GA,Lake Erica County,27333,669-78-0106,no_match
+80,1042,9012753,1982-12-25,Nancy,Gay,II,Burns,Black,Unknown,F,"Duncan and Sons College Dorm,830 Gutierrez Corner",Sanchezfurt,IN,Herrerashire County,78158,123-68-9108,no_match
+27,32,2187171,1989-03-20,Sean,Scott,Sr,Barnes,Black,Unknown,F,"7524 Mejia Grove, Apt. 708",Colemanshire,NH,Jessicamouth County,35274,038-64-6215,match
+83,1007,8844807,2006O-05-02,KalsaT,Dorse,,Garcia,Black,Hispanic,M,3431 Shanan St,West Alex,OH,Kelleymouth County,30740,834-74-7118,match
+52,1024,2593549,1948-06-08,Valerie,Mills,III,Silva,Hispanic,Unknown,F,PO BOX 7091,Carterport,VT,Julieton County,59672,446-25-5155,match
+62,1032,9582958,1952-10-10,Mihael,Smith,,Moore,Asian,Unknown,F,"c/o Emergency Mail Program,27518 Frazier Isle Suite 990",EdwDardsihre,GU,Williamsport County,,177-F78-2741,no_match
+71,1039,1679963,1976-02-14,David,Norman,Sr,Johnson,Other,Non-Hispanic,,"Ramirez Brown,1605 Shelly Harbors Suite 416",Lake Jennaviw,KS,Port Wendymouth County,0613W,280-24-0951,match
+7,4,1792678,1950-08-10,ThoMas,Brady,I,Cobb,White,Unknown,M,944 Hayes Port,Jonesville,FM,Jonesview County,,272-78-9905,match
+55,1026,4981789,1962-09-10,Karen,Doe,Jr,Sims,Other,Non-Hispanic,F,PO BOX 2425,New Gregorymouth,GA,Lake Erica County,27333,669-78-6106,possible_match
+47,1009,1513596,2020-01-16,Jane,Doe,,Garcia,Black,Hispanic,F,,Hendersonburgh,NY,New Joshuaburgh County,,w500-9r4-2504,possible_match
+52,1024,2593549,,Valerie,Mills,III,Silva,Hispanic,Unknown,F,PO BOX 7091,Carterport,VT,Julieton County,59672,,match
+58,1030,1679963,1976-02-14,David,Norman,Sr,Johnson,Other,Non-Hispanic,M,GENERAL DELIVERY,Lake Jennaview,KS,Port Wendymouth County,30623,280-24-0951,match
+75,1040,1000884,1997-02-17,Amy,Bell,IV,Collins,Asian,Non-Hispanic,F,"Crawford and Sons Prison,76597 Gonzales Union",West Matthew,PW,Mariaport County,32148,157-72-7210,no_match
+68,1037,1500236,2005-10-10,Melvin,Hernnadez,II,Barker,Asian,Unknown,M,"Schroeder, OrtiEz andSnow,5707 Jessica Canyon",East Eduardofurt,WI,Timothymouth County,51286,306-46-6513,possible_match
+49,1022,1017678,1991-06-03,Baby,Girl,Sr,Robinson,Black,Non-Hispanic,F,361 Paul Manors,Port Lisa,OR,South Sherylside County,35657,794-02-8452,no_match
+82,1042,9087753,1982-12-25,mA,GaNylodr,,Burns,Black,Unknown,F,"Duncan and Sons College Dorm,830 Gutierrez Corner",Sanchezfurt,IN,Herrerashire County,78158,123-38-9108,match
+63,1032,9582958,1952-10-10,Michael,Schmidt,II,Moore,Asian,Unknown,F,"c/o Emergency Mail Program,27518 Frazier Isle Suite 999",Edwardshire,GU,Williamsport County,81524,177-78-8241,match
+12,315,4673900,1947-10-19,Will,Potter,III,Swanson,Asian,Unknown,F,56067 Jenna Hill,Claireberg,ME,Briggsshire County,5845,086-55-9906,match
+26,32,2187171,,Sean,Scqott,rSw,Barnes,Black,Unknown,F,7524 Mejia Grove Apt 708,Colemanshire,NH,Jessicamouth County,,038-64N-6215,match
+54,1026,4985289,1942-09-10,Karen,Lloyd,Jr,Sims,Other,Non-Hispanic,F,PO BOX 2425,New Gregorymouth,GA,Lake Erica County,27333,669-78-0106,no_match
+42,1005,6861089,,Unk,Unk,,Garcia,Black,Hispanic,F,0378 TraJci xtensions Apt. 050,West Elizabeth,FM,Roblesmouth County,54435,641-84-215,possible_match
+77,1041,1599236,2005-10-01,Mike,Hernandez,II,Barker,Asian,Unknown,F,"Ramirez-Brown Nursing Home,1605 Shelly Harbors Suite 415",,WI,Timothymouth County,51826,,no_match
+70,1039,1679903,1976-02-14,David,Norlan,Sr,Johnson,Other,Non-Hispanic,M,"Ramirez-Brown,1605 Shelly Harbors Suite 415",Lake Jennaview,KS,Port Wendymouth County,,280-24-0901,possible_match
+71,1039,1679963,1976-02-14,David,Norman,Sr,Johnson,Other,Non-Hispanic,M,"Ramirez Brown,1605 Shelly Harbors Suite 416",Lake Jennaview,KS,Port Wendymouth County,30613,280-24-0951,match
+50,1023,5950629,1943-07-19,Baby,Boy,Sr,Walsh,Hispanic,Unknown,M,968 King Port Suite 567,Alexisberg,VA,West Heather County,87477,501-42-8781,no_match
+24,24,9957377,970-05-09,Scott,Miller,RI,Chung,White,Non-Hispanic,F,1122 davis station apt. 353,dayberg,or,West Kathleenport County,49165,632-2K-8686,match
+19,11,3977646,2000-12-32,Dawn,Ayala,Jr,Warren,Hispanic,Hispanic,F,5236 Fischer Way,Moralesstad,AS,West Jeffreyborough County,47592,069-78-3909,possible_match
+75,1040,1000884,1997-02-17,A,Bell,,Collins,Asian,Non-Hispanic,F,,West aMtthew,PW,Mariaport County,32148,157-72-7210,no_match
+28,124,8166572,1967-03-29,Vincent,Ramirez,IV,Kidd,Asian,Hispanic,M,908 Jordan Pkwy. Apt. 006,New Kevin,WY,Racheltown County,47096,617-33-7311,match
+36,1003,9989926,1981-12-25,Aosn,Anon,,Robinson,Black,Non-Hispanic,,36621 Paul Manors,New DUonan,FL,Port Janetshire County,11155,230-27-3224p,match
+71,1039,1679963,1976-02-14,David,Norman,Sr,Johnson,Other,Non-Hispanic,M,"Ramirez Brown,1605 Shelly Harbors Suite 416",Lake Jennaview,KS,Port Wendymouth County,30613,280-24-0951,match
+10,315,4673900,1947-10-19,Bill,Potter,III,Swanson,Asian,Unknown,F,56067 Jenna Hill,Claireberg,ME,Briggsshire County,5845,086-55-9906,match
+48,1016,2374638,1937-05-16,John,Doe,,Jordan,Asian,Non-Hispanic,M,221 Baker Street,North Andrew,SD,Richardsontown County,42851,214-80-2852,possible_match
+40,1005,6861088,1975-02-15,Anonymous,Anonymous,,Garcia,Black,Hispanic,F,036 Traci Extensions Apt. 050,West Elizabeth,FM,Roblesmouth County,54453,641-84-2151,match
+18,11,3977646,2000-13-01,Dawn,Ayala,Jr,Warren,Hispanic,Hispanic,F,5236 Fischer Way,Moralesstad,AS,West Jeffreyborough County,47592,069-78-3909,possible_match
+66,1035,3361996,1953-09-13,Daniel,Mdl,rS,Winters,Asian,Non-Hispanic,F,"USPS Store,4225 Chambers Park Suite 455",Smithsied,NV,Robertsborough County,29621,596-06-8041,no_match
+63,1032,9582958,1952-10-10,Michael,Schmidt,II,Moore,Asian,Unknown,F,"c/o Emergency Mail Program,27518 Frazier Isle Suite 999",Edwardshire,GU,Williamsport County,81524,177-78-8241,match
+66,1035,3361996,,Daniel,Madel,rS,Winters,Asian,Non-Hispanic,F,"USPS Store,4225 Chambers Park Suite 455",Smithside,NV,Robertsborough County,29621,596-06-8041,no_match
+72,1043,2318941,1936-02-22,Michael,Hernandez,II,Patel,Black,Hispanic,M,85126 KARA CREST,WARRENMOUTH,GU,BENSONTON COUNTY,21422,,match
+57,1029,1563279,1936-03-07,Adam,Smithsonia,III,Ballard,White,Hispanic,M,GENERAL DELIVERY,Allenchester,ME,Angelamouth County,17547,500-77-4015,no_match
+28,124,8166572,,Vincent,Ramirez,IV,Kidd,Asian,Hispanic,M,908 Jordan Pkwy. Apt. 006,New Kevin,WY,Racheltown County,47096,,match
+54,1026,4985289,1942-09-10,aKern,Lloyd,Jr,Sims,Other,Non-Hispanic,,,New Gregrymouth,GA,Lake Erica County,27333,669-78-0106,no_match
+70,1039,1679903,1976-02-14,David,Norlan,Sr,Johnson,Other,Non-Hispanic,,"Ramirez-Brown,1605 Shelly Harbors Suite 415",Lake Jennaview,KS,Port Wendymouth County,30613,280-24-0901,possible_match
+13,360,7121953,1975-04-03,Kristopher,Stewart,II,Delgado,Hispanic,Unknown,M,70056 Suzanne Fields,West Denise,KY,Deanfort County,97572,481-72-0917,match
+28,124,8166572,1967-03-29,Vincent,Ramirez,IV,Kidd,Asian,Hispanic,M,908 Jordan Pkwy. Apt. 006,New Kevin,WY,Racheltown County,47096,617-33-7311,match
+46,1020,4673398,1949-09-13,Mark,DJones,III,Skinner,Black,Unknown,M,9489 Welch Center,Dustinshire,UT,North Daniel County,33258,133-55-2860,match
+41,1005,6861088,1975-02-15,Unknown,Unknown,,Garcia,Black,Hispanic,F,036 Traci Extensions Apt. 050,West Elizabeth,FM,Roblesmouth County,54435,641-84-2151,match
+64,1033,1229335,1948-11-24,David,Spencer,Jr,Henson,Other,Hispanic,F,"USPS Store,32329 Amber Well Suite 892",Jamesbury,CA,West Kimberly County,87967,247-01-0718,no_match
+7,4,1792678,,ThoMas,Brady,,Cobb,White,Unknown,M,944 Hayes Port,Jonesville,FM,Jonesview County,6015,272-78-9905,match
+78,1041,1590036,2005-10-01,Melvin,Smith,II,Barker,Asian,Unknown,F,"Ramirez-Brown Nursing Home,1605 Shelly Harbors Suite 415",East Eduardofurt,WI,Timothymouth County,51286,356-46-7713,possible_match
+70,1039,1679903,1976-02-14,David,Norlan,Sr,Johnson,Other,Non-Hispanic,M,"Ramirez-Brown,1605 Shelly Harbors Suite 415",Lake Jennaview,KS,Port Wendymouth County,30613,280-24-0901,possible_match
+31,54,9699065,1969-04-12,iMsy,Martin,Sr,Romero,White,Hispanic,,42771 Christina St.,Port Williamchester,NY,Gutierrezland County,88690,181-75-8017,match
+14,5,1332302,1972-08-26,Angie,Johnson,Sr,Mcmahon,Black,Non-Hispanic,F,60015 Edward Vista Suite 518,Lake Andreaview,UT,North Rodney County,46540,740-16-5170,match
+68,1037,1500236,2005-10-10,Melvin,Hernandez,II,Barker,Asian,Unknown,M,"Schroeder, Ortiz and Snow,5707 Jessica Canyon",East Eduardofurt,WI,Timothymouth County,51286,30-646-6513,possible_match
+45,1019,2565549,1948-06-08,Valerie,D DoughertyM,,Silva,Hispanic,Unknown,F,055 Wyatt Ferry,,VT,Julieton County,59672,446-25-5155,match
+17,10,8183532,1905-04-28,Matthew,Palmer,IV,Gonzales,White,Unknown,,3864 Kane Rw Sute 601,Samuelberg,ME,Paulville County,92416,137-23-5176,match
+30,582,9744302,1958-01-18,Jacaob,Mejia,Sr,Solomon,White,Non-Hispanic,M,72485 Kelly Dr.,New Ronaldburgh,OR,Port Jamesmouth County,1560,570-87-8191,match
+4,2,9488697,1942-08-03,Singleton,Jose,Sr,Ingram,Asian,Hispanic,M,631 Fowler Causeway,Port Williamfurt,IN,Wardburgh County,90637,587-60-3668,match
+82,1042,9087753,1982-12-25,Ami,Gaylord,II,Burns,Black,Unknown,F,"Duncan and Sons College Dorm,830 Gutierrez Corner",Sanchezfurt,IN,Herrerashire County,78158,123-38-9108,match
+48,1016,2374638,1937-05-16,ohn,Deo,,Jordan,Asian,Non-Hispanic,M,221 Baker Street,North Andrew,SD,Richardsontown County,42851,21-480-2852,possible_match
+66,1035,3361996,1953-09-13,Daniel,Madel,Sr,Winters,Asian,Non-Hispanic,F,"USPS Store,4225 Chambers Park Suite 455",Smithside,NV,Robertsborough County,29621,596-06-8041,no_match
+78,1041,1590036,2005-10-01,Melvin,Smith,II,Barker,Asian,Unknown,JF,"Ramirez-Brown Nursing Home,1605 Shelly Harbors Suite 415",East Eduardofurt,WI,Timothymouth County,51286,356-46-7713,possible_match
+68,1037,1500236,2005-10-10,Melvin,Hernandez,II,Barker,Asian,Unknown,M,"Schroeder, Ortiz and Snow,5707 Jessica Canyon",East Eduardofurt,WI,Timothymouth County,51286,306-46-6513,possible_match
+81,1042,9002773,1982-12-25,Amy,Doe,II,Burns,Black,Unknown,F,,Sanchezfurt,IN,Herrerashire County,78158,123-38-9156,no_match
+35,1002,8396459,1995-07-16,Anonymous,Anonymous,,Sims,Other,Non-Hispanic,F,9592 Charles Groves Apt. 122,Port Jeffrey,ME,New Richardland County,27691,215-81-0959,match
+11,315,4673900,1947-10-19,Willy,,III,Swanson,Asian,Unknown,F,56067 Jenna Hill,Claireberg,ME,Briggsshire County,5845,086-55-9906,match
+42,1005,6861089,1976-02-15,Unk,Unk,,Garcia,Black,Hispanic,F,0378 Traci Extensions Apt. 050,West Elizabeth,FM,Roblesmouth County,54435,641-84-2152,possible_match
+53,1025,4673331,1949-09-12,Mark,Doe,III,Skinner,Black,Unknown,M,PO BOX 1600,Dustinshire,UT,North Daniel County,33258,133-55-2860,match
+80,1042,9012753,1982-12-25,Nancy,,II,Burns,Black,Unknown,F,"Duncan and Sons College Dorm,830 Gutierrez Corner",Sanchezfurt,IN,Herrerashire County,78158,123-68-9108,no_match
+16,9,6600555,194-10,Mary,Sanders,Sr,Duran,White,Unknown,,2920 Kayla Stream,North Alic,CO,Lisachester County,85485,320-46-8857,match
+56,1028,1507236,2001-10-10,Melvin,,II,Barker,Asian,Unknown,F,GENERAL DELIVERY,East Eduardbofurt,WI,Timothymouth County,51286,356-36-6513,possible_match
+32,27,3103702,1995-03-12,,Klein,IV,Dunlap,White,Unknown,,00709 Hoover Prairie,East Dylan,PA,Mcdonaldburgh County,59332,555-54-4200,possible_match
+3,1,3020167,,Linda,Nwash,Jr,Gutierrez,Asian,Hispanic,F,968 GonzalexzM ount,South Emilybury,GU,North Kennethburgh County,,675-79-1449,no_match
+49,1022,1017678,1991-06-03,,Girl,Sr,Robinson,Black,Non-Hispanic,F,361 Paul ManorsU,Port Lisa,OR,South Sherylside County,35657,794-02-8452,no_match
+34,1001,5732092,1972-01-17,Anonymous,Anonymous,,Skinner,Black,Unknown,M,9488 Welch Center,Shawnburgh,OH,Port Monicaton County,41959,682-52-1603,no_match
+32,27,3103702,1995-03-12,William,Klein,IV,Dunlap,White,Unknown,F,00709 Hoover Prairie,East Dylan,PA,Mcdonaldburgh County,59332,555-54-4200,possible_match
+30,582,9744302,1958-01-18,Jacob,Mejia,Sr,Solomon,White,Non-Hispanic,MUp,72485 Kelly Dr.,Nvew Ronaldburgh,OR,Port Jamesmouth County,1560,570-87-8191,match
+77,1041,1599236,2005-10-01,Mike,HernandVez,II,Barker,Asian,Unknown,F,"Ramirez-Brown Nursing Home,1605 Shelly Harbors Suite 415",ast Eduardofurbt,WI,Timothymouth County,51286,356-40-6513,no_match
+7,4,1792678,1950-08-10,ThoMas,Brady,II,Cobb,White,Unknown,M,944 Hayes Port,,FM,Jonesview County,6015,272-78-9905,match
+65,1034,3302426,11/11/1897,Tony,Nelson,IV,Gardner,Other,Non-Hispanic,M,"USPS Store,2094 Kyle Mills  Suite 983",East Meghan,PA,New Christian County,65583,668-20-2517,match
+45,1019,2565549,194S8-0-608,Valerie,D Dougherty,III,Silva,Hispanic,Unknown,,055 Wyatt FerryA,Carterport,VT,Julieton County,A59672O,446-25-5155,match
+50,1023,5950629,,Baby,,Sr,Walsh,Hispanic,Unknown,,968 King ort Suite 567,Alexisberg,VA,West Heather County,8c7477,501-42-8781,no_match
+77,1041,1599236,2005-10-01,Mike,Hernandez,II,Barker,Asian,Unknown,F,"Ramirez-Brown Nursing Home,1605 Shelly Harbors Suite 415",East Eduardofurt,WI,Timothymouth County,51286,356-40-6513,no_match
+62,1032,9582958,1952-10-10,Michael,Smith,II,Moore,Asian,Unknown,F,"c/o Emergency Mail Program,27518 Frazier Isle Suite 990",Edwardshire,GU,Williamsport County,81524,177-78-7241,no_match
+76,1040,1000784,1997-02-17,Ami,Gibsom,IV,Collins,Asian,Non-Hispanic,F,"Crawford and Sons Prison,76597 Gonzales Union",West Matthew,PW,Mariaport County,32148,157-72-7211,match
+8,305,8293025,2003-10-08,Rob,Washington,IV,Washington,Other,Unknown,M,,Sarahbury,MA,Charlesburgh County,64832,551-79-0423,match
+31,54,9699065,w1969-0l4-12,Misty,Martin,Sr,Romero,White,Hispanic,,42771 Christina St.,,NY,Gutierrezland County,88690,181-75-8017,match
+15,8,1457608,1965-09-01,Rachel,Roero,IV,Moran,Asian,Unknown,F,870 Deborah Meadow Suite 523,North Samantha,UT,Mccannmouth County,78320,720-32-6399,match
+78,1041,1590036,2005-10-01,Melvin,Smith,II,Barker,Asian,Unknown,F,"Ramirez-Brown Nursing Home,1605 Shelly Harbors Suite 415",East Eduardofurt,WI,Timothymouth County,51286,356-46-7713,possible_match
+53,1025,4673331,1949-09-12,Mark,Doe,III,Skinner,Black,Unknown,M,PO BOX 1600,Dustinshire,UT,North Daniel County,33258,133-55-2860,match
+53,1025,4673331,1949-09-12,Mark,Doe,III,Skinner,Black,Unknown,M,PO BOX 1600,Dustinshire,UT,North Daniel County,33258,133-55-2860,match
+59,1030,1670963,166-02-14,David,Nor,rSM,Johnson,Other,Non-Hispanic,M,GENERAL DELIVERY,Lake Jennaview,KS,Port Wendymouth County,30613,80-24-0915,match
+17,10,8183532,1905-04-28,Matthew,Palmer,IV,Gonzales,White,Unknown,F,3864 Kane Row Suite 601,Samuelberg,ME,Paulville County,92416,137-23-5176,match
+40,1005,6861088,1975-02m-51,Anonymous,Anonymous,,Garcia,Black,Hispanic,F,036 Traci Extensions Apt. 050,West Elizabeth,FM,Roblesmouth County,54435,641-84-2151,match
+72,1043,2318941,1936-02-22,Michael,Hernandez,II,Patel,Black,Hispanic,M,85126 KARA CREST,WARRENMOUTH,GU,BENSONTON COUNTY,21422,277-42-4348,match
+49,1022,1017678,1991-06-03,Baby,,Sr,Robinson,Black,Non-Hispanic,F,361 Paul Manors,Port Lisa,OR,South Sherylside County,35657,79-20-8452,no_match
+14,5,1332302,1792-0826,,Johnson,Sr,Mcmahon,Black,Non-Hispanic,,,Lake Andreaview,UT,North Rodney County,64450,740-16-5170,match
+81,1042,9002773,1982-12-25,Amy,Doe,II,Burns,Black,Unknown,F,"Duncan and Sons College Dorm,830 Gutierrez Corner",Sanchezfurt,IN,Herrerashire County,78158,123-38-9156,no_match
+46,1020,4673398,1949-09-13,Mark,DJones,III,Skinner,Black,Unknown,M,,,UT,North Daniel County,33258,133-55-2860,match
+11,315,4673900,,Willy,Poter,III,Swanson,Asian,Unknown,,56067 Jenna Hill,Claireberg,ME,Briggsshire County,5845,086-55-9906,match
+25,47,2464429,1970-04-15,Gina,Thompson,III,Mccarty,Black,Hispanic,F,27559 Good Motor Way Suite 257,Lake Samantha,OH,North Catherine County,55070,650-86-7189,match
+35,1002,8396459,,Anonymous,Anonymous,,Sims,Other,Non-Hispanic,F,9592 hCarles Groves Apt. 12,Port Jeffrey,ME,New Richardland County,2kO7691,215-81-0959,match
+65,1034,3302426,,Tony,Nelson,IV,Gardner,Other,Non-Hispanic,M,"USPS Store,2094 Kyle Mills  Suite 983",East Meghan,PA,New Christian County,65583,668-20-2517,match
+25,47,2464429,1970-04-15,Gina,Thompson,III,Mccarty,Black,Hispanic,F,,Lake Samantha,OH,North Catherine County,55070,650-86-7189,match
+34,1001,5732092,1972-01-17,Anonymous,,,Skinner,Black,Unknown,M,9488 Welch Center,Shawnburgh,OH,Port Monicaton County,,682-52-1603,no_match
+24,24,9957377,1970-05-09,Scott,Miller,VIe,Chung,White,Non-Hispanic,,1122 davis station apt. 353,dayberg,or,West Kathleenport County,9165,632-27-8686,match
+1,13,5516990,1977-04-20,Jon,Morales,II,Rogers,Other,Hispanic,M,2115 Elizabeth Way,East Allisonhaven,VI,Crystalstad County,5308,540-12-1415,match
+42,1005,6861089,1976-02-15,Unk,Unk,,Garcia,Black,Hispanic,F,0378 Traci Extensions Apt. 050,West Elizabeth,FM,Roblesmouth County,54435,641-84-2152,possible_match
+15,8,1457608,1965-09-01,Rachel,Romero,,Moran,Asian,Unknown,F,870 Deborah Meadow Suite 523,North Samantha,UT,Mccannmouth County,78320,720-32-6399,match
+16,9,6600555,1964-10,Mary,Sanders,Sr,Duran,White,Unknown,M,2920 Kayla Stream,North Alice,CO,Lisachester County,85485,320-46-8857,match
+22,22,1565331,1961-12-07,Tammy,Anderson,IV,Pierce,Hispanic,Non-Hispanic,F,016 Jennifer Via Apt. 705,North Thomashaven,VA,Russellstad County,83377,372-26-2081,possible_match
+1,13,5516990,1977-04-20,Jon,Morales,II,Rogers,Other,Hispanic,,2115 Elizabeth Way,East Allisonhaven,VI,Crystalstad County,5308,540-12-1415,match
+55,1026,4981789,1962-09-10,Karen,Doe,Jr,Sims,Other,Non-Hispanic,,,New Gregorymouthj,GA,Lake Erica County,27333,669-78-6106,possible_match
+63,1032,9582958,1952-10-10,Michael,Schmidt,II,Moore,Asian,Unknown,F,"c/o Emergency Mail Program,27518 Frazier Isle Suite 999",Edwardshire,GU,Williamsport County,81524,177-78-8241,match
+16,9,6600555,1964-10,Mary,Sanders,Sr,Duran,White,Unknown,M,2920 Kayla Stream,North Alice,CO,Lisachester County,85485,320-46-8857,match
+27,32,2187171,1989-03-20,,Scott,,Barnes,Black,Unknown,F,"7524 Mejia Grove, Apt. 708",Colemanshire,NH,Jessicamouth County,35274,038-64-6215,match
+22,22,1565331,161-12R-07,Tammy,Anderson,IV,Pierce,Hispanic,Non-Hispanic,F,016 Jennifer Via Apt. 705,North Thomashaven,VA,Russellstad County,83377,372-26-2081,possible_match
+41,1005,6861088,1975-02-15,Unknown,Unknown,,Garcia,Black,Hispanic,F,036 Traci Extensions Apt. 050,West Elizabeth,FM,Roblesmouth County,54435,641-84-2151,match
+15,8,1457608,1965-09-01,,,IV,Moran,Asian,Unknown,F,870 Deborah Meadow Suite 523,North Samantha,UT,Mccannmouth County,78320,720-32-6399,match
+20,11,3977646,3000-01-01,Dawn,Ayala,Jr,Warren,Hispanic,Hispanic,F,5236 Fischer Way,Moralesstad,AS,West Jeffreyborough County,47592,069-78-3909,possible_match
+64,1033,1229335,1948-11-24,David,Spencer,Jr,Henson,Other,Hispanic,F,,,CA,West Kimberly County,89767,247-01-718,no_match
+52,1024,2593549,1948-06-08,Valerie,Mills,III,Silva,Hispanic,Unknown,F,PO BlOX 791,Carterport,VT,Julieton County,5672,464-25-5155,match
+14,5,1332302,P197-208-26,Angie,Johjnson,Sr,Mcmahon,Black,Non-Hispanic,F,60015 Edward Vista Suite 518,Lake Andreaview,UT,North Rodney County,46540,740-16-571,match
+11,315,4673900,1947-10-19,Willy,Potter,III,Swanson,Asian,Unknown,F,56067 Jenna Hill,Claireberg,ME,Briggsshire County,5845,086-55-9906,match
+78,1041,1590036,2005-10-01,rMelvn,,II,Barker,Asian,Unknown,F,"Ramirez-Brown Nursing Home,1605 Shelly Harbors Suite 415",East EduRardofurt,WI,Timothymouth County,51286,356-46771G3,possible_match
+68,1037,1500236,2005-10-10,Melvin,Hernandez,II,Barker,Asian,Unknown,M,"Schroeder, Ortiz and Snow,5707 Jessica Canyon",East Eduardofurt,WI,Timothymouth County,51286,306-46-6513,possible_match
+18,11,3977646,2000-13-01,,Ayala,Jr,Warren,Hispanic,Hispanic,F,5236 Fischer Way,Moralesstad,AS,West Jeffreyborough County,47592,069-78-3909,possible_match
+28,124,8166572,1967-03-29,Vincent,Ramirez,IV,Kidd,Asian,Hispanic,b,908 Jordan Pkwy. Apt. 006,New Kevin,WY,Racheltown County,47096,617-33-7311,match
+71,1039,1679963,1976-02-14,David,,Sr,Johnson,Other,Non-Hispanic,M,"Ramirez Brown,1605 Shelly Harbors Suite 416",Lake Jennaview,KS,Port Wendymouth County,30613,,match
+72,1043,2318941,1936-02-22,Michael,Hernandez,II,Patel,Black,Hispanic,M,85126 KARA CREST,WARRENMOUTH,GU,BENSONTON COUNTY,21422,277-42-4348,match
+23,23,1158334,1965-08-03,Morgan,White,IV,Harding,Black,Unknown,M,04877 WHITE FERRY,NORTH REBEKAHMOUTH,SD,Port Tamihaven County,16256,041-96-1240,match
+53,1025,4673331,,Mark,Doe,JII,Skinner,Black,Unknown,M,,Dustinshire,UT,North Daniel County,P33258,133-55-2860,match
+20,11,3977646,3000-01-01,Dawn,Ayala,Jr,Warren,Hispanic,Hispanic,,5236 Fischer Way,Moralesstad,AS,West Jeffreyborough County,47529,069-78-3909,possible_match
+31,54,9699065,1969-04-12,Misty,Martin,Sr,Romero,White,Hispanic,F,42771 Christina St.,Port Williamchester,NY,Gutierrezland County,88690,181-7-58017,match
+4,2,9488697,1942-08-03,Singleton,Jose,Sr,Ingram,Asian,Hispanic,M,631 Fowler Causeway,Port Williamfurt,IN,Wardburgh County,90637,587-60-3668,match
+23,23,1158334,1965-08-03,Morgan,White,V,Harding,Black,Unknown,M,04877 WHITE FERRY,NORTH REBEKAHMOUTH,SD,Port Tamihaven County,1526,041-96-1240,match
+75,1040,1000884,,Amy,Bell,IV,Collins,Asian,Non-Hispanic,Fd,"Crawford and Sons Prison,76597 Gonzales Union",West MattheYw,PW,Mariaport County,3214,157-72-7210,no_match
+61,1032,9585958,1962-10-10,Mike,Schmidt,II,Moore,Asian,Unknown,F,"c/o Emergency Mail Program,27518 Frazier Isle Suite 990",Edwardshire,GU,Williamsport County,81524,177-78-8241,match
+8,305,8293025,2003-10-08,Rob,Washington,IV,Washington,Other,Unknown,M,3461 Adams Neck,Sarahbury,MA,Charlesburgh County,64832,551-79-0423,match
+83,1007,8844807,2006-05-02,Kala,,,Garcia,Black,Hispanic,V,3431 Shaa nSt,West Alex,OH,Kelleymouth County,30740,834-74-7118,match
+74,1040,1020784,1997-02-17,Ami,Gibson,IV,Collins,Asian,Non-Hispanic,F,"Crawford and Sons Prison,76597 Gonzales Union",West Matthew,PW,Mariaport County,32148,157-72-7229,no_match
+44,1013,5262117,1934-02-27,OHahn,Mora,,Williamson,Other,Hispanic,,621 Meadowbrook Drive,Sullivanburgh,KY,Lake Stevenborough County,69945,180-81-5534,match
+64,1033,1229335,1948-11-24,David,Spencer,Jr,Henson,Other,Hispanic,F,"USPS Store,32329 Amber Well Suite 892",Jamesbury,CA,West Kimberly County,87967,247-01-0718,no_match
+64,1033,1229335,1948-11F24,David,Spencer,Jr,Henson,Other,Hispanic,,"USPS Store,32329 Amber Well Suite 892,Jamesbury,CA,West Kimberly County,8797,247-01-0718,no_match
+68,1037,1500236,205-10-1,Melivn,,II,Barker,Asian,Unknown,M,"Schroeder, Ortiz and Snow,5707 Jessica Canyon",East Eduardofurt,WI,Timothymouth County,51286,,possible_match
+33,28,9192146,1938-08-05,Valerie,Mann,IV,Riley,Other,Unknown,M,18812 Joshua Fall,Gentryville,MO,New Joannfurt County,99832,0049,match
+25,47,2464429,1970-04-15,Gina,Thompson,III,Mccarty,Black,Hispanic,F,27559 Good Motor Way Suite 257,Lake Samantha,OH,North Catherine County,,650-86-7189,match
+5,3,1805504,1963-01-29,Ryna,Lalw-ernce,IV,Armstrong,Black,Non-Hispanic,M,526L isa Light,Port Monica,GA,South Christine County,51813,371-33-0433,match
+3,1,3020167,1951-06-02,Linda,fash,Jr,Gutierrez,Asian,Hispanic,F,968 Gonzalez Mount,South Emilybury,GU,North Kennethburgh County,93236,675-79-1449,no_match
+30,582,9744302,1958-01-18,Jacob,MejQia,Sr,Solomon,White,Non-Hispanic,,72485 Kelly Dr.,New Ronaldburgh,OR,Port Jamesmouth County,1150,570-87-8191,match
+79,1041,1545236,2005-10-01,Mel,HIenrands,II,Barker,Asian,Unknown,,"Ramirez-Brown Nursing Home,1605 Shelly Harbors Suite 415",East Eduardofurt,WI,Timothymouth County,5c1286,,match
+78,1041,1590036,2005-10-01,Melvin,SAmiht,ZII,Barker,Asian,Unknown,F,"Ramirez-Brown Nursing Home,1605 Shelly Harbors Suite 415",East Eduardofurt,WI,Timothymouth County,51286,356-46-7713,possible_match
+69,1038,1563079,1935-03-07,Adan,Smith,III,Ballard,White,Hispanic,M,"Church Group,874 Carr Circles Suite 751",Allenchester,ME,Angelamouth County,,500-77-4005,match
+57,1029,1563279,1936-03-07,,,III,Ballard,White,Hispanic,M,GENERAL DELIVERY,Allenchester,ME,Angelamouth County,17547,500-77-4015,no_match
+22,22,1565331,1961-12-07,Tammy,Anderson,IV,Pierce,Hispanic,Non-Hispanic,F,016 Jennifer Via Apt. 705,North Thomashaven,VA,Russellstad County,83377,372-26-2081,possible_match
+68,1037,1500236,2005-10-10,Melvin,Hernandez,II,Barker,Asian,Unknown,,"Schroeder, Ortiz and Snow,5077 Jessica anyon",East Eduardofurt,WI,Timothymouth County,51286,306-46-6513,possible_match
+12,315,4673900,1947-10-19,WiVll,Potter,III,Swanson,Asian,Unknown,F,56067 Jenna Hill,Claireberg,ME,Briggsshire County,,,match
+84,1010,4862100,1976-08-20,,Mora,,Williamson,Other,Hispanic,,1354 Elm Street,West Davidmouth,ME,Whitefurt County,39030,071-88-3821,match
+3,1,3020167,1951-06-02,Linda,Nash,,Gutierrez,Asian,Hispanic,F,968 Gonzalez Mount,South Emilybury,GU,North Kennethburgh County,93236,675-79-1449,no_match
+66,1035,3361996,1953-09-13,Danieqel,Madel,Sr,Winters,Asian,Non-Hispanic,F,"USPS Store,4225 Chambers Park Suite 455",Smithside,NV,Robertsborough County,29621,596-06-8041,no_match
+60,1031,9556562,1958-10-16,Jasmine,Lin,II,Baker,White,Hispanic,WF,"c/o Emergency Mail Program,22401 Christine Island Apt. 660",Lake Brian,UT,Francismouth County,11926,232-98-76l15b,no_match
+68,1037,1500236,2005-10-10,Melvin,Hernandez,II,Barker,Asian,Unknown,l,"Schroeder, Ortiz and Snow,5707 Jessica Canyon",East Eduardofurt,WI,Timothymouth County,51286,306-46-6513,possible_match
+17,10,8183532,1905-04-28,Matthew,Palmer,IV,Gonzales,White,Unknown,F,3864 Kane Row Suite 601,Samuelberg,ME,Paulville County,92416,137-23-5176,match
+67,1036,3858020,1l934-04-15,Patricia,Jackson,IV,Walton,Black,Hispanic,M,"UPSS Store,9705 Ashley Cape  Suite 699",Alexanderport,WY,Kristenbury County,8696,,match
+20,11,3977646,3000-01-01,anw,Ayala,Jr,Warren,Hispanic,Hispanic,F,5236 FischerG Way,Moralesstad,AS,West Jeffreyborough County,47592,069-78-3909,possible_match
+9,305,8293025,2003-10-08,Bobby,Washington,IV,Washington,Other,Unknown,M,3461 Adams Neck,Sarahbury,MA,Charlesburgh County,64832,551-79-0423,match
+15,8,1457608,1965-09-01,Rachel,Romero,IV,Moran,Asian,Unknown,F,870 Deborah Meadow Suite 523,North Samantha,UT,Mccannmouth County,78320,720-32-6399,match
+20,11,3977646,,Dawn,,Jr,Warren,Hispanic,Hispanic,F,5236 Fischer Way,Moralesstad,AS,West Jeffreyborough County,47592,069-78-3909,possible_match
+10,315,4673900,1947-10-19,,Potter,III,Swanson,Asian,Unknown,F,56067 Jenna Hill,Claireberg,ME,Briggsshire County,,086-55-9906,match
+74,1040,1020784,1997-02-17,,Gibson,IV,Collins,Asian,Non-Hispanic,F,"Crawford and Sons Prison,76597 Gonzales Union",West Matthew,PW,Mariaport County,32148,157-72-7229,no_match
+6,4,1792678,1950-08-10,Tho-mas,Brady,II,Cobb,White,Unknown,,944 Hayes Port,Jonesville,FM,Jonesview County,0615,,match
+45,1019,2565549,1948-06-08,Valeire,D Dougherty,III,Silva,Hispanic,Unknown,F,05n5 Wyatt Ferry,Carterport,VT,Julieton County,59672,446-25-5155,match
+49,1022,1017678,1991-06-03,aByb,Girl,Sr,Robinson,Black,Non-Hispanic,F,361 Paul Manors,Port iLsa,OR,South Sherylside County,35657,794-02-84A52,no_match
+74,1040,1020784,1997-02-17,Ami,,IV,Collins,Asian,Non-Hispanic,F,"Crawford and Sons Prison,76597 Gonzales Union",West Matthew,PW,Mariaport County,32148,,no_match
+70,1039,1679903,1976-02-14,David,Norlan,Sr,Johnson,Other,Non-Hispanic,M,"Ramirez-Brown,1605 Shelly Harbors Suite 415",,KS,Port Wendymouth County,30613,,possible_match
+14,5,1332302,1972-08-26,Angie,Johnson,Sr,Mcmahon,Black,Non-Hispanic,F,,Lake Andreaview,UT,North Rodney County,46540,740-16-5170,match
+42,1005,6861089,,Unk,Unk,,Garcia,Black,Hispanic,F,,West Elizabeth,FM,Roblesmouth County,54435,641-84-2152,possible_match
+20,11,3977646,3000-01-01,Dawn,Ayala,Jr,Warren,Hispanic,Hispanic,F,5236 Fischer Way,Moralesstad,AS,West Jeffreyborough County,47592,069-78-3909,possible_match
+2,13,5516990,1977-04-20,Joe,Morales,IaIy,Rogers,Other,Hispanic,M,2115 Elizabeth aWyb,East Allisonhaven,VI,Crystalstad County,5308,,no_match
+16,9,6600555,1964-10,GMary,Sanders,Sr,Duran,White,Unknown,Mw,2920 Kayla Stream,North Alice,CO,Lisachester County,85485,320-46-8857,match
+84,1010,4862100,1976-q08-20,Joe,Mora,,Williamson,Other,Hispanic,F,354 Elm Street,West Davimdouth,ME,Whitefurt County,39030,071-88-3821,match
+55,1026,4981789,1962-09-10,Kcaern,Doe,rJt,Sims,Other,Non-Hispanic,F,PO BOX 2425,,GA,Lake Erica County,27333q,,possible_match
+20,11,3977646,3000-01-01,Dawn,Ayala,Jr,Warren,Hispanic,Hispanic,,5236 FischerW ay,Moralesstad,AS,West Jeffreyborough County,,069-78-3909,possible_match
+72,1043,2318941,,Michael,Hernandez,,Patel,Black,Hispanic,M,85126 KARA CREST,WARRENMOUTH,GU,BENSONTON COUNTY,21422,277-42-4348,match
+71,1039,1679963,1976-02-14,David,Norman,Sr,Johnson,Other,Non-Hispanic,M,"Ramirez Brown,1605 Shelly Harbors Suite 416",Lake Jennaview,KS,Port Wendymouth County,30613,280-24-0951,match
+53,1025,4673331,1949-09-12,Mark,Doe,III,Skinner,Black,Unknown,M,PO BOX 100,DuCstinshire,UT,North Daniel County,33258,133-55-2860,match
+33,28,9192146,1938-08-05,,Mnan,MVI,Riley,Other,Unknown,M,18812 Joshua Fall,Gentryville,MO,New Joannfurt County,99832,004,match
+40,1005,6861088,1975-02-15,Anonymous,Anonymous,,Garcia,Black,Hispanic,F,036 Traci Extensions Apt. 050,West Elizabeth,FM,Roblesmouth County,,641-84-2151,match
+36,1003,9989926,1981-12-25,Anon,Anon,,Robinson,Black,Non-Hispanic,M,36621 Paul Manors,New Donna,FL,Port Janetshire County,11155,230-27-3224,match
+47,1009,1513596,2020-01-16,Jane,Doe,,Garcia,Black,Hispanic,F,036 Traci Extensions Apt. 050,Hendersonburgh,NY,New Joshuaburgh County,93225,500-94-2504,possible_match
+31,54,9699065,1969-04-12,Misty,Martin,Sr,Romero,White,Hispanic,,42771 Christina St.,Port Williamchester,NY,Gutierrezland County,88690,181-75-8017,match
+62,1032,9582958,1952-10-10,Michael,Smith,II,Moore,Asian,Unknown,,"c/o Emergency Mail Program,27518 Frazier Isle Suite 990",Edwardshire,GU,Williamsport County,81524,177-78-7241,no_match
+65,1034,3302426,11/1/1897,oTyn,Nelson,ICV,Gardner,Other,Non-Hispanic,M,"USPS Store,2094 Kyle Mills  Suite 983",,PA,New Christian County,65583,668-20-2517,match
+29,38,9497558,,Emily,Weebr,rIFI,Wood,Asian,Unknown,F,,Trevinoside,GA,Susanfort County,7141,523-44-1472,match
+29,38,9497558,1943-01-06,Emily,Weber,II,Wood,Asian,Unknown,F,23018 Morgan Ln. Apt. 896,Trevinoside,GA,Susanfort County,7141,523-44-1472,match
+50,1023,5950629,1943-07-19,Baby,Boy,Sr,Walsh,Hispanic,Unknown,M,968 King Port Suite 567,Alexisberg,VA,West Heather County,87477,501-42-8781,no_match
+9,305,8293025,2003-10-08,Bobby,Washington,IV,Washington,Other,Unknown,,3461 Adams Neck,,MA,Charlesburgh County,64832,551-79-0423,match
