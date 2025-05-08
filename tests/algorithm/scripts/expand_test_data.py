@@ -57,7 +57,7 @@ def identify_missing_fields(test_case: dict[str, str]) -> list:
     """
     missing_fields = []
     for field in ALGORITHM_RELEVANT_COLUMNS:
-        if test_case[field] == None or test_case[field] == "":
+        if test_case[field] is None or test_case[field] == "":
             missing_fields.append(field)
     return missing_fields
 
