@@ -32,8 +32,6 @@ resource "azurerm_storage_share" "db_file_share" {
   name                 = "db-fileshare-${local.name}"
   storage_account_name = azurerm_storage_account.storage.name
   quota                = 100
-
-  tags = local.tags
 }
 
 
@@ -54,8 +52,8 @@ resource "azurerm_container_group" "aci" {
   container {
     name   = "recordlinker"
     image  = "ghcr.io/cdcgov/recordlinker/demo:latest"
-    cpu    = 1
-    memory = "1.5Gi"
+    cpu    = "1"
+    memory = "1.5"
 
     environment_variables = {
       DB_URI = "sqlite:////mnt/sqlite-db/recordlinker.db"
@@ -66,20 +64,15 @@ resource "azurerm_container_group" "aci" {
     }
 
     volume {
-      name       = "sqlite-volume"
-      mount_path = "/mnt/sqlite-db"
+      name                  = "sqlite-volume"
+      mount_path            = "/mnt/sqlite-db"
+      read_only             = false
+      share_name            = azurerm_storage_share.db_file_share.name
+      storage_account_name  = azurerm_storage_account.storage.name
+      storage_account_key   = azurerm_storage_account.storage.primary_access_key
     }
   }
 
-  volume {
-    name = "sqlite-volume"
-    azure_file {
-      share_name           = azurerm_storage_share.db_file_share.name
-      storage_account_name = azurerm_storage_account.storage.name
-      storage_account_key  = azurerm_storage_account.storage.primary_access_key
-    }
-  }
-
-  ip_address_type = "public"
+  ip_address_type = "Public"
   dns_name_label  = "recordlinker-${local.name}"
 }
