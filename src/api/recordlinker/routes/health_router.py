@@ -25,6 +25,7 @@ class HealthCheckResponse(pydantic.BaseModel):
 
 @router.get(
     "",
+    name="health-check",
     responses={
         200: {
             "description": "Successful response with status OK",

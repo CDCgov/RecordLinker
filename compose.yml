@@ -53,7 +53,7 @@ services:
       jaeger:
         condition: service_healthy
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8080/api"]
+      test: ["CMD", "curl", "-f", "http://localhost:8080/api/health"]
 
   perf-runner:
     # The orchestration container of the environment that is used to initialize

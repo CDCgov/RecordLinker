@@ -3,6 +3,7 @@ from .algorithm import AlgorithmContext
 from .algorithm import AlgorithmPass
 from .algorithm import AlgorithmSummary
 from .algorithm import Evaluator
+from .demo import MatchReviewRecord
 from .link import LinkFhirInput
 from .link import LinkFhirResponse
 from .link import LinkInput
@@ -66,4 +67,5 @@ __all__ = [
     "ErrorResponse",
     "PaginatedMetaData",
     "PaginatedRefs",
+    "MatchReviewRecord",
 ]

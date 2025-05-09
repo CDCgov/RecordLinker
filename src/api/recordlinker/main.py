@@ -1,6 +1,7 @@
 import os.path
 
 import fastapi
+from fastapi import responses
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.staticfiles import StaticFiles
@@ -58,13 +59,20 @@ if settings.ui_host:
     app.add_middleware(GZipMiddleware, minimum_size=500, compresslevel=5)
 
 
-# FIXME: Change health check endpoint to /api/health
-api.include_router(health_router)
-app.include_router(link_router, tags=["link"])
-app.include_router(algorithm_router, prefix="/algorithm", tags=["algorithm"])
-app.include_router(person_router, prefix="/person", tags=["mpi"])
-app.include_router(patient_router, prefix="/patient", tags=["mpi"])
-app.include_router(seed_router, prefix="/seed", tags=["mpi"])
+@api.get("/", name="api-root")
+def api_root():
+    """
+    Redirect to the OpenAPI documentation.
+    """
+    return responses.RedirectResponse(url="/redoc")
+
+
+api.include_router(health_router, prefix="/health")
+api.include_router(link_router, tags=["link"])
+api.include_router(algorithm_router, prefix="/algorithm", tags=["algorithm"])
+api.include_router(person_router, prefix="/person", tags=["mpi"])
+api.include_router(patient_router, prefix="/patient", tags=["mpi"])
+api.include_router(seed_router, prefix="/seed", tags=["mpi"])
 api.include_router(demo_router, prefix="/demo", tags=["demo"])
 
 app.mount(settings.api_root_path, api)

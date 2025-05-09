@@ -3,8 +3,9 @@ import unittest.mock
 from sqlalchemy.exc import OperationalError
 
 
-def test_root(client):
-    actual_response = client.get("/", follow_redirects=False)
+def test_api_root(client):
+    api_root_url = client.app.url_path_for("api-root")
+    actual_response = client.get(api_root_url, follow_redirects=False)
     assert actual_response.status_code == 307
     assert actual_response.headers["Location"] == client.app.url_path_for("redoc_html")
 
