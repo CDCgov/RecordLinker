@@ -10,8 +10,9 @@ services:
       - ./tests/performance/conf/postgresql.conf:/etc/postgresql/postgresql.conf
       - ./tests/performance/conf/init.sql:/docker-entrypoint-initdb.d/init.sql
       - ./tests/performance/tmp/results/psql/:/var/log/psql/
+    command: postgres -c config_file=/etc/postgresql/postgresql.conf
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready"]
+      test: [ "CMD-SHELL", "pg_isready" ]
 
   jaeger:
     # The Jaeger all-in-one container that is used to collect, store and visualize
@@ -20,7 +21,7 @@ services:
     ports:
       - "16686:16686"
     healthcheck:
-      test: ["CMD-SHELL", "nc -z localhost 16686"]
+      test: [ "CMD-SHELL", "nc -z localhost 16686" ]
 
   api:
     # The record linkage API that we are developing
@@ -33,7 +34,7 @@ services:
         USE_MSSQL: ${USE_MSSQL:-false}
         LOG_CONFIG: ""
     ports:
-        - "8080:8080"
+      - "8080:8080"
     environment:
       DB_URI: "postgresql+psycopg2://postgres:pw@db:5432/postgres"
       SECRET_KEY: "not_a_good_secret_key"
@@ -81,23 +82,23 @@ services:
         condition: service_healthy
 
   algo-test-runner:
-      build:
-        context: tests/algorithm
-        dockerfile: Dockerfile.algo
-      env_file:
-        - tests/algorithm/algo.env
-      environment:
-        DB_URI: "postgresql+psycopg2://postgres:pw@db:5432/postgres"
-        API_URL: "http://api:8080/api"
-      volumes:
-        - ./tests/algorithm/scripts:/app/scripts
-        - ./tests/algorithm/data:/app/data
-        - ./tests/algorithm/results:/app/results
-        - ./tests/algorithm/configurations:/app/configurations
-      depends_on:
-        db:
-          condition: service_healthy
-        api:
-          condition: service_healthy
-      profiles:
-        - algo-test
+    build:
+      context: tests/algorithm
+      dockerfile: Dockerfile.algo
+    env_file:
+      - tests/algorithm/algo.env
+    environment:
+      DB_URI: "postgresql+psycopg2://postgres:pw@db:5432/postgres"
+      API_URL: "http://api:8080/api"
+    volumes:
+      - ./tests/algorithm/scripts:/app/scripts
+      - ./tests/algorithm/data:/app/data
+      - ./tests/algorithm/results:/app/results
+      - ./tests/algorithm/configurations:/app/configurations
+    depends_on:
+      db:
+        condition: service_healthy
+      api:
+        condition: service_healthy
+    profiles:
+      - algo-test

@@ -257,6 +257,7 @@ class TestPIIRecord:
             name=[
                 pii.Name(family="Doe", given=["John", "L"], suffix=["suffix"]),
                 pii.Name(family="Smith", given=["Jane"], suffix=["suffix2"]),
+                pii.Name(family="Smith", given=[]),
             ],
             telecom=[
                 pii.Telecom(value="555-123-4567"),
@@ -313,6 +314,12 @@ class TestPIIRecord:
         ) == ["john", "jane"]
         assert list(record.feature_iter(pii.Feature(attribute=pii.FeatureAttribute.LAST_NAME))) == [
             "doe",
+            "smith",
+            "smith",
+        ]
+        assert list(record.feature_iter(pii.Feature(attribute=pii.FeatureAttribute.NAME))) == [
+            "johndoe",
+            "janesmith",
             "smith",
         ]
         assert list(record.feature_iter(pii.Feature(attribute=pii.FeatureAttribute.NAME))) == [
@@ -515,6 +522,38 @@ class TestPIIRecord:
         )
         assert rec.blocking_keys(BlockingKey.FIRST_NAME) == {"jane"}
 
+    def test_blocking_keys_first_name_with_suffixes(self):
+        # Single name struct, single suffix
+        rec = pii.PIIRecord(**{"name": [{"given": ["Joel"], "family": "Miller", "suffix": ["Senior"]}]})
+        assert rec.blocking_keys(BlockingKey.FIRST_NAME) == {"srjo"}
+
+        # Single name struct, invalid suffix --> ignored
+        rec = pii.PIIRecord(**{"name": [{"given": ["Joel"], "family": "Miller", "suffix": ["invalid"]}]})
+        assert rec.blocking_keys(BlockingKey.FIRST_NAME) == {"joel"}
+
+        # Single name struct, multiple givens, single suffix
+        rec = pii.PIIRecord(**{"name": [{"given": ["Joel", "Tommy", "Sarah"], "family": "Miller", "suffix": ["Senior"]}]})
+        assert rec.blocking_keys(BlockingKey.FIRST_NAME) == {"srjo"}
+
+        # Single name struct, multiple suffixes
+        rec = pii.PIIRecord(**{"name": [{"given": ["Joel"], "family": "Miller", "suffix": ["Senior", "Junior"]}]})
+        assert rec.blocking_keys(BlockingKey.FIRST_NAME) == {"srjo"}
+
+        # Multiple name structs, each with suffix
+        rec = pii.PIIRecord(**{"name": [
+            {"given": ["Joel"], "family": "Miller", "suffix": ["Senior"]},
+            {"given": ["Tommy"], "family": "Miller", "suffix": ["Junior"]}
+        ]})
+        assert rec.blocking_keys(BlockingKey.FIRST_NAME) == {"srjo", "jrto"}
+        
+        # Multiple name structs, some with suffixes and some without
+        rec = pii.PIIRecord(**{"name": [
+            {"given": ["Joel"], "family": "Miller", "suffix": [""]},
+            {"given": ["Tommy"], "family": "Miller", "suffix": ["Junior"]},
+            {"given": ["Sarah"], "family": "Miller", "suffix": []}
+        ]})
+        assert rec.blocking_keys(BlockingKey.FIRST_NAME) == {"joel", "jrto", "sara"}
+
     def test_blocking_keys_last_name_first_four(self):
         rec = pii.PIIRecord(**{"last_name": "Doe"})
         assert rec.blocking_keys(BlockingKey.LAST_NAME) == set()
@@ -617,6 +656,31 @@ class TestPIIRecord:
                 assert val == "doe"
             else:
                 raise AssertionError(f"Unexpected key: {key}")
+
+
+class TestName:
+    def test_parse_suffix(self):
+        # No suffix specified
+        name = pii.Name(family="Smith", given=["Joel", "Miller"])
+        assert name.suffix == []
+
+        # Suffix is present in mapping
+        name = pii.Name(family="Smith", given=["Joel", "Miller"], suffix=["Senior"])
+        assert name.suffix == ["Sr"]
+
+        # Suffix is present but with weird casing
+        name = pii.Name(family="Smith", given=["Joel", "Miller"], suffix=["SR"])
+        assert name.suffix == ["Sr"]
+        name = pii.Name(family="Smith", given=["Joel", "Miller"], suffix=["jr"])
+        assert name.suffix == ["Jr"]
+
+        # Suffix not listed
+        name = pii.Name(family="Smith", given=["Joel", "Miller"], suffix=["invalid"])
+        assert name.suffix == ["invalid"]
+
+        # Multiple suffixes, mix of some in mapping and some not
+        name = pii.Name(family="Smith", given=["Joel", "Miller"], suffix=["Senior", "Jr.", "fake"])
+        assert name.suffix == ["Sr", "Jr", "fake"]
 
 
 class TestAddress:

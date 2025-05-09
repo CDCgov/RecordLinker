@@ -3,8 +3,15 @@ import unittest.mock
 from sqlalchemy.exc import OperationalError
 
 
+def test_root(client):
+    actual_response = client.get("/", follow_redirects=False)
+    assert actual_response.status_code == 307
+    assert actual_response.headers["Location"] == client.app.url_path_for("redoc_html")
+
+
 def test_health_check(client):
-    actual_response = client.get("/api")
+    health_url = client.app.url_path_for("health-check")
+    actual_response = client.get(health_url)
     assert actual_response.status_code == 200
     assert actual_response.json() == {"status": "OK"}
 
@@ -14,13 +21,14 @@ def test_health_check_unavailable(client):
     client.session.execute = unittest.mock.Mock(
         side_effect=OperationalError("mock error", None, None)
     )
-    actual_response = client.get("/api")
+    health_url = client.app.url_path_for("health-check")
+    actual_response = client.get(health_url)
     assert actual_response.status_code == 503
     assert actual_response.json() == {"detail": "Service Unavailable"}
 
 
 def test_openapi(client):
-    actual_response = client.get("/api/openapi.json")
+    actual_response = client.get(client.app.openapi_url)
     assert actual_response.status_code == 200
 
 def test_static_assets_not_found_when_ui_static_dir_unset(client):

@@ -60,16 +60,14 @@ if settings.ui_host:
 
 # FIXME: Change health check endpoint to /api/health
 api.include_router(health_router)
-api.include_router(link_router, tags=["link"])
-api.include_router(algorithm_router, prefix="/algorithm", tags=["algorithm"])
-api.include_router(person_router, prefix="/person", tags=["mpi"])
-api.include_router(patient_router, prefix="/patient", tags=["mpi"])
-api.include_router(seed_router, prefix="/seed", tags=["mpi"])
+app.include_router(link_router, tags=["link"])
+app.include_router(algorithm_router, prefix="/algorithm", tags=["algorithm"])
+app.include_router(person_router, prefix="/person", tags=["mpi"])
+app.include_router(patient_router, prefix="/patient", tags=["mpi"])
+app.include_router(seed_router, prefix="/seed", tags=["mpi"])
 api.include_router(demo_router, prefix="/demo", tags=["demo"])
 
-# FIXME: This is going to break the NBS integration, we need to communicate this
-# well in advance
-app.mount("/api", api)
+app.mount(settings.api_root_path, api)
 
 if settings.ui_static_dir:
 

@@ -21,8 +21,9 @@ class TestCorrelationIdMiddleware:
 
 class TestAccessLogMiddleware:
     def test_dispatch(self, client):
+        health_url = client.app.url_path_for("health-check")
         with unittest.mock.patch("recordlinker.middleware.ACCESS_LOGGER") as mock_logger:
-             response = client.get("/api")
+             response = client.get(health_url)
         # Verify the response
         assert response.status_code == 200
         assert response.json() == {"status": "OK"}
@@ -34,7 +35,7 @@ class TestAccessLogMiddleware:
         assert mock_logger.info.call_args[0][0] == expected
         assert mock_logger.info.call_args[0][1]["client_ip"] == "testclient"
         assert mock_logger.info.call_args[0][1]["method"] == "GET"
-        assert mock_logger.info.call_args[0][1]["path"] == "/api/"
+        assert mock_logger.info.call_args[0][1]["path"] == health_url
         assert mock_logger.info.call_args[0][1]["http_version"] == "1.1"
         assert mock_logger.info.call_args[0][1]["status_code"] == 200
         assert mock_logger.info.call_args[0][1]["process_time"] > 0
