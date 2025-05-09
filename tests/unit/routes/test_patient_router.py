@@ -12,7 +12,7 @@ from recordlinker import models
 
 class TestCreatePatient:
     def path(self, client):
-        return client.app.url_path_for("create-patient")
+        return client.app.url_path_for("api:create-patient")
 
     def test_missing_data(self, client):
         response = client.post(self.path(client))
@@ -55,7 +55,7 @@ class TestCreatePatient:
 
 class TestUpdatePatient:
     def path(self, client, _id):
-        return client.app.url_path_for("update-patient", patient_reference_id=_id)
+        return client.app.url_path_for("api:update-patient", patient_reference_id=_id)
 
     def test_missing_data(self, client):
         response = client.patch(self.path(client, uuid.uuid4()))
@@ -117,7 +117,7 @@ class TestUpdatePatient:
 
 class TestDeletePatient:
     def path(self, client, _id):
-        return client.app.url_path_for("delete-patient", patient_reference_id=_id)
+        return client.app.url_path_for("api:delete-patient", patient_reference_id=_id)
 
     def test_invalid_reference_id(self, client):
         response = client.delete(self.path(client, uuid.uuid4()))
@@ -141,7 +141,7 @@ class TestDeletePatient:
 
 class TestGetPatient:
     def path(self, client, _id):
-        return client.app.url_path_for("get-patient", patient_reference_id=_id)
+        return client.app.url_path_for("api:get-patient", patient_reference_id=_id)
 
     def test_invalid_reference_id(self, client):
         response = client.get(self.path(client, "123"))
@@ -186,7 +186,7 @@ class TestGetPatient:
 
 class TestGetOrphanedPatients:
     def path(self, client):
-        return client.app.url_path_for("get-orphaned-patients")
+        return client.app.url_path_for("api:get-orphaned-patients")
 
     def test_get_orphaned_patients(self, client):
         patient1 = models.Patient()

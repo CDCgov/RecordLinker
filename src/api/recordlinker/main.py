@@ -59,7 +59,7 @@ if settings.ui_host:
     app.add_middleware(GZipMiddleware, minimum_size=500, compresslevel=5)
 
 
-@api.get("/", name="api-root")
+@api.get("/", name="root")
 def api_root():
     """
     Redirect to the OpenAPI documentation.

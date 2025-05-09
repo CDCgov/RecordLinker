@@ -14,7 +14,7 @@ from recordlinker import models
 
 class TestBatch:
     def path(self, client):
-        return client.app.url_path_for("seed-batch")
+        return client.app.url_path_for("api:seed-batch")
 
     def test_empty_clusters(self, client):
         response = client.post(self.path(client), json={"clusters": []})
@@ -63,14 +63,14 @@ class TestBatch:
         assert seed_resp.status_code == 201
         persons = seed_resp.json()["persons"]
         assert len(persons) == 1
-        link_url = client.app.url_path_for("link-record")
+        link_url = client.app.url_path_for("api:link-record")
         response = client.post(link_url, json={"record": record})
         assert response.status_code == 200
 
 
 class TestReset:
     def path(self, client):
-        return client.app.url_path_for("seed-reset")
+        return client.app.url_path_for("api:seed-reset")
 
     def test_reset(self, client):
         person = models.Person()

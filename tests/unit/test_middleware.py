@@ -21,7 +21,7 @@ class TestCorrelationIdMiddleware:
 
 class TestAccessLogMiddleware:
     def test_dispatch(self, client):
-        health_url = client.app.url_path_for("health-check")
+        health_url = client.app.url_path_for("api:health-check")
         with unittest.mock.patch("recordlinker.middleware.ACCESS_LOGGER") as mock_logger:
              response = client.get(health_url)
         # Verify the response

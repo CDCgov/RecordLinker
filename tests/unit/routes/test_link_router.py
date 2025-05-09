@@ -57,7 +57,7 @@ def test_fhir_record_or_422():
 
 class TestLink:
     def path(self, client):
-        return client.app.url_path_for("link-record")
+        return client.app.url_path_for("api:link-record")
 
     @pytest.fixture
     def patients(self):
@@ -169,7 +169,7 @@ class TestLink:
 
 class TestLinkFHIR:
     def path(self, client):
-        return client.app.url_path_for("link-fhir")
+        return client.app.url_path_for("api:link-fhir")
 
     @mock.patch("recordlinker.database.algorithm_service.default_algorithm")
     def test_bundle_with_no_patient(self, patched_subprocess, default_algorithm, client):
@@ -322,7 +322,7 @@ class TestLinkFHIR:
 
 class TestMatch:
     def path(self, client):
-        return client.app.url_path_for("match-record")
+        return client.app.url_path_for("api:match-record")
 
     @pytest.fixture
     def patients(self) -> list[schemas.PIIRecord]:
@@ -353,7 +353,7 @@ class TestMatch:
     def test_match(self, client, default_algorithm, patients):
         algorithm_service.load_algorithm(client.session, default_algorithm)
         client.session.commit()
-        per1 = client.post(client.app.url_path_for("link-record"), json={"record": patients[0].to_dict(True)}).json()["person_reference_id"]
+        per1 = client.post(client.app.url_path_for("api:link-record"), json={"record": patients[0].to_dict(True)}).json()["person_reference_id"]
 
         resp = client.post(self.path(client), json={"record": patients[0].to_dict(True)})
         assert resp.status_code == status.HTTP_200_OK
@@ -368,7 +368,7 @@ class TestMatch:
 
 class TestMatchFHIR:
     def path(self, client):
-        return client.app.url_path_for("match-fhir")
+        return client.app.url_path_for("api:match-fhir")
 
     @pytest.fixture
     def patient_bundles(self) -> list[dict]:
@@ -399,7 +399,7 @@ class TestMatchFHIR:
     def test_match(self, client, default_algorithm, patient_bundles):
         algorithm_service.load_algorithm(client.session, default_algorithm)
         client.session.commit()
-        per1 = client.post(client.app.url_path_for("link-fhir"), json={"bundle": patient_bundles[0]}).json()["person_reference_id"]
+        per1 = client.post(client.app.url_path_for("api:link-fhir"), json={"bundle": patient_bundles[0]}).json()["person_reference_id"]
 
         resp = client.post(self.path(client), json={"bundle": patient_bundles[0]})
         assert resp.status_code == status.HTTP_200_OK

@@ -12,7 +12,7 @@ from recordlinker import models
 
 class TestCreatePerson:
     def path(self, client):
-        return client.app.url_path_for("create-person")
+        return client.app.url_path_for("api:create-person")
 
     def test_invalid_patient_id(self, client):
         response = client.post(self.path(client), json={"patients": ["123"]})
@@ -39,7 +39,7 @@ class TestCreatePerson:
 
 class TestUpdatePerson:
     def path(self, client, _id):
-        return client.app.url_path_for("update-person", person_reference_id=_id)
+        return client.app.url_path_for("api:update-person", person_reference_id=_id)
 
     def test_invalid_person_id(self, client):
         response = client.patch(self.path(client, "123"))
@@ -90,7 +90,7 @@ class TestUpdatePerson:
 
 class TestGetPerson:
     def path(self, client, _id):
-        return client.app.url_path_for("get-person", person_reference_id=_id)
+        return client.app.url_path_for("api:get-person", person_reference_id=_id)
 
     def test_invalid_person_id(self, client):
         response = client.get(self.path(client, "123"))
@@ -130,7 +130,7 @@ class TestGetPerson:
 
 class TestMergePersonClusters:
     def path(self, client, _id):
-        return client.app.url_path_for("merge-person-clusters", merge_into_id=_id)
+        return client.app.url_path_for("api:merge-person-clusters", merge_into_id=_id)
 
     def testMergePersonClustersSuccess(self, client):
         person1 = models.Person()
@@ -215,7 +215,7 @@ class TestMergePersonClusters:
 
 class TestDeleteEmptyPerson:
     def path(self, client, _id):
-        return client.app.url_path_for("delete-empty-person", person_reference_id=_id)
+        return client.app.url_path_for("api:delete-empty-person", person_reference_id=_id)
 
     def testDeleteEmptyPerson(self, client):
         person = models.Person()
@@ -245,7 +245,7 @@ class TestDeleteEmptyPerson:
 
 class TestGetOrphanedPersons:
     def path(self, client):
-        return client.app.url_path_for("get-orphaned-persons")
+        return client.app.url_path_for("api:get-orphaned-persons")
 
     def testGetOrphanedPersons(self, client):
         person1 = models.Person()

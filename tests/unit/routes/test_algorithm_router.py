@@ -10,7 +10,7 @@ from recordlinker import models
 
 class TestListAlgorithms:
     def path(self, client):
-        return client.app.url_path_for("list-algorithms")
+        return client.app.url_path_for("api:list-algorithms")
 
     def test_list(self, client):
         algo1 = models.Algorithm(label="default", is_default=True, description="First algorithm")
@@ -42,7 +42,7 @@ class TestListAlgorithms:
 
 class TestGetAlgorithm:
     def path(self, client, label):
-        return client.app.url_path_for("get-algorithm", label=label)
+        return client.app.url_path_for("api:get-algorithm", label=label)
 
     def test_404(self, client):
         response = client.get(self.path(client, "unknown"))
@@ -117,7 +117,7 @@ class TestGetAlgorithm:
 
 class TestCreateAlgorithm:
     def path(self, client):
-        return client.app.url_path_for("create-algorithm")
+        return client.app.url_path_for("api:create-algorithm")
 
     def test_invalid_data(self, client):
         response = client.post(self.path(client), json={})
@@ -205,7 +205,7 @@ class TestCreateAlgorithm:
 
 class TestUpdateAlgorithm:
     def path(self, client, label):
-        return client.app.url_path_for("update-algorithm", label=label)
+        return client.app.url_path_for("api:update-algorithm", label=label)
 
     def test_404(self, client):
         payload = {
@@ -318,7 +318,7 @@ class TestUpdateAlgorithm:
 
 class TestDeleteAlgorithm:
     def path(self, client, label):
-        return client.app.url_path_for("delete-algorithm", label=label)
+        return client.app.url_path_for("api:delete-algorithm", label=label)
 
     def test_404(self, client):
         response = client.delete(self.path(client, "unknown"))
