@@ -9,30 +9,43 @@ from recordlinker import models
 
 
 class TestListAlgorithms:
+    def path(self, client):
+        return client.app.url_path_for("api:list-algorithms")
+
     def test_list(self, client):
         algo1 = models.Algorithm(label="default", is_default=True, description="First algorithm")
         client.session.add(algo1)
         client.session.commit()
 
-        response = client.get("/api/algorithm")
+        response = client.get(self.path(client))
         assert response.status_code == 200
         assert response.json() == [
             {
                 "label": "default",
                 "is_default": True,
                 "description": "First algorithm",
-                "include_multiple_matches": True,
-                "max_missing_allowed_proportion": 0.5,
-                "missing_field_points_proportion": 0.5,
-                "skip_values": [],
+                "algorithm_context": {
+                    "include_multiple_matches": True,
+                    "log_odds": [],
+                    "skip_values": [],
+                    "advanced": {
+                        "fuzzy_match_threshold": 0.9,
+                        "fuzzy_match_measure": "JaroWinkler",
+                        "max_missing_allowed_proportion": 0.5,
+                        "missing_field_points_proportion": 0.5,
+                    }
+                },
                 "pass_count": 0,
             },
         ]
 
 
 class TestGetAlgorithm:
+    def path(self, client, label):
+        return client.app.url_path_for("api:get-algorithm", label=label)
+
     def test_404(self, client):
-        response = client.get("/api/algorithm/unknown")
+        response = client.get(self.path(client, "unknown"))
         assert response.status_code == 404
 
     def test_get(self, client):
@@ -40,42 +53,49 @@ class TestGetAlgorithm:
             label="default",
             is_default=True,
             description="First algorithm",
-            max_missing_allowed_proportion=0.5,
-            missing_field_points_proportion=0.5,
-            skip_values=[
-                {"feature": "*", "values": ["unknown"]},
-            ],
-            passes=[
-                models.AlgorithmPass(
-                    blocking_keys=[
-                        "BIRTHDATE",
-                    ],
-                    evaluators=[
-                        {
-                            "feature": "FIRST_NAME",
-                            "func": "COMPARE_PROBABILISTIC_FUZZY_MATCH",
-                        },
-                    ],
-                    possible_match_window=(0.75, 1.0),
-                    kwargs={"similarity_measure": "JaroWinkler", "log_odds": {"FIRST_NAME": 6.8}},
-                )
-            ],
+            algorithm_context={
+                "log_odds": [
+                    {"feature": "FIRST_NAME", "value": 6.8},
+                    {"feature": "BIRTHDATE", "value": 10.0}
+                ],
+                "skip_values": [
+                    {"feature": "*", "values": ["unknown"]},
+                ],
+            },
+            passes=[{
+                "blocking_keys": ["BIRTHDATE"],
+                "evaluators": [{
+                    "feature": "FIRST_NAME",
+                    "func": "COMPARE_PROBABILISTIC_FUZZY_MATCH",
+                }],
+                "possible_match_window": (0.75, 1.0),
+            }],
         )
         client.session.add(algo)
         client.session.commit()
 
-        response = client.get(f"/api/algorithm/{algo.label}")
+        response = client.get(self.path(client, algo.label))
         assert response.status_code == 200
         assert response.json() == {
             "label": "default",
             "is_default": True,
             "description": "First algorithm",
-            "include_multiple_matches": True,
-            "max_missing_allowed_proportion": 0.5,
-            "missing_field_points_proportion": 0.5,
-            "skip_values": [
-                {"feature": "*", "values": ["unknown"]},
-            ],
+            "algorithm_context": {
+                "include_multiple_matches": True,
+                "log_odds": [
+                    {"feature": "FIRST_NAME", "value": 6.8},
+                    {"feature": "BIRTHDATE", "value": 10.0}
+                ],
+                "skip_values": [
+                    {"feature": "*", "values": ["unknown"]},
+                ],
+                "advanced": {
+                    "fuzzy_match_threshold": 0.9,
+                    "fuzzy_match_measure": "JaroWinkler",
+                    "max_missing_allowed_proportion": 0.5,
+                    "missing_field_points_proportion": 0.5,
+                }
+            },
             "passes": [
                 {
                     "label": "BLOCK_birthdate_MATCH_first_name",
@@ -85,21 +105,22 @@ class TestGetAlgorithm:
                         {
                             "feature": "FIRST_NAME",
                             "func": "COMPARE_PROBABILISTIC_FUZZY_MATCH",
+                            "fuzzy_match_threshold": None,
+                            "fuzzy_match_measure": None,
                         }
                     ],
-                    "possible_match_window": [0.75, 1.0],
-                    "kwargs": {
-                        "similarity_measure": "JaroWinkler",
-                        "log_odds": {"FIRST_NAME": 6.8}
-                    },
+                    "possible_match_window": [0.75, 1.0]
                 }
             ],
         }
 
 
 class TestCreateAlgorithm:
+    def path(self, client):
+        return client.app.url_path_for("api:create-algorithm")
+
     def test_invalid_data(self, client):
-        response = client.post("/api/algorithm", json={})
+        response = client.post(self.path(client), json={})
         assert response.status_code == 422
 
     def test_exsiting_default(self, client):
@@ -111,10 +132,9 @@ class TestCreateAlgorithm:
             "label": "advanced",
             "is_default": True,
             "description": "Advanced algorithm",
-            "belongingness_ratio": (0.25, 0.5),
             "passes": [],
         }
-        response = client.post("/api/algorithm", json=payload)
+        response = client.post(self.path(client), json=payload)
         assert response.status_code == 422
 
     def test_existing_label(self, client):
@@ -124,11 +144,10 @@ class TestCreateAlgorithm:
 
         payload = {
             "label": "first",
-            "belongingness_ratio": (0.25, 0.5),
             "description": "Second algorithm",
             "passes": [],
         }
-        response = client.post("/api/algorithm", json=payload)
+        response = client.post(self.path(client), json=payload)
         assert response.status_code == 422
 
     def test_create(self, client):
@@ -137,6 +156,12 @@ class TestCreateAlgorithm:
             "description": "Created algorithm",
             "max_missing_allowed_proportion": 0.5,
             "missing_field_points_proportion": 0.5,
+            "algorithm_context": {
+                "log_odds": [
+                    {"feature": "FIRST_NAME", "value": 6.8},
+                    {"feature": "BIRTHDATE", "value": 10.0}
+                ],
+            },
             "passes": [
                 {
                     "blocking_keys": [
@@ -152,7 +177,7 @@ class TestCreateAlgorithm:
                 }
             ],
         }
-        response = client.post("/api/algorithm", json=payload)
+        response = client.post(self.path(client), json=payload)
         assert response.status_code == 201
 
         algo = (
@@ -161,21 +186,27 @@ class TestCreateAlgorithm:
         assert algo.label == "created"
         assert algo.is_default is False
         assert algo.description == "Created algorithm"
-        assert algo.max_missing_allowed_proportion == 0.5
-        assert algo.missing_field_points_proportion == 0.5
         assert len(algo.passes) == 1
-        assert algo.passes[0].blocking_keys == ["BIRTHDATE"]
-        assert algo.passes[0].evaluators == [
-            {
-                "feature": "FIRST_NAME",
-                "func": "COMPARE_PROBABILISTIC_FUZZY_MATCH",
-            }
-        ]
-        assert algo.passes[0].possible_match_window == (0.75, 1.0)
-        assert algo.passes[0].kwargs == {}
+        assert algo.passes[0] == {
+            "label": "BLOCK_birthdate_MATCH_first_name",
+            "description": None,
+            "blocking_keys": ["BIRTHDATE"],
+            "evaluators": [
+                {
+                    "feature": "FIRST_NAME",
+                    "func": "COMPARE_PROBABILISTIC_FUZZY_MATCH",
+                    "fuzzy_match_threshold": None,
+                    "fuzzy_match_measure": None,
+                }
+            ],
+            "possible_match_window": [0.75, 1.0]
+        }
 
 
 class TestUpdateAlgorithm:
+    def path(self, client, label):
+        return client.app.url_path_for("api:update-algorithm", label=label)
+
     def test_404(self, client):
         payload = {
             "label": "bad",
@@ -184,7 +215,7 @@ class TestUpdateAlgorithm:
             "missing_field_points_proportion": 0.5,
             "passes": [],
         }
-        response = client.put("/api/algorithm/unknown", json=payload)
+        response = client.put(self.path(client, "unknown"), json=payload)
         assert response.status_code == 404
 
     def test_invalid_data(self, client):
@@ -192,7 +223,7 @@ class TestUpdateAlgorithm:
         client.session.add(algo)
         client.session.commit()
 
-        response = client.put("/api/algorithm/default", json={})
+        response = client.put(self.path(client, algo.label), json={})
         assert response.status_code == 422
 
     def test_exsiting_default(self, client):
@@ -208,7 +239,7 @@ class TestUpdateAlgorithm:
             "description": "new default algorithm",
             "passes": [],
         }
-        response = client.post("/api/algorithm", json=payload)
+        response = client.put(self.path(client, algo2.label), json=payload)
         assert response.status_code == 422
 
     def test_update(self, client):
@@ -220,8 +251,16 @@ class TestUpdateAlgorithm:
             "label": "default",
             "is_default": True,
             "description": "Updated algorithm",
-            "max_missing_allowed_proportion": 0.5,
-            "missing_field_points_proportion": 0.5,
+            "algorithm_context": {
+                "log_odds": [
+                    {"feature": "FIRST_NAME", "value": 6.8},
+                    {"feature": "BIRTHDATE", "value": 10.0}
+                ],
+                "advanced": {
+                    "max_missing_allowed_proportion": 0.6,
+                    "missing_field_points_proportion": 0.6,
+                }
+            },
             "passes": [
                 {
                     "blocking_keys": [
@@ -237,7 +276,7 @@ class TestUpdateAlgorithm:
                 }
             ],
         }
-        response = client.put("/api/algorithm/default", json=payload)
+        response = client.put(self.path(client, algo.label), json=payload)
         assert response.status_code == 200
 
         algo = (
@@ -246,23 +285,43 @@ class TestUpdateAlgorithm:
         assert algo.label == "default"
         assert algo.is_default is True
         assert algo.description == "Updated algorithm"
-        assert algo.max_missing_allowed_proportion == 0.5
-        assert algo.missing_field_points_proportion == 0.5
-        assert len(algo.passes) == 1
-        assert algo.passes[0].blocking_keys == ["BIRTHDATE"]
-        assert algo.passes[0].evaluators == [
-            {
-                "feature": "FIRST_NAME",
-                "func": "COMPARE_PROBABILISTIC_FUZZY_MATCH",
+        assert algo.algorithm_context == {
+            "include_multiple_matches": True,
+            "log_odds": [
+                {"feature": "FIRST_NAME", "value": 6.8},
+                {"feature": "BIRTHDATE", "value": 10.0}
+            ],
+            "skip_values": [],
+            "advanced": {
+                "fuzzy_match_threshold": 0.9,
+                "fuzzy_match_measure": "JaroWinkler",
+                "max_missing_allowed_proportion": 0.6,
+                "missing_field_points_proportion": 0.6,
             }
-        ]
-        assert algo.passes[0].possible_match_window == (0.75, 1.0)
-        assert algo.passes[0].kwargs == {}
+        }
+        assert len(algo.passes) == 1
+        assert algo.passes[0] == {
+            "label": "BLOCK_birthdate_MATCH_first_name",
+            "description": None,
+            "blocking_keys": ["BIRTHDATE"],
+            "evaluators": [
+                {
+                    "feature": "FIRST_NAME",
+                    "func": "COMPARE_PROBABILISTIC_FUZZY_MATCH",
+                    "fuzzy_match_threshold": None,
+                    "fuzzy_match_measure": None,
+                }
+            ],
+            "possible_match_window": (0.75, 1.0)
+        }
 
 
 class TestDeleteAlgorithm:
+    def path(self, client, label):
+        return client.app.url_path_for("api:delete-algorithm", label=label)
+
     def test_404(self, client):
-        response = client.delete("/api/algorithm/unknown")
+        response = client.delete(self.path(client, "unknown"))
         assert response.status_code == 404
 
     def test_delete(self, client):
@@ -270,7 +329,7 @@ class TestDeleteAlgorithm:
         client.session.add(algo)
         client.session.commit()
 
-        response = client.delete("/api/algorithm/default")
+        response = client.delete(self.path(client, algo.label))
         assert response.status_code == 204
 
         algo = (

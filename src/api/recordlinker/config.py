@@ -61,6 +61,10 @@ class Settings(pydantic_settings.BaseSettings):
         ),
         default="assets/initial_algorithms.json",
     )
+    api_root_path: str = pydantic.Field(
+        description="The root path for the API",
+        default="/api",
+    )
     ui_host: str = pydantic.Field(
         description="The hostname and port for the development UI server",
         default="",
@@ -126,6 +130,21 @@ class Settings(pydantic_settings.BaseSettings):
                 msg = f"Error loading log configuration: {self.log_config}"
                 raise ConfigurationError(msg) from exc
         logging.config.dictConfig(config or self.default_log_config())
+
+    @pydantic.field_validator("api_root_path", mode="before")
+    @classmethod
+    def normalize_api_root_path(cls, val: str) -> str:
+        """
+        Normalize the API root path.
+        """
+        if val is not None:
+            if not val.startswith("/"):
+                val = f"/{val}"
+            if len(val) > 1 and val.endswith("/"):
+                val = val[:-1]
+            if val == "/":
+                raise ValueError("API root path cannot be '/'")
+        return val
 
 
 settings = Settings()  # type: ignore

@@ -1,6 +1,7 @@
 import os.path
 
 import fastapi
+from fastapi import responses
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.staticfiles import StaticFiles
@@ -18,7 +19,7 @@ from recordlinker.routes.patient_router import router as patient_router
 from recordlinker.routes.person_router import router as person_router
 from recordlinker.routes.seed_router import router as seed_router
 
-app = fastapi.FastAPI(title="Record Linker", version=__version__)
+app = fastapi.FastAPI(title="Record Linker", version=__version__, openapi_url=None)
 api = fastapi.FastAPI(
     title="Record Linker API",
     version=__version__,
@@ -58,8 +59,15 @@ if settings.ui_host:
     app.add_middleware(GZipMiddleware, minimum_size=500, compresslevel=5)
 
 
-# FIXME: Change health check endpoint to /api/health
-api.include_router(health_router)
+@api.get("/", name="root", include_in_schema=False)
+def api_root():
+    """
+    Redirect to the OpenAPI documentation.
+    """
+    return responses.RedirectResponse(url=app.url_path_for("api:redoc_html"))
+
+
+api.include_router(health_router, prefix="/health")
 api.include_router(link_router, tags=["link"])
 api.include_router(algorithm_router, prefix="/algorithm", tags=["algorithm"])
 api.include_router(person_router, prefix="/person", tags=["mpi"])
@@ -67,9 +75,7 @@ api.include_router(patient_router, prefix="/patient", tags=["mpi"])
 api.include_router(seed_router, prefix="/seed", tags=["mpi"])
 api.include_router(demo_router, prefix="/demo", tags=["demo"])
 
-# FIXME: This is going to break the NBS integration, we need to communicate this
-# well in advance
-app.mount("/api", api)
+app.mount(settings.api_root_path, api, name="api")
 
 if settings.ui_static_dir:
 
@@ -98,5 +104,5 @@ if settings.ui_static_dir:
     app.mount(
         "/",
         StaticFiles(directory=os.path.join(settings.ui_static_dir), html=True),
-        name="SpaStatic",
+        name="static",
     )

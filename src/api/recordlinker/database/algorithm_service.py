@@ -72,7 +72,6 @@ def load_algorithm(
     :returns: The algorithm object and a boolean indicating if it was created
     """
     algo = data.model_dump()
-    passes = algo.pop("passes")
     # use the existing Algorithm or create a new one
     created = obj is None
     obj = obj or models.Algorithm()
@@ -81,10 +80,7 @@ def load_algorithm(
         setattr(obj, key, value)
     if created:
         session.add(obj)
-    # Delete the existing AlgorithmPasses
-    session.execute(delete(models.AlgorithmPass).where(models.AlgorithmPass.algorithm_id == obj.id))
-    # Create and add the AlgorithmPasses
-    session.add_all([models.AlgorithmPass(**p, algorithm=obj) for p in passes])
+    session.flush()
 
     if commit:
         session.commit()
@@ -111,7 +107,6 @@ def clear_algorithms(session: orm.Session, commit: bool = False) -> None:
     :param session: The database session
     :param commit: Commit the transaction
     """
-    session.execute(delete(models.AlgorithmPass))
     session.execute(delete(models.Algorithm))
     if commit:
         session.commit()

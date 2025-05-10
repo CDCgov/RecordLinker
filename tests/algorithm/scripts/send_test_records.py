@@ -5,7 +5,7 @@ import requests
 from helpers import dict_to_pii
 
 
-def send_test_records(test_csv, algorithm_name, api_url):
+def send_test_records(test_csv, algorithm_name, api_url, output_file):
     output_data = []
 
     print("Sending test records to the API...")
@@ -47,14 +47,14 @@ def send_test_records(test_csv, algorithm_name, api_url):
             output_data.append(output_row)
     
     # Save output data to the output file
-    with open("results/output.csv", mode='w', newline='', encoding='utf-8') as file:
+    with open(output_file, mode='w', newline='', encoding='utf-8') as file:
         fieldnames = ["Test Case #", "Expected Result", "Match Result", "Details"]
         writer = csv.DictWriter(file, fieldnames=fieldnames)
 
         writer.writeheader()
         writer.writerows(output_data)
 
-    print("Results saved to results/output.csv")
+    print("Results saved to", output_file)
 
 def send_record(pii_record, algorithm_name, api_url):
     """Helper function to send record to the API to be linked."""

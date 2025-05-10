@@ -77,7 +77,7 @@ __pycache__/
 # Test result files
 output.csv
 
-# SPA
+# Next.js
 .next
 src/ui/.next
 src/ui/node_modules

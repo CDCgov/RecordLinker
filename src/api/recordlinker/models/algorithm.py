@@ -33,31 +33,8 @@ class Algorithm(Base):
     is_default: orm.Mapped[bool] = orm.mapped_column(default=False, index=True)
     label: orm.Mapped[str] = orm.mapped_column(sqltypes.String(255), unique=True)
     description: orm.Mapped[str] = orm.mapped_column(sqltypes.Text(), nullable=True)
-    include_multiple_matches: orm.Mapped[bool] = orm.mapped_column(sqltypes.Boolean, default=True)
-    passes: orm.Mapped[list["AlgorithmPass"]] = orm.relationship(
-        back_populates="algorithm", cascade="all, delete-orphan"
-    )
-    max_missing_allowed_proportion: orm.Mapped[float] = orm.mapped_column(
-        sqltypes.Float, default=0.5
-    )
-    missing_field_points_proportion: orm.Mapped[float] = orm.mapped_column(
-        sqltypes.Float, default=0.5
-    )
-    skip_values: orm.Mapped[list[dict]] = orm.mapped_column(sqltypes.JSON, default=list)
-
-    @classmethod
-    def from_dict(cls, **data: dict) -> "Algorithm":
-        """
-        Create an instance of Algorithm from a dictionary.
-
-        Parameters:
-        data: The dictionary containing the data for the Algorithm instance.
-
-        Returns:
-        The Algorithm instance.
-        """
-        passes = [AlgorithmPass(**p) for p in data.pop("passes", [])]
-        return cls(passes=passes, **data)
+    algorithm_context: orm.Mapped[dict] = orm.mapped_column(sqltypes.JSON, default=dict)
+    passes: orm.Mapped[list[dict]] = orm.mapped_column(sqltypes.JSON, default=list)
 
 
 def check_only_one_default(mapping, connection, target):
@@ -89,75 +66,6 @@ event.listen(Algorithm, "before_insert", check_only_one_default)
 event.listen(Algorithm, "before_update", check_only_one_default)
 
 
-class AlgorithmPass(Base):
-    __tablename__ = "algorithm_pass"
-
-    id: orm.Mapped[int] = orm.mapped_column(primary_key=True)
-    label: orm.Mapped[str] = orm.mapped_column(sqltypes.String(255), nullable=True)
-    description: orm.Mapped[str] = orm.mapped_column(sqltypes.Text(), nullable=True)
-    algorithm_id: orm.Mapped[int] = orm.mapped_column(
-        schema.ForeignKey(f"{Algorithm.__tablename__}.id", ondelete="CASCADE")
-    )
-    algorithm: orm.Mapped["Algorithm"] = orm.relationship(back_populates="passes")
-    blocking_keys: orm.Mapped[list[str]] = orm.mapped_column(sqltypes.JSON)
-    minimum_match_threshold: orm.Mapped[float] = orm.mapped_column(sqltypes.Float, default=1.0)
-    certain_match_threshold: orm.Mapped[float] = orm.mapped_column(sqltypes.Float, default=1.0)
-    _evaluators: orm.Mapped[list[dict]] = orm.mapped_column("evaluators", sqltypes.JSON)
-    kwargs: orm.Mapped[dict] = orm.mapped_column(sqltypes.JSON, default=dict)
-
-    @property
-    def possible_match_window(self) -> tuple[float, float]:
-        """
-        Get the Possible Match Window for this algorithm pass.
-        """
-        return (self.minimum_match_threshold, self.certain_match_threshold)
-
-    @possible_match_window.setter  # type: ignore
-    def possible_match_window(self, value: tuple[float, float]):
-        """
-        Set the Possible Match Window for this algorithm pass. The Possible Match Window
-        is made up of the interval between the Minimum Match Threshold and the Certain
-        Match Threshold.
-        """
-        self.minimum_match_threshold, self.certain_match_threshold = value
-
-    @property
-    def evaluators(self) -> list[dict]:
-        """
-        Get the evaluators for this algorithm pass.
-        """
-        return self._evaluators
-
-    @evaluators.setter  # type: ignore
-    def evaluators(self, value: list[dict]):
-        """
-        Set the evaluators for this algorithm pass.
-        """
-        self._evaluators = value
-        if hasattr(self, "_bound_evaluators"):
-            del self._bound_evaluators
-
-    def bound_evaluators(self) -> list[BoundEvaluator]:
-        """
-        Get the evaluators for this algorithm pass, bound to the algorithm.
-        """
-        # NOTE: This is a temp fix to avoid circular import,
-        # this will be removed when issue #223 is completed
-        from recordlinker.linking import matchers
-
-        if not hasattr(self, "_bound_evaluators"):
-            self._bound_evaluators: list[BoundEvaluator] = []
-            for e in self.evaluators:
-                try:
-                    fn = getattr(matchers.FeatureFunc, e["func"]).callable()
-                except AttributeError:
-                    raise ValueError("Failed to convert string to callable")
-                self._bound_evaluators.append(
-                    BoundEvaluator(**{"feature": e["feature"], "func": fn})
-                )
-        return self._bound_evaluators
-
-
 @event.listens_for(schema.MetaData, "after_create")
 def create_initial_algorithms(target, connection, **kw) -> typing.List[Algorithm] | None:
     """
@@ -177,7 +85,7 @@ def create_initial_algorithms(target, connection, **kw) -> typing.List[Algorithm
         try:
             # Only load the algorithms if there are none in the database
             if session.query(Algorithm).count() == 0:
-                objs = [Algorithm.from_dict(**algo) for algo in data]
+                objs = [Algorithm(**algo) for algo in data]
                 session.add_all(objs)
                 session.commit()
                 LOGGER.info(f"Created {len(objs)} initial algorithms.")

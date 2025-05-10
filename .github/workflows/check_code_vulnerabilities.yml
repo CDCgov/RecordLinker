@@ -34,6 +34,3 @@ jobs:
       uses: github/codeql-action/analyze@v3
       with:
         category: "/language:${{matrix.language}}"
-        config: |
-          # only scan the code in the src directory
-          paths: ["src"]

@@ -83,6 +83,14 @@ Each setting can be configured as follows:
 
     **Development Default**: `assets/initial_algorithms.json`
 
+`API_ROOT_PATH (Optional)`
+
+:   Root path from which the Record Linker API will be exposed.
+
+    **Docker Default**: `/api`
+
+    **Development Default**: `/api`
+
 `UI_HOST (Optional)`
 
 :   Hostname of the UI server used to generate HTML in development mode.  This should
@@ -135,7 +143,7 @@ drivers are installed allowing for connections to:
 
     Example: `mysql+pymysql://user:password@localhost/dbname`
 
-- **[pyodbc](https://github.com/mkleehammer/pyodbc/wiki) (sqlite)**
+- **[pyodbc](https://github.com/mkleehammer/pyodbc/wiki) (sql server)**
 
     Example: `mssql+pyodbc://user:password@localhost/dbname?driver=ODBC+Driver+18+for+SQL+Server&TrustServerCertificate=yes`
 

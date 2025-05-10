@@ -14,7 +14,7 @@ linkage evaluation phase. The following features are supported:
 `BIRTHDATE`
 
 :   The patient's birthdate (normalized to `YYYY-MM-DD`). If a birthdate with an ambiguous (i.e. 
-given as a two-digit year, rather than as four digits) year is provided, RecordLinker parses the 
+given as a two-digit year, rather than as four digits) year is provided, Record Linker parses the 
 birthdate as `19XX` if the given year is after the two-digit year of the current calendar year 
 (`47`, for example, would become `1947`), and parses the birthdate as `20XX` otherwise (`08` and
 `25` would become `2008` and `2025`, respectively). If a patient's birthdate is given as a date 
@@ -42,7 +42,7 @@ in the future, parsing the birthdate will generate an error message and result i
 
 `NAME`
 
-:   The patient's full name. (We recommend only using this field for checking skip values, for feature matching we recommend using `FIRST_NAME` and `LAST_NAME` for best results)
+:   The patient's first and last name. (We recommend only using this field for checking skip values, for feature matching we recommend using `FIRST_NAME` and `LAST_NAME` for best results)
 
 `SUFFIX`
 
@@ -108,7 +108,7 @@ patient data and used during query retrieval. The following blocking key types a
 
 `FIRST_NAME` (ID: **5**)
 
-:   The first 4 characters of the patient's first name.
+:   The first 4 characters of the patient's first name. If the patient's name has a suffix, such as Jr. or Sr., then during blocking, a normalized abbreviation of this suffix is prepended to the patient's name before taking the first four characters. For example, "Michael Senior" would become "srmi" for blocking purposes.
 
 `LAST_NAME` (ID: **6**)
 
@@ -152,8 +152,7 @@ In that case we'd want to evaluate "123 Main St" against both "123 Main Street" 
     the particular field with which it was called. If the two fields do not exactly agree, the function returns
     0.0. This is useful when performing probabilistic comparisons (which score a possible match's strength by
     accumulating a sum of link weights) on fields for which fuzzy similarity doesn't make sense, such as fields
-    defined by an enum (e.g. Sex). Use the kwargs parameter to specify the log-odds ratios based on training.
-    Example: `{"kwargs": {"log_odds": {"SEX": 6.8}}}`
+    defined by an enum (e.g. Sex).
 
 `COMPARE_PROBABILISTIC_FUZZY_MATCH`
 
@@ -161,11 +160,10 @@ In that case we'd want to evaluate "123 Main St" against both "123 Main Street" 
     probabilistically. This is useful when wanting to more robustly compare features by incorporating
     their predictive power (i.e., the log-odds ratio for a feature represents how powerful of a predictor
     that feature is in determining whether two patient records are a true match, as opposed to a match
-    by random chance). Use the kwargs parameter to specify the fuzzy match threshold and log-odds ratio
-    based on training. Example: `{"kwargs": {"thresholds": {"FIRST_NAME": 0.8}, "log_odds": {"FIRST_NAME": 6.8}}}`
+    by random chance).
 
 One important caveat for both of these Feature Functions is how they handle patient
-records with missing information in one or more fields.  RecordLinker provides the option 
+records with missing information in one or more fields.  Record Linker provides the option 
 to match records that are missing some data, e.g., Field X, with other records for which that 
 data (Field X) is present. In order to enable this possibility, and to avoid overly penalizing 
 records which may be strong matches but simply have data omitted due to collection 
@@ -173,3 +171,40 @@ methods, both of these feature functions include a partial log-odds weighting. I
 records being compared is missing data for a field, each of the above functions returns exactly 
 half the log-odds weight for the field overall, along with a boolean flag indicating that data was 
 missing during comparison.
+
+
+### Skip Values
+
+There are instances where placeholder values are used in fields to indicate missing data.
+In such cases, comparing two placeholder fields is inaccurate, as the presence of missing
+data in both documents does not imply they belong to the same individual. Record Linker `skip_values`
+allows users to specify conditions under which these values should be excluded from comparisons.
+
+Each `skip_value` has two properties, a `feature` and a `values`.  The `feature` specifies the
+field to which the condition applies, any value from the [Features](#features) list may be used.
+Additionally a `*` wildcard can be used in the `feature` field to apply the condition to all
+fields. The `values` property accepts a list of case-insensitive values to skip. 
+
+**Example:**
+
+```json
+"skip_values": [
+  {
+    "feature": "NAME",
+    "values": ["John Doe", "Jane Doe"]
+  },
+  {
+    "feature": "IDENTIFIER:SS",
+    "values": ["999-99-9999"]
+  },
+  {
+    "feature": "*",
+    "values": ["unknown", "not specified"]
+  }
+]
+```
+
+In this example, the algorithm will exclude fields from comparison if they match:
+- `John Doe` or `Jane Doe` in the patient's name
+- `999-99-9999` in the patient's social security number
+- `unknown` or `not specified` in any patient field

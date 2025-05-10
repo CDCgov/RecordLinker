@@ -64,6 +64,12 @@ class TestLoadAlgorithm:
             description="First algorithm",
             max_missing_allowed_proportion=0.5,
             missing_field_points_proportion=0.5,
+            algorithm_context={
+                "log_odds": [
+                    {"feature": "FIRST_NAME", "value": 6.8},
+                    {"feature": "ZIP", "value": 5.0},
+                ]
+            },
             passes=[
                 schemas.AlgorithmPass(
                     blocking_keys=["FIRST_NAME"],
@@ -84,15 +90,35 @@ class TestLoadAlgorithm:
         assert obj.id == 1
         assert obj.label == "dibbs-test"
         assert obj.description == "First algorithm"
-        assert obj.max_missing_allowed_proportion == 0.5
-        assert obj.missing_field_points_proportion == 0.5
+        assert obj.algorithm_context == {
+            "include_multiple_matches": True,
+            "log_odds": [
+                {"feature": "FIRST_NAME", "value": 6.8},
+                {"feature": "ZIP", "value": 5.0},
+            ],
+            "skip_values": [],
+            "advanced": {
+                "fuzzy_match_threshold": 0.9,
+                "fuzzy_match_measure": "JaroWinkler",
+                "max_missing_allowed_proportion": 0.5,
+                "missing_field_points_proportion": 0.5,
+            },
+        }
         assert len(obj.passes) == 1
-        assert obj.passes[0].algorithm_id == 1
-        assert obj.passes[0].blocking_keys == ["FIRST_NAME"]
-        assert obj.passes[0].evaluators == [
-            {"feature": "ZIP", "func": "COMPARE_PROBABILISTIC_FUZZY_MATCH"}
-        ]
-        assert obj.passes[0].possible_match_window == (0.75, 1.0)
+        assert obj.passes[0] == {
+            "label": "BLOCK_first_name_MATCH_zip",
+            "description": None,
+            "blocking_keys": ["FIRST_NAME"],
+            "evaluators": [
+                {
+                    "feature": "ZIP",
+                    "func": "COMPARE_PROBABILISTIC_FUZZY_MATCH",
+                    "fuzzy_match_threshold": None,
+                    "fuzzy_match_measure": None,
+                }
+            ],
+            "possible_match_window": (0.75, 1.0)
+        }
 
     def test_load_algorithm_updated(self, session):
         data = schemas.Algorithm(
@@ -100,6 +126,12 @@ class TestLoadAlgorithm:
             description="First algorithm",
             max_missing_allowed_proportion=0.5,
             missing_field_points_proportion=0.5,
+            algorithm_context={
+                "log_odds": [
+                    {"feature": "FIRST_NAME", "value": 6.8},
+                    {"feature": "ZIP", "value": 5.0},
+                ]
+            },
             passes=[
                 schemas.AlgorithmPass(
                     blocking_keys=["FIRST_NAME"],
@@ -123,15 +155,35 @@ class TestLoadAlgorithm:
         assert obj.id == 1
         assert obj.label == "dibbs-test"
         assert obj.description == "Updated description"
-        assert obj.max_missing_allowed_proportion == 0.5
-        assert obj.missing_field_points_proportion == 0.5
+        assert obj.algorithm_context == {
+            "include_multiple_matches": True,
+            "log_odds": [
+                {"feature": "FIRST_NAME", "value": 6.8},
+                {"feature": "ZIP", "value": 5.0},
+            ],
+            "skip_values": [],
+            "advanced": {
+                "fuzzy_match_threshold": 0.9,
+                "fuzzy_match_measure": "JaroWinkler",
+                "max_missing_allowed_proportion": 0.5,
+                "missing_field_points_proportion": 0.5,
+            },
+        }
         assert len(obj.passes) == 1
-        assert obj.passes[0].algorithm_id == 1
-        assert obj.passes[0].blocking_keys == ["LAST_NAME"]
-        assert obj.passes[0].evaluators == [
-            {"feature": "ZIP", "func": "COMPARE_PROBABILISTIC_FUZZY_MATCH"}
-        ]
-        assert obj.passes[0].possible_match_window == (0.75, 1.0)
+        assert obj.passes[0] == {
+            "label": "BLOCK_first_name_MATCH_zip",
+            "description": None,
+            "blocking_keys": ["LAST_NAME"],
+            "evaluators": [
+                {
+                    "feature": "ZIP",
+                    "func": "COMPARE_PROBABILISTIC_FUZZY_MATCH",
+                    "fuzzy_match_threshold": None,
+                    "fuzzy_match_measure": None,
+                }
+            ],
+            "possible_match_window": (0.75, 1.0)
+        }
 
 
 def test_delete_algorithm(session):
@@ -139,34 +191,16 @@ def test_delete_algorithm(session):
         algorithm_service.delete_algorithm(session, models.Algorithm())
     algo1 = models.Algorithm(label="default", is_default=True, description="First algorithm")
     session.add(algo1)
-    pass1 = models.AlgorithmPass(
-        algorithm=algo1,
-        blocking_keys=["FIRST_NAME"],
-        evaluators=[
-            {"feature": "ZIP", "func": "COMPARE_PROBABILISTIC_FUZZY_MATCH"}
-        ],
-    )
-    session.add(pass1)
     session.commit()
 
     algorithm_service.delete_algorithm(session, algo1)
     assert session.execute(select(models.Algorithm)).scalar() is None
-    assert session.execute(select(models.AlgorithmPass)).scalar() is None
 
 
 def test_clear_algorithms(session):
     algo1 = models.Algorithm(label="default", is_default=True, description="First algorithm")
     session.add(algo1)
-    pass1 = models.AlgorithmPass(
-        algorithm=algo1,
-        blocking_keys=["FIRST_NAME"],
-        evaluators=[
-            {"feature": "ZIP", "func": "COMPARE_PROBABILISTIC_FUZZY_MATCH"}
-        ],
-    )
-    session.add(pass1)
     session.commit()
 
     algorithm_service.clear_algorithms(session)
     assert session.execute(select(models.Algorithm)).scalar() is None
-    assert session.execute(select(models.AlgorithmPass)).scalar() is None
