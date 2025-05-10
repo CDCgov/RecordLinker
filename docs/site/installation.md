@@ -27,13 +27,13 @@ This guide provides two installation paths:
     Launch the container with any necessary environment variables.  Only the `DB_URI` environment variable is required.
 
     ```
-    docker run -d -e DB_URI=postgresql+psycopg2://postgres:pw@localhost:5432/postgres -p 8000:8000 ghcr.io/cdcgov/recordlinker:latest
+    docker run -v ./:/tmp -e DB_URI=sqlite:////tmp/db.sqlite3 ghcr.io/cdcgov/recordlinker:latest
     ```
 
     > Note: For more information about available environment variables or configuration options, refer to the [Configuration](configuration.md) section.
 
 1. **Access the Application**
-    The application should now be running in the container. You can access it via your browser at http://localhost:8000.
+    The application should now be running in the container. You can access it via your browser at http://localhost:8080.
 
 
 ## Option 2: Install from Source (Recommended for Development)

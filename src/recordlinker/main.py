@@ -53,7 +53,7 @@ app.add_middleware(middleware.CorrelationIdMiddleware)
 app.add_middleware(middleware.AccessLogMiddleware)
 
 
-@app.get("/")
+@app.get("/", include_in_schema=False)
 def root():
     """
     Redirect to the OpenAPI documentation.

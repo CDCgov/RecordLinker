@@ -106,7 +106,7 @@ drivers are installed allowing for connections to:
 
     Example: `mysql+pymysql://user:password@localhost/dbname`
 
-- **[pyodbc](https://github.com/mkleehammer/pyodbc/wiki) (sqlite)**
+- **[pyodbc](https://github.com/mkleehammer/pyodbc/wiki) (sql server)**
 
     Example: `mssql+pyodbc://user:password@localhost/dbname?driver=ODBC+Driver+18+for+SQL+Server&TrustServerCertificate=yes`
 
