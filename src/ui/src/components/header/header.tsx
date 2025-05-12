@@ -30,7 +30,7 @@ const Header: React.FC = () => {
           alt="record linker logo"
           className="margin-right-105 "
         />
-        Record Linker - Demo Site
+        DIBBs Record Linker - Demo Site
       </Link>
       <Suspense>
         <Menu />

@@ -1,12 +1,10 @@
 import { RecordMatch } from "@/models/recordMatch";
-import { API_URL } from "@/utils/constants";
 import { deserializeRecordMatch } from "@/utils/deserializers";
 import { AppError } from "@/utils/errors";
+import { get, post } from "@/utils/http";
 
 export async function getRecordMatch(id: string | null): Promise<RecordMatch> {
-  const response = await fetch(`${API_URL}/demo/record/${id}`, {
-    credentials: "include",
-  });
+  const response = await get(`/demo/record/${id}`);
 
   if (response.ok) {
     const serializedRecordMatch = await response.json();
@@ -15,18 +13,15 @@ export async function getRecordMatch(id: string | null): Promise<RecordMatch> {
     throw new AppError(
       "getRecordMatch",
       "unsuccessful HTTP response",
-      response.status
+      response.status,
     );
   }
 }
 
 export async function linkRecordAndMatch(
-  id: string | null
+  id: string | null,
 ): Promise<RecordMatch> {
-  const response = await fetch(`${API_URL}/demo/record/${id}/link`, {
-    method: "POST",
-    credentials: "include",
-  });
+  const response = await post(`/demo/record/${id}/link`);
 
   if (response.ok) {
     const serializedRecordMatch = await response.json();
@@ -35,18 +30,15 @@ export async function linkRecordAndMatch(
     throw new AppError(
       "linkRecordAndMatch",
       "unsuccessful HTTP response",
-      response.status
+      response.status,
     );
   }
 }
 
 export async function unlinkRecordAndMatch(
-  id: string | null
+  id: string | null,
 ): Promise<RecordMatch> {
-  const response = await fetch(`${API_URL}/demo/record/${id}/unlink`, {
-    method: "POST",
-    credentials: "include",
-  });
+  const response = await post(`/demo/record/${id}/unlink`);
 
   if (response.ok) {
     const serializedRecordMatch = await response.json();
@@ -55,8 +47,7 @@ export async function unlinkRecordAndMatch(
     throw new AppError(
       "unlinkRecordAndMatch",
       "unsuccessful HTTP response",
-      response.status
+      response.status,
     );
   }
 }
-
