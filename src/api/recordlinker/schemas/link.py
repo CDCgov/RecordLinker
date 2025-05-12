@@ -65,6 +65,10 @@ class LinkResult(pydantic.BaseModel):
         description="The FHIR-corresponding Match-Grade assigned to the pass-specific "
         "score measured by this Result."
     )
+    median_features: dict = pydantic.Field(
+        description="A dictionary mapping string names for the Features used in evaluation "
+        "to the median log-odds points those features earned during linkage."
+    )
 
     @pydantic.model_validator(mode="before")
     @classmethod

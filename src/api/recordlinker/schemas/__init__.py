@@ -1,6 +1,8 @@
 from .algorithm import Algorithm
+from .algorithm import AlgorithmContext
 from .algorithm import AlgorithmPass
 from .algorithm import AlgorithmSummary
+from .algorithm import Evaluator
 from .demo import MatchReviewRecord
 from .link import LinkFhirInput
 from .link import LinkFhirResponse
@@ -33,8 +35,10 @@ from .seed import PersonGroup
 
 __all__ = [
     "Algorithm",
+    "AlgorithmContext",
     "AlgorithmPass",
     "AlgorithmSummary",
+    "Evaluator",
     "Feature",
     "FeatureAttribute",
     "PIIRecord",
