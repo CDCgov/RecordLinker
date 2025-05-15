@@ -24,17 +24,6 @@ class TestListAlgorithms:
                 "label": "default",
                 "is_default": True,
                 "description": "First algorithm",
-                "algorithm_context": {
-                    "include_multiple_matches": True,
-                    "log_odds": [],
-                    "skip_values": [],
-                    "advanced": {
-                        "fuzzy_match_threshold": 0.9,
-                        "fuzzy_match_measure": "JaroWinkler",
-                        "max_missing_allowed_proportion": 0.5,
-                        "missing_field_points_proportion": 0.5,
-                    }
-                },
                 "pass_count": 0,
             },
         ]

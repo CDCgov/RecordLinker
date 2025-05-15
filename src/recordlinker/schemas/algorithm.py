@@ -291,6 +291,7 @@ class AlgorithmSummary(Algorithm):
     The schema for a summary of an algorithm record.
     """
 
+    algorithm_context: AlgorithmContext = pydantic.Field(exclude=True, default=AlgorithmContext())
     passes: typing.Sequence[AlgorithmPass] = pydantic.Field(exclude=True)
 
     # mypy doesn't support decorators on properties; https://github.com/python/mypy/issues/1362
