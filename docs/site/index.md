@@ -1,9 +1,9 @@
-# RecordLinker
+# Record Linker
 
 ## Control how patient records are matched and merged
 
 <p>
-  <img src="assets/record-linker-diagram.svg" alt="Description" style="float: right; width: 8em; margin-left: 1em; margin-bottom: 1em;">
+  <img src="assets/record-linker-diagram.svg" alt="Record Linker Diagram" style="float: right; width: 8em; margin-left: 1em; margin-bottom: 1em;">
 </p>
 
 Record Linker offers a best-in-class algorithm that allows your

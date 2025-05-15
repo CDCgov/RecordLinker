@@ -1,4 +1,4 @@
-site_name: !ENV [SITE_NAME, 'RecordLinker Documentation']
+site_name: !ENV [SITE_NAME, 'RecordLinker documentation']
 theme:
   name: "material"
   logo: assets/record-linker-logo.svg
