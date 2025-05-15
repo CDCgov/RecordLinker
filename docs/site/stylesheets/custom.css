@@ -1,3 +1,12 @@
+:root > * {
+  --md-primary-fg-color:               #14333d;
+  --md-primary-bg-color:               #f6f8fa;
+
+  --md-accent-fg-color:                #2e6276;
+
+  --md-footer-bg-color:                #14333d;
+}
+
 /* 508: Underline all hyperlinks */
 a {
     text-decoration: underline;

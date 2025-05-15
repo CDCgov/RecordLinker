@@ -1,10 +1,20 @@
 site_name: !ENV [SITE_NAME, 'RecordLinker Documentation']
 theme:
   name: "material"
+  logo: assets/record-linker-logo.svg
   icon:
     repo: fontawesome/brands/github
+  palette:
+    primary: custom
+    accent: custom
 extra_css:
   - stylesheets/custom.css
+extra:
+  generator: false
+  social:
+    - icon: fontawesome/solid/envelope
+      link: mailto:dibbs@cdc.gov
+      name: Email
 plugins:
   - mermaid2
 markdown_extensions:
@@ -21,6 +31,7 @@ markdown_extensions:
           class: mermaid
           format: !!python/name:pymdownx.superfences.fence_code_format
   - footnotes
+  - md_in_html
 repo_name: CDCgov/RecordLinker
 repo_url: https://github.com/CDCgov/RecordLinker
 edit_uri: edit/main/docs/
