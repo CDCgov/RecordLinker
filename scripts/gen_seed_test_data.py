@@ -94,7 +94,6 @@ def main() -> None:
 
     faker = Faker()
     clusters = []
-    counter = 0
     for _ in range(args.count):
         cluster = schemas.Cluster(
             external_person_id=f"EP:{str(faker.uuid4())}",
@@ -104,13 +103,7 @@ def main() -> None:
             ],
         )
         clusters.append(cluster)
-        counter += 1
-        if counter % 10000 == 0:
-            print(f"Generated {counter} clusters")
-
-    # save to file
-    with open("test_data.json", "w") as f:
-        f.write(schemas.ClusterGroup.model_construct(clusters=clusters).model_dump_json(indent=2))
+    print(schemas.ClusterGroup(clusters=clusters).model_dump_json(indent=2))
 
 
 if __name__ == "__main__":
