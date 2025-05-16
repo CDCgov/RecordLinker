@@ -83,4 +83,4 @@ jobs:
             fi
           done
 
-          ./scripts/example_linkage_tests.sh "${BASE_URL}"
+          ./scripts/example_linkage_test.sh "${BASE_URL}"
