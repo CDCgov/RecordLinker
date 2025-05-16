@@ -17,11 +17,7 @@ from faker import Faker
 
 from recordlinker import schemas
 from recordlinker.schemas.identifier import Identifier
-from recordlinker.schemas.pii import Address
-from recordlinker.schemas.pii import Name
-from recordlinker.schemas.pii import Race
-from recordlinker.schemas.pii import Sex
-from recordlinker.schemas.pii import Telecom
+from recordlinker.schemas.pii import Address, Name, Race, Sex, Telecom
 
 
 def _generate_random_identifiers(count, faker):
@@ -94,6 +90,7 @@ def main() -> None:
 
     faker = Faker()
     clusters = []
+    counter = 0
     for _ in range(args.count):
         cluster = schemas.Cluster(
             external_person_id=f"EP:{str(faker.uuid4())}",
@@ -103,7 +100,13 @@ def main() -> None:
             ],
         )
         clusters.append(cluster)
-    print(schemas.ClusterGroup(clusters=clusters).model_dump_json(indent=2))
+        counter += 1
+        if counter % 10000 == 0:
+            print(f"Generated {counter} clusters")
+
+    # save to file
+    with open("test_data.json", "w") as f:
+        f.write(schemas.ClusterGroup.model_construct(clusters=clusters).model_dump_json(indent=2))
 
 
 if __name__ == "__main__":
