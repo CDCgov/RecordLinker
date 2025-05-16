@@ -14,7 +14,7 @@ class LoadTest(locust.HttpUser):
 
     def load_seed_data(self):
         locust_file = pathlib.Path(__file__).resolve()
-        project_root = locust_file.parents[2]  # -> goes up to the project root
+        project_root = locust_file.parents[2]
         json_path = os.path.join(project_root, "tests/load/assets/test_data.json")
 
         with open(json_path, "r") as f:
