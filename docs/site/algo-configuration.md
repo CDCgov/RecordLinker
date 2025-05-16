@@ -1,12 +1,10 @@
-# Reference
-
-## Algorithm Configuration
+# Algorithm Configuration
 
 The Algorithm configurations are stored in the database and can be managed via the API.
 Many of the attributes defined on a configuration are limited to a specific set of values,
 which are defined here.
 
-### Features
+## Features
 
 The `Feature` enum defines the types of attributes that can be used for matching during the
 linkage evaluation phase. The following features are supported:
@@ -89,7 +87,7 @@ in the future, parsing the birthdate will generate an error message and result i
 :   The patient's specific identifier type. For example, `IDENTIFIER:MR` would be the patient's medical record number.  Unlike `IDENTIFIER`, this will ONLY compare values of a specific type.  Valid type codes can be found on [the R4 FHIR Identifier Type v2 page](http://hl7.org/fhir/R4/v2/0203/index.html).
 
 
-### Blocking Key Types
+## Blocking Key Types
 
 The `BlockingKey` enum defines the types of blocking values that are generated from the 
 patient data and used during query retrieval. The following blocking key types are supported:
@@ -131,7 +129,7 @@ patient data and used during query retrieval. The following blocking key types a
 :  A colon separated string of the last 4 characters of the value and the identifier type.
 
 
-### Feature Matching Functions
+## Feature Matching Functions
 
 These are the functions that can be used to compare the values of two features to determine
 if they are a match or not.
@@ -173,7 +171,7 @@ half the log-odds weight for the field overall, along with a boolean flag indica
 missing during comparison.
 
 
-### Skip Values
+## Skip Values
 
 There are instances where placeholder values are used in fields to indicate missing data.
 In such cases, comparing two placeholder fields is inaccurate, as the presence of missing
