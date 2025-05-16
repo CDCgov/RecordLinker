@@ -17,7 +17,11 @@ from faker import Faker
 
 from recordlinker import schemas
 from recordlinker.schemas.identifier import Identifier
-from recordlinker.schemas.pii import Address, Name, Race, Sex, Telecom
+from recordlinker.schemas.pii import Address
+from recordlinker.schemas.pii import Name
+from recordlinker.schemas.pii import Race
+from recordlinker.schemas.pii import Sex
+from recordlinker.schemas.pii import Telecom
 
 
 def _generate_random_identifiers(count, faker):
