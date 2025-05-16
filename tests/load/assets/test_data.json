@@ -1,0 +1,118 @@
+{
+    "clusters": [
+        {
+            "records": [
+                {
+                    "external_id": "88dcccee-4d7e-40af-859c-84c34ab51f75",
+                    "birth_date": "1955-08-31",
+                    "sex": "F",
+                    "address": [
+                        {
+                            "line": [
+                                "18727 Sanchez ISS"
+                            ],
+                            "city": "Smithfurt",
+                            "state": "MH",
+                            "postal_code": "20577",
+                            "county": "Davidland",
+                            "country": "LA",
+                            "latitude": -33.7608615,
+                            "longitude": 119.555379
+                        }
+                    ],
+                    "name": [
+                        {
+                            "family": "Barton",
+                            "given": [
+                                "Courtney"
+                            ],
+                            "use": "usual",
+                            "prefix": [],
+                            "suffix": []
+                        }
+                    ],
+                    "telecom": [
+                        {
+                            "value": "+18915002599",
+                            "system": "phone",
+                            "use": "home"
+                        }
+                    ],
+                    "race": [
+                        "ASIAN"
+                    ],
+                    "identifiers": [
+                        {
+                            "type": "MR",
+                            "value": "MRN-8301907",
+                            "authority": null
+                        },
+                        {
+                            "type": "SS",
+                            "value": "511-16-8457",
+                            "authority": null
+                        },
+                        {
+                            "type": "DL",
+                            "value": "DL-770735",
+                            "authority": "NY"
+                        }
+                    ]
+                }
+            ],
+            "external_person_id": "EP:7d41033b-7ccd-47de-b39d-5497ab31c92f"
+        },
+        {
+            "records": [
+                {
+                    "external_id": "4c03ac21-11ba-4104-b1b8-781e5fd4e646",
+                    "birth_date": "1981-04-18",
+                    "sex": "M",
+                    "address": [
+                        {
+                            "line": [
+                                "7536 Willie Place Apt. 674"
+                            ],
+                            "city": "Desireeborough",
+                            "state": "NV",
+                            "postal_code": "64503",
+                            "county": "East Cindyfurt",
+                            "country": "RS",
+                            "latitude": -61.5090205,
+                            "longitude": -131.965911
+                        }
+                    ],
+                    "name": [
+                        {
+                            "family": "Perkins",
+                            "given": [
+                                "Hannah"
+                            ],
+                            "use": "nickname",
+                            "prefix": [],
+                            "suffix": []
+                        }
+                    ],
+                    "telecom": [
+                        {
+                            "value": "+10015304832727",
+                            "system": "phone",
+                            "use": "work"
+                        }
+                    ],
+                    "race": [
+                        "OTHER"
+                    ],
+                    "identifiers": [
+                        {
+                            "type": "MR",
+                            "value": "MRN-2784678",
+                            "authority": null
+                        }
+                    ]
+                }
+            ],
+            "external_person_id": "EP:652465de-5be0-443c-a8c6-c7ce4722ef01"
+        }
+    ]
+}
