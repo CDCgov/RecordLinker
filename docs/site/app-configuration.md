@@ -1,18 +1,14 @@
-# Configuration
+# Application Configuration
 
 
-## Application Configuration
+## Application Settings
 
-The RecordLinker application is configured via a
+The Record Linker application is configured via a
 [pydantic-settings](https://docs.pydantic.dev/latest/concepts/pydantic_settings/)
 configuration class. The settings are loaded from environment variables or a `.env` file,
 allowing for easy customization without modifying the code.  When both an environment 
 variable and a `.env` file are present, the environment variable takes precedence.
-
-
-### Configuration Settings
-
-Each setting can be configured as follows:
+> 💡 For information on algorithm configuration, see the [Algorithm Configuration](algo-configuration.md) section.
 
 `DB_URI (Required)`
 
@@ -88,7 +84,7 @@ Each setting can be configured as follows:
     **Development Default**: `/api`
 
 
-### Database Options
+## Database Options
 
 The `DB_URI` and `TEST_DB_URI` settings can be configured to connect to a compatible
 [SQLAlchemy](https://www.sqlalchemy.org/) database.  By default, the following database
@@ -141,6 +137,3 @@ the Dockerfile can be built with the build arguments to customize the container.
 :   Whether to install the `opentelemetry-instrumentation` package for tracing.
 
     **Default**: `false`
-
-
-> Note: For information on Algorithm Configuration, see the [Reference](reference.md) section.

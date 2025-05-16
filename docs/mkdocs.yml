@@ -38,10 +38,10 @@ edit_uri: edit/main/docs/
 docs_dir: "site"
 nav:
   - "Home": "index.md"
-  - "Getting Started":
-    - Installation: "installation.md"
-    - Configuration: "configuration.md"
-  - "User Guide":
-    - Design: "design.md"
-    - Reference: "reference.md"
+  - "Getting Started": "getting-started.md"
+  - "Reference":
+    - "Application Configuration": "app-configuration.md"
+    - "Algorithm Configration": "algo-configuration.md"
+  - "Explanation":
+    - "Schema Design": "schema-design.md"
   - "API Docs": "api-docs.html"
