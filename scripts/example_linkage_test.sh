@@ -1,8 +1,8 @@
 #!/bin/bash
 #
-# Run linkage tests against the API server.
+# Run an example of linkage tests against the API server.
 #
-# Usage: scripts/linkage_tests.sh <server>
+# Usage: scripts/example_linkage_tests.sh <server>
 # Requires: curl, python3
 #
 # <server> is the base url of the API server to test. If not specified, the tests will
