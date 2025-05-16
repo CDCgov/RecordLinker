@@ -8,14 +8,14 @@
 
 ### Steps
 
-1. **Start the Docker Container**  
+1. **Start the docker container**
    Run the container with a mounted volume to persist the SQLite database on your host. The only required environment variable is `DB_URI`:
 ```bash
 docker run -v ./:/tmp -e DB_URI=sqlite:////tmp/db.sqlite3 ghcr.io/cdcgov/recordlinker:latest
 ```
 > 💡 For a full list of configuration options, see the [Application Configuration](app-configuration.md) page.
 
-2. **Open the Application**  
+2. **Access the application**
    Once the container is running, the app will be available at [http://localhost:8080](http://localhost:8080).
 
 ## Option 2: Install from Source (Recommended for Development)
@@ -42,7 +42,7 @@ docker run -v ./:/tmp -e DB_URI=sqlite:////tmp/db.sqlite3 ghcr.io/cdcgov/recordl
     source ./scripts/bootstrap.sh
     ```
 
-1. **Run the application**
+1. **Start the application**
 Start the application with the following command:
 
     ```
@@ -50,4 +50,4 @@ Start the application with the following command:
     ```
 
 1. **Access the application**
-The application should now be running in the container. You can access it via your browser at http://localhost:8080.
+The application should now be running in the container. You can access it via your browser at [http://localhost:8080](http://localhost:8080).
