@@ -1,4 +1,5 @@
 import json
+import os
 import pathlib
 import random
 import threading
@@ -14,7 +15,7 @@ class LoadTest(locust.HttpUser):
     def load_seed_data(self):
         locust_file = pathlib.Path(__file__).resolve()
         project_root = locust_file.parents[2]  # -> goes up to the project root
-        json_path = project_root / "src" / "recordlinker" / "assets" / "test_data.json"
+        json_path = os.path.join(project_root, "tests/load/assets/test_data.json")
 
         with open(json_path, "r") as f:
             return json.load(f)
@@ -23,6 +24,7 @@ class LoadTest(locust.HttpUser):
         with self.seed_lock:
             if not self.__class__.seeded:
                 self.__class__.seed_data = self.load_seed_data()
+                # TODO: Adjust to loop through the seed data; API endpoint has a limit of 100 clusters
                 self.client.post("/api/seed", json=self.__class__.seed_data)
                 self.__class__.seeded = True
 
