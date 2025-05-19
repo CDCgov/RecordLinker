@@ -5,7 +5,7 @@ WORKDIR /code/src/ui
 
 # Install dependencies
 COPY src/ui/package.json src/ui/package-lock.json ./
-RUN npm install --legacy-peer-deps
+RUN npm install
 
 # Disable Next.js telemetry
 ENV NEXT_TELEMETRY_DISABLED=1

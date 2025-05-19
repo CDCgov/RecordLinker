@@ -9,7 +9,7 @@ cd "$(dirname "$0")/.."
 
 # Install the npm packages
 echo "Installing the npm packages..."
-npm install --legacy-peer-deps --prefix "src/ui" > /dev/null
+npm install --prefix "src/ui" > /dev/null
 
 # Create a default .env file if it doesn't exist
 if [ ! -f .env ]; then
