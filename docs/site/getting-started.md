@@ -13,7 +13,7 @@
 1. **Start the docker container**
    Run the container with a mounted volume to persist the SQLite database on your host. The only required environment variable is `DB_URI`:
 ```bash
-docker run -v ./:/tmp -e DB_URI=sqlite:////tmp/db.sqlite3 ghcr.io/cdcgov/recordlinker:latest
+docker run -v ./:/tmp -p 8080:8080 -e DB_URI=sqlite:////tmp/db.sqlite3 ghcr.io/cdcgov/recordlinker:latest
 ```
 > 💡 For a full list of configuration options, see the [Application Configuration](app-configuration.md) page.
 
