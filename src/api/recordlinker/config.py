@@ -81,6 +81,10 @@ class Settings(pydantic_settings.BaseSettings):
         description="Whether the session cookie should be secure",
         default=False,
     )
+    demo_mode: bool = pydantic.Field(
+        description="When enabled, only the demo UI and API endpoints are exposed",
+        default=False,
+    )
 
     def default_log_config(self) -> dict:
         """

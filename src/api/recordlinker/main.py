@@ -56,8 +56,6 @@ if settings.ui_host:
         allow_headers=["*"],
     )
 
-    app.add_middleware(GZipMiddleware, minimum_size=500, compresslevel=5)
-
 
 @api.get("/", name="root", include_in_schema=False)
 def api_root():
@@ -68,16 +66,17 @@ def api_root():
 
 
 api.include_router(health_router, prefix="/health")
-api.include_router(link_router, tags=["link"])
-api.include_router(algorithm_router, prefix="/algorithm", tags=["algorithm"])
-api.include_router(person_router, prefix="/person", tags=["mpi"])
-api.include_router(patient_router, prefix="/patient", tags=["mpi"])
-api.include_router(seed_router, prefix="/seed", tags=["mpi"])
 api.include_router(demo_router, prefix="/demo", tags=["demo"])
-
+if not settings.demo_mode:
+    api.include_router(link_router, tags=["link"])
+    api.include_router(algorithm_router, prefix="/algorithm", tags=["algorithm"])
+    api.include_router(person_router, prefix="/person", tags=["mpi"])
+    api.include_router(patient_router, prefix="/patient", tags=["mpi"])
+    api.include_router(seed_router, prefix="/seed", tags=["mpi"])
 app.mount(settings.api_root_path, api, name="api")
 
 if settings.ui_static_dir:
+    app.add_middleware(GZipMiddleware, minimum_size=500, compresslevel=5)
 
     @app.exception_handler(StarletteHTTPException)
     async def not_found_handler(request, exc):
