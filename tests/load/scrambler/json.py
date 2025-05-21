@@ -92,7 +92,7 @@ def scramble(data: dict) -> dict:
     # TODO: Move prep to its own function
     seed_data = {"clusters": []}
     for cluster in data["clusters"]:
-        seed_cluster = [copy.deepcopy(cluster)]
+        seed_cluster = copy.deepcopy(cluster)
         original_records = cluster["records"][:]
         for record in original_records:
             # Generate and add scrambled duplicates
