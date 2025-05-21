@@ -37,25 +37,11 @@ def scramble_field(data: dict, field: str):
     return data
 
 
-def prep_data(data: dict) -> dict:
-    """
-    Prepare the data for scrambling by ensuring all fields are present.
-    """
-    # Ensure all relevant fields are present in the data
-    for cluster in data["clusters"]:
-        for record in cluster["records"]:
-            for field in config.ALGORITHM_RELEVANT_COLUMNS:
-                if field not in record:
-                    record[field] = None
-    return data
-
-
 def scramble(data: dict) -> dict:
     """
     Scrambles a subset of relevant fields and returns the scrambled dict.
     """
 
-    # Prepare the data for scrambling
     # TODO: Move prep to its own function
     seed_data = {"clusters": []}
     for cluster in data["clusters"]:
@@ -63,9 +49,7 @@ def scramble(data: dict) -> dict:
         original_records = cluster["records"][:]
         for record in original_records:
             # Generate and add scrambled duplicates
-            MIN_DUPLICATE_CASES = 2
-            MAX_DUPLICATE_CASES = 6
-            for _ in range(random.randint(MIN_DUPLICATE_CASES, MAX_DUPLICATE_CASES)):
+            for _ in range(random.randint(config.MIN_DUPLICATE_CASES, config.MAX_DUPLICATE_CASES)):
                 dupe = copy.deepcopy(record)
                 # Determine if this duplicate will be subject to field dropout
                 missing_fields_in_case = utils.identify_missing_fields(record, json_get_field)
