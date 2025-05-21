@@ -1,15 +1,7 @@
+import copy
 import random
 
-from .base import BaseScrambler
-from .utils import apply_field_scrambling
-
-# Range of the number of copies to make of each test case, before
-# applying scrambling. Value is chosen randomly within the range.
-# Note that the range of how many cases you end up with for each
-# starting case is this range + 1, since you have the original case
-# plus the duplicates (we want to preserve the original test, too)
-MIN_DUPLICATE_CASES = 2
-MAX_DUPLICATE_CASES = 6
+from . import utils
 
 # Controls for the random dropout of field information to simulate
 # missingness issues in incoming data. For each duplicate created
@@ -29,98 +21,184 @@ MAX_FIELDS_TO_DROP = 2
 # applied (as measured by edits including addition, deletion, and
 # transposition) is randomly determined from a given range.
 CHANCE_TO_SCRAMBLE = 0.5
-MIN_FIELDS_TO_SCRAMBLE = 1
-MAX_FIELDS_TO_SCRAMBLE = 3
 MIN_EDIT_DISTANCE = 1
 MAX_EDIT_DISTANCE = 2
 
+ALGORITHM_RELEVANT_COLUMNS = [
+    "BIRTHDATE",
+    "FIRST",
+    "LAST",
+    "SUFFIX",
+    "GENDER",
+    "ADDRESS",
+    "CITY",
+    "ZIP",
+    "SSN",
+    "MRN",
+]
 
-class JSONScrambler(BaseScrambler):
-    def __init__(self, data: dict, relevant_fields: list[str]):
-        self.data = data
-        self.relevant_fields = relevant_fields
 
-    def _get_field(self, field: str) -> str:
-        try:
-            if field == "FIRST":
-                return self.data["name"][0]["given"][0]
-            elif field == "LAST":
-                return self.data["name"][0]["family"]
-            elif field == "SUFFIX":
-                return self.data["name"][0]["suffix"][0] if self.data["name"][0]["suffix"] else ""
-            elif field == "GENDER":
-                return self.data["sex"]
-            elif field == "BIRTHDATE":
-                return self.data["birth_date"]
-            elif field == "ADDRESS":
-                return self.data["address"][0]["line"][0]
-            elif field == "CITY":
-                return self.data["address"][0]["city"]
-            elif field == "ZIP":
-                return self.data["address"][0]["postal_code"]
-            elif field == "SSN":
-                if self.data["identifiers"]:
-                    for identifier in self.data["identifiers"]:
-                        if identifier["type"] == "SS":
-                            return identifier["value"]
-            else:
-                return ""
-        except (KeyError, IndexError):
-            return ""
-
-    def _set_field(self, field: str, value: str):
-        try:
-            if field == "FIRST":
-                self.data["name"][0]["given"][0] = value
-            elif field == "LAST":
-                self.data["name"][0]["family"] = value
-            elif field == "SUFFIX":
-                self.data["name"][0]["suffix"] = [value]
-            elif field == "GENDER":
-                self.data["sex"] = value
-            elif field == "BIRTHDATE":
-                self.data["birth_date"] = value
-            elif field == "ADDRESS":
-                self.data["address"][0]["line"][0] = value
-            elif field == "CITY":
-                self.data["address"][0]["city"] = value
-            elif field == "ZIP":
-                self.data["address"][0]["postal_code"] = value
-            elif field == "SSN":
-                if self.data["identifiers"]:
-                    for identifier in self.data["identifiers"]:
-                        if identifier["type"] == "SS":
-                            identifier["value"] = value
-        except (KeyError, IndexError):
-            pass
-
-    def scramble(self) -> dict:
-        """
-        Scrambles a subset of relevant fields and returns the scrambled dict.
-        """
-        fields_to_scramble = self._get_scramblable_fields()
-        fields_to_scramble = self._select_fields_to_scramble(fields_to_scramble)
-
-        for field in fields_to_scramble:
-            value = self._get_field(field)
-            print(f"Scrambling field: {field} with value: {value}")
-            if value:
-                scrambled = apply_field_scrambling(value)
-                self._set_field(field, scrambled)
-
-        return self.data
-
-    def _get_scramblable_fields(self) -> list[str]:
-        return [field for field in self.relevant_fields if self._get_field(field)]
-
-    def _select_fields_to_scramble(self, fields: list[str]) -> list[str]:
-        if not fields:
-            return []
-
-        num_fields = random.randint(
-            min(len(fields), MIN_FIELDS_TO_SCRAMBLE), min(len(fields), MAX_FIELDS_TO_SCRAMBLE)
+def scramble_field(data: dict, field: str):
+    if field == "FIRST":
+        data["name"][0]["given"][0] = utils.apply_field_scrambling(data["name"][0]["given"][0])
+    elif field == "LAST":
+        data["name"][0]["family"] = utils.apply_field_scrambling(data["name"][0]["family"])
+    elif field == "SUFFIX":
+        data["name"][0]["suffix"] = utils.apply_field_scrambling(data["name"][0]["suffix"])
+    elif field == "GENDER":
+        data["sex"] = utils.apply_field_scrambling(data["sex"])
+    elif field == "BIRTHDATE":
+        data["birth_date"] = utils.apply_field_scrambling(data["birth_date"])
+    elif field == "ADDRESS":
+        data["address"][0]["line"][0] = utils.apply_field_scrambling(data["address"][0]["line"][0])
+    elif field == "CITY":
+        data["address"][0]["city"] = utils.apply_field_scrambling(data["address"][0]["city"])
+    elif field == "ZIP":
+        data["address"][0]["postal_code"] = utils.apply_field_scrambling(
+            data["address"][0]["postal_code"]
         )
-        return random.sample(fields, num_fields)
+    elif field == "SSN":
+        if data["identifiers"]:
+            for identifier in data["identifiers"]:
+                if identifier["type"] == "SS":
+                    identifier["value"] = utils.apply_field_scrambling(identifier["value"])
+    elif field == "MRN":
+        if data["identifiers"]:
+            for identifier in data["identifiers"]:
+                if identifier["type"] == "MR":
+                    identifier["value"] = utils.apply_field_scrambling(identifier["value"])
+    return data
 
-    def to_dict(self) -> dict:
-        return self.data
+
+def prep_data(data: dict) -> dict:
+    """
+    Prepare the data for scrambling by ensuring all fields are present.
+    """
+    # Ensure all relevant fields are present in the data
+    for cluster in data["clusters"]:
+        for record in cluster["records"]:
+            for field in ALGORITHM_RELEVANT_COLUMNS:
+                if field not in record:
+                    record[field] = None
+    return data
+
+
+def scramble(data: dict) -> dict:
+    """
+    Scrambles a subset of relevant fields and returns the scrambled dict.
+    """
+
+    # Prepare the data for scrambling
+    # TODO: Move prep to its own function
+    seed_data = {"clusters": []}
+    for cluster in data["clusters"]:
+        seed_cluster = [copy.deepcopy(cluster)]
+        original_records = cluster["records"][:]
+        for record in original_records:
+            # Generate and add scrambled duplicates
+            MIN_DUPLICATE_CASES = 2
+            MAX_DUPLICATE_CASES = 6
+            for _ in range(random.randint(MIN_DUPLICATE_CASES, MAX_DUPLICATE_CASES)):
+                dupe = copy.deepcopy(record)
+                # Determine if this duplicate will be subject to field dropout
+                missing_fields_in_case = utils.identify_missing_fields(record, json_get_field)
+                acceptable_fields_to_drop = [
+                    f for f in ALGORITHM_RELEVANT_COLUMNS if f not in missing_fields_in_case
+                ]
+                fields_to_drop = []
+                if random.random() < CHANCE_TO_DROP_FIELDS:
+                    # Randomly determine fields to drop from this duplicate, only dropping
+                    # fields that weren't already dropped in the original test case
+                    fields_to_drop = random.sample(
+                        acceptable_fields_to_drop,
+                        random.randint(MIN_FIELDS_TO_DROP, MAX_FIELDS_TO_DROP),
+                    )
+                    for f in fields_to_drop:
+                        # Set the field to an empty string to simulate missingness
+                        utils.set_field(f, "", dupe, json_set_field)
+
+                # Determine if this duplicate will be subject to field scrambling
+                if random.random() < CHANCE_TO_SCRAMBLE:
+                    # Determine which fields are safe to scramble (can't be missing)
+                    safe_to_scramble = [
+                        f for f in acceptable_fields_to_drop if f not in fields_to_drop
+                    ]
+                    fields_to_scramble = utils.select_fields_to_scramble(safe_to_scramble)
+                    for field in fields_to_scramble:
+                        dupe = scramble_field(dupe, field)
+                seed_cluster["records"].append(dupe)
+            # Randomize the order of records in the cluster to avoid order bias
+            # and to ensure that the original record is not always first
+            random.shuffle(seed_cluster["records"])
+        seed_data["clusters"].append(seed_cluster)
+
+    return seed_data
+
+
+def json_get_field(field: str, data: dict) -> str | None:
+    """
+    Get the value of a field from a JSON object.
+    """
+    try:
+        if field == "FIRST":
+            return data["name"][0]["given"][0]
+        elif field == "LAST":
+            return data["name"][0]["family"]
+        elif field == "SUFFIX":
+            return data["name"][0]["suffix"]
+        elif field == "GENDER":
+            return data["sex"]
+        elif field == "BIRTHDATE":
+            return data["birth_date"]
+        elif field == "ADDRESS":
+            return data["address"][0]["line"][0]
+        elif field == "CITY":
+            return data["address"][0]["city"]
+        elif field == "ZIP":
+            return data["address"][0]["postal_code"]
+        elif field == "SSN":
+            for identifier in data.get("identifiers", []):
+                if identifier["type"] == "SS":
+                    return identifier["value"]
+        elif field == "MRN":
+            for identifier in data.get("identifiers", []):
+                if identifier["type"] == "MR":
+                    return identifier["value"]
+    except (KeyError, IndexError):
+        return None
+    return None
+
+
+def json_set_field(field: str, data: dict, value: str) -> str | None:
+    """
+    Get the value of a field from a JSON object.
+    """
+    try:
+        if field == "FIRST":
+            data["name"][0]["given"][0] = value
+        elif field == "LAST":
+            data["name"][0]["family"] = value
+        elif field == "SUFFIX":
+            data["name"][0]["suffix"] = value
+        elif field == "GENDER":
+            data["sex"] = value
+        elif field == "BIRTHDATE":
+            data["birth_date"] = value
+        elif field == "ADDRESS":
+            data["address"][0]["line"][0] = value
+        elif field == "CITY":
+            data["address"][0]["city"] = value
+        elif field == "ZIP":
+            data["address"][0]["postal_code"] = value
+        elif field == "SSN":
+            for identifier in data.get("identifiers", []):
+                if identifier["type"] == "SS":
+                    identifier["value"] = value
+                    break
+        elif field == "MRN":
+            for identifier in data.get("identifiers", []):
+                if identifier["type"] == "MR":
+                    identifier["value"] = value
+                    break
+    except KeyError:
+        pass
