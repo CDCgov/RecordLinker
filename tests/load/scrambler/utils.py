@@ -2,39 +2,14 @@ import random
 import string
 import typing
 
-# from config import MAX_EDIT_DISTANCE, MIN_EDIT_DISTANCE
-# Controls for scrambling the value of feature fields in a test case
-# duplicate. For each duplicate generated, there is some probability
-# of applying field scrambling. If a duplicate is flagged for scrambling,
-# then the number of fields to scramble is randomly selected. For each
-# randomly selected field, the number of "quality issues" to be
-# applied (as measured by edits including addition, deletion, and
-# transposition) is randomly determined from a given range.
-MIN_EDIT_DISTANCE = 1
-MAX_EDIT_DISTANCE = 2
-
-MIN_FIELDS_TO_SCRAMBLE = 1
-MAX_FIELDS_TO_SCRAMBLE = 3
-
-ALGORITHM_RELEVANT_COLUMNS = [
-    "BIRTHDATE",
-    "FIRST",
-    "LAST",
-    "SUFFIX",
-    "GENDER",
-    "ADDRESS",
-    "CITY",
-    "ZIP",
-    "SSN",
-    "MRN",
-]
+from . import config
 
 
 def apply_field_scrambling(value: str) -> str:
     if not value:
         return value
     ## TODO: use argparse to get min and max edit distance
-    edits = random.randint(MIN_EDIT_DISTANCE, MAX_EDIT_DISTANCE)
+    edits = random.randint(config.MIN_EDIT_DISTANCE, config.MAX_EDIT_DISTANCE)
     chars = list(value)
     for _ in range(edits):
         action = random.choice(["add", "delete", "transpose"])
@@ -55,7 +30,8 @@ def select_fields_to_scramble(fields: list[str]) -> list[str]:
         return []
 
     num_fields = random.randint(
-        min(len(fields), MIN_FIELDS_TO_SCRAMBLE), min(len(fields), MAX_FIELDS_TO_SCRAMBLE)
+        min(len(fields), config.MIN_FIELDS_TO_SCRAMBLE),
+        min(len(fields), config.MAX_FIELDS_TO_SCRAMBLE),
     )
     return random.sample(fields, num_fields)
 
@@ -72,7 +48,7 @@ def identify_missing_fields(
     data that might be relevant to the algorithm.
     """
     missing_fields = []
-    for field in ALGORITHM_RELEVANT_COLUMNS:
+    for field in config.ALGORITHM_RELEVANT_COLUMNS:
         value = get_field_fn(field, data)
         if value in (None, ""):
             missing_fields.append(field)

@@ -1,41 +1,8 @@
 import copy
 import random
 
+from . import config
 from . import utils
-
-# Controls for the random dropout of field information to simulate
-# missingness issues in incoming data. For each duplicate created
-# for a test case, there is a desired probability to apply dropout
-# to some number of fields in that duplicate. If that duplicate is
-# randomly chosen to experience dropout, then a random number of
-# fields in the range specified are blanked out.
-CHANCE_TO_DROP_FIELDS = 0.5
-MIN_FIELDS_TO_DROP = 1
-MAX_FIELDS_TO_DROP = 2
-
-# Controls for scrambling the value of feature fields in a test case
-# duplicate. For each duplicate generated, there is some probability
-# of applying field scrambling. If a duplicate is flagged for scrambling,
-# then the number of fields to scramble is randomly selected. For each
-# randomly selected field, the number of "quality issues" to be
-# applied (as measured by edits including addition, deletion, and
-# transposition) is randomly determined from a given range.
-CHANCE_TO_SCRAMBLE = 0.5
-MIN_EDIT_DISTANCE = 1
-MAX_EDIT_DISTANCE = 2
-
-ALGORITHM_RELEVANT_COLUMNS = [
-    "BIRTHDATE",
-    "FIRST",
-    "LAST",
-    "SUFFIX",
-    "GENDER",
-    "ADDRESS",
-    "CITY",
-    "ZIP",
-    "SSN",
-    "MRN",
-]
 
 
 def scramble_field(data: dict, field: str):
@@ -77,7 +44,7 @@ def prep_data(data: dict) -> dict:
     # Ensure all relevant fields are present in the data
     for cluster in data["clusters"]:
         for record in cluster["records"]:
-            for field in ALGORITHM_RELEVANT_COLUMNS:
+            for field in config.ALGORITHM_RELEVANT_COLUMNS:
                 if field not in record:
                     record[field] = None
     return data
@@ -103,22 +70,22 @@ def scramble(data: dict) -> dict:
                 # Determine if this duplicate will be subject to field dropout
                 missing_fields_in_case = utils.identify_missing_fields(record, json_get_field)
                 acceptable_fields_to_drop = [
-                    f for f in ALGORITHM_RELEVANT_COLUMNS if f not in missing_fields_in_case
+                    f for f in config.ALGORITHM_RELEVANT_COLUMNS if f not in missing_fields_in_case
                 ]
                 fields_to_drop = []
-                if random.random() < CHANCE_TO_DROP_FIELDS:
+                if random.random() < config.CHANCE_TO_DROP_FIELDS:
                     # Randomly determine fields to drop from this duplicate, only dropping
                     # fields that weren't already dropped in the original test case
                     fields_to_drop = random.sample(
                         acceptable_fields_to_drop,
-                        random.randint(MIN_FIELDS_TO_DROP, MAX_FIELDS_TO_DROP),
+                        random.randint(config.MIN_FIELDS_TO_DROP, config.MAX_FIELDS_TO_DROP),
                     )
                     for f in fields_to_drop:
                         # Set the field to an empty string to simulate missingness
                         utils.set_field(f, "", dupe, json_set_field)
 
                 # Determine if this duplicate will be subject to field scrambling
-                if random.random() < CHANCE_TO_SCRAMBLE:
+                if random.random() < config.CHANCE_TO_SCRAMBLE:
                     # Determine which fields are safe to scramble (can't be missing)
                     safe_to_scramble = [
                         f for f in acceptable_fields_to_drop if f not in fields_to_drop
