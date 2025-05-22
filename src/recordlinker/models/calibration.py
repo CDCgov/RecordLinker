@@ -16,7 +16,6 @@ class Status(enum.Enum):
 class Job(Base):
     __tablename__ = "calibration_job"
     id: orm.Mapped[uuid.UUID] = orm.mapped_column(
-        sqltypes.UUID(as_uuid=True),
         primary_key=True,
         default=uuid.uuid4,
     )
