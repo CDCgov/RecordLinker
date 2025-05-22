@@ -43,47 +43,42 @@ def scramble(data: dict) -> dict:
     """
 
     # TODO: Move prep to its own function
-    seed_data = {"clusters": []}
-    for cluster in data["clusters"]:
-        seed_cluster = copy.deepcopy(cluster)
-        original_records = cluster["records"][:]
-        for record in original_records:
-            # Generate and add scrambled duplicates
-            for _ in range(random.randint(config.MIN_DUPLICATE_CASES, config.MAX_DUPLICATE_CASES)):
-                dupe = copy.deepcopy(record)
-                # Determine if this duplicate will be subject to field dropout
-                missing_fields_in_case = utils.identify_missing_fields(record, json_get_field)
-                acceptable_fields_to_drop = [
-                    f for f in config.ALGORITHM_RELEVANT_COLUMNS if f not in missing_fields_in_case
-                ]
-                fields_to_drop = []
-                if random.random() < config.CHANCE_TO_DROP_FIELDS:
-                    # Randomly determine fields to drop from this duplicate, only dropping
-                    # fields that weren't already dropped in the original test case
-                    fields_to_drop = random.sample(
-                        acceptable_fields_to_drop,
-                        random.randint(config.MIN_FIELDS_TO_DROP, config.MAX_FIELDS_TO_DROP),
-                    )
-                    for f in fields_to_drop:
-                        # Set the field to an empty string to simulate missingness
-                        utils.set_field(f, "", dupe, json_set_field)
+    seed_cluster = copy.deepcopy(data)
+    original_records = data["records"][:]
+    for record in original_records:
+        # Generate and add scrambled duplicates
+        for _ in range(random.randint(config.MIN_DUPLICATE_CASES, config.MAX_DUPLICATE_CASES)):
+            dupe = copy.deepcopy(record)
+            # Determine if this duplicate will be subject to field dropout
+            missing_fields_in_case = utils.identify_missing_fields(record, json_get_field)
+            acceptable_fields_to_drop = [
+                f for f in config.ALGORITHM_RELEVANT_COLUMNS if f not in missing_fields_in_case
+            ]
+            fields_to_drop = []
+            if random.random() < config.CHANCE_TO_DROP_FIELDS:
+                # Randomly determine fields to drop from this duplicate, only dropping
+                # fields that weren't already dropped in the original test case
+                fields_to_drop = random.sample(
+                    acceptable_fields_to_drop,
+                    random.randint(config.MIN_FIELDS_TO_DROP, config.MAX_FIELDS_TO_DROP),
+                )
+                for f in fields_to_drop:
+                    # Set the field to an empty string to simulate missingness
+                    utils.set_field(f, "", dupe, json_set_field)
 
-                # Determine if this duplicate will be subject to field scrambling
-                if random.random() < config.CHANCE_TO_SCRAMBLE:
-                    # Determine which fields are safe to scramble (can't be missing)
-                    safe_to_scramble = [
-                        f for f in acceptable_fields_to_drop if f not in fields_to_drop
-                    ]
-                    fields_to_scramble = utils.select_fields_to_scramble(safe_to_scramble)
-                    for field in fields_to_scramble:
-                        dupe = scramble_field(dupe, field)
-                seed_cluster["records"].append(dupe)
-            # Randomize the order of records in the cluster to avoid order bias
-            # and to ensure that the original record is not always first
-            random.shuffle(seed_cluster["records"])
-        seed_data["clusters"].append(seed_cluster)
+            # Determine if this duplicate will be subject to field scrambling
+            if random.random() < config.CHANCE_TO_SCRAMBLE:
+                # Determine which fields are safe to scramble (can't be missing)
+                safe_to_scramble = [f for f in acceptable_fields_to_drop if f not in fields_to_drop]
+                fields_to_scramble = utils.select_fields_to_scramble(safe_to_scramble)
+                for field in fields_to_scramble:
+                    dupe = scramble_field(dupe, field)
+            seed_cluster["records"].append(dupe)
+        # Randomize the order of records in the cluster to avoid order bias
+        # and to ensure that the original record is not always first
+        random.shuffle(seed_cluster["records"])
 
-    return seed_data
+    return seed_cluster
 
 
 def json_get_field(field: str, data: dict) -> str | None:

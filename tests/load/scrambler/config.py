@@ -17,7 +17,7 @@ ALGORITHM_RELEVANT_COLUMNS = [
 # starting case is this range + 1, since you have the original case
 # plus the duplicates (we want to preserve the original test, too)
 MIN_DUPLICATE_CASES = 2
-MAX_DUPLICATE_CASES = 6
+MAX_DUPLICATE_CASES = 10
 
 # Controls for the random dropout of field information to simulate
 # missingness issues in incoming data. For each duplicate created
