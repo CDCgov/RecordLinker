@@ -80,7 +80,7 @@ EXPOSE ${PORT}
 
 # Create an entrypoint script
 RUN echo '#!/bin/sh' > /code/entrypoint.sh && \
-    echo 'exec uvicorn recordlinker.main:app --app-dir src/api --host 0 --port "$PORT"' >> /code/entrypoint.sh && \
+    echo 'exec uvicorn recordlinker.main:app --proxy-headers --app-dir src/api --host 0 --port "$PORT"' >> /code/entrypoint.sh && \
     chmod +x /code/entrypoint.sh
 
 ENTRYPOINT ["/code/entrypoint.sh"]
