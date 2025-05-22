@@ -261,3 +261,22 @@ PERSON_A_ID=$(echo "$RESPONSE_BODY" | python3 -c 'import sys, json; print(json.l
 echo "ASSIGN RECORD TO CLUSTER..."
 read -r HTTP_STATUS RESPONSE_BODY <<< "$(http_request "${SERVER}/person/${PERSON_A_ID}" "PATCH" "{\"patients\": [\"${PATIENT_ID}\"]}")"
 assert_status_code "$HTTP_STATUS" "200"
+
+echo "CREATE CALIBRATION JOB..."
+read -r HTTP_STATUS RESPONSE_BODY <<< "$(http_request "${SERVER}/calibration/test" "POST" "{\"delay\": 120}")"
+assert_status_code "$HTTP_STATUS" "202"
+echo "$RESPONSE_BODY" | python3 -m json.tool
+JOB_ID=$(echo "$RESPONSE_BODY" | python3 -c 'import sys, json; print(json.load(sys.stdin)["id"])')
+
+echo "GET JOB STATUS..."
+while true; do
+    read -r HTTP_STATUS RESPONSE_BODY <<< "$(http_request "${SERVER}/calibration/test/${JOB_ID}" "GET")"
+    assert_status_code "$HTTP_STATUS" "200"
+    STATUS=$(echo "$RESPONSE_BODY" | python3 -c 'import sys, json; print(json.load(sys.stdin)["status"])')
+    if [ "$STATUS" == "completed" ]; then
+        echo "CALIBRATION JOB COMPLETED"
+        echo "$RESPONSE_BODY" | python3 -m json.tool
+        break
+    fi
+    sleep 1
+done
