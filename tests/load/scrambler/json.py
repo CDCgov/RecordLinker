@@ -15,7 +15,7 @@ def scramble_field(data: dict, field: str):
     elif field == "GENDER":
         data["sex"] = utils.apply_field_scrambling(data["sex"])
     elif field == "BIRTHDATE":
-        data["birth_date"] = utils.apply_field_scrambling(data["birth_date"])
+        data["birth_date"] = utils.apply_date_scrambling(data["birth_date"])
     elif field == "ADDRESS":
         data["address"][0]["line"][0] = utils.apply_field_scrambling(data["address"][0]["line"][0])
     elif field == "CITY":
@@ -62,9 +62,6 @@ def scramble(data: dict) -> dict:
                     acceptable_fields_to_drop,
                     random.randint(config.MIN_FIELDS_TO_DROP, config.MAX_FIELDS_TO_DROP),
                 )
-                for f in fields_to_drop:
-                    # Set the field to an empty string to simulate missingness
-                    utils.set_field(f, "", dupe, json_set_field)
 
             # Determine if this duplicate will be subject to field scrambling
             if random.random() < config.CHANCE_TO_SCRAMBLE:
@@ -125,6 +122,7 @@ def json_set_field(field: str, data: dict, value: str) -> str | None:
         elif field == "LAST":
             data["name"][0]["family"] = value
         elif field == "SUFFIX":
+            print("Setting suffix:", value)
             data["name"][0]["suffix"] = value
         elif field == "GENDER":
             data["sex"] = value
