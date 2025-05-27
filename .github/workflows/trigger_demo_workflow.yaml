@@ -1,19 +1,14 @@
 name: Trigger Deploy to Demo
-run-name: Trigger Deploy ${{ inputs.version }} to Demo by @${{ github.actor }}
+run-name: Trigger Deploy ${{ inputs.build }} to Demo by @${{ github.actor }}
 
 on:
   workflow_dispatch:
     inputs:
-      service:
+      build:
         type: string
-        description: "The service you want to deploy. dibbs-record-linker"
+        description: "The demo build to deploy. Example: b176 or latest"
         required: true
-        default: dibbs-record-linker
-      version:
-        type: string
-        description: "The version to deploy. Example: v2.6.0 or main"
-        required: true
-        default: main
+        default: latest
       event_type:
         type: choice
         options:
@@ -31,8 +26,8 @@ jobs:
           repo_owner="skylight-hq"
           repo_name="dibbs-tf-envs"
           event_type=${{ github.event.inputs.event_type }}
-          service="${{ github.event.inputs.service }}"
-          version="${{ github.event.inputs.version }}"
+          service="dibbs-record-linker"
+          version="${{ github.event.inputs.build }}"
           response="$(curl -L -w '%{http_code}\n' -o /dev/null \
             -X POST \
             -H "Accept: application/vnd.github+json" \
