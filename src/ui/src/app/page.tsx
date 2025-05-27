@@ -129,6 +129,7 @@ const Home: React.FC = () => {
         <CaptionedImage
           width={792}
           height={372}
+          className="margin-bottom-5"
           src="/images/record-linker-process-min.png"
           alt="record linker algorithm steps explained"
           caption={
@@ -144,23 +145,6 @@ const Home: React.FC = () => {
               with additional details.
             </>
           }
-        />
-        <h2 className="margin-top-8">Where we&apos;re going </h2>
-        <p className="margin-top-1 margin-bottom-4">
-          Record Linker is currently at the product validation stage. Our team
-          is working with users at several public health departments to develop
-          a standalone Master Patient Index that enables patient matching across
-          internal tools (e.g., disease surveillance, vital records, and
-          immunization information systems), thereby improving interoperability
-          between these datasets.
-        </p>
-        <CaptionedImage
-          width={470}
-          height={371}
-          className="margin-bottom-5"
-          src="/images/record-linker-data-flow-min.png"
-          alt="multiple health data sources convey into a single one"
-          caption="Record Linker can match records across internal public health tools."
         />
       </div>
       <div
