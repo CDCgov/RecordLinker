@@ -27,22 +27,24 @@ def main() -> None:
     args = parser.parse_args()
 
     if args.file.endswith(".json"):
-        cluster_list = []
         total_record_counter = 0
-        with open(args.file, "rb") as f:
-            clusters = ijson.items(f, "clusters.item", use_float=True)
+        first = True
+        with open(args.file, "rb") as input_file, open("seed_data.json", "w") as output_file:
+            clusters = ijson.items(input_file, "clusters.item", use_float=True)
+            output_file.write('{"clusters": [\n')
             # Iterate over the clusters in the file
             for cluster in clusters:
                 if random.random() < 0.66:  # Scramble some of the available clusters
                     scrambled_cluster = json_scrambler.scramble(cluster)
-                    cluster_list.append(scrambled_cluster)
+                    if not first:
+                        output_file.write(",\n")
                     total_record_counter += len(scrambled_cluster["records"])
+                    json.dump(scrambled_cluster, output_file, indent=4)
+                    first = False
                 # Only scramble a subset of the clusters
                 if total_record_counter >= args.max_seed_records:
                     break
-        # Write the scrambled clusters to a new file
-        with open("seed_data.json", "w") as f:
-            json.dump({"clusters": cluster_list}, f, indent=4)
+            output_file.write("\n]}\n")
 
     else:
         # TODO: Convert CSV scrambler from expand_test_data.py
