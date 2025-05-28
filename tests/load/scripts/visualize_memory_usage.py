@@ -1,3 +1,6 @@
+# This script visualizes memory usage over time from the CSV file produced when
+# running scramble_data.py.
+
 import csv
 
 import matplotlib.pyplot as plt
@@ -5,7 +8,6 @@ import matplotlib.pyplot as plt
 timestamps = []
 memory_bytes = []
 
-# Read the CSV
 with open("memory_trace.csv", newline="") as csvfile:
     reader = csv.DictReader(csvfile)
     for row in reader:
