@@ -60,13 +60,18 @@ const Home: React.FC = () => {
         )}
       >
         <h2>What is it?</h2>
-        <p className="margin-top-1 margin-bottom-6">
+        <p className="margin-top-1 margin-bottom-2">
           Record Linker is an open-source tool that uses a configurable,
           multi-phase algorithm to efficiently link and deduplicate patient
           records across public health systems and jurisdictions. Compared to
           existing record linkage tools, our solution offers a high degree of
           transparency, customization, and precision, allowing your jurisdiction
           to control exactly how patient records are matched and merged.
+        </p>
+        <p className="margin-top-1 margin-bottom-6">
+          Record Linker is the backbone of the modernized NEDSS Based System (NBS 7)
+          patient match system. Users of NBS 7 will take advantage of increase
+          transparency, configurability, and accuracy in patient matching.
         </p>
         <h2>How does it work?</h2>
         <p className="margin-top-1">
