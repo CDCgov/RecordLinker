@@ -1,3 +1,4 @@
+import datetime
 import random
 import string
 import typing
@@ -23,6 +24,25 @@ def apply_field_scrambling(value: str) -> str:
             idx = random.randint(0, len(chars) - 2)
             chars[idx], chars[idx + 1] = chars[idx + 1], chars[idx]
     return "".join(chars)
+
+
+def apply_date_scrambling(value: str) -> str:
+    if not value:
+        return value
+
+    original_date = datetime.datetime.strptime(value, "%Y-%m-%d")
+
+    action = random.choice(["year", "month", "day"])
+    if action == "month":
+        adjustment = random.randint(1, 12) * 30
+    elif action == "day":
+        adjustment = random.randint(0, 30)
+    elif action == "year":
+        # Randomly adjust the year by up to 10 years
+        adjustment = random.randint(0, 10) * 365
+
+    new_date = original_date - datetime.timedelta(days=adjustment)
+    return new_date.strftime("%Y-%m-%d")
 
 
 def select_fields_to_scramble(fields: list[str]) -> list[str]:
