@@ -12,6 +12,7 @@ of PII records up to 25. Those values can be adjusted see --help for more inform
 
 import argparse
 import random
+import sys
 
 from faker import Faker
 
@@ -93,7 +94,8 @@ def main() -> None:
     args = parser.parse_args()
 
     faker = Faker()
-    clusters = []
+    sys.stdout.write("{\n\"clusters\": [\n")
+    first = True
     for _ in range(args.count):
         cluster = schemas.Cluster(
             external_person_id=f"EP:{str(faker.uuid4())}",
@@ -102,8 +104,11 @@ def main() -> None:
                 for _ in range(random.randint(1, args.max_per_cluster))
             ],
         )
-        clusters.append(cluster)
-    print(schemas.ClusterGroup(clusters=clusters).model_dump_json(indent=2))
+        if not first:
+            sys.stdout.write(",\n")
+        sys.stdout.write(f"{cluster.model_dump_json(indent=2)}")
+        first = False
+    sys.stdout.write("\n]}\n")
 
 
 if __name__ == "__main__":
