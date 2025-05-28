@@ -41,7 +41,7 @@ def apply_date_scrambling(value: str) -> str:
         # Randomly adjust the year by up to 10 years
         adjustment = random.randint(0, 10) * 365
 
-    new_date = original_date + datetime.timedelta(days=adjustment)
+    new_date = original_date - datetime.timedelta(days=adjustment)
     return new_date.strftime("%Y-%m-%d")
 
 
