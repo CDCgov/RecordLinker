@@ -3,8 +3,6 @@ import argparse
 import json
 import random
 import sys
-import time
-import tracemalloc
 
 import ijson
 
@@ -28,12 +26,6 @@ def main() -> None:
     )
 
     args = parser.parse_args()
-    # Start memory tracking
-    tracemalloc.start()
-    start_time = time.time()
-    mem_samples = []
-    peak_samples = []
-    timestamps = []
 
     if args.file.endswith(".json"):
         total_record_counter = 0
@@ -43,11 +35,6 @@ def main() -> None:
             output_file.write('{"clusters": [\n')
             # Iterate over the clusters in the file
             for cluster in clusters:
-                # Take memory snapshot
-                current, peak = tracemalloc.get_traced_memory()
-                mem_samples.append(current)
-                peak_samples.append(peak)
-                timestamps.append(time.time() - start_time)
                 if random.random() < 0.66:  # Scramble some of the available clusters
                     scrambled_cluster = json_scrambler.scramble(cluster)
                     if not first:
@@ -68,17 +55,6 @@ def main() -> None:
                     break
             output_file.write("\n]}\n")
             output_file.flush()
-
-            # Final memory snapshot
-        current, peak = tracemalloc.get_traced_memory()
-        mem_samples.append(current)
-        timestamps.append(time.time() - start_time)
-        tracemalloc.stop()
-
-        with open("memory_trace.csv", "w") as f:
-            f.write("time_seconds,memory_bytes,peaks\n")
-            for t, m, p in zip(timestamps, mem_samples, peak_samples):
-                f.write(f"{t},{m},{p}\n")
 
     else:
         # TODO: Convert CSV scrambler from expand_test_data.py
