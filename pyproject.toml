@@ -7,16 +7,16 @@ name = "RecordLinker"
 dynamic = ["version"]
 description = "An API for linking health care records using Patient PII"
 authors = [
-    {name = "Brandon Mader", email = "brandon@skylight.digital"},
-    {name = "Dan Paseltiner", email = "dan@skylight.digital"},
-    {name = "Marcelle Goggins", email = "marcelle@skylight.digital"},
-    {name = "Eric Buckley", email = "ericbuckley@skylight.digital"},
-    {name = "Alex Hayward", email = "alex.hayward@skylight.digital"},
-    {name = "Cason Brinson", email = "cbrinson@rise8.us"},
-    {name = "Derek Dombek", email = "ddombek@rise8.us"},
+    { name = "Brandon Mader", email = "brandon@skylight.digital" },
+    { name = "Dan Paseltiner", email = "dan@skylight.digital" },
+    { name = "Marcelle Goggins", email = "marcelle@skylight.digital" },
+    { name = "Eric Buckley", email = "ericbuckley@skylight.digital" },
+    { name = "Alex Hayward", email = "alex.hayward@skylight.digital" },
+    { name = "Cason Brinson", email = "cbrinson@rise8.us" },
+    { name = "Derek Dombek", email = "ddombek@rise8.us" },
 ]
 license = { file = "LICENSE" }
-readme = {file = "README.md", content-type = "text/markdown"}
+readme = { file = "README.md", content-type = "text/markdown" }
 requires-python = ">=3.11"
 dependencies = [
     "uvicorn",
@@ -30,12 +30,12 @@ dependencies = [
     "python-json-logger",
     "asgi-correlation-id",
     # Database drivers
-    "psycopg2-binary",  # PostgreSQL
-    "PyMySQL",  # MySQL & MariaDB
-    "cryptography",  # MySQL & MariaDB dependency
-    "pyodbc", # Microsoft SQL Server
+    "psycopg2-binary", # PostgreSQL
+    "PyMySQL",         # MySQL & MariaDB
+    "cryptography",    # MySQL & MariaDB dependency
+    "pyodbc",          # Microsoft SQL Server
     # Normalization
-    "phonenumbers"
+    "phonenumbers",
 ]
 
 [project.optional-dependencies]
@@ -43,7 +43,7 @@ dev = [
     # development-only dependencies here
     "fastapi[standard]",
     "ruff",
-    "mypy",
+    "mypy=1.15.0",
     "types-python-dateutil",
     "faker",
     # Testing
@@ -63,7 +63,7 @@ prod = [
 ]
 
 [tool.setuptools]
-package-dir = {"" = "src"}
+package-dir = { "" = "src" }
 
 [tool.setuptools.package-data]
 recordlinker = ["assets/*"]
@@ -86,11 +86,25 @@ target-version = "py310"
 show-fixes = true
 
 [tool.ruff.lint]
-select = ["E4", "E7", "E9", "F", "I", "D102", "D103", "D104", "D105", "D106"] # Defaults
+select = [
+    "E4",
+    "E7",
+    "E9",
+    "F",
+    "I",
+    "D102",
+    "D103",
+    "D104",
+    "D105",
+    "D106",
+] # Defaults
 
 [tool.ruff.lint.per-file-ignores]
 "**/__init__.py" = ["D"]
-"tests/*.py" = ["D102", "D103"]  # Ignore the public docstring rules in test files
+"tests/*.py" = [
+    "D102",
+    "D103",
+] # Ignore the public docstring rules in test files
 
 [tool.ruff.lint.isort]
 # The following settings reduce the number of changes from reorder-python-imports
@@ -101,18 +115,15 @@ order-by-type = false
 testpaths = ["tests/unit"]
 pythonpath = ["src", "tests/unit"]
 filterwarnings = [
-    "ignore:typing.io is deprecated, import directly from typing instead:DeprecationWarning"
+    "ignore:typing.io is deprecated, import directly from typing instead:DeprecationWarning",
 ]
-env = [
-    "DB_URI=sqlite:///:memory:",
-    "INITIAL_ALGORITHMS=",
-]
+env = ["DB_URI=sqlite:///:memory:", "INITIAL_ALGORITHMS="]
 
 [tool.coverage.run]
 omit = [
     # Omit the generated version file from coverage
     "src/recordlinker/_version.py",
-    ]
+]
 
 [tool.mypy]
 files = ["src"]
