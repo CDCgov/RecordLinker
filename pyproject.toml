@@ -46,7 +46,7 @@ dev = [
     # development-only dependencies here
     "fastapi[standard]",
     "ruff",
-    "mypy",
+    "mypy==1.15.0",
     "types-python-dateutil",
     "faker",
     # Testing
