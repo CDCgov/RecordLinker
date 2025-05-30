@@ -76,7 +76,7 @@ class LoadTest(locust.HttpUser):
         # Pick a random record from the seed data
         locust_file = pathlib.Path(__file__).resolve()
         project_root = locust_file.parents[2]
-        original_data_path = os.path.join(project_root, "tests/load/assets/test_data_large.json")
+        original_data_path = os.path.join(project_root, "tests/load/assets/original_data.json")
 
         with open(original_data_path, "rb") as input_file:
             clusters_iter = ijson.items(input_file, "clusters.item", use_float=True)
