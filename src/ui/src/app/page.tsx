@@ -44,6 +44,7 @@ const Home: React.FC = () => {
             </Link>
           </div>
           <Image
+            className="grid-col-5"
             src="/images/record-linker-diagram-1.svg"
             width={300}
             height={300}
