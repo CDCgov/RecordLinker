@@ -183,11 +183,11 @@ const RecordView: React.FC = () => {
             selectedRecord.potential_match?.[0],
           )}
         />
-        <div className="margin-top-3">
+        <div className="margin-top-1">
           <Button className="margin-right-105" onClick={linkRecord}>
             Link record <LinkIcon size={3} />
           </Button>
-          <Button onClick={unlinkRecord}>
+          <Button className="margin-top-105" onClick={unlinkRecord}>
             Do not link record <LinkOffIcon size={3} />
           </Button>
         </div>
