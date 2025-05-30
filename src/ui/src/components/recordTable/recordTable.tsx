@@ -81,28 +81,30 @@ const RecordTable: React.FC<RecordTableProps> = ({
   withSortIndicator = false,
 }) => {
   return (
-    <Table fullWidth className="usa-table--record-linker">
-      <thead>
-        <tr>
-          <th>Patient</th>
-          <th>
-            <span className={withSortIndicator ? "descending-order" : ""}>
-              Received on
-            </span>
-          </th>
-          <th>Data stream</th>
-          <th>
-            <InfoTooltip text={linkScoreDesc}>Link Score</InfoTooltip>
-          </th>
-          {withReviewLink && <th>Actions</th>}
-        </tr>
-      </thead>
-      <tbody>
-        {items.map((record: RecordMatch) =>
-          getTableRow(record, withReviewLink),
-        )}
-      </tbody>
-    </Table>
+    <div className="usa-table-container--scrollable">
+        <Table fullWidth className="usa-table--record-linker">
+          <thead>
+            <tr>
+              <th>Patient</th>
+              <th>
+                <span className={withSortIndicator ? "descending-order" : ""}>
+                  Received on
+                </span>
+              </th>
+              <th>Data stream</th>
+              <th>
+                <InfoTooltip text={linkScoreDesc}>Link Score</InfoTooltip>
+              </th>
+              {withReviewLink && <th>Actions</th>}
+            </tr>
+          </thead>
+          <tbody>
+            {items.map((record: RecordMatch) =>
+              getTableRow(record, withReviewLink),
+            )}
+          </tbody>
+        </Table>
+    </div>
   );
 };
 

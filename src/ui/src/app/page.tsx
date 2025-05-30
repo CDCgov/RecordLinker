@@ -18,7 +18,7 @@ const Home: React.FC = () => {
           className={classNames(
             "page-container",
             "page-container--lg",
-            "padding-y-10",
+            "padding-y-5",
             "grid-row",
             "flex-row",
             "flex-align-center",
@@ -44,6 +44,7 @@ const Home: React.FC = () => {
             </Link>
           </div>
           <Image
+            className="grid-col-5"
             src="/images/record-linker-diagram-1.svg"
             width={300}
             height={300}
@@ -172,7 +173,7 @@ const Home: React.FC = () => {
           Try out our demo using sample data.
         </p>
         <Link
-          className="usa-button padding-x-7 margin-top-2"
+          className="usa-button padding-x-7 margin-top-2 margin-bottom-2"
           href={PAGES.RECORD_QUEUE}
         >
           Launch demo
