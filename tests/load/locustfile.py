@@ -2,7 +2,6 @@ import json
 import os
 import pathlib
 import random
-import threading
 
 import ijson
 import locust
@@ -44,33 +43,28 @@ def _(parser):
 
 
 class LoadTest(locust.HttpUser):
-    seed_data = None
-    seed_lock = threading.Lock()
-
     def on_start(self):
         # Check if the database has been seeded before starting the test
-        self.__class__.seeded = self.environment.parsed_options.seeded
+        seeded = self.environment.parsed_options.seeded
 
-        with self.seed_lock:
-            if not self.__class__.seeded:
-                locust_file = pathlib.Path(__file__).resolve()
-                project_root = locust_file.parents[2]
-                seed_data_path = os.path.join(project_root, "tests/load/assets/seed_data.json")
-                with open(seed_data_path, "rb") as input_file:
-                    clusters_iter = ijson.items(input_file, "clusters.item", use_float=True)
-                    chunk = []
-                    chunk_size = 100
-                    for cluster in clusters_iter:
-                        chunk.append(cluster)
-                        if len(chunk) == chunk_size:
-                            seed_data = json.dumps({"clusters": chunk}, indent=2)
-                            self.client.post("/api/seed", seed_data)
-                            chunk = []
-
-                    if chunk:
+        if not seeded:
+            locust_file = pathlib.Path(__file__).resolve()
+            project_root = locust_file.parents[2]
+            seed_data_path = os.path.join(project_root, "tests/load/assets/seed_data.json")
+            with open(seed_data_path, "rb") as input_file:
+                clusters_iter = ijson.items(input_file, "clusters.item", use_float=True)
+                chunk = []
+                chunk_size = 100
+                for cluster in clusters_iter:
+                    chunk.append(cluster)
+                    if len(chunk) == chunk_size:
                         seed_data = json.dumps({"clusters": chunk}, indent=2)
                         self.client.post("/api/seed", seed_data)
-                self.__class__.seeded = True
+                        chunk = []
+
+                if chunk:
+                    seed_data = json.dumps({"clusters": chunk}, indent=2)
+                    self.client.post("/api/seed", seed_data)
 
     @locust.task
     def link(self):
@@ -82,7 +76,7 @@ class LoadTest(locust.HttpUser):
         # Pick a random record from the seed data
         locust_file = pathlib.Path(__file__).resolve()
         project_root = locust_file.parents[2]
-        original_data_path = os.path.join(project_root, "tests/load/assets/original_data.json")
+        original_data_path = os.path.join(project_root, "tests/load/assets/test_data_large.json")
 
         with open(original_data_path, "rb") as input_file:
             clusters_iter = ijson.items(input_file, "clusters.item", use_float=True)
@@ -94,8 +88,11 @@ class LoadTest(locust.HttpUser):
                         "record": cluster["records"][0],
                         "external_person_id": cluster["external_person_id"],
                     }
-
-                    self.client.post("/api/link", json=data)
+                    # if counter < 50:
+                    #     pass
+                    # else:
+                    resp = self.client.post("/api/link", json=data)
+                    print(f"Linked record {counter}: {resp.status_code} - {resp.text}")
                     counter += 1
                     if counter >= records_to_link:
                         break
