@@ -80,7 +80,7 @@ class LoadTest(locust.HttpUser):
 
         with open(original_data_path, "rb") as input_file:
             clusters_iter = ijson.items(input_file, "clusters.item", use_float=True)
-            counter = 1
+            counter = 0
             for cluster in clusters_iter:
                 # decide whether to link or not
                 if random.random() < self.environment.parsed_options.link_probability:
@@ -88,11 +88,8 @@ class LoadTest(locust.HttpUser):
                         "record": cluster["records"][0],
                         "external_person_id": cluster["external_person_id"],
                     }
-                    # if counter < 50:
-                    #     pass
-                    # else:
-                    resp = self.client.post("/api/link", json=data)
-                    print(f"Linked record {counter}: {resp.status_code} - {resp.text}")
-                    counter += 1
+
+                    self.client.post("/api/link", json=data)
+
                     if counter >= records_to_link:
-                        break
+                        self.environment.runner.quit()
