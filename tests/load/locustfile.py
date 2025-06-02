@@ -29,6 +29,13 @@ def _(parser):
         "--records-to-link", type=int, default=100, help="Number of records to link in the test run"
     )
     parser.add_argument(
+        "--link-probability",
+        type=float,
+        default=0.5,
+        help="Probability of linking a record",
+    )
+
+    parser.add_argument(
         "--seeded",
         type=str_to_bool,
         default=False,
@@ -53,12 +60,11 @@ class LoadTest(locust.HttpUser):
                     clusters_iter = ijson.items(input_file, "clusters.item", use_float=True)
                     chunk = []
                     chunk_size = 100
-                    idx = 0
                     for cluster in clusters_iter:
                         chunk.append(cluster)
                         if len(chunk) == chunk_size:
-                            idx += chunk_size
                             seed_data = json.dumps({"clusters": chunk}, indent=2)
+                            self.client.post("/api/seed", seed_data)
                             chunk = []
 
                     if chunk:
@@ -82,7 +88,8 @@ class LoadTest(locust.HttpUser):
             clusters_iter = ijson.items(input_file, "clusters.item", use_float=True)
             counter = 1
             for cluster in clusters_iter:
-                if random.random() < 0.5:  # randomly decide whether to link or not
+                # decide whether to link or not
+                if random.random() < self.environment.parsed_options.link_probability:
                     data = {
                         "record": cluster["records"][0],
                         "external_person_id": cluster["external_person_id"],
