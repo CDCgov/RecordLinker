@@ -1,10 +1,19 @@
 import ResetDemoButton from "@/app/match-queue/ResetDemoButton";
+import MatchQueueStyle from "./matchQueue.module.scss";
+import classNames from "classnames";
 
 const MatchQueueLayout: React.FC<React.PropsWithChildren> = ({ children }) => {
   return (
     <div className="page-container page-container--xl page-container--full-height padding-top-5 padding-bottom-10">
       <h1 className="font-alt-xl margin-bottom-0">Match queue</h1>
-      <div className="display-flex flex-align-end margin-bottom-4">
+      <div
+        className={classNames(
+          "display-flex",
+          "flex-align-end",
+          "margin-bottom-4",
+          MatchQueueStyle.subheadingSection,
+        )}
+      >
         <p className="subheading margin-right-5">
           Based on your algorithm configuration rules, Record Linker
           automatically matched a subset of records. The remaining records below

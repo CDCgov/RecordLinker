@@ -1,0 +1,11 @@
+.subheadingSection {
+  flex-direction: column;
+
+  @media (width >= 40em) {
+    flex-direction: row;
+  }
+
+  @media (width >= 64em) {
+    flex-direction: row;
+  }
+}
