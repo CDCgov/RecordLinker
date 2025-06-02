@@ -68,11 +68,13 @@ class TestLink:
                 patients.append(fhir.fhir_record_to_pii_record(entry["resource"]))
         return patients
 
+    @pytest.fixture
     @mock.patch("recordlinker.database.algorithm_service.default_algorithm")
     def test_link_success(self, patched_subprocess, default_algorithm, patients, client):
         patched_subprocess.return_value = default_algorithm
         response_1 = client.post(
-            self.path(client), json={"record": json.loads(patients[0].model_dump_json(exclude_none=True))}
+            self.path(client),
+            json={"record": json.loads(patients[0].model_dump_json(exclude_none=True))},
         )
         person_1 = response_1.json()["person_reference_id"]
         assert response_1.json()["patient_reference_id"] and uuid.UUID(
@@ -83,7 +85,8 @@ class TestLink:
         assert not response_1.json()["results"]
 
         response_2 = client.post(
-            self.path(client), json={"record": json.loads(patients[1].model_dump_json(exclude_none=True))}
+            self.path(client),
+            json={"record": json.loads(patients[1].model_dump_json(exclude_none=True))},
         )
         person_2 = response_2.json()["person_reference_id"]
         assert response_2.json()["patient_reference_id"] and uuid.UUID(
@@ -94,7 +97,8 @@ class TestLink:
         assert len(response_2.json()["results"]) == 1
 
         response_3 = client.post(
-            self.path(client), json={"record": json.loads(patients[2].model_dump_json(exclude_none=True))}
+            self.path(client),
+            json={"record": json.loads(patients[2].model_dump_json(exclude_none=True))},
         )
         person_3 = response_3.json()["person_reference_id"]
         assert response_3.json()["patient_reference_id"] and uuid.UUID(
@@ -106,7 +110,8 @@ class TestLink:
 
         # Cluster membership success--justified match
         response_4 = client.post(
-            self.path(client), json={"record": json.loads(patients[3].model_dump_json(exclude_none=True))}
+            self.path(client),
+            json={"record": json.loads(patients[3].model_dump_json(exclude_none=True))},
         )
         person_4 = response_4.json()["person_reference_id"]
         assert response_4.json()["patient_reference_id"] and uuid.UUID(
@@ -117,7 +122,8 @@ class TestLink:
         assert len(response_2.json()["results"]) == 1
 
         response_5 = client.post(
-            self.path(client), json={"record": json.loads(patients[4].model_dump_json(exclude_none=True))}
+            self.path(client),
+            json={"record": json.loads(patients[4].model_dump_json(exclude_none=True))},
         )
         person_5 = response_5.json()["person_reference_id"]
         assert response_5.json()["patient_reference_id"] and uuid.UUID(
@@ -128,7 +134,8 @@ class TestLink:
         assert not response_3.json()["results"]
 
         response_6 = client.post(
-            self.path(client), json={"record": json.loads(patients[5].model_dump_json(exclude_none=True))}
+            self.path(client),
+            json={"record": json.loads(patients[5].model_dump_json(exclude_none=True))},
         )
         person_6 = response_6.json()["person_reference_id"]
         assert response_6.json()["patient_reference_id"] and uuid.UUID(
@@ -171,6 +178,7 @@ class TestLinkFHIR:
     def path(self, client):
         return client.app.url_path_for("link-fhir")
 
+    @pytest.fixture
     @mock.patch("recordlinker.database.algorithm_service.default_algorithm")
     def test_bundle_with_no_patient(self, patched_subprocess, default_algorithm, client):
         patched_subprocess.return_value = default_algorithm
@@ -185,6 +193,7 @@ class TestLinkFHIR:
         assert actual_response.json() == expected_response
         assert actual_response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
 
+    @pytest.fixture
     @mock.patch("recordlinker.database.algorithm_service.default_algorithm")
     def test_invalid_bundle(self, patched_subprocess, default_algorithm, client):
         patched_subprocess.return_value = default_algorithm
@@ -199,6 +208,7 @@ class TestLinkFHIR:
         assert actual_response.json() == expected_response
         assert actual_response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
 
+    @pytest.fixture
     @mock.patch("recordlinker.database.algorithm_service.default_algorithm")
     def test_success(self, patched_subprocess, default_algorithm, client):
         patched_subprocess.return_value = default_algorithm
@@ -338,6 +348,7 @@ class TestMatch:
         assert resp.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
         assert resp.json()["detail"] == "No algorithm found"
 
+    @pytest.fixture
     def test_no_match(self, client, default_algorithm, patients):
         algorithm_service.load_algorithm(client.session, default_algorithm)
         client.session.commit()
@@ -350,10 +361,13 @@ class TestMatch:
         assert payload.get("patient_reference_id") is None
         assert len(client.session.query(models.Patient).all()) == 0
 
+    @pytest.fixture
     def test_match(self, client, default_algorithm, patients):
         algorithm_service.load_algorithm(client.session, default_algorithm)
         client.session.commit()
-        per1 = client.post(client.app.url_path_for("link-record"), json={"record": patients[0].to_dict(True)}).json()["person_reference_id"]
+        per1 = client.post(
+            client.app.url_path_for("link-record"), json={"record": patients[0].to_dict(True)}
+        ).json()["person_reference_id"]
 
         resp = client.post(self.path(client), json={"record": patients[0].to_dict(True)})
         assert resp.status_code == status.HTTP_200_OK
@@ -383,6 +397,7 @@ class TestMatchFHIR:
         assert resp.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
         assert resp.json()["detail"] == "No algorithm found"
 
+    @pytest.fixture
     def test_no_match(self, client, default_algorithm, patient_bundles):
         algorithm_service.load_algorithm(client.session, default_algorithm)
         client.session.commit()
@@ -396,10 +411,13 @@ class TestMatchFHIR:
         assert payload["updated_bundle"] is None
         assert len(client.session.query(models.Patient).all()) == 0
 
+    @pytest.fixture
     def test_match(self, client, default_algorithm, patient_bundles):
         algorithm_service.load_algorithm(client.session, default_algorithm)
         client.session.commit()
-        per1 = client.post(client.app.url_path_for("link-fhir"), json={"bundle": patient_bundles[0]}).json()["person_reference_id"]
+        per1 = client.post(
+            client.app.url_path_for("link-fhir"), json={"bundle": patient_bundles[0]}
+        ).json()["person_reference_id"]
 
         resp = client.post(self.path(client), json={"bundle": patient_bundles[0]})
         assert resp.status_code == status.HTTP_200_OK

@@ -7,6 +7,7 @@ This module contains the unit tests for the recordlinker.routes.seed_router modu
 
 import unittest.mock as mock
 
+import pytest
 from conftest import load_test_json_asset
 
 from recordlinker import models
@@ -45,6 +46,7 @@ class TestBatch:
         assert client.session.query(models.Patient).count() == 1397
         assert client.session.query(models.BlockingValue).count() == 12139
 
+    @pytest.fixture
     @mock.patch("recordlinker.database.algorithm_service.default_algorithm")
     def test_seed_and_link(self, mock_algorithm, default_algorithm, client):
         mock_algorithm.return_value = default_algorithm
