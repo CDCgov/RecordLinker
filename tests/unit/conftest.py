@@ -71,8 +71,8 @@ def clean_test_database():
         os.remove(db_file)
 
 
-@functools.lru_cache
 @pytest.fixture
+@functools.lru_cache
 def default_algorithm():
     for algo in utils.read_json("assets/initial_algorithms.json"):
         if algo["label"] == "dibbs-default":

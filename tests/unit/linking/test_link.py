@@ -274,7 +274,6 @@ class TestLinkRecordAgainstMpi:
                 patients.append(fhir.fhir_record_to_pii_record(entry["resource"]))
         return patients
 
-    @pytest.fixture
     def test_default_match_one(self, session, default_algorithm, patients):
         # Test various null data values in incoming record
         matches: list[bool] = []
@@ -296,7 +295,6 @@ class TestLinkRecordAgainstMpi:
         assert round(all_results[1][0].median_features["FIRST_NAME"], 3) == 6.393
         assert round(all_results[1][0].median_features["LAST_NAME"], 3) == 6.351
 
-    @pytest.fixture
     def test_default_match_two(self, session, default_algorithm, patients):
         matches: list[bool] = []
         matching_passes: list[int] = []
@@ -338,7 +336,6 @@ class TestLinkRecordAgainstMpi:
         assert round(all_results[3][0].median_features["ADDRESS"], 3) == 8.438
         assert round(all_results[3][0].median_features["BIRTHDATE"], 3) == 10.127
 
-    @pytest.fixture
     def test_default_match_three(
         self, session, default_algorithm, patients: list[schemas.PIIRecord]
     ):
@@ -371,7 +368,6 @@ class TestLinkRecordAgainstMpi:
         assert round(all_results[6][0].median_features["FIRST_NAME"], 3) == 6.336
         assert round(all_results[6][0].median_features["LAST_NAME"], 3) == 6.351
 
-    @pytest.fixture
     def test_match_with_certain_first_pass(
         self, session, default_algorithm, patients: list[schemas.PIIRecord]
     ):
@@ -400,7 +396,6 @@ class TestLinkRecordAgainstMpi:
             results[2][0].pass_label == "BLOCK_birthdate_identifier_sex_MATCH_first_name_last_name"
         )
 
-    @pytest.fixture
     def test_match_change_in_second_pass(
         self, session, default_algorithm, patients: list[schemas.PIIRecord]
     ):
@@ -430,7 +425,6 @@ class TestLinkRecordAgainstMpi:
             results[2][0].pass_label == "BLOCK_zip_first_name_last_name_sex_MATCH_address_birthdate"
         )
 
-    @pytest.fixture
     def test_match_with_missing_field(
         self, session, default_algorithm, patients: list[schemas.PIIRecord]
     ):
@@ -461,7 +455,6 @@ class TestLinkRecordAgainstMpi:
         assert round(all_results[1][0].median_features["FIRST_NAME"], 3) == 6.849
         assert round(all_results[1][0].median_features["LAST_NAME"], 3) == 3.175
 
-    @pytest.fixture
     def test_reject_too_many_missing_field(
         self, session, default_algorithm, patients: list[schemas.PIIRecord]
     ):
@@ -490,7 +483,6 @@ class TestLinkRecordAgainstMpi:
         # Too much missingness means no match results, should mean no medians
         assert all_results == [[], []]
 
-    @pytest.fixture
     def test_both_missingness_params_zero(
         self, session, default_algorithm, patients: list[schemas.PIIRecord]
     ):
@@ -522,7 +514,6 @@ class TestLinkRecordAgainstMpi:
         # disqualifies it
         assert matches == [False, False]
 
-    @pytest.fixture
     def test_missing_field_points_exceed_max_missingness_fraction(
         self, session, default_algorithm, patients: list[schemas.PIIRecord]
     ):
@@ -569,7 +560,6 @@ class TestLinkRecordAgainstMpi:
         # low-value missing field, but fails user's overall completeness constraint
         assert matches == [False, False]
 
-    @pytest.fixture
     def test_no_match_one_suffix_one_not(
         self, session, default_algorithm, patients: list[schemas.PIIRecord]
     ):
@@ -592,7 +582,6 @@ class TestLinkRecordAgainstMpi:
         # due to suffix
         assert matches == [False, False]
 
-    @pytest.fixture
     def test_no_match_same_name_diff_suffixes(
         self, session, default_algorithm, patients: list[schemas.PIIRecord]
     ):
@@ -622,7 +611,6 @@ class TestLinkRecordAgainstMpi:
         # due to suffix being different
         assert matches == [False, False]
 
-    @pytest.fixture
     def test_no_match_diff_names_same_suffix(
         self, session, default_algorithm, patients: list[schemas.PIIRecord]
     ):
@@ -646,7 +634,6 @@ class TestLinkRecordAgainstMpi:
         # due to suffix
         assert matches == [False, False]
 
-    @pytest.fixture
     def test_match_name_with_suffix(
         self, session, default_algorithm, patients: list[schemas.PIIRecord]
     ):
@@ -670,7 +657,6 @@ class TestLinkRecordAgainstMpi:
         # Second patient blocks in first pass, then passes evaluation, match
         assert matches == [False, True]
 
-    @pytest.fixture
     def test_default_possible_match(
         self, session, default_algorithm, possible_match_default_patients: list[schemas.PIIRecord]
     ):
@@ -702,7 +688,6 @@ class TestLinkRecordAgainstMpi:
             match_grades[2]["results"][0].rms < default_algorithm.passes[0].possible_match_window[1]
         )
 
-    @pytest.fixture
     def test_include_multiple_matches_true(
         self, session, default_algorithm, multiple_matches_patients: list[schemas.PIIRecord]
     ):
@@ -735,7 +720,6 @@ class TestLinkRecordAgainstMpi:
         assert match_grades[2]["person"] == match_grades[0]["person"]
         assert match_grades[2]["results"][0].rms == 1.0
 
-    @pytest.fixture
     def test_include_multiple_matches_false(
         self, session, default_algorithm, multiple_matches_patients: list[schemas.PIIRecord]
     ):
@@ -758,7 +742,6 @@ class TestLinkRecordAgainstMpi:
         assert match_grades[2]["results"][0].rms >= match_grades[2]["results"][0].cmt
         assert match_grades[2]["person"] == match_grades[0]["person"]
 
-    @pytest.fixture
     def test_no_persist(self, session, default_algorithm, patients):
         # First patient inserted into MPI, no match
         first = patients[0]

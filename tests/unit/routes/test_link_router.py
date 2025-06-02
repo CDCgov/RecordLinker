@@ -68,7 +68,6 @@ class TestLink:
                 patients.append(fhir.fhir_record_to_pii_record(entry["resource"]))
         return patients
 
-    @pytest.fixture
     @mock.patch("recordlinker.database.algorithm_service.default_algorithm")
     def test_link_success(self, patched_subprocess, default_algorithm, patients, client):
         patched_subprocess.return_value = default_algorithm
@@ -178,7 +177,6 @@ class TestLinkFHIR:
     def path(self, client):
         return client.app.url_path_for("link-fhir")
 
-    @pytest.fixture
     @mock.patch("recordlinker.database.algorithm_service.default_algorithm")
     def test_bundle_with_no_patient(self, patched_subprocess, default_algorithm, client):
         patched_subprocess.return_value = default_algorithm
@@ -193,7 +191,6 @@ class TestLinkFHIR:
         assert actual_response.json() == expected_response
         assert actual_response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
 
-    @pytest.fixture
     @mock.patch("recordlinker.database.algorithm_service.default_algorithm")
     def test_invalid_bundle(self, patched_subprocess, default_algorithm, client):
         patched_subprocess.return_value = default_algorithm
