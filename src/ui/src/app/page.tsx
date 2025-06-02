@@ -26,7 +26,7 @@ const Home: React.FC = () => {
             style.section,
           )}
         >
-          <div className="grid-col-7">
+          <div className="desktop:grid-col-7 tablet:grid-col-7 grid-col-12">
             <h1 className="font-alt-xl margin-bottom-2 margin-top-0">
               Control how patient records are matched and merged
             </h1>
@@ -43,12 +43,14 @@ const Home: React.FC = () => {
               Launch demo
             </Link>
           </div>
-          <Image
-            src="/images/record-linker-diagram-1.svg"
-            width={300}
-            height={300}
-            alt="multiple health data sources convey into a single one"
-          />
+          <div className="desktop:grid-col-5 tablet:grid-col-5 grid-col-12">
+            <Image
+              src="/images/record-linker-diagram-1.svg"
+              width={300}
+              height={300}
+              alt="multiple health data sources convey into a single one"
+            />
+          </div>
         </div>
       </div>
       <div
@@ -69,9 +71,10 @@ const Home: React.FC = () => {
           to control exactly how patient records are matched and merged.
         </p>
         <p className="margin-top-1 margin-bottom-6">
-          Record Linker is the backbone of the modernized NEDSS Based System (NBS 7)
-          patient match system. Users of NBS 7 will take advantage of increase
-          transparency, configurability, and accuracy in patient matching.
+          Record Linker is the backbone of the modernized NEDSS Based System
+          (NBS 7) patient match system. Users of NBS 7 will take advantage of
+          increase transparency, configurability, and accuracy in patient
+          matching.
         </p>
         <h2>How does it work?</h2>
         <p className="margin-top-1">

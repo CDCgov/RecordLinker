@@ -176,13 +176,15 @@ const RecordView: React.FC = () => {
   } else if (selectedRecord) {
     return (
       <>
-        <RecordTable items={[selectedRecord]} />
-        <RecordCompare
-          comparisonFields={breakRecordIntoFields(
-            selectedRecord.incoming_record,
-            selectedRecord.potential_match?.[0],
-          )}
-        />
+        <div className="page-container--x-scroll">
+          <RecordTable items={[selectedRecord]} />
+          <RecordCompare
+            comparisonFields={breakRecordIntoFields(
+              selectedRecord.incoming_record,
+              selectedRecord.potential_match?.[0],
+            )}
+          />
+        </div>
         <div className="margin-top-3">
           <Button className="margin-right-105" onClick={linkRecord}>
             Link record <LinkIcon size={3} />

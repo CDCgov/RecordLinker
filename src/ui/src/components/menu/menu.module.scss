@@ -1,7 +1,13 @@
 @use "../../styles/variables.scss" as *;
 
 .algoConfigLink {
-  font-size: 1.125rem;
+  font-size: 1rem;
+  margin-top: 0.65rem;
+
+  @media (width >= 64em) {
+    margin-top: 0;
+    font-size: 1.125rem;
+  }
 
   &:hover {
     color: $blue-cool-blue-cool-20;

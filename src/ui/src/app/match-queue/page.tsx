@@ -34,7 +34,11 @@ const MatchQueue: React.FC = () => {
   if (serverError) {
     return <ServerError />;
   } else if (recordList && recordList?.length > 0) {
-    return <RecordTable items={recordList} withReviewLink withSortIndicator />;
+    return (
+      <div className="page-container--x-scroll">
+        <RecordTable items={recordList} withReviewLink withSortIndicator />
+      </div>
+    );
   } else if (recordList && recordList?.length === 0) {
     return (
       <EmptyFallback
