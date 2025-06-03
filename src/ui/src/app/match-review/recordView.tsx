@@ -22,6 +22,7 @@ import EmptyFallback from "@/components/emptyFallback/emptyFallback";
 import { AppError, PAGE_ERRORS } from "@/utils/errors";
 import { showToast, ToastType } from "@/components/toast/toast";
 import { PAGES } from "@/utils/constants";
+import MatchReviewStyles from "./matchReview.module.scss";
 
 function formatFieldValue(value: Patient[keyof Patient] | undefined): string {
   if (value instanceof Date) {
@@ -176,18 +177,23 @@ const RecordView: React.FC = () => {
   } else if (selectedRecord) {
     return (
       <>
-        <RecordTable items={[selectedRecord]} />
-        <RecordCompare
-          comparisonFields={breakRecordIntoFields(
-            selectedRecord.incoming_record,
-            selectedRecord.potential_match?.[0],
-          )}
-        />
+        <div className="page-container--x-scroll">
+          <RecordTable items={[selectedRecord]} />
+          <RecordCompare
+            comparisonFields={breakRecordIntoFields(
+              selectedRecord.incoming_record,
+              selectedRecord.potential_match?.[0],
+            )}
+          />
+        </div>
         <div className="margin-top-3">
           <Button className="margin-right-105" onClick={linkRecord}>
             Link record <LinkIcon size={3} />
           </Button>
-          <Button onClick={unlinkRecord}>
+          <Button
+            className={MatchReviewStyles.doNotLink}
+            onClick={unlinkRecord}
+          >
             Do not link record <LinkOffIcon size={3} />
           </Button>
         </div>

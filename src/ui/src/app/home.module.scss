@@ -8,6 +8,18 @@
   div {
     max-width: 56.25rem;
   }
+
+  img {
+    margin-top: 2rem;
+
+    @media (width >= 40em) {
+      margin-top: 0;
+    }
+
+    @media (width >= 64em) {
+      margin-top: 0;
+    }
+  }
 }
 
 .section {

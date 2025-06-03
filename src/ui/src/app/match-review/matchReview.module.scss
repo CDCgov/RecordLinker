@@ -1,6 +1,8 @@
 @use "../../styles/variables.scss" as *;
 
 .recordCompare {
+  min-width: 40rem;
+
   div[role="row"]:nth-child(2) {
     div:nth-child(2),
     div:nth-child(3) {
@@ -17,5 +19,16 @@
       border-bottom-right-radius: 0.25rem;
       border-bottom: solid 0.063rem #c6cace;
     }
+  }
+}
+
+.doNotLink {
+  margin-top: 1rem;
+  @media (width >= 40em) {
+    margin-top: 0;
+  }
+
+  @media (width >= 64em) {
+    margin-top: 0;
   }
 }
