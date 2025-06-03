@@ -205,7 +205,6 @@ class TestLinkFHIR:
         assert actual_response.json() == expected_response
         assert actual_response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
 
-    @pytest.fixture
     @mock.patch("recordlinker.database.algorithm_service.default_algorithm")
     def test_success(self, patched_subprocess, default_algorithm, client):
         patched_subprocess.return_value = default_algorithm
@@ -345,7 +344,6 @@ class TestMatch:
         assert resp.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
         assert resp.json()["detail"] == "No algorithm found"
 
-    @pytest.fixture
     def test_no_match(self, client, default_algorithm, patients):
         algorithm_service.load_algorithm(client.session, default_algorithm)
         client.session.commit()
@@ -358,7 +356,6 @@ class TestMatch:
         assert payload.get("patient_reference_id") is None
         assert len(client.session.query(models.Patient).all()) == 0
 
-    @pytest.fixture
     def test_match(self, client, default_algorithm, patients):
         algorithm_service.load_algorithm(client.session, default_algorithm)
         client.session.commit()
@@ -394,7 +391,6 @@ class TestMatchFHIR:
         assert resp.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
         assert resp.json()["detail"] == "No algorithm found"
 
-    @pytest.fixture
     def test_no_match(self, client, default_algorithm, patient_bundles):
         algorithm_service.load_algorithm(client.session, default_algorithm)
         client.session.commit()
@@ -408,7 +404,6 @@ class TestMatchFHIR:
         assert payload["updated_bundle"] is None
         assert len(client.session.query(models.Patient).all()) == 0
 
-    @pytest.fixture
     def test_match(self, client, default_algorithm, patient_bundles):
         algorithm_service.load_algorithm(client.session, default_algorithm)
         client.session.commit()
