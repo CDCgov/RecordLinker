@@ -90,7 +90,7 @@ class BlockingKey(enum.Enum):
         self.description = description
 
     @property
-    def value(self) -> str:
+    def value(self) -> str: # type: ignore[override]
         """
         Return the value of the enum.
         """
