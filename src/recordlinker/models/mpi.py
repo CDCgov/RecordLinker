@@ -90,7 +90,7 @@ class BlockingKey(enum.Enum):
         self.description = description
 
     @property
-    def value(self) -> str: # type: ignore[override]
+    def value(self) -> str:  # type: ignore[override]
         """
         Return the value of the enum.
         """
@@ -108,6 +108,7 @@ class BlockingValue(Base):
     # create a composite index on patient_id, blockingkey and value
     __table_args__ = (
         schema.Index("idx_blocking_value_patient_key_value", "patient_id", "blockingkey", "value"),
+        schema.Index("idx_blocking_value_key_value", "blockingkey", "value"),
     )
 
     id: orm.Mapped[int] = orm.mapped_column(get_bigint_pk(), autoincrement=True, primary_key=True)
