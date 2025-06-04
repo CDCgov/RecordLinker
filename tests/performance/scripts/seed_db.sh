@@ -21,3 +21,4 @@ fi
 echo "Seeding the database with ${SEED_FILE}"
 # Load the seed file into the database
 ${GUNZIP} "${SEED_FILE}" | psql --quiet ${URI}
+echo "Database seeded successfully with ${SEED_FILE}"
