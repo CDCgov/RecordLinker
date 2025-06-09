@@ -52,6 +52,21 @@ class TestCreatePatient:
         assert patient.person == person
         assert patient.data == data["record"]
 
+    def test_create_patient_no_person(self, client):
+        data = {
+            "record": {"name": [{"given": ["John"], "family": "Doe"}], "external_id": "123"},
+        }
+        response = client.post(self.path(client), json=data)
+        assert response.status_code == 201
+        patient = client.session.query(models.Patient).first()
+        assert response.json() == {
+            "patient_reference_id": str(patient.reference_id),
+            "external_patient_id": "123",
+        }
+        assert len(patient.blocking_values) == 2
+        assert patient.person is not None
+        assert patient.data == data["record"]
+
 
 class TestUpdatePatient:
     def path(self, client, _id):
