@@ -416,6 +416,7 @@ def update_person_cluster(
     Update the cluster for a given patient.
     """
     person = person or models.Person()
+    session.add(person)
     for patient in patients:
         patient.person = person
     session.flush()

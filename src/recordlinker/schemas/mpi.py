@@ -26,7 +26,7 @@ class PatientPersonRef(pydantic.BaseModel):
 
 
 class PatientRefs(pydantic.BaseModel):
-    patients: list[uuid.UUID] = pydantic.Field(..., min_length=1)
+    patients: list[uuid.UUID]
 
 
 class PatientCreatePayload(pydantic.BaseModel):
