@@ -125,7 +125,9 @@ class TestDeletePatient:
 
     def test_delete_patient(self, client):
         patient = models.Patient()
+        bv = models.BlockingValue(patient=patient, blockingkey=1, value="test")
         client.session.add(patient)
+        client.session.add(bv)
         client.session.flush()
 
         resp = client.delete(self.path(client, patient.reference_id))
