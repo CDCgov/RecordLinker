@@ -1,7 +1,7 @@
 name: "post merged pull to slack"
 
 on:
-    pull_request:
+    pull_request_target:
       branches: [main]
       types:
         - closed
@@ -12,9 +12,6 @@ jobs:
     if: ${{ github.event.pull_request.merged }}
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
       - name: Send GitHub trigger payload to Slack 
         id: slack
         uses: slackapi/slack-github-action@v1.27.0
