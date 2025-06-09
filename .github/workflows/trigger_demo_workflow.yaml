@@ -16,10 +16,16 @@ on:
           - trigger-demo-deploy
         description: "The event type to trigger the workflow."
         required: true
+      confirmed:
+        type: boolean
+        description: "✅ I have checked with the DevOps team before initiating a deploy to Demo"
+        required: true
 
 jobs:
   trigger_demo_workflow:
     runs-on: ubuntu-latest
+    environment:
+      name: demo
     steps:
       - name: Deploy to Demo
         run: |
