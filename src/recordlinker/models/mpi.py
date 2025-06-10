@@ -41,7 +41,7 @@ class Patient(Base):
 
     id: orm.Mapped[int] = orm.mapped_column(get_bigint_pk(), autoincrement=True, primary_key=True)
     person_id: orm.Mapped[int] = orm.mapped_column(
-        schema.ForeignKey(f"{Person.__tablename__}.id"), nullable=True
+        schema.ForeignKey(f"{Person.__tablename__}.id"), nullable=True, index=True
     )
     person: orm.Mapped["Person"] = orm.relationship(back_populates="patients")
     data: orm.Mapped[dict] = orm.mapped_column(sqltypes.JSON, default=dict)
@@ -105,14 +105,19 @@ class BlockingKey(enum.Enum):
 
 class BlockingValue(Base):
     __tablename__ = "mpi_blocking_value"
-    # create a composite index on patient_id, blockingkey and value
+    # Create a composite index on (blockingkey, value, patient_id) to optimize queries
+    # from BlockData.get(). The order of columns is crucial: some parts of the query
+    # filters only on blockingkey and value, while others use all three. For cases where
+    # only patient_id is needed, a separate index exists on that column.
     __table_args__ = (
-        schema.Index("idx_blocking_value_patient_key_value", "patient_id", "blockingkey", "value"),
+        schema.Index(
+            "ix_blocking_value_blockingkey_value_patient", "blockingkey", "value", "patient_id"
+        ),
     )
 
     id: orm.Mapped[int] = orm.mapped_column(get_bigint_pk(), autoincrement=True, primary_key=True)
     patient_id: orm.Mapped[int] = orm.mapped_column(
-        schema.ForeignKey(f"{Patient.__tablename__}.id")
+        schema.ForeignKey(f"{Patient.__tablename__}.id"), index=True
     )
     patient: orm.Mapped["Patient"] = orm.relationship(back_populates="blocking_values")
     blockingkey: orm.Mapped[int] = orm.mapped_column(sqltypes.SmallInteger)
