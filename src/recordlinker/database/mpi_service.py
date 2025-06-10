@@ -9,6 +9,7 @@ import logging
 import typing
 import uuid
 
+from sqlalchemy import exists
 from sqlalchemy import insert
 from sqlalchemy import literal
 from sqlalchemy import orm
@@ -358,6 +359,7 @@ def delete_blocking_values_for_patient(
     session.query(models.BlockingValue).filter(
         models.BlockingValue.patient_id == patient.id
     ).delete()
+
     if commit:
         session.commit()
 
@@ -522,12 +524,12 @@ def get_orphaned_persons(
     cursor (in the form of a person reference_id) is provided, only retrieve Persons
     with a reference_id greater than the cursor.
     """
-    query = (
-        select(models.Person)
-        .outerjoin(models.Patient, models.Patient.person_id == models.Person.id)
-        .filter(models.Patient.id.is_(None))
-        .order_by(models.Person.id)
-    )
+    # subquery to check if a Person has at least 1 associated Patient
+    subquery = select(models.Patient.id).where(models.Patient.person_id == models.Person.id)
+
+    # Main query using NOT EXISTS
+    query = select(models.Person).where(~exists(subquery)).order_by(models.Person.id)
+
     if cursor:
         query = query.filter(models.Person.id > cursor)
 
