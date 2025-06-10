@@ -463,6 +463,7 @@ def delete_patient(session: orm.Session, obj: models.Patient, commit: bool = Fal
     :param obj: The Patient to delete
     :param commit: Commit the transaction
     """
+    delete_blocking_values_for_patient(session, obj, commit=False)
     session.delete(obj)
     if commit:
         session.commit()
