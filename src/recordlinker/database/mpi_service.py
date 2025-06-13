@@ -15,7 +15,8 @@ from sqlalchemy import insert
 from sqlalchemy import literal
 from sqlalchemy import orm
 from sqlalchemy import select
-from sqlalchemy.sql import expression, func
+from sqlalchemy.sql import expression
+from sqlalchemy.sql import func
 
 from recordlinker import models
 from recordlinker import schemas
@@ -564,7 +565,7 @@ def generate_true_match_tuning_samples(
             expression.and_(
                 p1.person_id == p2.person_id,
                 p1.id < p2.id,
-                p1.person_id != None
+                p1.person_id is not None
             )
         ).order_by(
             func.random()
