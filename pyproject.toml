@@ -117,7 +117,7 @@ pythonpath = ["src", "tests/unit"]
 filterwarnings = [
     "ignore:typing.io is deprecated, import directly from typing instead:DeprecationWarning",
 ]
-env = ["DB_URI=sqlite:///:memory:", "INITIAL_ALGORITHMS="]
+env = ["DB_URI=sqlite:///:memory:", "INITIAL_ALGORITHMS=", "TUNING_ENABLED=true"]
 
 [tool.coverage.run]
 omit = [

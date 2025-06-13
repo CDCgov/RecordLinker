@@ -60,6 +60,10 @@ class Settings(pydantic_settings.BaseSettings):
         description="The root path for the API",
         default="/api",
     )
+    tuning_enabled: bool = pydantic.Field(
+        description="Enable tuning",
+        default=False,
+    )
 
     def default_log_config(self) -> dict:
         """
