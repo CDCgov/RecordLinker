@@ -31,9 +31,9 @@ from .seed import Cluster
 from .seed import ClusterGroup
 from .seed import PersonCluster
 from .seed import PersonGroup
+from .tuning import TuningJob
 from .tuning import TuningParams
 from .tuning import TuningResults
-from .tuning import TuningJob
 
 __all__ = [
     "Algorithm",
