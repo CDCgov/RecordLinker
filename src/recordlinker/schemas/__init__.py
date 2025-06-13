@@ -31,6 +31,9 @@ from .seed import Cluster
 from .seed import ClusterGroup
 from .seed import PersonCluster
 from .seed import PersonGroup
+from .tuning import TuningJob
+from .tuning import TuningParams
+from .tuning import TuningResults
 
 __all__ = [
     "Algorithm",
@@ -66,4 +69,7 @@ __all__ = [
     "ErrorResponse",
     "PaginatedMetaData",
     "PaginatedRefs",
+    "TuningParams",
+    "TuningResults",
+    "TuningJob",
 ]

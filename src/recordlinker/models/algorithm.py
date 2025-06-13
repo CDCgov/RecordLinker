@@ -52,7 +52,7 @@ def check_only_one_default(mapping, connection, target):
 
     session = orm.Session.object_session(target)
 
-    if target.is_default:
+    if session and target.is_default:
         # ruff linting rule E712 ignored on this line.
         # ruff wants to enforce using the 'is' operator over '=='.
         # However since we only want to compare the truth value of the SQL query result we need to use '=='.

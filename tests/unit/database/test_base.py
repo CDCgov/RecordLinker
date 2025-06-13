@@ -9,6 +9,19 @@ import unittest.mock
 
 from recordlinker.config import settings
 from recordlinker.database import create_sessionmaker
+from recordlinker.database import tables
+
+
+def test_tables():
+    """
+    Test the tables function.
+    """
+    with unittest.mock.patch.dict("os.environ", {"TUNING_ENABLED": "true"}):
+        settings.__init__()
+        assert len(tables()) == 5
+    with unittest.mock.patch.dict("os.environ", {"TUNING_ENABLED": "false"}):
+        settings.__init__()
+        assert len(tables()) == 4
 
 
 def test_create_sessionmaker():
