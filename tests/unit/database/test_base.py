@@ -16,7 +16,9 @@ def test_tables():
     """
     Test the tables function.
     """
-    assert len(tables()) == 5
+    with unittest.mock.patch.dict("os.environ", {"TUNING_ENABLED": "true"}):
+        settings.__init__()
+        assert len(tables()) == 5
     with unittest.mock.patch.dict("os.environ", {"TUNING_ENABLED": "false"}):
         settings.__init__()
         assert len(tables()) == 4
