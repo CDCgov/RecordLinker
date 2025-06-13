@@ -1233,7 +1233,7 @@ class TestGenerateTuningClasses:
     def test_generate_non_match_samples(self, client):
         data = load_test_json_asset("100_cluster_tuning_test.json.gz")
         client.post(self.path(client), json=data)
-        sample_pairs = mpi_service.generate_non_match_tuning_samples(client.session, 5)
+        sample_pairs = mpi_service.generate_non_match_tuning_samples(client.session, 1500, 5)
         assert len(sample_pairs) == 5
         for pair in sample_pairs:
             assert type(pair) is tuple

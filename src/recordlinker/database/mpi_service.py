@@ -15,6 +15,7 @@ from sqlalchemy import insert
 from sqlalchemy import literal
 from sqlalchemy import orm
 from sqlalchemy import select
+from sqlalchemy.engine.row import Row
 from sqlalchemy.sql import expression
 from sqlalchemy.sql import func
 
@@ -546,7 +547,7 @@ def get_orphaned_persons(
 def generate_true_match_tuning_samples(
         session: orm.Session,
         n_pairs: int
-    ) -> typing.Sequence[typing.Tuple]:
+    ) -> typing.Sequence[Row]:
     """
     Creates a sample of known "true match" pairs of patient records of 
     size n_pairs using previously labeled data. Pairs of records are 
@@ -565,7 +566,7 @@ def generate_true_match_tuning_samples(
             expression.and_(
                 p1.person_id == p2.person_id,
                 p1.id < p2.id,
-                p1.person_id is not None
+                ~p1.person_id.is_(None)
             )
         ).order_by(
             func.random()
@@ -620,7 +621,7 @@ def generate_non_match_tuning_samples(
     # randomly selecting two records, making sure they don't
     # match, and then storing them as a pair
     already_seen = set()
-    neg_pairs = []
+    neg_pairs: list[tuple] = []
     while len(neg_pairs) < n_pairs:
         idx_1 = random.randint(0, len(sample) - 1)
         idx_2 = random.randint(0, len(sample) - 1)
