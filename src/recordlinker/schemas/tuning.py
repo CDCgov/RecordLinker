@@ -53,7 +53,6 @@ class TuningJob(pydantic.BaseModel):
     started_at: datetime.datetime = pydantic.Field(default_factory=now_utc)
     finished_at: typing.Optional[datetime.datetime] = None
 
-    @pydantic.computed_field  # type: ignore[misc]
     @property
     def duration(self) -> typing.Optional[datetime.timedelta]:
         """
