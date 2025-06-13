@@ -13,7 +13,7 @@ import pydantic
 from typing_extensions import Annotated
 
 from recordlinker import models
-from recordlinker.utils.datetime import now_utc
+from recordlinker.utils.datetime import now_utc_no_ms
 
 from .algorithm import LogOdd
 
@@ -50,7 +50,7 @@ class TuningJob(pydantic.BaseModel):
     status: models.TuningStatus = pydantic.Field(default=models.TuningStatus.PENDING)
     params: TuningParams
     results: typing.Optional[TuningResults] = None
-    started_at: datetime.datetime = pydantic.Field(default_factory=now_utc)
+    started_at: datetime.datetime = pydantic.Field(default_factory=now_utc_no_ms)
     finished_at: typing.Optional[datetime.datetime] = None
 
     @property

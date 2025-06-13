@@ -12,7 +12,7 @@ from sqlalchemy import orm
 
 from recordlinker.models import tuning as models
 from recordlinker.schemas import tuning as schemas
-from recordlinker.utils.datetime import now_utc
+from recordlinker.utils.datetime import now_utc_no_ms
 
 
 def start_job(session: orm.Session, params: schemas.TuningParams, commit: bool = True) -> schemas.TuningJob:
@@ -48,7 +48,7 @@ def update_job(
     """
     job.status = status
     if status in (models.TuningStatus.COMPLETED, models.TuningStatus.FAILED):
-        job.finished_at = now_utc()
+        job.finished_at = now_utc_no_ms()
     if results is not None:
         job.results = results
 

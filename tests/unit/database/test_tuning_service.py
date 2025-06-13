@@ -13,7 +13,7 @@ import pytest
 from recordlinker.database import tuning_service
 from recordlinker.models import tuning as models
 from recordlinker.schemas import tuning as schemas
-from recordlinker.utils.datetime import now_utc
+from recordlinker.utils.datetime import now_utc_no_ms
 
 
 class TestStartJob:
@@ -23,14 +23,14 @@ class TestStartJob:
         assert job.status == models.TuningStatus.PENDING
         assert job.params == params
         assert job.results is None
-        assert job.started_at <= now_utc()
+        assert job.started_at <= now_utc_no_ms()
         assert job.finished_at is None
 
         obj = session.get(models.TuningJob, job.id)
         assert obj.status == models.TuningStatus.PENDING
         assert obj.params == {"true_match_pairs": 1, "non_match_pairs": 1}
         assert obj.results is None
-        assert obj.started_at <= now_utc().replace(tzinfo=None)
+        assert obj.started_at <= now_utc_no_ms().replace(tzinfo=None)
         assert obj.finished_at is None
 
 
@@ -69,7 +69,7 @@ class TestUpdateJob:
         obj = models.TuningJob(
             status=models.TuningStatus.PENDING,
             params={"true_match_pairs": 1, "non_match_pairs": 1},
-            started_at=now_utc(),
+            started_at=now_utc_no_ms(),
         )
         session.add(obj)
         session.commit()
@@ -84,14 +84,14 @@ class TestUpdateJob:
         assert obj.status == models.TuningStatus.RUNNING
         assert obj.params == {"true_match_pairs": 1, "non_match_pairs": 1}
         assert obj.results == {"details": "running"}
-        assert obj.started_at <= now_utc().replace(tzinfo=None)
+        assert obj.started_at <= now_utc_no_ms().replace(tzinfo=None)
         assert obj.finished_at is None
 
     def test_completed(self, session):
         obj = models.TuningJob(
             status=models.TuningStatus.PENDING,
             params={"true_match_pairs": 1, "non_match_pairs": 1},
-            started_at=now_utc(),
+            started_at=now_utc_no_ms(),
         )
         session.add(obj)
         session.commit()
@@ -106,14 +106,14 @@ class TestUpdateJob:
         assert obj.status == models.TuningStatus.COMPLETED
         assert obj.params == {"true_match_pairs": 1, "non_match_pairs": 1}
         assert obj.results == {"details": "completed"}
-        assert obj.started_at <= now_utc().replace(tzinfo=None)
+        assert obj.started_at <= now_utc_no_ms().replace(tzinfo=None)
         assert obj.finished_at >= obj.started_at
 
     def test_failed(self, session):
         obj = models.TuningJob(
             status=models.TuningStatus.FAILED,
             params={"true_match_pairs": 1, "non_match_pairs": 1},
-            started_at=now_utc(),
+            started_at=now_utc_no_ms(),
         )
         session.add(obj)
         session.commit()
@@ -128,5 +128,5 @@ class TestUpdateJob:
         assert obj.status == models.TuningStatus.FAILED
         assert obj.params == {"true_match_pairs": 1, "non_match_pairs": 1}
         assert obj.results == {"details": "failed"}
-        assert obj.started_at <= now_utc().replace(tzinfo=None)
+        assert obj.started_at <= now_utc_no_ms().replace(tzinfo=None)
         assert obj.finished_at >= obj.started_at
