@@ -30,10 +30,10 @@ def get_job(session: orm.Session, job_id: uuid.UUID) -> typing.Optional[schemas.
     """
     Get a tuning job by its ID
     """
-    job = session.get(models.TuningJob, job_id)
-    if job is None:
+    obj = session.get(models.TuningJob, job_id)
+    if obj is None:
         return None
-    return schemas.TuningJob.model_validate(job)
+    return schemas.TuningJob.model_validate(obj)
 
 
 def update_job(
