@@ -11,11 +11,14 @@ import pytest
 import sqlalchemy.exc
 from conftest import count_queries
 from conftest import db_dialect
+from conftest import load_test_json_asset
 from sqlalchemy.orm.session import Session
+from sqlalchemy.engine.row import Row
 
 from recordlinker import models
 from recordlinker import schemas
 from recordlinker.database import mpi_service
+
 
 
 class TestInsertBlockingValues:
@@ -1212,3 +1215,28 @@ class TestGetOrphanedPersons:
             person2,
             person3,
         ]
+
+
+class TestGenerateTuningClasses:
+    def path(self, client):
+        return client.app.url_path_for("seed-batch")
+    
+    def test_generate_true_match_samples(self, client):
+        data = load_test_json_asset("100_cluster_tuning_test.json.gz")
+        client.post(self.path(client), json=data)
+        sample_pairs = mpi_service.generate_true_match_tuning_samples(client.session, 5)
+        assert len(sample_pairs) == 5
+        for pair in sample_pairs:
+            assert type(pair) == Row
+            assert type(pair[3]) == dict
+            assert type(pair[4]) == dict
+
+    def test_generate_non_match_samples(self, client):
+        data = load_test_json_asset("100_cluster_tuning_test.json.gz")
+        client.post(self.path(client), json=data)
+        sample_pairs = mpi_service.generate_non_match_tuning_samples(client.session, 5)
+        assert len(sample_pairs) == 5
+        for pair in sample_pairs:
+            assert type(pair) == tuple
+            assert type(pair[0]) == dict
+            assert type(pair[1]) == dict
