@@ -44,12 +44,14 @@ def _(parser):
         type=int,
         default=0,
         help="Number of records to link in the test run, infinite if 0",
+        required=True,
     )
     parser.add_argument(
         "--link-probability",
         type=normalized_value,
         default=0.5,
         help="Probability of linking a record",
+        required=True,
     )
     parser.add_argument(
         "--seed-data",
@@ -61,12 +63,14 @@ def _(parser):
         type=str,
         default=f"{pathlib.Path(__file__).resolve().parent}/assets/test_data.json",
         help="Path to the record data file to use in the test run",
+        required=True,
     )
     parser.add_argument(
         "--linkage-endpoint",
         choices=["match", "link"],
         default="match",
         help="The linkage endpoint to use in the test run",
+        required=True,
     )
 
 
