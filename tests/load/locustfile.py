@@ -5,6 +5,7 @@ import random
 
 import ijson
 import locust
+from locust import events
 
 
 def str_to_bool(value):
@@ -37,12 +38,15 @@ def _(parser):
     parser.add_argument(
         "--seeded",
         type=str_to_bool,
-        default=False,
+        default=True,
         help="Indicates if the database has been seeded with initial data",
     )
 
 
 class LoadTest(locust.HttpUser):
+    host = "http://localhost:8080"
+    auto_name_stripping = False
+
     def on_start(self):
         # Check if the database has been seeded before starting the test
         seeded = self.environment.parsed_options.seeded
@@ -76,20 +80,29 @@ class LoadTest(locust.HttpUser):
         # Pick a random record from the seed data
         locust_file = pathlib.Path(__file__).resolve()
         project_root = locust_file.parents[2]
-        original_data_path = os.path.join(project_root, "tests/load/assets/test_data_large.json")
+        original_data_path = os.path.join(project_root, "tests/load/assets/test_data.json")
 
         with open(original_data_path, "rb") as input_file:
             clusters_iter = ijson.items(input_file, "clusters.item", use_float=True)
             counter = 0
             for cluster in clusters_iter:
-                # decide whether to link or not
-                if random.random() < self.environment.parsed_options.link_probability:
-                    data = {
-                        "record": cluster["records"][0],
-                        "external_person_id": cluster["external_person_id"],
-                    }
+                for record in cluster["records"]:
+                    # decide whether to link or not
+                    if random.random() < self.environment.parsed_options.link_probability:
+                        counter += 1
+                        data = {
+                            "record": record,
+                            "external_person_id": cluster["external_person_id"],
+                        }
+                        with self.client.post("/api/match", json=data, catch_response=True) as resp:
+                            try:
+                                grade = resp.json().get("match_grade", "unknown")
+                                # Override the request name based on match_grade
+                                resp.request_meta["name"] = f"match_grade::{grade}"
+                                resp.success()
+                            except Exception as e:
+                                resp.name = "match_grade::error"
+                                resp.failure(str(e))
 
-                    self.client.post("/api/link", json=data)
-
-                    if counter >= records_to_link:
-                        self.environment.runner.quit()
+                        if counter >= records_to_link:
+                            self.environment.runner.quit()
