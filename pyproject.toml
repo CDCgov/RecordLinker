@@ -50,6 +50,9 @@ dev = [
     "pytest>=8.3",
     "pytest-cov",
     "pytest-env",
+    # Load testing
+    "locust",
+    "ijson",
     # Observability
     "opentelemetry-api",
     "opentelemetry-sdk",
