@@ -1,6 +1,8 @@
+import datetime
 import enum
 import uuid
 
+from sqlalchemy import event
 from sqlalchemy import orm
 from sqlalchemy import types as sqltypes
 
@@ -26,8 +28,8 @@ class TuningJob(Base):
         sqltypes.Enum(TuningStatus, name="status_enum", native_enum=False),
         nullable=False,
     )
-    params: orm.Mapped[dict] = orm.mapped_column(sqltypes.JSON, default=dict)
-    results: orm.Mapped[dict] = orm.mapped_column(sqltypes.JSON, default=dict)
+    params: orm.Mapped[dict] = orm.mapped_column(sqltypes.JSON, nullable=False)
+    results: orm.Mapped[dict] = orm.mapped_column(sqltypes.JSON, default=None, nullable=True)
     started_at = orm.mapped_column(
         sqltypes.DateTime,
         default=now_utc,
@@ -38,3 +40,14 @@ class TuningJob(Base):
         default=None,
         nullable=True,
     )
+
+
+@event.listens_for(TuningJob, "load")
+def tuningjob_load(target, context):
+    """
+    Attach timezone info to datetime fields
+    """
+    for col in ("started_at", "finished_at"):
+        dt = getattr(target, col)
+        if dt is not None and dt.tzinfo is None:
+            setattr(target, col, dt.replace(tzinfo=datetime.timezone.utc))
