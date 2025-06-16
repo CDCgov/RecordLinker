@@ -1239,3 +1239,9 @@ class TestGenerateTuningClasses:
             assert type(pair) is tuple
             assert type(pair[0]) is dict
             assert type(pair[1]) is dict
+
+    def test_generate_non_match_samples_error(self, client):
+        data = load_test_json_asset("100_cluster_tuning_test.json.gz")
+        client.post(self.path(client), json=data)
+        with pytest.raises(ValueError):
+            mpi_service.generate_non_match_tuning_samples(client.session, 500, 500)
