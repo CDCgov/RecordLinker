@@ -8,8 +8,6 @@ This module contains the unit tests for the recordlinker.database.tuning_service
 import datetime
 import uuid
 
-import pytest
-
 from recordlinker.database import tuning_service
 from recordlinker.models import tuning as models
 from recordlinker.schemas import tuning as schemas
@@ -30,7 +28,7 @@ class TestStartJob:
         assert obj.status == models.TuningStatus.PENDING
         assert obj.params == {"true_match_pairs": 1, "non_match_pairs": 1}
         assert obj.results is None
-        assert obj.started_at <= now_utc_no_ms().replace(tzinfo=None)
+        assert obj.started_at <= now_utc_no_ms()
         assert obj.finished_at is None
 
 
@@ -60,11 +58,6 @@ class TestGetJob:
 
 
 class TestUpdateJob:
-    def test_not_found(self, session):
-        job = schemas.TuningJob(params=schemas.TuningParams(true_match_pairs=1, non_match_pairs=1))
-        with pytest.raises(ValueError):
-            tuning_service.update_job(session, job, models.TuningStatus.RUNNING)
-
     def test_set_results(self, session):
         obj = models.TuningJob(
             status=models.TuningStatus.PENDING,
@@ -83,7 +76,13 @@ class TestUpdateJob:
         obj = session.get(models.TuningJob, job.id)
         assert obj.status == models.TuningStatus.RUNNING
         assert obj.params == {"true_match_pairs": 1, "non_match_pairs": 1}
-        assert obj.results == {"details": "running"}
+        assert obj.results == {
+            "dataset_size": 0,
+            "true_matches_found": 0,
+            "non_matches_found": 0,
+            "log_odds": [],
+            "details": "running",
+        }
         assert obj.started_at <= now_utc_no_ms().replace(tzinfo=None)
         assert obj.finished_at is None
 
@@ -105,7 +104,13 @@ class TestUpdateJob:
         obj = session.get(models.TuningJob, job.id)
         assert obj.status == models.TuningStatus.COMPLETED
         assert obj.params == {"true_match_pairs": 1, "non_match_pairs": 1}
-        assert obj.results == {"details": "completed"}
+        assert obj.results == {
+            "dataset_size": 0,
+            "true_matches_found": 0,
+            "non_matches_found": 0,
+            "log_odds": [],
+            "details": "completed",
+        }
         assert obj.started_at <= now_utc_no_ms().replace(tzinfo=None)
         assert obj.finished_at >= obj.started_at
 
@@ -127,6 +132,12 @@ class TestUpdateJob:
         obj = session.get(models.TuningJob, job.id)
         assert obj.status == models.TuningStatus.FAILED
         assert obj.params == {"true_match_pairs": 1, "non_match_pairs": 1}
-        assert obj.results == {"details": "failed"}
+        assert obj.results == {
+            "dataset_size": 0,
+            "true_matches_found": 0,
+            "non_matches_found": 0,
+            "log_odds": [],
+            "details": "failed",
+        }
         assert obj.started_at <= now_utc_no_ms().replace(tzinfo=None)
         assert obj.finished_at >= obj.started_at

@@ -1,6 +1,6 @@
 """
-recordlinker.linking.tuning_service
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+recordlinker.database.tuning_service
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 This module provides the data access functions to the tuning_job table
 """
@@ -52,11 +52,9 @@ def update_job(
     if results is not None:
         job.results = results
 
-    obj = session.get(models.TuningJob, job.id)
-    if obj is None:
-        raise ValueError("Job not found")
-    for field, value in job.model_dump(exclude_unset=True).items():
-        setattr(obj, field, value)
+    data = job.model_dump()
+    updates = {k: data.get(k) for k in models.TuningJob.__table__.columns.keys()}
+    session.query(models.TuningJob).filter(models.TuningJob.id == job.id).update(updates)
     if commit:
         session.commit()
     return job
