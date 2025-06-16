@@ -1,0 +1,512 @@
+{
+    "samples": [
+        {
+            "person_id": 30,
+            "patient_id_1": 182,
+            "patient_id_2": 184,
+            "data_1": {
+                "external_id": "4db1ff3a-d50b-4a9c-96ff-d3b932bb9036",
+                "birth_date": "1994-12-03",
+                "sex": "F",
+                "address": [
+                    {
+                        "line": [
+                            "700 White Landing Suite 701"
+                        ],
+                        "city": "Christopherview",
+                        "state": "DC",
+                        "postal_code": "58743",
+                        "county": "Nancybury",
+                        "country": "MW",
+                        "latitude": 33.1500775,
+                        "longitude": -29.850858
+                    }
+                ],
+                "name": [
+                    {
+                        "family": "Jones",
+                        "given": [
+                            "Sara"
+                        ],
+                        "use": "official",
+                        "prefix": [],
+                        "suffix": []
+                    }
+                ],
+                "telecom": [
+                    {
+                        "value": "+16178697776",
+                        "system": "phone",
+                        "use": "mobile"
+                    }
+                ],
+                "race": [
+                    "ASIAN"
+                ],
+                "identifiers": [
+                    {
+                        "type": "MR",
+                        "value": "MRN-2457905"
+                    },
+                    {
+                        "type": "SS",
+                        "value": "210-69-8063"
+                    }
+                ]
+            },
+            "data_2": {
+                "external_id": "4db1ff3a-d50b-4a9c-96ff-d3b932bb9036",
+                "birth_date": "1994-12-03",
+                "sex": "F",
+                "address": [
+                    {
+                        "line": [
+                            "700 White Landing Suite 701"
+                        ],
+                        "city": "Christopherview",
+                        "state": "DC",
+                        "postal_code": "58743",
+                        "county": "Nancybury",
+                        "country": "MW",
+                        "latitude": 33.1500775,
+                        "longitude": -29.850858
+                    }
+                ],
+                "name": [
+                    {
+                        "family": "Jones",
+                        "given": [
+                            "Sara"
+                        ],
+                        "use": "official",
+                        "prefix": [],
+                        "suffix": []
+                    }
+                ],
+                "telecom": [
+                    {
+                        "value": "+16178697776",
+                        "system": "phone",
+                        "use": "mobile"
+                    }
+                ],
+                "race": [
+                    "ASIAN"
+                ],
+                "identifiers": [
+                    {
+                        "type": "MR",
+                        "value": "MRN-2457905"
+                    },
+                    {
+                        "type": "SS",
+                        "value": "210-69-8063"
+                    }
+                ]
+            }
+        },
+        {
+            "person_id": 59,
+            "patient_id_1": 400,
+            "patient_id_2": 401,
+            "data_1": {
+                "external_id": "d8365485-29ab-442d-8d96-b8ae0e1a44c5",
+                "birth_date": "1928-05-23",
+                "sex": "M",
+                "address": [
+                    {
+                        "line": [
+                            "63676 Cohen Valley Suite 763"
+                        ],
+                        "city": "Fosterton",
+                        "state": "MP",
+                        "postal_code": "57621",
+                        "county": "New Matthew",
+                        "country": "KI",
+                        "latitude": 76.452412,
+                        "longitude": -111.14242
+                    }
+                ],
+                "name": [
+                    {
+                        "family": "Edwards",
+                        "given": [
+                            "Johnathan"
+                        ],
+                        "use": "official",
+                        "prefix": [],
+                        "suffix": []
+                    }
+                ],
+                "telecom": [
+                    {
+                        "value": "+15792658323",
+                        "system": "phone",
+                        "use": "mobile"
+                    }
+                ],
+                "race": [
+                    "HAWAIIAN"
+                ],
+                "identifiers": [
+                    {
+                        "type": "MR",
+                        "value": "MRN-0064256"
+                    },
+                    {
+                        "type": "SS",
+                        "value": "590-95-6106"
+                    }
+                ]
+            },
+            "data_2": {
+                "external_id": "d8365485-29ab-442d-8d96-b8ae0e1a44c5",
+                "birth_date": "1928-05-23",
+                "sex": "M",
+                "address": [
+                    {
+                        "line": [
+                            "63676 Cohen Valley Suite 763"
+                        ],
+                        "city": "Fosterton",
+                        "state": "MP",
+                        "postal_code": "57621",
+                        "county": "New Matthew",
+                        "country": "KI",
+                        "latitude": 76.452412,
+                        "longitude": -111.14242
+                    }
+                ],
+                "name": [
+                    {
+                        "family": "Edwards",
+                        "given": [
+                            "Johnathan"
+                        ],
+                        "use": "official",
+                        "prefix": [],
+                        "suffix": []
+                    }
+                ],
+                "telecom": [
+                    {
+                        "value": "+15792658323",
+                        "system": "phone",
+                        "use": "mobile"
+                    }
+                ],
+                "race": [
+                    "HAWAIIAN"
+                ],
+                "identifiers": [
+                    {
+                        "type": "MR",
+                        "value": "MRN-0064256"
+                    },
+                    {
+                        "type": "SS",
+                        "value": "590-95-6106"
+                    }
+                ]
+            }
+        },
+        {
+            "person_id": 81,
+            "patient_id_1": 543,
+            "patient_id_2": 550,
+            "data_1": {
+                "external_id": "7699ee66-c32b-40e1-a258-560c3ac3cf75",
+                "birth_date": "1988-08-06",
+                "sex": "F",
+                "address": [
+                    {
+                        "line": [
+                            "0113 Jenkins Prairie Suite 477"
+                        ],
+                        "city": "East Stevetown",
+                        "state": "PW",
+                        "postal_code": "98473",
+                        "county": "Ramirezfurt",
+                        "country": "ST",
+                        "latitude": 3.3730895,
+                        "longitude": -156.673036
+                    }
+                ],
+                "name": [
+                    {
+                        "family": "George",
+                        "given": [
+                            "Troy"
+                        ],
+                        "use": "usual",
+                        "prefix": [],
+                        "suffix": []
+                    }
+                ],
+                "telecom": [
+                    {
+                        "value": "+18714555477",
+                        "system": "phone",
+                        "use": "mobile"
+                    }
+                ],
+                "race": [
+                    "UNKNOWN"
+                ],
+                "identifiers": [
+                    {
+                        "type": "MR",
+                        "value": "MRN-6462711"
+                    },
+                    {
+                        "type": "SS",
+                        "value": "375-48-1507"
+                    }
+                ]
+            },
+            "data_2": {
+                "external_id": "7699ee66-c32b-40e1-a258-560c3ac3cf75",
+                "birth_date": "1989-06-02",
+                "sex": "F",
+                "address": [
+                    {
+                        "line": [
+                            "0113 Jenkins Prairie Suite 477"
+                        ],
+                        "city": "East Stevetown",
+                        "state": "PW",
+                        "postal_code": "98473",
+                        "county": "Ramirezfurt",
+                        "country": "ST",
+                        "latitude": 3.3730895,
+                        "longitude": -156.673036
+                    }
+                ],
+                "name": [
+                    {
+                        "family": "George",
+                        "given": [
+                            "Troy"
+                        ],
+                        "use": "usual",
+                        "prefix": [],
+                        "suffix": []
+                    }
+                ],
+                "telecom": [
+                    {
+                        "value": "+18714555477",
+                        "system": "phone",
+                        "use": "mobile"
+                    }
+                ],
+                "race": [
+                    "UNKNOWN"
+                ],
+                "identifiers": [
+                    {
+                        "type": "MR",
+                        "value": "MRN-6462711"
+                    },
+                    {
+                        "type": "SS",
+                        "value": "375-48-1507"
+                    }
+                ]
+            }
+        },
+        {
+            "person_id": 99,
+            "patient_id_1": 681,
+            "patient_id_2": 685,
+            "data_1": {
+                "external_id": "a91b1935-6375-4e66-8b19-deec82abbf62",
+                "birth_date": "1933-10-30",
+                "sex": "F",
+                "address": [
+                    {
+                        "line": [
+                            "91429 Amy ISS"
+                        ],
+                        "city": "Amberilel",
+                        "state": "GU",
+                        "postal_code": "89782",
+                        "county": "North Samanthaland",
+                        "country": "SZ",
+                        "latitude": -36.1885385,
+                        "longitude": -123.537587
+                    }
+                ],
+                "name": [
+                    {
+                        "family": "Miller",
+                        "given": [
+                            "Linda"
+                        ],
+                        "use": "nickname",
+                        "prefix": [],
+                        "suffix": []
+                    }
+                ],
+                "telecom": [
+                    {
+                        "value": "+15125908109",
+                        "system": "phone",
+                        "use": "home"
+                    }
+                ],
+                "race": [
+                    "UNKNOWN"
+                ],
+                "identifiers": [
+                    {
+                        "type": "MR",
+                        "value": "MRN-9199999"
+                    }
+                ]
+            },
+            "data_2": {
+                "external_id": "a91b1935-6375-4e66-8b19-deec82abbf62",
+                "birth_date": "1933-04-03",
+                "sex": "F",
+                "address": [
+                    {
+                        "line": [
+                            "91429 Amy ISS"
+                        ],
+                        "city": "Amberville",
+                        "state": "GU",
+                        "postal_code": "89782",
+                        "county": "North Samanthaland",
+                        "country": "SZ",
+                        "latitude": -36.1885385,
+                        "longitude": -123.537587
+                    }
+                ],
+                "name": [
+                    {
+                        "family": "Miller",
+                        "given": [
+                            "QLind"
+                        ],
+                        "use": "nickname",
+                        "prefix": [],
+                        "suffix": []
+                    }
+                ],
+                "telecom": [
+                    {
+                        "value": "+15125908109",
+                        "system": "phone",
+                        "use": "home"
+                    }
+                ],
+                "race": [
+                    "UNKNOWN"
+                ],
+                "identifiers": [
+                    {
+                        "type": "MR",
+                        "value": "MRN-9199999"
+                    }
+                ]
+            }
+        },
+        {
+            "person_id": 10,
+            "patient_id_1": 61,
+            "patient_id_2": 66,
+            "data_1": {
+                "external_id": "d3898448-9c09-4d21-bfc5-9fe7be987225",
+                "birth_date": "1991-01-04",
+                "sex": "M",
+                "address": [
+                    {
+                        "line": [
+                            "588 Thomas Road Apt. 450"
+                        ],
+                        "city": "Lake Tonyport",
+                        "state": "DC",
+                        "postal_code": "17855",
+                        "county": "Lake Brian",
+                        "country": "GT",
+                        "latitude": -86.001923,
+                        "longitude": 171.760557
+                    }
+                ],
+                "name": [
+                    {
+                        "family": "Lopez",
+                        "given": [
+                            "Warren"
+                        ],
+                        "use": "usual",
+                        "prefix": [],
+                        "suffix": []
+                    }
+                ],
+                "telecom": [
+                    {
+                        "value": "+15114427630",
+                        "system": "phone",
+                        "use": "mobile"
+                    }
+                ],
+                "race": [
+                    "WHITE"
+                ],
+                "identifiers": [
+                    {
+                        "type": "MR",
+                        "value": "MRN-2269238"
+                    }
+                ]
+            },
+            "data_2": {
+                "external_id": "d3898448-9c09-4d21-bfc5-9fe7be987225",
+                "birth_date": "1991-01-04",
+                "address": [
+                    {
+                        "line": [
+                            "588 Thomas Road Apt. 450"
+                        ],
+                        "city": "Lake onyport",
+                        "state": "DC",
+                        "postal_code": "18755",
+                        "county": "Lake Brian",
+                        "country": "GT",
+                        "latitude": -86.001923,
+                        "longitude": 171.760557
+                    }
+                ],
+                "name": [
+                    {
+                        "family": "Lopez",
+                        "given": [
+                            "Warren"
+                        ],
+                        "use": "usual",
+                        "prefix": [],
+                        "suffix": []
+                    }
+                ],
+                "telecom": [
+                    {
+                        "value": "+15114427630",
+                        "system": "phone",
+                        "use": "mobile"
+                    }
+                ],
+                "race": [
+                    "WHITE"
+                ],
+                "identifiers": [
+                    {
+                        "type": "MR",
+                        "value": "MRN-2269238"
+                    }
+                ]
+            }
+        }
+    ]
+}

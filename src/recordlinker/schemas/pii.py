@@ -371,12 +371,21 @@ class PIIRecord(StrippedBaseModel):
         """
         Construct a PIIRecord from a Patient model.
         """
-        obj = cls.model_construct(**patient.data)
-        obj.address = [Address.model_construct(**a) for a in patient.data.get("address", [])]
-        obj.name = [Name.model_construct(**n) for n in patient.data.get("name", [])]
-        obj.telecom = [Telecom.model_construct(**t) for t in patient.data.get("telecom", [])]
-        obj.identifiers = [Identifier.model_construct(**i) for i in patient.data.get("identifiers", [])]
+        return PIIRecord.from_data(patient.data)
+    
+    @classmethod
+    def from_data(cls, data: dict) -> typing.Self:
+        """
+        Construct a PIIRecord from an extracted data dictionary of a 
+        Patient model.
+        """
+        obj = cls.model_construct(**data)
+        obj.address = [Address.model_construct(**a) for a in data.get("address", [])]
+        obj.name = [Name.model_construct(**n) for n in data.get("name", [])]
+        obj.telecom = [Telecom.model_construct(**t) for t in data.get("telecom", [])]
+        obj.identifiers = [Identifier.model_construct(**i) for i in data.get("identifiers", [])]
         return obj
+
 
     def to_data(self) -> dict[str, typing.Any]:
         """
