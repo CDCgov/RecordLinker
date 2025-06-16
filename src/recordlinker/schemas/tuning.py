@@ -9,6 +9,7 @@ import datetime
 import typing
 import uuid
 
+import fastapi
 import pydantic
 from typing_extensions import Annotated
 
@@ -58,6 +59,9 @@ class TuningJob(pydantic.BaseModel):
         """
         Get the duration of the tuning job.
         """
-        if self.finished_at is None:
-            return None
-        return self.finished_at - self.started_at
+        last_ts: datetime.datetime = self.finished_at or now_utc_no_ms()
+        return last_ts - self.started_at
+
+
+class TuningJobResponse(TuningJob):
+    status_url: pydantic.HttpUrl

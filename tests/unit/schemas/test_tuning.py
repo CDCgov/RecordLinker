@@ -14,6 +14,6 @@ from recordlinker.schemas.tuning import TuningParams
 class TestTuningJob:
     def test_duration(self):
         job = TuningJob(params=TuningParams(true_match_pairs=1, non_match_pairs=1))
-        assert job.duration is None
+        assert job.duration.total_seconds() == 0
         job.finished_at = job.started_at + datetime.timedelta(seconds=4)
         assert job.duration.total_seconds() == 4

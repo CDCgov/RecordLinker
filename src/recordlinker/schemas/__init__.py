@@ -32,6 +32,7 @@ from .seed import ClusterGroup
 from .seed import PersonCluster
 from .seed import PersonGroup
 from .tuning import TuningJob
+from .tuning import TuningJobResponse
 from .tuning import TuningParams
 from .tuning import TuningResults
 
@@ -72,4 +73,5 @@ __all__ = [
     "TuningParams",
     "TuningResults",
     "TuningJob",
+    "TuningJobResponse",
 ]
