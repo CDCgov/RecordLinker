@@ -1,5 +1,9 @@
 from conftest import load_test_json_asset
-from recordlinker.tuning.prob_calc import calculate_m_probs, calculate_u_probs, calculate_log_odds
+
+from recordlinker.tuning.prob_calc import calculate_log_odds
+from recordlinker.tuning.prob_calc import calculate_m_probs
+from recordlinker.tuning.prob_calc import calculate_u_probs
+
 
 class TestTuningProbabilityCalculators:
     def test_calculate_m_probs(self):

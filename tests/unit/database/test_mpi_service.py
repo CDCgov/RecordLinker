@@ -19,7 +19,6 @@ from recordlinker import schemas
 from recordlinker.database import mpi_service
 
 
-
 class TestInsertBlockingValues:
     def new_patient(self, session, data=None):
         patient = models.Patient(person=models.Person(), data=(data or {}))

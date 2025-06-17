@@ -1,8 +1,6 @@
 import math
 import typing
 
-from sqlalchemy.engine.row import Row
-
 from recordlinker.linking.matchers import compare_probabilistic_exact_match
 from recordlinker.schemas.pii import Feature
 from recordlinker.schemas.pii import FeatureAttribute

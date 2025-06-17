@@ -16,7 +16,6 @@ from sqlalchemy import insert
 from sqlalchemy import literal
 from sqlalchemy import orm
 from sqlalchemy import select
-from sqlalchemy.engine.row import Row
 from sqlalchemy.sql import expression
 from sqlalchemy.sql import func
 
