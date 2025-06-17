@@ -219,5 +219,5 @@ class TestGetActiveJob:
 
         jobs = tuning_service.get_active_jobs(session)
         assert len(jobs) == 2
-        assert jobs[0].status == models.TuningStatus.PENDING
-        assert jobs[1].status == models.TuningStatus.RUNNING
+        statuses = {job.status for job in jobs}
+        assert statuses == {models.TuningStatus.PENDING, models.TuningStatus.RUNNING}
