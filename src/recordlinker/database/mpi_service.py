@@ -6,6 +6,8 @@ This module provides the data access functions to the MPI tables
 """
 
 import logging
+import math
+import random
 import typing
 import uuid
 
@@ -14,7 +16,9 @@ from sqlalchemy import insert
 from sqlalchemy import literal
 from sqlalchemy import orm
 from sqlalchemy import select
+from sqlalchemy.engine.row import Row
 from sqlalchemy.sql import expression
+from sqlalchemy.sql import func
 
 from recordlinker import models
 from recordlinker import schemas
@@ -539,3 +543,120 @@ def get_orphaned_persons(
     )  # limit applied after cursor to ensure the limit is applied after the JOIN and starts from the cursor after the join
 
     return session.execute(query).scalars().all()
+
+
+def generate_true_match_tuning_samples(
+        session: orm.Session,
+        n_pairs: int
+    ) -> typing.Sequence[Row]:
+    """
+    Creates a sample of known "true match" pairs of patient records of 
+    size n_pairs using previously labeled data. Pairs of records are 
+    randomly sampled from randomly chosen person clusters until
+    a list of unique pairs has been obtained.
+    """
+    p1 = orm.aliased(models.Patient, name="p1")
+    p2 = orm.aliased(models.Patient, name="p2")
+    random_pairs = (
+        expression.select(
+            p1.id.label("patient_1_id"),
+            p2.id.label("patient_2_id")
+        ).join_from(
+            p1,
+            p2,
+            expression.and_(
+                p1.person_id == p2.person_id,
+                p1.id < p2.id,
+                ~p1.person_id.is_(None)
+            )
+        ).order_by(
+            func.random()
+        ).limit(
+            n_pairs
+        ).cte()
+    )
+    sample = (
+        expression.select(
+            p1.person_id,
+            random_pairs.c.patient_1_id,
+            random_pairs.c.patient_2_id,
+            p1.data.label("patient_data_1"),
+            p2.data.label("patient_data_2")
+        ).join_from(
+            random_pairs, p1, p1.id == random_pairs.c.patient_1_id
+        ).join(
+            p2, p2.id == random_pairs.c.patient_2_id
+        )
+    )
+    return session.execute(sample).all()
+
+
+def generate_non_match_tuning_samples(
+        session: orm.Session,
+        sample_size: int,
+        n_pairs: int
+    ) -> typing.Sequence[typing.Tuple[dict, dict]]:
+    """
+    Creates a sample of known "non match" pairs of patient records of 
+    size n_pairs using previously labeled data. The complete collection
+    of patient data is first randomly sub-sampled if there are more than
+    100k patient rows (since a random sample from a random sample is
+    equivalent to randomly sampling the first group), and then pairs
+    are randomly generated until the desired number of non-matches is hit.
+    """
+    # First, sanity check that we have a big enough sample size to grab
+    # the requested number of pairs in "reasonable" time--use the 
+    # Taylor approximation for e^x derived from the Birthday Problem
+    taylor_expansion = math.exp(
+        (-1.0 * n_pairs * (n_pairs - 1.0)) / (sample_size * (sample_size - 1.0))
+    )
+    repeat_probability = 1.0 - taylor_expansion
+    if repeat_probability >= 0.5:
+        raise ValueError("Too many pairs requested for sample size")
+
+    # Start with a large sub-sample from which we'll draw pairs
+    query = expression.select(
+        models.Patient.id,
+        models.Patient.person_id,
+        models.Patient.data
+    ).where(
+        ~models.Patient.person_id.is_(None)
+    ).order_by(
+        func.random()
+    ).limit(
+        sample_size
+    )
+    sample = list(session.execute(query).all())
+
+    # Now, combinatorially build up the negative pairs by
+    # randomly selecting two records, making sure they don't
+    # match, and then storing them as a pair
+    already_seen = set()
+    neg_pairs: list[tuple] = []
+    # Alternate stopping condition to prevent us from looping forever
+    num_iters = 0
+    max_iters = 10 * n_pairs
+    while len(neg_pairs) < n_pairs and num_iters < max_iters:
+        num_iters += 1
+        idx_1 = random.randint(0, len(sample) - 1)
+        idx_2 = random.randint(0, len(sample) - 1)
+
+        # Can't make a record pair from one record
+        if idx_1 != idx_2:
+
+            # We'll use the convention of making the "smaller" ID the
+            # first index, easier for set tracking
+            if sample[idx_1][0] < sample[idx_2][0]:
+                record_row_1 = sample[idx_1]
+                record_row_2 = sample[idx_2]
+            else:
+                record_row_1 = sample[idx_2]
+                record_row_2 = sample[idx_1]                
+
+            # If the person_ids don't agree, this is a valid neg pair
+            if record_row_1[1] != record_row_2[1]:
+                if (record_row_1[0], record_row_2[0]) not in already_seen:
+                    already_seen.add((record_row_1[0], record_row_2[0]))
+                    neg_pairs.append((record_row_1[2], record_row_2[2]))
+
+    return neg_pairs
