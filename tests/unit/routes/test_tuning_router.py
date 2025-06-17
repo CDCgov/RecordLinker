@@ -29,6 +29,25 @@ class TestCreate:
         resp = client.post(self.path(client))
         assert resp.status_code == 409
 
+    def test_create_timeout(self, monkeypatch, client):
+        monkeypatch.setattr(config.settings, "tuning_job_timeout", 0)
+        monkeypatch.setattr(config.settings, "tuning_true_match_pairs", 1)
+        monkeypatch.setattr(config.settings, "tuning_non_match_pairs", 1)
+        with mock.patch("recordlinker.tuning.base.get_session_manager") as mock_session_t, \
+                mock.patch("recordlinker.routes.tuning_router.get_session_manager") as mock_session_r:
+            mock_session_r.return_value = client.session
+            mock_session_t.return_value = client.session
+            resp = client.post(self.path(client))
+            job = client.session.query(models.TuningJob).first()
+
+            assert resp.status_code == 202
+            assert resp.json()["id"] == str(job.id)
+            assert resp.json()["status"] == "pending"
+            # This isn't intuitive, but when the job is created its placed in the pending state.
+            # However, once the job starts processing in the background job, its immediately
+            # canceled because of a timeout
+            assert job.status == models.TuningStatus.FAILED
+
     def test_create(self, monkeypatch, client):
         monkeypatch.setattr(config.settings, "tuning_true_match_pairs", 1)
         monkeypatch.setattr(config.settings, "tuning_non_match_pairs", 1)
