@@ -367,7 +367,7 @@ class PIIRecord(StrippedBaseModel):
     identifiers: typing.List[Identifier] = []
 
     @classmethod
-    def from_patient(cls, patient: models.Patient) -> typing.Self:
+    def from_patient(cls, patient: models.Patient) -> "PIIRecord":
         """
         Construct a PIIRecord from a Patient model.
         """
