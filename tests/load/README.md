@@ -50,7 +50,9 @@ locust -f locustfile.py \
     -u 2 -r 2 \
     --run-time 10s \
     --records-to-link 100 \
-    --record-data assets/test_data.json
+    --record-data assets/test_data.json \
+    --link-probability 0.5 \
+    --linkage-endpoint link
 ```
 
 ### Custom Parameters
