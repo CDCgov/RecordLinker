@@ -5,13 +5,12 @@ recordlinker.tuning.base
 This module provides functions for running log-odds tuning calculations
 """
 
-import contextlib
 import logging
 import typing
 import uuid
 
 from recordlinker import models
-from recordlinker.database import get_session
+from recordlinker.database import get_session_manager
 from recordlinker.database import tuning_service
 
 LOGGER = logging.getLogger(__name__)
@@ -22,7 +21,7 @@ async def tune(job_id: uuid.UUID, session_factory: typing.Optional[typing.Callab
     Run log-odds tuning calculations
     """
     LOGGER.info("tuning job received", extra={"job_id": job_id})
-    session_factory = session_factory or contextlib.contextmanager(get_session)
+    session_factory = session_factory or get_session_manager
     with session_factory() as session:
         job = tuning_service.get_job(session, job_id)
         if job is None:
