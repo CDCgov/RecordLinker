@@ -4,23 +4,36 @@ import typing
 from sqlalchemy.engine.row import Row
 
 from recordlinker.linking.matchers import compare_probabilistic_exact_match
-from recordlinker.schemas.pii import PIIRecord, FeatureAttribute, Feature
+from recordlinker.schemas.pii import Feature
+from recordlinker.schemas.pii import FeatureAttribute
+from recordlinker.schemas.pii import PIIRecord
 
+# We don't need log-odds for every Feature we register, since some
+# are folded into other evaluations
 FIELDS_TO_IGNORE = ["GIVEN_NAME", "NAME", "SUFFIX"]
-FIELDS_TO_CALCULATE = [Feature.parse(f.value) for f in FeatureAttribute if f.value not in FIELDS_TO_IGNORE]
+FIELDS_TO_CALCULATE = [
+    Feature.parse(f.value) for f in FeatureAttribute if f.value not in FIELDS_TO_IGNORE
+]
 
-def calculate_m_probs(true_match_pairs: typing.Sequence[Row]):
+def calculate_m_probs(
+        true_match_pairs: typing.Sequence[typing.Tuple[dict, dict]]
+    ) -> dict[str, float]:
     """
     Calculate the class-conditional likelihood that two records will
     agree on a particular field, given that the two records are a
     known true-match.
+
+    :param true_match_pairs: A sequence of tuples containing pairs 
+      of patient data dictionaries.
+    :returns: A dictionary mapping Feature names to their class
+      probabilities.
     """
     # LaPlacian smoothing accounts for unseen instances
     m_probs = {str(f): 1.0 for f in FIELDS_TO_CALCULATE}
 
     for pair in true_match_pairs:
-        pii_record_1 = PIIRecord.from_data(pair[3])
-        pii_record_2 = PIIRecord.from_data(pair[4])
+        pii_record_1 = PIIRecord.from_data(pair[0])
+        pii_record_2 = PIIRecord.from_data(pair[1])
 
         # The probabilistic exact matcher nicely uses feature_iter and
         # cross-value checking for us; if we award 0 points for missing
@@ -37,11 +50,16 @@ def calculate_m_probs(true_match_pairs: typing.Sequence[Row]):
     return m_probs
 
 
-def calculate_u_probs(non_match_pairs: typing.Sequence[typing.Tuple]):
+def calculate_u_probs(non_match_pairs: typing.Sequence[typing.Tuple]) -> dict[str, float]:
     """
     Calculate the class-conditional likelihood that two records will
     agree on a particular field, given that the two records are a
     known non-match.
+
+    :param non_match_pairs: A sequence of Tuples containing two sets of
+      patient data dictionaries for patient records that didn't match.
+    :returns: A dictionary mapping Feature names to their non-match
+      class probabilities.
     """
         # LaPlacian smoothing accounts for unseen instances
     u_probs = {str(f): 1.0 for f in FIELDS_TO_CALCULATE}
@@ -73,6 +91,12 @@ def calculate_log_odds(
     Given class-conditional probabilities for field agreement, calculate
     the log-odds values for each field of calculable interest for
     patient matching.
+
+    :param m_probs: The class-conditional likelihood of fields agreeing,
+      given two records are a match.
+    :param u_probs: The class-conditional likelihood of fields agreeing,
+      given two records are not a match.
+    :returns: A dictionary mapping Feature names to their log-odds values.
     """
     log_odds = {}
     for field in m_probs:

@@ -6,7 +6,7 @@ class TestTuningProbabilityCalculators:
         test_pairs = load_test_json_asset("synthetic_tuning_pairs.json")
         rows = []
         for p in test_pairs["samples"]:
-            row = (p["person_id"], p["patient_id_1"], p["patient_id_2"], p["data_1"], p["data_2"])
+            row = (p["data_1"], p["data_2"])
             rows.append(row)
         m_probs = calculate_m_probs(rows)
         assert m_probs == {

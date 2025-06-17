@@ -12,7 +12,6 @@ import sqlalchemy.exc
 from conftest import count_queries
 from conftest import db_dialect
 from conftest import load_test_json_asset
-from sqlalchemy.engine.row import Row
 from sqlalchemy.orm.session import Session
 
 from recordlinker import models
@@ -1227,9 +1226,9 @@ class TestGenerateTuningClasses:
         sample_pairs = mpi_service.generate_true_match_tuning_samples(client.session, 5)
         assert len(sample_pairs) == 5
         for pair in sample_pairs:
-            assert type(pair) is Row
-            assert type(pair[3]) is dict
-            assert type(pair[4]) is dict
+            assert type(pair) is tuple
+            assert type(pair[0]) is dict
+            assert type(pair[1]) is dict
 
     def test_generate_non_match_samples(self, client):
         data = load_test_json_asset("100_cluster_tuning_test.json.gz")

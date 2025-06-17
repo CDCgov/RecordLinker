@@ -1,9 +1,6 @@
 {
     "samples": [
         {
-            "person_id": 30,
-            "patient_id_1": 182,
-            "patient_id_2": 184,
             "data_1": {
                 "external_id": "4db1ff3a-d50b-4a9c-96ff-d3b932bb9036",
                 "birth_date": "1994-12-03",
@@ -106,9 +103,6 @@
             }
         },
         {
-            "person_id": 59,
-            "patient_id_1": 400,
-            "patient_id_2": 401,
             "data_1": {
                 "external_id": "d8365485-29ab-442d-8d96-b8ae0e1a44c5",
                 "birth_date": "1928-05-23",
@@ -211,9 +205,6 @@
             }
         },
         {
-            "person_id": 81,
-            "patient_id_1": 543,
-            "patient_id_2": 550,
             "data_1": {
                 "external_id": "7699ee66-c32b-40e1-a258-560c3ac3cf75",
                 "birth_date": "1988-08-06",
@@ -316,9 +307,6 @@
             }
         },
         {
-            "person_id": 99,
-            "patient_id_1": 681,
-            "patient_id_2": 685,
             "data_1": {
                 "external_id": "a91b1935-6375-4e66-8b19-deec82abbf62",
                 "birth_date": "1933-10-30",
@@ -413,9 +401,6 @@
             }
         },
         {
-            "person_id": 10,
-            "patient_id_1": 61,
-            "patient_id_2": 66,
             "data_1": {
                 "external_id": "d3898448-9c09-4d21-bfc5-9fe7be987225",
                 "birth_date": "1991-01-04",

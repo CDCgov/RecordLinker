@@ -548,12 +548,17 @@ def get_orphaned_persons(
 def generate_true_match_tuning_samples(
         session: orm.Session,
         n_pairs: int
-    ) -> typing.Sequence[Row]:
+    ) -> typing.Sequence[typing.Tuple[dict, dict]]:
     """
     Creates a sample of known "true match" pairs of patient records of 
     size n_pairs using previously labeled data. Pairs of records are 
     randomly sampled from randomly chosen person clusters until
     a list of unique pairs has been obtained.
+
+    :param session: A database session to use for executing queries.
+    :param n_pairs: The number of pairs of true-matches to generate.
+    :returns A list of tuples containing pairs of patient data 
+      dictionaries.
     """
     p1 = orm.aliased(models.Patient, name="p1")
     p2 = orm.aliased(models.Patient, name="p2")
@@ -588,7 +593,9 @@ def generate_true_match_tuning_samples(
             p2, p2.id == random_pairs.c.patient_2_id
         )
     )
-    return session.execute(sample).all()
+
+    db_rows = session.execute(sample).all()
+    return [(row[3], row[4]) for row in db_rows]
 
 
 def generate_non_match_tuning_samples(
@@ -603,6 +610,18 @@ def generate_non_match_tuning_samples(
     100k patient rows (since a random sample from a random sample is
     equivalent to randomly sampling the first group), and then pairs
     are randomly generated until the desired number of non-matches is hit.
+
+    :param session: A database session with which to execute queries.
+    :param sample_size: The number of patient records to sub-sample from
+      the MPI for use with combinatorial pairing. Effectively "shrinks"
+      the scope of the world the function needs to consider, since 
+      randomly sampling out of a random sample is equivalent to randomly
+      sampling from the initial population.
+    :param n_pairs: The number of non-matching pairs to try to generate.
+      The function's internal pairing loop (which performs random 
+      generation and checking) is bounded by a secondary stopping 
+      condition which may terminate before this number is hit (in order
+      to prevent excessive time spent looping).
     """
     # First, sanity check that we have a big enough sample size to grab
     # the requested number of pairs in "reasonable" time--use the 
