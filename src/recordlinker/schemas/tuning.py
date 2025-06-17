@@ -9,7 +9,6 @@ import datetime
 import typing
 import uuid
 
-import fastapi
 import pydantic
 from typing_extensions import Annotated
 
@@ -53,14 +52,6 @@ class TuningJob(pydantic.BaseModel):
     results: typing.Optional[TuningResults] = None
     started_at: datetime.datetime = pydantic.Field(default_factory=now_utc_no_ms)
     finished_at: typing.Optional[datetime.datetime] = None
-
-    @property
-    def duration(self) -> typing.Optional[datetime.timedelta]:
-        """
-        Get the duration of the tuning job.
-        """
-        last_ts: datetime.datetime = self.finished_at or now_utc_no_ms()
-        return last_ts - self.started_at
 
 
 class TuningJobResponse(TuningJob):

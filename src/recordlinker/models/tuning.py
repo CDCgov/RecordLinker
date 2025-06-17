@@ -2,13 +2,13 @@ import datetime
 import enum
 import uuid
 
-from sqlalchemy import event
 from sqlalchemy import orm
 from sqlalchemy import types as sqltypes
 
-from recordlinker.utils.datetime import now_utc
+from recordlinker.utils.datetime import now_utc_no_ms
 
 from .base import Base
+from .base import TZDateTime
 
 
 class TuningStatus(enum.Enum):
@@ -31,23 +31,20 @@ class TuningJob(Base):
     params: orm.Mapped[dict] = orm.mapped_column(sqltypes.JSON, nullable=False)
     results: orm.Mapped[dict] = orm.mapped_column(sqltypes.JSON, default=None, nullable=True)
     started_at = orm.mapped_column(
-        sqltypes.DateTime,
-        default=now_utc,
+        TZDateTime,
+        default=now_utc_no_ms(),
         nullable=False,
     )
     finished_at = orm.mapped_column(
-        sqltypes.DateTime,
+        TZDateTime,
         default=None,
         nullable=True,
     )
 
-
-@event.listens_for(TuningJob, "load")
-def tuningjob_load(target, context):
-    """
-    Attach timezone info to datetime fields
-    """
-    for col in ("started_at", "finished_at"):
-        dt = getattr(target, col)
-        if dt is not None and dt.tzinfo is None:
-            setattr(target, col, dt.replace(tzinfo=datetime.timezone.utc))
+    @property
+    def duration(self) -> datetime.timedelta:
+        """
+        Get the duration of the tuning job.
+        """
+        last_ts: datetime.datetime = self.finished_at or now_utc_no_ms()
+        return last_ts - self.started_at
