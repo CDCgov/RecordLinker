@@ -54,7 +54,7 @@ class TestGetJob:
         assert job.status == models.TuningStatus.FAILED
         assert job.params == schemas.TuningParams(true_match_pairs=1, non_match_pairs=1)
         assert job.results == schemas.TuningResults(details="test failed")
-        assert job.duration == datetime.timedelta(seconds=10)
+        assert obj.duration == datetime.timedelta(seconds=10)
 
 
 class TestUpdateJob:
@@ -83,7 +83,7 @@ class TestUpdateJob:
             "log_odds": [],
             "details": "running",
         }
-        assert obj.started_at <= now_utc_no_ms().replace(tzinfo=None)
+        assert obj.started_at <= now_utc_no_ms()
         assert obj.finished_at is None
 
     def test_completed(self, session):
@@ -111,7 +111,7 @@ class TestUpdateJob:
             "log_odds": [],
             "details": "completed",
         }
-        assert obj.started_at <= now_utc_no_ms().replace(tzinfo=None)
+        assert obj.started_at <= now_utc_no_ms()
         assert obj.finished_at >= obj.started_at
 
     def test_failed(self, session):
@@ -139,5 +139,85 @@ class TestUpdateJob:
             "log_odds": [],
             "details": "failed",
         }
-        assert obj.started_at <= now_utc_no_ms().replace(tzinfo=None)
+        assert obj.started_at <= now_utc_no_ms()
         assert obj.finished_at >= obj.started_at
+
+
+class TestFailJob:
+    def test_missing_job(self, session):
+        assert tuning_service.fail_job(session, uuid.uuid4(), "missing") is None
+        assert session.query(models.TuningJob).count() == 0
+
+    def test_update(self, session):
+        obj = models.TuningJob(status=models.TuningStatus.PENDING, params={})
+        session.add(obj)
+        session.commit()
+
+        assert tuning_service.fail_job(session, obj.id, "failed") is None
+        assert session.query(models.TuningJob).count() == 1
+
+        obj = session.get(models.TuningJob, obj.id)
+        assert obj.status == models.TuningStatus.FAILED
+        assert obj.results == {
+            "dataset_size": 0,
+            "true_matches_found": 0,
+            "non_matches_found": 0,
+            "log_odds": [],
+            "details": "failed",
+        }
+        assert obj.finished_at >= obj.started_at
+
+
+class TestGetActiveJob:
+    def test_none(self, session):
+        assert tuning_service.get_active_jobs(session) == []
+
+    def test_no_active(self, session):
+        session.add(models.TuningJob(status=models.TuningStatus.COMPLETED, params={}))
+        session.add(models.TuningJob(status=models.TuningStatus.FAILED, params={}))
+        session.commit()
+
+        assert tuning_service.get_active_jobs(session) == []
+
+    def test_jobs_to_cancel(self, session):
+        session.add(
+            models.TuningJob(
+                status=models.TuningStatus.PENDING,
+                params={"true_match_pairs": 1, "non_match_pairs": 1},
+                started_at=datetime.datetime(2025, 1, 1, 0, 0, 0),
+            )
+        )
+        session.commit()
+
+        assert tuning_service.get_active_jobs(session) == []
+        obj = session.query(models.TuningJob).first()
+        assert obj.status == models.TuningStatus.FAILED
+        assert obj.params == {"true_match_pairs": 1, "non_match_pairs": 1}
+        assert obj.results == {
+            "dataset_size": 0,
+            "true_matches_found": 0,
+            "non_matches_found": 0,
+            "log_odds": [],
+            "details": "canceled incomplete job",
+        }
+        assert obj.started_at == datetime.datetime(2025, 1, 1, 0, 0, 0, tzinfo=datetime.timezone.utc)
+        assert obj.finished_at > obj.started_at
+
+    def test_jobs(self, session):
+        session.add(
+            models.TuningJob(
+                status=models.TuningStatus.PENDING,
+                params={"true_match_pairs": 1, "non_match_pairs": 1},
+            )
+        )
+        session.add(
+            models.TuningJob(
+                status=models.TuningStatus.RUNNING,
+                params={"true_match_pairs": 1, "non_match_pairs": 1},
+            )
+        )
+
+        jobs = tuning_service.get_active_jobs(session)
+        assert len(jobs) == 2
+        assert jobs[0].status == models.TuningStatus.PENDING
+        assert jobs[1].status == models.TuningStatus.RUNNING
