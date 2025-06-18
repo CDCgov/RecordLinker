@@ -65,7 +65,7 @@ jobs:
 
           # ⏳ Check DB connectivity before launching app
           if [[ "${{ matrix.database }}" == "sqlserver" ]]; then
-            pip install sqlalchemy pyodbc
+            pip install sqlalchemy
             
             python -c "
           import sys
