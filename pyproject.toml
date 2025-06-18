@@ -33,7 +33,6 @@ dependencies = [
     "psycopg2-binary", # PostgreSQL
     "PyMySQL",         # MySQL & MariaDB
     "cryptography",    # MySQL & MariaDB dependency
-    "pyodbc",          # SQL Server
     # Normalization
     "phonenumbers",
 ]
