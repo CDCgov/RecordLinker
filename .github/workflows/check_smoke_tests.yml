@@ -57,7 +57,7 @@ jobs:
           elif [[ "${{ matrix.database }}" == "mysql" ]]; then
             export DB_URI="mysql+pymysql://root:pw@localhost:3306/mysql"
           elif [[ "${{ matrix.database }}" == "sqlserver" ]]; then
-            export DB_URI="mssql+pyodbc://sa:YourStrong!Passw0rd@localhost:1433/master?driver=ODBC+Driver+18+for+SQL+Server&TrustServerCertificate=yes"
+            export DB_URI="mssql+pyodbc://sa:YourStrong!Passw0rd@localhost:1433/master?driver=FreeTDS&TrustServerCertificate=yes&TDS_Version=8.0"
           fi
 
           API_ROOT="/api"
