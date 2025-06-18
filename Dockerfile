@@ -26,7 +26,7 @@ RUN pip install --upgrade pip
 
 # Conditionally install ODBC driver for SQL Server.
 RUN if [ "$USE_MSSQL" = "true" ]; then \
-        apk add --no-cache build-base python3-dev freetds-dev unixodbc-dev &&\
+        apk add --no-cache build-base python3-dev freetds-dev unixodbc-dev && \
         pip install "pyodbc>=4.0.35" && \
         echo "[FreeTDS]\nDriver = /usr/lib/libtdsodbc.so" > /etc/odbcinst.ini; \
     fi
