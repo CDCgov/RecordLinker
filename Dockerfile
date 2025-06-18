@@ -21,7 +21,7 @@ ARG LOG_CONFIG=assets/production_log_config.json
 ENV LOG_CONFIG=${LOG_CONFIG}
 
 # Updgrade system packages and install curl
-RUN apt-get update && apt-get upgrade -y && apt-get install curl -y
+RUN apk update && apk upgrade && apk add --no-cache curl
 RUN pip install --upgrade pip
 
 # Conditionally install ODBC driver for SQL Server.
