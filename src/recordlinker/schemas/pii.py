@@ -339,30 +339,12 @@ class Telecom(StrippedBaseModel):
                 else:
                     # Default to US if no country code is provided
                     parsed_number = phonenumbers.parse(self.value, "US")
-                self.value = phonenumbers.format_number(
-                    parsed_number, phonenumbers.PhoneNumberFormat.E164
-                )
+                self.value = str(parsed_number.national_number)
             except phonenumbers.NumberParseException:
                 # If parsing fails, return the original phone number
                 pass
 
         return self
-
-    def normalized_value(self) -> str:
-        """
-        Normalize the value field of a telecom record.
-        """
-        # TODO: Should this really by used by the feature_iter, or should
-        # we be normalizing before we persist in the database?
-        if self.system == "phone":
-            try:
-                # Use national number for comparison
-                phone = normalize_text(str(phonenumbers.parse(self.value).national_number))
-                if phone:
-                    return phone
-            except phonenumbers.NumberParseException:
-                pass
-        return self.value
 
 
 class PIIRecord(StrippedBaseModel):
@@ -561,15 +543,18 @@ class PIIRecord(StrippedBaseModel):
                     yield str(race)
         elif attribute == FeatureAttribute.TELECOM:
             for telecom in self.telecom:
-                yield telecom.normalized_value()
+                if telecom.system == "phone":
+                    yield normalize_text(telecom.value)
+                else:
+                    yield telecom.value
         elif attribute == FeatureAttribute.PHONE:
             for telecom in self.telecom:
                 if telecom.system == "phone":
-                    yield telecom.normalized_value()
+                    yield normalize_text(telecom.value)
         elif attribute == FeatureAttribute.EMAIL:
             for telecom in self.telecom:
                 if telecom.system == "email":
-                    yield telecom.normalized_value()
+                    yield telecom.value
         elif attribute == FeatureAttribute.SUFFIX:
             for name in self.name:
                 for suffix in name.suffix:
