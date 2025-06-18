@@ -63,21 +63,22 @@ jobs:
           API_ROOT="/api"
           BASE_URL="http://localhost:8080${API_ROOT}"
 
-          # Ensure the sqlserver database is ready
-          if [[ "${{ matrix.database }}" == "sqlserver" ]]; then
-            echo "Waiting for SQL Server to be ready..."
-            TRIES=30
-            COUNT=0
-            until docker exec -it sqlserver /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P "YourStrong!Passw0rd" -Q "SELECT 1" &> /dev/null; do
-              echo "Attempt $((COUNT+1)) of $TRIES"
-              sleep 5
-              COUNT=$((COUNT+1))
-              if [ "$COUNT" -ge "$TRIES" ]; then
-                echo "SQL Server did not become ready in time."
-                exit 1
-              fi
-            done
-          fi
+           # ⏳ Check DB connectivity before launching app
+          python -c "
+          import sys
+          from sqlalchemy import create_engine
+          from sqlalchemy.exc import SQLAlchemyError
+
+          print('⏳ Testing DB_URI...')
+          try:
+              engine = create_engine('$DB_URI')
+              with engine.connect() as conn:
+                  conn.execute('SELECT 1')
+              print('✅ DB connection successful')
+          except SQLAlchemyError as e:
+              print(f'❌ DB connection failed: {e}')
+              sys.exit(1)
+          "
 
           # Start Record Linker Service
           docker run -d --name rl-service \
