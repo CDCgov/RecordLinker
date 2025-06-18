@@ -27,6 +27,20 @@ class TuningParams(pydantic.BaseModel):
     )
 
 
+class PassRecommendation(pydantic.BaseModel):
+    pass_label: str = pydantic.Field(description="The algorithm pass label these recommendations are for.")
+    recommended_match_window: tuple[
+        Annotated[float, pydantic.Field(ge=0, le=1)], Annotated[float, pydantic.Field(ge=0, le=1)]
+    ] = pydantic.Field(...,
+        description=(
+            "A range of decimal values consisting of two endpoint thresholds: a Minimum "
+            "Match Threshold—representing an RMS value below which a candidate record is "
+            "labeled 'certainly-not' a match—and a Certain Match Threshold, an RMS value "
+            "above which a candidate record is labeled a 'certain' match."
+        )
+    )
+
+
 class TuningResults(pydantic.BaseModel):
     dataset_size: Annotated[int, pydantic.Field(ge=0)] = pydantic.Field(
         default=0, description="The number of records analyzed."
@@ -38,6 +52,7 @@ class TuningResults(pydantic.BaseModel):
         default=0, description="The number of non-matches found."
     )
     log_odds: typing.Sequence[LogOdd] = []
+    passes: typing.Sequence[PassRecommendation] = []
     details: str = pydantic.Field(
         default="", description="Additional information about the tuning job."
     )
