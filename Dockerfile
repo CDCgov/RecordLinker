@@ -31,11 +31,6 @@ RUN if [ "$USE_MSSQL" = "true" ]; then \
     printf "[FreeTDS]\nDescription=FreeTDS Driver\nDriver=/usr/lib/libtdsodbc.so\nUsageCount=1\n" > /etc/odbcinst.ini; \
   fi
 
-# Confirm driver path 
-RUN if [ "$USE_MSSQL" = "true" ]; then \
-    echo "ODBC Driver for SQL Server installed at: $(find /usr/lib -name 'libtdsodbc.so*')" && \
-    echo "ODBC Driver for SQL Server version: $(odbcinst -q -d -n FreeTDS)"; \
-  fi
 
 WORKDIR /code
 # Initialize the recordlinker directory
