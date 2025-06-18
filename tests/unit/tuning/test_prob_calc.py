@@ -1,7 +1,7 @@
 from conftest import load_test_json_asset
 
-from recordlinker.tuning.prob_calc import calculate_log_odds
 from recordlinker.tuning.prob_calc import calculate_class_probs
+from recordlinker.tuning.prob_calc import calculate_log_odds
 
 
 class TestTuningProbabilityCalculators:
