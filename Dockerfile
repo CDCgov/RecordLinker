@@ -1,4 +1,4 @@
-FROM python:3.12-slim
+FROM python:3.13-alpine
 
 LABEL org.opencontainers.image.source=https://github.com/CDCgov/RecordLinker
 LABEL org.opencontainers.image.description="RecordLinker is a service that links records from two datasets based on a set of common attributes."
@@ -26,11 +26,8 @@ RUN pip install --upgrade pip
 
 # Conditionally install ODBC driver for SQL Server.
 RUN if [ "$USE_MSSQL" = "true" ]; then \
-        apt-get install -y gnupg2 apt-transport-https && \
-        curl https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor -o /etc/apt/trusted.gpg.d/microsoft.gpg && \
-        curl https://packages.microsoft.com/config/debian/11/prod.list | tee /etc/apt/sources.list.d/mssql-release.list && \
-        apt-get update && \
-        ACCEPT_EULA=Y apt-get install -y msodbcsql18 unixodbc-dev; \
+        RUN apk add --no-cache freetds freetds-dev unixodbc unixodbc-dev && \
+        echo "[FreeTDS]\nDriver = /usr/lib/libtdsodbc.so" > /etc/odbcinst.ini \
     fi
 
 WORKDIR /code
