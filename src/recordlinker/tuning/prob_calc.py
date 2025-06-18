@@ -13,13 +13,15 @@ FIELDS_TO_CALCULATE = [
     Feature.parse(f.value) for f in FeatureAttribute if f.value not in FIELDS_TO_IGNORE
 ]
 
-def calculate_m_probs(
-        true_match_pairs: typing.Sequence[typing.Tuple[dict, dict]]
+def calculate_class_probs(
+        sampled_pairs: typing.Sequence[typing.Tuple[dict, dict]]
     ) -> dict[str, float]:
     """
     Calculate the class-conditional likelihood that two records will
     agree on a particular field, given that the two records are a
-    known true-match.
+    belong to the same class (known true-match or known non-match).
+    This function is used to calculate both the m- and u-probabilities,
+    depending on the pair sample it is given.
 
     :param true_match_pairs: A sequence of tuples containing pairs 
       of patient data dictionaries.
@@ -27,9 +29,9 @@ def calculate_m_probs(
       probabilities.
     """
     # LaPlacian smoothing accounts for unseen instances
-    m_probs = {str(f): 1.0 for f in FIELDS_TO_CALCULATE}
+    class_probs = {str(f): 1.0 for f in FIELDS_TO_CALCULATE}
 
-    for pair in true_match_pairs:
+    for pair in sampled_pairs:
         pii_record_1 = PIIRecord.from_data(pair[0])
         pii_record_2 = PIIRecord.from_data(pair[1])
 
@@ -40,45 +42,12 @@ def calculate_m_probs(
             comparison = compare_probabilistic_exact_match(
                 pii_record_1, pii_record_2, f, 1.0, 0.0, prepend_suffix=False
             )
-            m_probs[str(f)] += comparison[0]
+            class_probs[str(f)] += comparison[0]
     
-    for k in m_probs:
-        m_probs[k] /= float(len(true_match_pairs) + 1)
+    for k in class_probs:
+        class_probs[k] /= float(len(sampled_pairs) + 1)
     
-    return m_probs
-
-
-def calculate_u_probs(non_match_pairs: typing.Sequence[typing.Tuple]) -> dict[str, float]:
-    """
-    Calculate the class-conditional likelihood that two records will
-    agree on a particular field, given that the two records are a
-    known non-match.
-
-    :param non_match_pairs: A sequence of Tuples containing two sets of
-      patient data dictionaries for patient records that didn't match.
-    :returns: A dictionary mapping Feature names to their non-match
-      class probabilities.
-    """
-        # LaPlacian smoothing accounts for unseen instances
-    u_probs = {str(f): 1.0 for f in FIELDS_TO_CALCULATE}
-
-    for pair in non_match_pairs:
-        pii_record_1 = PIIRecord.from_data(pair[0])
-        pii_record_2 = PIIRecord.from_data(pair[1])
-
-        # The probabilistic exact matcher nicely uses feature_iter and
-        # cross-value checking for us; if we award 0 points for missing
-        # data and 1 point for perfect agreement, we get the count
-        for f in FIELDS_TO_CALCULATE:
-            comparison = compare_probabilistic_exact_match(
-                pii_record_1, pii_record_2, f, 1.0, 0.0, prepend_suffix=False
-            )
-            u_probs[str(f)] += comparison[0]
-    
-    for k in u_probs:
-        u_probs[k] /= float(len(non_match_pairs) + 1)
-    
-    return u_probs
+    return class_probs
 
 
 def calculate_log_odds(

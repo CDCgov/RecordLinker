@@ -1,18 +1,17 @@
 from conftest import load_test_json_asset
 
 from recordlinker.tuning.prob_calc import calculate_log_odds
-from recordlinker.tuning.prob_calc import calculate_m_probs
-from recordlinker.tuning.prob_calc import calculate_u_probs
+from recordlinker.tuning.prob_calc import calculate_class_probs
 
 
 class TestTuningProbabilityCalculators:
-    def test_calculate_m_probs(self):
+    def test_calculate_class_probs_m(self):
         test_pairs = load_test_json_asset("synthetic_tuning_pairs.json")
         rows = []
         for p in test_pairs["samples"]:
             row = (p["data_1"], p["data_2"])
             rows.append(row)
-        m_probs = calculate_m_probs(rows)
+        m_probs = calculate_class_probs(rows)
         assert m_probs == {
             'BIRTHDATE': (2.0 / 3.0),
             'SEX': (5.0 / 6.0),
@@ -30,7 +29,7 @@ class TestTuningProbabilityCalculators:
             'IDENTIFIER': 1.0
         }
 
-    def test_calculate_u_probs(self):
+    def test_calculate_class_probs_u(self):
         test_pairs = load_test_json_asset("synthetic_tuning_pairs.json")
         # Pairs come matched up as true-class examples, so just move the
         # second record in each pair up by one to make them all non-match
@@ -44,7 +43,7 @@ class TestTuningProbabilityCalculators:
             test_pairs["samples"][0]["data_2"]
         ))
 
-        u_probs = calculate_u_probs(rows)
+        u_probs = calculate_class_probs(rows)
         assert u_probs == {
             'BIRTHDATE': (1.0 / 6.0),
             'SEX': (1.0 / 3.0),
