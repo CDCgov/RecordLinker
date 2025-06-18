@@ -26,10 +26,16 @@ RUN pip install --upgrade pip
 
 # Conditionally install ODBC driver for SQL Server.
 RUN if [ "$USE_MSSQL" = "true" ]; then \
-        apk add --no-cache build-base python3-dev freetds-dev unixodbc-dev && \
-        pip install "pyodbc>=4.0.35" && \
-        printf "[FreeTDS]\nDriver = /usr/lib/libtdsodbc.so" > /etc/odbcinst.ini; \
-    fi
+    apk add --no-cache build-base python3-dev freetds-dev unixodbc-dev && \
+    pip install "pyodbc>=4.0.35" && \
+    printf "[FreeTDS]\nDescription=FreeTDS Driver\nDriver=/usr/lib/libtdsodbc.so\nUsageCount=1\n" > /etc/odbcinst.ini; \
+  fi
+
+# Confirm driver path 
+RUN if [ "$USE_MSSQL" = "true" ]; then \
+    echo "ODBC Driver for SQL Server installed at: $(find /usr/lib -name 'libtdsodbc.so*')" && \
+    echo "ODBC Driver for SQL Server version: $(odbcinst -q -d -n FreeTDS)"; \
+  fi
 
 WORKDIR /code
 # Initialize the recordlinker directory
