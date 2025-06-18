@@ -282,13 +282,14 @@ class Address(StrippedBaseModel):
         normalized: list[str] = []
         if value:
             for line in value:
-                parts = line.strip().split(" ")
-                # remove all non-alphanumeric characters and convert to uppercase
-                suffix = "".join(c for c in parts[-1] if c.isalnum()).upper()
-                if common := cls.ST_SUFFIXES.get(suffix):
-                    # replace the suffix with the common suffix
-                    parts[-1] = common
-                normalized.append(" ".join(parts))
+                if line is not None:
+                    parts = line.strip().split(" ")
+                    # remove all non-alphanumeric characters and convert to uppercase
+                    suffix = "".join(c for c in parts[-1] if c.isalnum()).upper()
+                    if common := cls.ST_SUFFIXES.get(suffix):
+                        # replace the suffix with the common suffix
+                        parts[-1] = common
+                    normalized.append(" ".join(parts))
         return normalized
 
     @pydantic.field_validator("state", mode="before")
@@ -346,6 +347,22 @@ class Telecom(StrippedBaseModel):
                 pass
 
         return self
+
+    def normalized_value(self) -> str:
+        """
+        Normalize the value field of a telecom record.
+        """
+        # TODO: Should this really by used by the feature_iter, or should
+        # we be normalizing before we persist in the database?
+        if self.system == "phone":
+            try:
+                # Use national number for comparison
+                phone = normalize_text(str(phonenumbers.parse(self.value).national_number))
+                if phone:
+                    return phone
+            except phonenumbers.NumberParseException:
+                pass
+        return self.value
 
 
 class PIIRecord(StrippedBaseModel):
@@ -451,7 +468,7 @@ class PIIRecord(StrippedBaseModel):
         """
         if not value:
             return []
-        return [Race.parse(v) for v in value]
+        return [Race.parse(v) for v in value if v is not None]
 
     def to_json(self, prune_empty: bool = False) -> str:
         """
@@ -544,24 +561,15 @@ class PIIRecord(StrippedBaseModel):
                     yield str(race)
         elif attribute == FeatureAttribute.TELECOM:
             for telecom in self.telecom:
-                if telecom.system == "phone":
-                    # Use national number for comparison
-                    phone = normalize_text(str(phonenumbers.parse(telecom.value).national_number))
-                    if phone:
-                        yield phone
-                else:
-                    yield telecom.value
+                yield telecom.normalized_value()
         elif attribute == FeatureAttribute.PHONE:
             for telecom in self.telecom:
                 if telecom.system == "phone":
-                    # Use national number for comparison
-                    phone = normalize_text(str(phonenumbers.parse(telecom.value).national_number))
-                    if phone:
-                        yield phone
+                    yield telecom.normalized_value()
         elif attribute == FeatureAttribute.EMAIL:
             for telecom in self.telecom:
                 if telecom.system == "email":
-                    yield telecom.value
+                    yield telecom.normalized_value()
         elif attribute == FeatureAttribute.SUFFIX:
             for name in self.name:
                 for suffix in name.suffix:
