@@ -63,8 +63,11 @@ jobs:
           API_ROOT="/api"
           BASE_URL="http://localhost:8080${API_ROOT}"
 
-           # ⏳ Check DB connectivity before launching app
-          python -c "
+          # ⏳ Check DB connectivity before launching app
+          if [[ "${{ matrix.database }}" == "sqlserver" ]]; then
+            pip install sqlalchemy pyodbc
+            
+            python -c "
           import sys
           from sqlalchemy import create_engine
           from sqlalchemy.exc import SQLAlchemyError
@@ -79,6 +82,8 @@ jobs:
               print(f'❌ DB connection failed: {e}')
               sys.exit(1)
           "
+          fi
+
 
           # Start Record Linker Service
           docker run -d --name rl-service \
