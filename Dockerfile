@@ -28,7 +28,7 @@ RUN pip install --upgrade pip
 RUN if [ "$USE_MSSQL" = "true" ]; then \
         apk add --no-cache build-base python3-dev freetds-dev unixodbc-dev && \
         pip install "pyodbc>=4.0.35" && \
-        echo "[FreeTDS]\nDriver = /usr/lib/libtdsodbc.so" > /etc/odbcinst.ini; \
+        printf "[FreeTDS]\nDriver = /usr/lib/libtdsodbc.so" > /etc/odbcinst.ini; \
     fi
 
 WORKDIR /code
