@@ -74,3 +74,4 @@ def get_test_session() -> typing.Iterator[orm.Session]:
 
 
 SessionMaker = create_sessionmaker()
+get_session_manager = contextlib.contextmanager(get_session)

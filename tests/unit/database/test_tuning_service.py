@@ -36,7 +36,7 @@ class TestStartJob:
             "non_match_sample_requested": 1,
         }
         assert obj.results is None
-        assert obj.started_at <= now_utc_no_ms().replace(tzinfo=None)
+        assert obj.started_at <= now_utc_no_ms()
         assert obj.finished_at is None
 
 
@@ -68,7 +68,6 @@ class TestGetJob:
             true_match_pairs_requested=1, non_match_pairs_requested=1, non_match_sample_requested=1
         )
         assert job.results == schemas.TuningResults(details="test failed")
-        assert job.duration == datetime.timedelta(seconds=10)
 
 
 class TestUpdateJob:
@@ -109,8 +108,15 @@ class TestUpdateJob:
             "non_match_pairs_requested": 1,
             "non_match_sample_requested": 1,
         }
-        assert obj.results == {"details": "running"}
-        assert obj.started_at <= now_utc_no_ms().replace(tzinfo=None)
+        assert obj.results == {
+            "true_matches_pairs_used": 0,
+            "non_matches_pairs_used": 0,
+            "non_match_sample_used": 0,
+            "log_odds": [],
+            "passes": [],
+            "details": "running",
+        }
+        assert obj.started_at <= now_utc_no_ms()
         assert obj.finished_at is None
 
     def test_completed(self, session):
@@ -139,8 +145,15 @@ class TestUpdateJob:
             "non_match_pairs_requested": 1,
             "non_match_sample_requested": 1,
         }
-        assert obj.results == {"details": "completed"}
-        assert obj.started_at <= now_utc_no_ms().replace(tzinfo=None)
+        assert obj.results == {
+            "true_matches_pairs_used": 0,
+            "non_matches_pairs_used": 0,
+            "non_match_sample_used": 0,
+            "log_odds": [],
+            "passes": [],
+            "details": "completed",
+        }
+        assert obj.started_at <= now_utc_no_ms()
         assert obj.finished_at >= obj.started_at
 
     def test_failed(self, session):
@@ -169,6 +182,113 @@ class TestUpdateJob:
             "non_match_pairs_requested": 1,
             "non_match_sample_requested": 1,
         }
-        assert obj.results == {"details": "failed"}
-        assert obj.started_at <= now_utc_no_ms().replace(tzinfo=None)
+        assert obj.results == {
+            "true_matches_pairs_used": 0,
+            "non_matches_pairs_used": 0,
+            "non_match_sample_used": 0,
+            "log_odds": [],
+            "passes": [],
+            "details": "failed",
+        }
+        assert obj.started_at <= now_utc_no_ms()
         assert obj.finished_at >= obj.started_at
+
+
+class TestFailJob:
+    def test_missing_job(self, session):
+        assert tuning_service.fail_job(session, uuid.uuid4(), "missing") is None
+        assert session.query(models.TuningJob).count() == 0
+
+    def test_update(self, session):
+        obj = models.TuningJob(status=models.TuningStatus.PENDING, params={})
+        session.add(obj)
+        session.commit()
+
+        assert tuning_service.fail_job(session, obj.id, "failed") is None
+        assert session.query(models.TuningJob).count() == 1
+
+        obj = session.get(models.TuningJob, obj.id)
+        assert obj.status == models.TuningStatus.FAILED
+        assert obj.results == {
+            "true_matches_pairs_used": 0,
+            "non_matches_pairs_used": 0,
+            "non_match_sample_used": 0,
+            "log_odds": [],
+            "passes": [],
+            "details": "failed",
+        }
+        assert obj.finished_at >= obj.started_at
+
+
+class TestGetActiveJob:
+    def test_none(self, session):
+        assert tuning_service.get_active_jobs(session) == []
+
+    def test_no_active(self, session):
+        session.add(models.TuningJob(status=models.TuningStatus.COMPLETED, params={}))
+        session.add(models.TuningJob(status=models.TuningStatus.FAILED, params={}))
+        session.commit()
+
+        assert tuning_service.get_active_jobs(session) == []
+
+    def test_jobs_to_cancel(self, session):
+        session.add(
+            models.TuningJob(
+                status=models.TuningStatus.PENDING,
+                params={
+                    "true_match_pairs_requested": 1,
+                    "non_match_pairs_requested": 1,
+                    "non_match_sample_requested": 1,
+                },
+                started_at=datetime.datetime(2025, 1, 1, 0, 0, 0),
+            )
+        )
+        session.commit()
+
+        assert tuning_service.get_active_jobs(session) == []
+        obj = session.query(models.TuningJob).first()
+        assert obj.status == models.TuningStatus.FAILED
+        assert obj.params == {
+            "true_match_pairs_requested": 1,
+            "non_match_pairs_requested": 1,
+            "non_match_sample_requested": 1,
+        }
+        assert obj.results == {
+            "true_matches_pairs_used": 0,
+            "non_matches_pairs_used": 0,
+            "non_match_sample_used": 0,
+            "log_odds": [],
+            "passes": [],
+            "details": "canceled incomplete job",
+        }
+        assert obj.started_at == datetime.datetime(
+            2025, 1, 1, 0, 0, 0, tzinfo=datetime.timezone.utc
+        )
+        assert obj.finished_at > obj.started_at
+
+    def test_jobs(self, session):
+        session.add(
+            models.TuningJob(
+                status=models.TuningStatus.PENDING,
+                params={
+                    "true_match_pairs_requested": 1,
+                    "non_match_pairs_requested": 1,
+                    "non_match_sample_requested": 1,
+                },
+            )
+        )
+        session.add(
+            models.TuningJob(
+                status=models.TuningStatus.RUNNING,
+                params={
+                    "true_match_pairs_requested": 1,
+                    "non_match_pairs_requested": 1,
+                    "non_match_sample_requested": 1,
+                },
+            )
+        )
+
+        jobs = tuning_service.get_active_jobs(session)
+        assert len(jobs) == 2
+        statuses = {job.status for job in jobs}
+        assert statuses == {models.TuningStatus.PENDING, models.TuningStatus.RUNNING}
