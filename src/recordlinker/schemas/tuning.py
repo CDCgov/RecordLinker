@@ -19,11 +19,14 @@ from .algorithm import LogOdd
 
 
 class TuningParams(pydantic.BaseModel):
-    true_match_pairs: Annotated[int, pydantic.Field(gt=0)] = pydantic.Field(
-        description="The number of true match pairs to use for training."
+    true_match_pairs_requested: Annotated[int, pydantic.Field(gt=0)] = pydantic.Field(
+        description="The number of true match pairs to use for training.",
     )
-    non_match_pairs: Annotated[int, pydantic.Field(gt=0)] = pydantic.Field(
-        description="The number of non-match pairs to use for training."
+    non_match_pairs_requested: Annotated[int, pydantic.Field(gt=0)] = pydantic.Field(
+        description="The number of non-match pairs to use for training.",
+    )
+    non_match_sample_requested: Annotated[int, pydantic.Field(gt=0)] = pydantic.Field(
+        description="The number of records to sample for non-match pairs.",
     )
 
 
@@ -42,14 +45,14 @@ class PassRecommendation(pydantic.BaseModel):
 
 
 class TuningResults(pydantic.BaseModel):
-    dataset_size: Annotated[int, pydantic.Field(ge=0)] = pydantic.Field(
-        default=0, description="The number of records analyzed."
-    )
-    true_matches_found: Annotated[int, pydantic.Field(ge=0)] = pydantic.Field(
+    true_matches_pairs_used: Annotated[int, pydantic.Field(ge=0)] = pydantic.Field(
         default=0, description="The number of true matches found."
     )
-    non_matches_found: Annotated[int, pydantic.Field(ge=0)] = pydantic.Field(
+    non_matches_pairs_used: Annotated[int, pydantic.Field(ge=0)] = pydantic.Field(
         default=0, description="The number of non-matches found."
+    )
+    non_match_sample_used: Annotated[int, pydantic.Field(ge=0)] = pydantic.Field(
+        default=0, description="The number of records sampled for non-matches."
     )
     log_odds: typing.Sequence[LogOdd] = []
     passes: typing.Sequence[PassRecommendation] = []
