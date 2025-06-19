@@ -20,7 +20,11 @@ class TestCreate:
         client.session.add(
             models.TuningJob(
                 status=models.TuningStatus.RUNNING,
-                params={"true_match_pairs": 1, "non_match_pairs": 1},
+                params={
+                    "true_match_pairs_requested": 1,
+                    "non_match_pairs_requested": 1,
+                    "non_match_sample_requested": 1,
+                },
             )
         )
         client.session.commit()
@@ -33,8 +37,11 @@ class TestCreate:
         monkeypatch.setattr(config.settings, "tuning_job_timeout", 0)
         monkeypatch.setattr(config.settings, "tuning_true_match_pairs", 1)
         monkeypatch.setattr(config.settings, "tuning_non_match_pairs", 1)
-        with mock.patch("recordlinker.tuning.base.get_session_manager") as mock_session_t, \
-                mock.patch("recordlinker.routes.tuning_router.get_session_manager") as mock_session_r:
+        monkeypatch.setattr(config.settings, "tuning_non_match_sample", 1)
+        with (
+            mock.patch("recordlinker.tuning.base.get_session_manager") as mock_session_t,
+            mock.patch("recordlinker.routes.tuning_router.get_session_manager") as mock_session_r,
+        ):
             mock_session_r.return_value = client.session
             mock_session_t.return_value = client.session
             resp = client.post(self.path(client))
@@ -51,6 +58,7 @@ class TestCreate:
     def test_create(self, monkeypatch, client):
         monkeypatch.setattr(config.settings, "tuning_true_match_pairs", 1)
         monkeypatch.setattr(config.settings, "tuning_non_match_pairs", 1)
+        monkeypatch.setattr(config.settings, "tuning_non_match_sample", 1)
         with mock.patch("recordlinker.tuning.base.get_session_manager") as mock_session:
             mock_session.return_value = client.session
             resp = client.post(self.path(client))
@@ -63,7 +71,11 @@ class TestCreate:
             # However, once the job starts processing in the background job, its immediately
             # placed in the running state
             assert job.status == models.TuningStatus.RUNNING
-            assert resp.json()["params"] == {"true_match_pairs": 1, "non_match_pairs": 1}
+            assert resp.json()["params"] == {
+                "true_match_pairs_requested": 1,
+                "non_match_pairs_requested": 1,
+                "non_match_sample_requested": 1,
+            }
             assert resp.json()["results"] is None
             assert resp.json()["status_url"] == f"http://testserver/api/tuning/{job.id}"
 
@@ -79,7 +91,11 @@ class TestGet:
     def test_get(self, client):
         obj = models.TuningJob(
             status=models.TuningStatus.RUNNING,
-            params={"true_match_pairs": 1, "non_match_pairs": 1},
+            params={
+                "true_match_pairs_requested": 1,
+                "non_match_pairs_requested": 1,
+                "non_match_sample_requested": 1,
+            },
         )
         client.session.add(obj)
         client.session.commit()
@@ -88,8 +104,12 @@ class TestGet:
         assert resp.status_code == 200
         assert resp.json()["id"] == str(obj.id)
         assert resp.json()["status"] == "running"
-        assert resp.json()["params"] == {"true_match_pairs": 1, "non_match_pairs": 1}
+        assert resp.json()["params"] == {
+            "true_match_pairs_requested": 1,
+            "non_match_pairs_requested": 1,
+            "non_match_sample_requested": 1,
+        }
         assert resp.json()["results"] is None
-        assert resp.json()["started_at"] == obj.started_at.strftime('%Y-%m-%dT%H:%M:%SZ')
+        assert resp.json()["started_at"] == obj.started_at.strftime("%Y-%m-%dT%H:%M:%SZ")
         assert resp.json()["finished_at"] is None
         assert resp.json()["status_url"] == f"http://testserver/api/tuning/{obj.id}"

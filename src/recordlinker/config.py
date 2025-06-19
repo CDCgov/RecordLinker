@@ -72,6 +72,10 @@ class Settings(pydantic_settings.BaseSettings):
         description="The number of non-match pairs to use for training",
         default=100000,
     )
+    tuning_non_match_sample: int = pydantic.Field(
+        description="The number of records to sample for non-match pairs",
+        default=250000,
+    )
     tuning_job_timeout: int = pydantic.Field(
         description="The number of seconds to wait for the tuning job to complete",
         default=3600,

@@ -52,6 +52,7 @@ def compare_probabilistic_exact_match(
     key: Feature,
     log_odds: float,
     missing_field_points_proportion: float,
+    prepend_suffix: bool = True,
     **kwargs: typing.Any,
 ) -> tuple[float, bool]:
     """
@@ -71,13 +72,15 @@ def compare_probabilistic_exact_match(
     :param log_odds: The log-odds weight-points for this field
     :param missing_field_points_proportion: The proportion of log-odds points to
       award if one of the records is missing information in the given field.
+    :param prepend_suffix: Optionally, a boolean indicating whether for name comparisons,
+      the function should prepend a suffix if it present. 
     :param **kwargs: Optionally, a dictionary that may include parameters required for other
         compare_ functions.
     :return: A tuple containing: a float of the score the feature comparison
       earned, and a boolean indicating whether one of the Fields was missing.
     """
-    incoming_record_fields = list(record.feature_iter(key, prepend_suffix=True))
-    mpi_record_fields = list(mpi_record.feature_iter(key, prepend_suffix=True))
+    incoming_record_fields = list(record.feature_iter(key, prepend_suffix=prepend_suffix))
+    mpi_record_fields = list(mpi_record.feature_iter(key, prepend_suffix=prepend_suffix))
     if len(incoming_record_fields) == 0 or len(mpi_record_fields) == 0:
         # Return early if a field is missing, and log that was the case
         return (missing_field_points_proportion * log_odds, True)

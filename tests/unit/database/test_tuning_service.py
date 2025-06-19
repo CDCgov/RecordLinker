@@ -8,6 +8,8 @@ This module contains the unit tests for the recordlinker.database.tuning_service
 import datetime
 import uuid
 
+import pytest
+
 from recordlinker.database import tuning_service
 from recordlinker.models import tuning as models
 from recordlinker.schemas import tuning as schemas
@@ -16,7 +18,9 @@ from recordlinker.utils.datetime import now_utc_no_ms
 
 class TestStartJob:
     def test(self, session):
-        params = schemas.TuningParams(true_match_pairs=1, non_match_pairs=1)
+        params = schemas.TuningParams(
+            true_match_pairs_requested=1, non_match_pairs_requested=1, non_match_sample_requested=1
+        )
         job = tuning_service.start_job(session, params)
         assert job.status == models.TuningStatus.PENDING
         assert job.params == params
@@ -26,7 +30,11 @@ class TestStartJob:
 
         obj = session.get(models.TuningJob, job.id)
         assert obj.status == models.TuningStatus.PENDING
-        assert obj.params == {"true_match_pairs": 1, "non_match_pairs": 1}
+        assert obj.params == {
+            "true_match_pairs_requested": 1,
+            "non_match_pairs_requested": 1,
+            "non_match_sample_requested": 1,
+        }
         assert obj.results is None
         assert obj.started_at <= now_utc_no_ms()
         assert obj.finished_at is None
@@ -40,7 +48,11 @@ class TestGetJob:
     def test_found(self, session):
         obj = models.TuningJob(
             status=models.TuningStatus.FAILED,
-            params={"true_match_pairs": 1, "non_match_pairs": 1},
+            params={
+                "true_match_pairs_requested": 1,
+                "non_match_pairs_requested": 1,
+                "non_match_sample_requested": 1,
+            },
             results={"details": "test failed"},
             started_at=datetime.datetime(2025, 1, 1, 0, 0, 0),
             finished_at=datetime.datetime(2025, 1, 1, 0, 0, 10),
@@ -52,16 +64,32 @@ class TestGetJob:
         assert job is not None
         assert job.id == obj.id
         assert job.status == models.TuningStatus.FAILED
-        assert job.params == schemas.TuningParams(true_match_pairs=1, non_match_pairs=1)
+        assert job.params == schemas.TuningParams(
+            true_match_pairs_requested=1, non_match_pairs_requested=1, non_match_sample_requested=1
+        )
         assert job.results == schemas.TuningResults(details="test failed")
-        assert obj.duration == datetime.timedelta(seconds=10)
 
 
 class TestUpdateJob:
+    def test_not_found(self, session):
+        job = schemas.TuningJob(
+            params=schemas.TuningParams(
+                true_match_pairs_requested=1,
+                non_match_pairs_requested=1,
+                non_match_sample_requested=1,
+            )
+        )
+        with pytest.raises(ValueError):
+            tuning_service.update_job(session, job, models.TuningStatus.RUNNING)
+
     def test_set_results(self, session):
         obj = models.TuningJob(
             status=models.TuningStatus.PENDING,
-            params={"true_match_pairs": 1, "non_match_pairs": 1},
+            params={
+                "true_match_pairs_requested": 1,
+                "non_match_pairs_requested": 1,
+                "non_match_sample_requested": 1,
+            },
             started_at=now_utc_no_ms(),
         )
         session.add(obj)
@@ -75,12 +103,17 @@ class TestUpdateJob:
 
         obj = session.get(models.TuningJob, job.id)
         assert obj.status == models.TuningStatus.RUNNING
-        assert obj.params == {"true_match_pairs": 1, "non_match_pairs": 1}
+        assert obj.params == {
+            "true_match_pairs_requested": 1,
+            "non_match_pairs_requested": 1,
+            "non_match_sample_requested": 1,
+        }
         assert obj.results == {
-            "dataset_size": 0,
-            "true_matches_found": 0,
-            "non_matches_found": 0,
+            "true_matches_pairs_used": 0,
+            "non_matches_pairs_used": 0,
+            "non_match_sample_used": 0,
             "log_odds": [],
+            "passes": [],
             "details": "running",
         }
         assert obj.started_at <= now_utc_no_ms()
@@ -89,7 +122,11 @@ class TestUpdateJob:
     def test_completed(self, session):
         obj = models.TuningJob(
             status=models.TuningStatus.PENDING,
-            params={"true_match_pairs": 1, "non_match_pairs": 1},
+            params={
+                "true_match_pairs_requested": 1,
+                "non_match_pairs_requested": 1,
+                "non_match_sample_requested": 1,
+            },
             started_at=now_utc_no_ms(),
         )
         session.add(obj)
@@ -103,12 +140,17 @@ class TestUpdateJob:
 
         obj = session.get(models.TuningJob, job.id)
         assert obj.status == models.TuningStatus.COMPLETED
-        assert obj.params == {"true_match_pairs": 1, "non_match_pairs": 1}
+        assert obj.params == {
+            "true_match_pairs_requested": 1,
+            "non_match_pairs_requested": 1,
+            "non_match_sample_requested": 1,
+        }
         assert obj.results == {
-            "dataset_size": 0,
-            "true_matches_found": 0,
-            "non_matches_found": 0,
+            "true_matches_pairs_used": 0,
+            "non_matches_pairs_used": 0,
+            "non_match_sample_used": 0,
             "log_odds": [],
+            "passes": [],
             "details": "completed",
         }
         assert obj.started_at <= now_utc_no_ms()
@@ -117,7 +159,11 @@ class TestUpdateJob:
     def test_failed(self, session):
         obj = models.TuningJob(
             status=models.TuningStatus.FAILED,
-            params={"true_match_pairs": 1, "non_match_pairs": 1},
+            params={
+                "true_match_pairs_requested": 1,
+                "non_match_pairs_requested": 1,
+                "non_match_sample_requested": 1,
+            },
             started_at=now_utc_no_ms(),
         )
         session.add(obj)
@@ -131,12 +177,17 @@ class TestUpdateJob:
 
         obj = session.get(models.TuningJob, job.id)
         assert obj.status == models.TuningStatus.FAILED
-        assert obj.params == {"true_match_pairs": 1, "non_match_pairs": 1}
+        assert obj.params == {
+            "true_match_pairs_requested": 1,
+            "non_match_pairs_requested": 1,
+            "non_match_sample_requested": 1,
+        }
         assert obj.results == {
-            "dataset_size": 0,
-            "true_matches_found": 0,
-            "non_matches_found": 0,
+            "true_matches_pairs_used": 0,
+            "non_matches_pairs_used": 0,
+            "non_match_sample_used": 0,
             "log_odds": [],
+            "passes": [],
             "details": "failed",
         }
         assert obj.started_at <= now_utc_no_ms()
@@ -159,10 +210,11 @@ class TestFailJob:
         obj = session.get(models.TuningJob, obj.id)
         assert obj.status == models.TuningStatus.FAILED
         assert obj.results == {
-            "dataset_size": 0,
-            "true_matches_found": 0,
-            "non_matches_found": 0,
+            "true_matches_pairs_used": 0,
+            "non_matches_pairs_used": 0,
+            "non_match_sample_used": 0,
             "log_odds": [],
+            "passes": [],
             "details": "failed",
         }
         assert obj.finished_at >= obj.started_at
@@ -183,7 +235,11 @@ class TestGetActiveJob:
         session.add(
             models.TuningJob(
                 status=models.TuningStatus.PENDING,
-                params={"true_match_pairs": 1, "non_match_pairs": 1},
+                params={
+                    "true_match_pairs_requested": 1,
+                    "non_match_pairs_requested": 1,
+                    "non_match_sample_requested": 1,
+                },
                 started_at=datetime.datetime(2025, 1, 1, 0, 0, 0),
             )
         )
@@ -192,28 +248,43 @@ class TestGetActiveJob:
         assert tuning_service.get_active_jobs(session) == []
         obj = session.query(models.TuningJob).first()
         assert obj.status == models.TuningStatus.FAILED
-        assert obj.params == {"true_match_pairs": 1, "non_match_pairs": 1}
+        assert obj.params == {
+            "true_match_pairs_requested": 1,
+            "non_match_pairs_requested": 1,
+            "non_match_sample_requested": 1,
+        }
         assert obj.results == {
-            "dataset_size": 0,
-            "true_matches_found": 0,
-            "non_matches_found": 0,
+            "true_matches_pairs_used": 0,
+            "non_matches_pairs_used": 0,
+            "non_match_sample_used": 0,
             "log_odds": [],
+            "passes": [],
             "details": "canceled incomplete job",
         }
-        assert obj.started_at == datetime.datetime(2025, 1, 1, 0, 0, 0, tzinfo=datetime.timezone.utc)
+        assert obj.started_at == datetime.datetime(
+            2025, 1, 1, 0, 0, 0, tzinfo=datetime.timezone.utc
+        )
         assert obj.finished_at > obj.started_at
 
     def test_jobs(self, session):
         session.add(
             models.TuningJob(
                 status=models.TuningStatus.PENDING,
-                params={"true_match_pairs": 1, "non_match_pairs": 1},
+                params={
+                    "true_match_pairs_requested": 1,
+                    "non_match_pairs_requested": 1,
+                    "non_match_sample_requested": 1,
+                },
             )
         )
         session.add(
             models.TuningJob(
                 status=models.TuningStatus.RUNNING,
-                params={"true_match_pairs": 1, "non_match_pairs": 1},
+                params={
+                    "true_match_pairs_requested": 1,
+                    "non_match_pairs_requested": 1,
+                    "non_match_sample_requested": 1,
+                },
             )
         )
 

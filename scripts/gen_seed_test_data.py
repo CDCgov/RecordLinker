@@ -11,9 +11,13 @@ of PII records up to 25. Those values can be adjusted see --help for more inform
 """
 
 import argparse
+import datetime
 import random
+import string
 import sys
+import typing
 
+import pydantic
 from faker import Faker
 
 from recordlinker import schemas
@@ -81,28 +85,123 @@ def _generate_random_pii_record(faker):
     )
 
 
+def _transform(val: typing.Any, str_edits: tuple[int, int] = (1, 3)) -> typing.Any:
+    if val:
+        if isinstance(val, datetime.date):
+            action = random.choice(["year", "month", "day"])
+            if action == "month":
+                adjustment = random.randint(1, 12) * 30
+            elif action == "day":
+                adjustment = random.randint(0, 30)
+            elif action == "year":
+                # Randomly adjust the year by up to 10 years
+                adjustment = random.randint(0, 10) * 365
+            return val - datetime.timedelta(days=adjustment)
+        elif isinstance(val, str):
+            chars = list(val)
+            for _ in range(random.randint(str_edits[0], str_edits[1])):
+                action = random.choice(["add", "delete", "transpose"])
+                if action == "add":
+                    idx = random.randint(0, len(chars))
+                    chars.insert(idx, random.choice(string.ascii_letters))
+                elif action == "delete" and chars:
+                    idx = random.randint(0, len(chars) - 1)
+                    del chars[idx]
+                elif action == "transpose" and len(chars) > 1:
+                    idx = random.randint(0, len(chars) - 2)
+                    chars[idx], chars[idx + 1] = chars[idx + 1], chars[idx]
+            return "".join(chars)
+    return val
+
+
+def _scramble(
+    record: schemas.PIIRecord,
+    scamble_frequency: float = 0.1,
+    str_edits: tuple[int, int] = (1, 3),
+    drop_frequency: float = 0.1,
+    transformer: typing.Callable[[typing.Any], typing.Any] = _transform,
+) -> schemas.PIIRecord:
+    """
+    Scrambles a subset of relevant fields and returns the scrambled dict.
+    """
+
+    def _walk(val):
+        if isinstance(val, pydantic.BaseModel):
+            for field_name, value in val:
+                setattr(val, field_name, _walk(value))
+        elif isinstance(val, list):
+            for i, item in enumerate(val):
+                val[i] = _walk(item)
+        elif isinstance(val, dict):
+            for key, value in val.items():
+                val[key] = _walk(value)
+        else:
+            if random.random() < scamble_frequency:
+                return transformer(val, str_edits)
+            elif random.random() < drop_frequency:
+                if isinstance(val, str):
+                    return ""
+        return val
+
+    return _walk(record.model_copy(deep=True))
+
+
 def main() -> None:
     """
     Main entry point for the script.
     """
     parser = argparse.ArgumentParser(description="Generate test data for the /seed endpoint")
-    parser.add_argument("--count", type=int, default=100, help="The number of clusters to generate")
     parser.add_argument(
-        "--max-per-cluster", type=int, default=25, help="The maximum number of records per cluster"
+        "--count",
+        type=int,
+        default=100,
+        help="The number of clusters to generate",
+    )
+    parser.add_argument(
+        "--max-per-cluster",
+        type=int,
+        default=25,
+        help="The maximum number of records per cluster",
+    )
+    parser.add_argument(
+        "--scramble-freq",
+        type=float,
+        default=0.1,
+        help="The frequency of scrambling record fields",
+    )
+    parser.add_argument(
+        "--drop-freq",
+        type=float,
+        default=0.1,
+        help="The frequency of dropping record fields",
+    )
+    parser.add_argument(
+        "--str-edits",
+        type=int,
+        nargs=2,
+        default=(1, 3),
+        help="The minimum and maximum number of string edits to apply",
     )
 
     args = parser.parse_args()
 
     faker = Faker()
-    sys.stdout.write("{\n\"clusters\": [\n")
+    sys.stdout.write('{\n"clusters": [\n')
     first = True
     for _ in range(args.count):
+        records: list[schemas.PIIRecord] = [_generate_random_pii_record(faker)]
+        for _ in range(random.randint(1, args.max_per_cluster)):
+            records.append(
+                _scramble(
+                    records[0],
+                    scamble_frequency=args.scramble_freq,
+                    drop_frequency=args.drop_freq,
+                    str_edits=args.str_edits,
+                )
+            )
         cluster = schemas.Cluster(
             external_person_id=f"EP:{str(faker.uuid4())}",
-            records=[
-                _generate_random_pii_record(faker)
-                for _ in range(random.randint(1, args.max_per_cluster))
-            ],
+            records=records,
         )
         if not first:
             sys.stdout.write(",\n")

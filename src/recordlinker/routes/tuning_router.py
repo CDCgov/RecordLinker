@@ -63,8 +63,9 @@ def create(
             detail="Tuning job already in progress",
         )
     params = schemas.TuningParams(
-        true_match_pairs=settings.tuning_true_match_pairs,
-        non_match_pairs=settings.tuning_non_match_pairs,
+        true_match_pairs_requested=settings.tuning_true_match_pairs,
+        non_match_pairs_requested=settings.tuning_non_match_pairs,
+        non_match_sample_requested=settings.tuning_non_match_sample,
     )
     # Commit the job early, so the data is available in the database for the
     # background task before the response is returned

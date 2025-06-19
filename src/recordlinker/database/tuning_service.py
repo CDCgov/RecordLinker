@@ -61,7 +61,9 @@ def update_job(
 
     data = job.model_dump()
     updates = {k: data.get(k) for k in models.TuningJob.__table__.columns.keys()}
-    session.query(models.TuningJob).filter(models.TuningJob.id == job.id).update(updates)
+    count: int = session.query(models.TuningJob).filter(models.TuningJob.id == job.id).update(updates)
+    if count == 0:
+        raise ValueError(f"Failed to update job {job.id}")
     if commit:
         session.commit()
     return job
