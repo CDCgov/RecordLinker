@@ -177,7 +177,7 @@ class TestRemoveSkipValues:
         assert cleaned.race == [Race.WHITE]
 
     def test_telecom(self):
-        skips = [SkipValue(feature="TELECOM", values=["+15555555555"])]
+        skips = [SkipValue(feature="TELECOM", values=["5555555555"])]
         cleaned = skip_values.remove_skip_values(
             schemas.PIIRecord(telecom=[{"system": "phone", "value": "555-555-5555"}]), skips
         )
@@ -185,7 +185,7 @@ class TestRemoveSkipValues:
         assert cleaned.telecom[0].value == ""
 
     def test_phone(self):
-        skips = [SkipValue(feature="PHONE", values=["+15555555555"])]
+        skips = [SkipValue(feature="PHONE", values=["5555555555"])]
         cleaned = skip_values.remove_skip_values(
             schemas.PIIRecord(
                 telecom=[

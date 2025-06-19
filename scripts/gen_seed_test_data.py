@@ -139,7 +139,8 @@ def _scramble(
             if random.random() < scamble_frequency:
                 return transformer(val, str_edits)
             elif random.random() < drop_frequency:
-                return None
+                if isinstance(val, str):
+                    return ""
         return val
 
     return _walk(record.model_copy(deep=True))

@@ -282,13 +282,14 @@ class Address(StrippedBaseModel):
         normalized: list[str] = []
         if value:
             for line in value:
-                parts = line.strip().split(" ")
-                # remove all non-alphanumeric characters and convert to uppercase
-                suffix = "".join(c for c in parts[-1] if c.isalnum()).upper()
-                if common := cls.ST_SUFFIXES.get(suffix):
-                    # replace the suffix with the common suffix
-                    parts[-1] = common
-                normalized.append(" ".join(parts))
+                if line is not None:
+                    parts = line.strip().split(" ")
+                    # remove all non-alphanumeric characters and convert to uppercase
+                    suffix = "".join(c for c in parts[-1] if c.isalnum()).upper()
+                    if common := cls.ST_SUFFIXES.get(suffix):
+                        # replace the suffix with the common suffix
+                        parts[-1] = common
+                    normalized.append(" ".join(parts))
         return normalized
 
     @pydantic.field_validator("state", mode="before")
@@ -338,9 +339,7 @@ class Telecom(StrippedBaseModel):
                 else:
                     # Default to US if no country code is provided
                     parsed_number = phonenumbers.parse(self.value, "US")
-                self.value = phonenumbers.format_number(
-                    parsed_number, phonenumbers.PhoneNumberFormat.E164
-                )
+                self.value = str(parsed_number.national_number)
             except phonenumbers.NumberParseException:
                 # If parsing fails, return the original phone number
                 pass
@@ -460,7 +459,7 @@ class PIIRecord(StrippedBaseModel):
         """
         if not value:
             return []
-        return [Race.parse(v) for v in value]
+        return [Race.parse(v) for v in value if v is not None]
 
     def to_json(self, prune_empty: bool = False) -> str:
         """
@@ -554,19 +553,13 @@ class PIIRecord(StrippedBaseModel):
         elif attribute == FeatureAttribute.TELECOM:
             for telecom in self.telecom:
                 if telecom.system == "phone":
-                    # Use national number for comparison
-                    phone = normalize_text(str(phonenumbers.parse(telecom.value).national_number))
-                    if phone:
-                        yield phone
+                    yield normalize_text(telecom.value)
                 else:
                     yield telecom.value
         elif attribute == FeatureAttribute.PHONE:
             for telecom in self.telecom:
                 if telecom.system == "phone":
-                    # Use national number for comparison
-                    phone = normalize_text(str(phonenumbers.parse(telecom.value).national_number))
-                    if phone:
-                        yield phone
+                    yield normalize_text(telecom.value)
         elif attribute == FeatureAttribute.EMAIL:
             for telecom in self.telecom:
                 if telecom.system == "email":

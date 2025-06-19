@@ -2,7 +2,7 @@ name: "scan GHCR images for vulnerabilities"
 
 on:
   schedule:
-    # Run everyday at 03:00 Eastern
+    # Run everyday at 03:00 UTC
     - cron: "0 3 * * *"
 
 jobs:
