@@ -10,9 +10,20 @@ import typing
 
 from sqlalchemy import create_engine
 from sqlalchemy import orm
+from sqlalchemy import schema
 
 from recordlinker import models
 from recordlinker.config import settings
+
+
+def tables() -> list[schema.Table]:
+    """
+    Get a list of all tables in the database.
+    """
+    tables = list(models.Base.metadata.tables.values())
+    if not settings.tuning_enabled:
+        return [t for t in tables if not t.name.startswith("tuning_")]
+    return tables
 
 
 def create_sessionmaker(init_tables: bool = True) -> orm.sessionmaker:
@@ -26,7 +37,7 @@ def create_sessionmaker(init_tables: bool = True) -> orm.sessionmaker:
         kwargs["max_overflow"] = settings.connection_pool_max_overflow
     engine = create_engine(settings.db_uri, **kwargs)
     if init_tables:
-        models.Base.metadata.create_all(engine)
+        models.Base.metadata.create_all(engine, tables=tables())
     return orm.sessionmaker(bind=engine)
 
 
@@ -52,14 +63,14 @@ def get_test_session() -> typing.Iterator[orm.Session]:
     """
     engine = create_engine(settings.test_db_uri)
     # Create all the tables
-    models.Base.metadata.create_all(engine)
+    models.Base.metadata.create_all(engine, tables=tables())
     session = orm.scoped_session(orm.sessionmaker(bind=engine))()
     try:
         yield session
     finally:
         # Tear down the session and drop the schema
         session.close()
-        models.Base.metadata.drop_all(engine)
+        models.Base.metadata.drop_all(engine, tables=tables())
 
 
 SessionMaker = create_sessionmaker()
