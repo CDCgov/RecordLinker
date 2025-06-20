@@ -59,8 +59,10 @@ class TestCreate:
         monkeypatch.setattr(config.settings, "tuning_true_match_pairs", 1)
         monkeypatch.setattr(config.settings, "tuning_non_match_pairs", 1)
         monkeypatch.setattr(config.settings, "tuning_non_match_sample", 1)
-        with mock.patch("recordlinker.tuning.base.get_session_manager") as mock_session:
-            mock_session.return_value = client.session
+        with mock.patch("recordlinker.tuning.base.get_session_manager") as mock_session_b, \
+                mock.patch("recordlinker.routes.tuning_router.get_session_manager") as mock_session_r:
+            mock_session_b.return_value = client.session
+            mock_session_r.return_value = client.session
             resp = client.post(self.path(client))
             job = client.session.query(models.TuningJob).first()
 
@@ -70,7 +72,7 @@ class TestCreate:
             # This isn't intuitive, but when the job is created its placed in the pending state.
             # However, once the job starts processing in the background job, its immediately
             # placed in the running state
-            assert job.status == models.TuningStatus.RUNNING
+            assert job.status == models.TuningStatus.COMPLETED
             assert resp.json()["params"] == {
                 "true_match_pairs_requested": 1,
                 "non_match_pairs_requested": 1,

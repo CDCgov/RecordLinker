@@ -625,6 +625,7 @@ def generate_non_match_tuning_samples(
     # First, sanity check that we have a big enough sample size to grab
     # the requested number of pairs in "reasonable" time--use the 
     # Taylor approximation for e^x derived from the Birthday Problem
+    # FIXME: a sample_size of 1 will raise a divide by zero error
     taylor_expansion = math.exp(
         (-1.0 * n_pairs * (n_pairs - 1.0)) / (sample_size * (sample_size - 1.0))
     )

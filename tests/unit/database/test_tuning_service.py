@@ -109,8 +109,8 @@ class TestUpdateJob:
             "non_match_sample_requested": 1,
         }
         assert obj.results == {
-            "true_matches_pairs_used": 0,
-            "non_matches_pairs_used": 0,
+            "true_match_pairs_used": 0,
+            "non_match_pairs_used": 0,
             "non_match_sample_used": 0,
             "log_odds": [],
             "passes": [],
@@ -146,8 +146,8 @@ class TestUpdateJob:
             "non_match_sample_requested": 1,
         }
         assert obj.results == {
-            "true_matches_pairs_used": 0,
-            "non_matches_pairs_used": 0,
+            "true_match_pairs_used": 0,
+            "non_match_pairs_used": 0,
             "non_match_sample_used": 0,
             "log_odds": [],
             "passes": [],
@@ -183,8 +183,8 @@ class TestUpdateJob:
             "non_match_sample_requested": 1,
         }
         assert obj.results == {
-            "true_matches_pairs_used": 0,
-            "non_matches_pairs_used": 0,
+            "true_match_pairs_used": 0,
+            "non_match_pairs_used": 0,
             "non_match_sample_used": 0,
             "log_odds": [],
             "passes": [],
@@ -210,8 +210,8 @@ class TestFailJob:
         obj = session.get(models.TuningJob, obj.id)
         assert obj.status == models.TuningStatus.FAILED
         assert obj.results == {
-            "true_matches_pairs_used": 0,
-            "non_matches_pairs_used": 0,
+            "true_match_pairs_used": 0,
+            "non_match_pairs_used": 0,
             "non_match_sample_used": 0,
             "log_odds": [],
             "passes": [],
@@ -254,8 +254,8 @@ class TestGetActiveJob:
             "non_match_sample_requested": 1,
         }
         assert obj.results == {
-            "true_matches_pairs_used": 0,
-            "non_matches_pairs_used": 0,
+            "true_match_pairs_used": 0,
+            "non_match_pairs_used": 0,
             "non_match_sample_used": 0,
             "log_odds": [],
             "passes": [],

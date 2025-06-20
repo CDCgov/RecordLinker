@@ -49,10 +49,10 @@ class PassRecommendation(pydantic.BaseModel):
 
 
 class TuningResults(pydantic.BaseModel):
-    true_matches_pairs_used: Annotated[int, pydantic.Field(ge=0)] = pydantic.Field(
+    true_match_pairs_used: Annotated[int, pydantic.Field(ge=0)] = pydantic.Field(
         default=0, description="The number of true matches found."
     )
-    non_matches_pairs_used: Annotated[int, pydantic.Field(ge=0)] = pydantic.Field(
+    non_match_pairs_used: Annotated[int, pydantic.Field(ge=0)] = pydantic.Field(
         default=0, description="The number of non-matches found."
     )
     non_match_sample_used: Annotated[int, pydantic.Field(ge=0)] = pydantic.Field(
