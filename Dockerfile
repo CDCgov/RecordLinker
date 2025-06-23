@@ -21,16 +21,16 @@ ARG LOG_CONFIG=assets/production_log_config.json
 ENV LOG_CONFIG=${LOG_CONFIG}
 
 # Updgrade system packages and install curl
-RUN apk update && apk upgrade && apk add --no-cache curl
+RUN apk update && apk upgrade && apk add build-base python3-dev --no-cache linux-headers curl
 RUN pip install --upgrade pip
 
 # Conditionally install ODBC driver for SQL Server.
 RUN if [ "$USE_MSSQL" = "true" ]; then \
     apk add --no-cache build-base python3-dev freetds-dev unixodbc-dev && \
     pip install "pyodbc>=4.0.35" && \
+    printf "[ODBC Driver 18 for SQL Server]\nDescription=Backwards compatible driver connection\nDriver=/usr/lib/libtdsodbc.so\nUsageCount=1\n\n" > /etc/odbcinst.ini; \
     printf "[FreeTDS]\nDescription=FreeTDS Driver\nDriver=/usr/lib/libtdsodbc.so\nUsageCount=1\n" > /etc/odbcinst.ini; \
   fi
-
 
 WORKDIR /code
 # Initialize the recordlinker directory
