@@ -9,6 +9,7 @@ import logging
 import typing
 import uuid
 
+from sqlalchemy import engine
 from sqlalchemy import orm
 from sqlalchemy import sql
 
@@ -59,10 +60,14 @@ def update_job(
     if results is not None:
         job.results = results
 
-    data = job.model_dump()
-    updates = {k: data.get(k) for k in models.TuningJob.__table__.columns.keys()}
-    count: int = session.query(models.TuningJob).filter(models.TuningJob.id == job.id).update(updates)
-    if count == 0:
+    # build a dict of model fields and their values, excluding id
+    data: dict[str, typing.Any] = job.model_dump(
+        include=(set(models.TuningJob.__table__.columns.keys()) - {"id"})
+    )
+    result: engine.CursorResult = session.execute(
+        sql.update(models.TuningJob).where(models.TuningJob.id == job.id).values(**data)
+    )
+    if result.rowcount == 0:
         raise ValueError(f"Failed to update job {job.id}")
     if commit:
         session.commit()
