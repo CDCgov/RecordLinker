@@ -21,14 +21,14 @@ ARG LOG_CONFIG=assets/production_log_config.json
 ENV LOG_CONFIG=${LOG_CONFIG}
 
 # Upgrade system packages and install curl, and packages required for pyodbc installation on Alpine
-RUN apk update && apk upgrade && apk add build-base python3-dev freetds-dev unixodbc-dev linux-headers --no-cache  curl
+RUN apk update && apk upgrade && apk add build-base python3-dev freetds freetds-dev unixodbc-dev linux-headers --no-cache  curl
 RUN pip install --upgrade pip
 
 # Conditionally install ODBC driver for SQL Server.
 RUN if [ "$USE_MSSQL" = "true" ]; then \
     apk add --no-cache freetds-dev unixodbc-dev && \
-    printf "[ODBC Driver 18 for SQL Server]\nDescription=Backwards compatible driver connection\nDriver=/usr/lib/libtdsodbc.so\nUsageCount=1\n\n" > /etc/odbcinst.ini; \
-    printf "[FreeTDS]\nDescription=FreeTDS Driver\nDriver=/usr/lib/libtdsodbc.so\nUsageCount=1\n" > /etc/odbcinst.ini; \
+    printf "[ODBC Driver 18 for SQL Server]\nDescription=Backwards compatible driver connection\nDriver=/usr/lib/libtdsodbc.so\nUsageCount=1\n\n" > /etc/odbcinst.ini && \
+    printf "[FreeTDS]\nDescription=FreeTDS Driver\nDriver=/usr/lib/libtdsodbc.so\nUsageCount=1\n" >> /etc/odbcinst.ini; \
   fi
 
 WORKDIR /code
