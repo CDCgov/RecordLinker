@@ -190,46 +190,75 @@ class TestScoreTuningSamples:
 
     def test_score_pairs_in_class(self, default_algorithm, log_odds, true_match_samples, non_match_samples):
         context = default_algorithm.algorithm_context
-        max_points: dict[str, float] = {}
         for idx, algorithm_pass in enumerate(default_algorithm.passes):
             max_points_in_pass: float = sum(
                 [log_odds[str(e.feature)] or 0.0 for e in algorithm_pass.evaluators]
             )
-            max_points[algorithm_pass.label or f"pass_{idx}"] = max_points_in_pass
-        
-        true_scores = _score_pairs_in_class(true_match_samples, log_odds, max_points, default_algorithm, context)
-        # 4th element has non-pretty number, check it on its own first and
-        # then just remove it from the list to check the rest
-        assert round(true_scores[3], 3) == 0.564
-        del true_scores[3]
-        assert true_scores == [1.0, 1.0, 1.0, 1.0]
-        non_match_scores = _score_pairs_in_class(non_match_samples, log_odds, max_points, default_algorithm, context)
-        assert non_match_scores == [0.0, 0.0, 0.0, 0.0, 0.0]
+            true_scores = _score_pairs_in_class(true_match_samples, log_odds, max_points_in_pass, algorithm_pass, context)
+            true_scores = [round(x, 3) for x in true_scores]
+            non_match_scores = _score_pairs_in_class(non_match_samples, log_odds, max_points_in_pass, algorithm_pass, context)
+            # Scores for first pass
+            if idx == 0:
+                assert true_scores == [1.0, 1.0, 1.0, 0.527, 1.0]
+                assert non_match_scores == [0.0] * 5
+            else:
+                assert true_scores == [1.0, 1.0, 0.564, 0.564, 1.0]
+                assert non_match_scores == [0.0] * 5
     
     def test_calculate_and_sort_tuning_scores(self, default_algorithm, log_odds, true_match_samples, non_match_samples):
-        true_match_scores, non_match_scores = calculate_and_sort_tuning_scores(true_match_samples, non_match_samples, log_odds, default_algorithm)
+        sorted_scores = calculate_and_sort_tuning_scores(
+            true_match_samples, non_match_samples, log_odds, default_algorithm
+        )
+        true_match_scores, non_match_scores = sorted_scores['BLOCK_birthdate_identifier_sex_MATCH_first_name_last_name']
+        true_match_scores = [round(x, 3) for x in true_match_scores]
+        assert true_match_scores == [0.527, 1.0, 1.0, 1.0, 1.0]
         assert non_match_scores == [0.0, 0.0, 0.0, 0.0, 0.0]
-        assert round(true_match_scores[0], 3) == 0.564
-        assert true_match_scores[1:] == [1.0, 1.0, 1.0, 1.0]
+        true_match_scores, non_match_scores = sorted_scores['BLOCK_zip_first_name_last_name_sex_MATCH_address_birthdate']
+        true_match_scores = [round(x, 3) for x in true_match_scores]
+        assert true_match_scores == [0.564, 0.564, 1.0, 1.0, 1.0]
+        assert non_match_scores == [0.0] * 5
 
 class TestRmsBoundEstimation:
     def test_estimate_rms_no_overlap_no_mmt(self):
         true_match_scores = [0.564, 1.0, 1.0, 1.0, 1.0]
         non_match_scores = [0.0, 0.0, 0.0, 0.05, 0.25]
-        mmt, cmt = estimate_rms_bounds(true_match_scores, non_match_scores)
-        assert mmt == 0.25
-        assert cmt == 0.589
+        sorted_scores = {
+            "pass_1": (true_match_scores, non_match_scores)
+        }
+        suggested_bounds = estimate_rms_bounds(sorted_scores)
+        assert suggested_bounds['pass_1'][0] == 0.25
+        assert suggested_bounds['pass_1'][1] == 0.589
 
     def test_estimate_rms_normal_overlap(self):
         true_match_scores = [0.85, 0.92, 0.97, 1.0, 1.0]
         non_match_scores = [0.0, 0.15, 0.33, 0.86, 0.93]
-        mmt, cmt = estimate_rms_bounds(true_match_scores, non_match_scores)
-        assert mmt == 0.835
-        assert cmt == 0.995
+        sorted_scores = {
+            "pass_1": (true_match_scores, non_match_scores)
+        }
+        suggested_bounds = estimate_rms_bounds(sorted_scores)
+        assert suggested_bounds['pass_1'][0] == 0.835
+        assert suggested_bounds['pass_1'][1] == 0.995
 
     def test_estimate_rms_skewed_overlap_no_cmt(self):
         true_match_scores = [0.77, 0.78, 0.78, 0.79, 0.81]
         non_match_scores = [0.56, 0.64, 0.67, 0.8, 0.83]
-        mmt, cmt = estimate_rms_bounds(true_match_scores, non_match_scores)
-        assert mmt == 0.775
-        assert cmt == 0.84
+        sorted_scores = {
+            "pass_1": (true_match_scores, non_match_scores)
+        }
+        suggested_bounds = estimate_rms_bounds(sorted_scores)
+        assert suggested_bounds['pass_1'][0] == 0.775
+        assert suggested_bounds['pass_1'][1] == 0.84
+
+    def test_estimate_rms_multiple_passes(self):
+        sorted_scores = {
+            'pass_1': (
+                [.8, .8, .83, .88, .94], [.1, .2, .3, .3, .435]
+            ),
+            'pass_2': (
+                [.6, .7, .7, .77, .78], [.5, .56, .62, .65, .65]
+            )
+        }
+        suggested_bounds = estimate_rms_bounds(sorted_scores)
+        assert suggested_bounds['pass_1'][0] == 0.435
+        assert round(suggested_bounds['pass_1'][1], 3) == 0.825
+        assert suggested_bounds['pass_2'] == (0.595, 0.725)

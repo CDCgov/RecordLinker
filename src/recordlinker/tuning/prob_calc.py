@@ -78,14 +78,14 @@ def calculate_and_sort_tuning_scores(
     non_match_pairs: typing.Sequence[typing.Tuple[dict, dict]],
     log_odds: dict[str, float],
     algorithm: ag.Algorithm
-) -> typing.Tuple[list[float], list[float]]:
+) -> dict[str, typing.Tuple[list[float], list[float]]]:
     """
     Given a set of true-matching pairs and a set of non-matching pairs
     obtained from database sampling, calculates the pairwise RMS for
-    each collection and sorts the resulting scores. The evaluation
-    steps of the given algorithm are invoked on each pair of each class,
-    using the provided log-odds to compute RMS. Used for estimating
-    RMS possible match window boundaries and graphing distributions.
+    each collection, for each pass of the algorithm, and sorts the 
+    resulting scores. The evaluation steps of the given algorithm are
+    invoked on each pair of each class, using the provided log-odds
+    to compute RMS.
 
     :param true_match_pairs: A sequence of tuples containing known
       matching pairs of patient data dictionaries.
@@ -95,83 +95,92 @@ def calculate_and_sort_tuning_scores(
       computed log-odds values.
     :param algorithm: A schema defining an algorithm to use for estimating
       RMS threshold boundaries.
-    :returns: A tuple containing sorted lists of class RMS scores..
+    :returns: A dictonary mapping the names of the algorithm's passes to
+      a tuple containing sorted lists of class RMS scores.
     """
     context: ag.AlgorithmContext = algorithm.algorithm_context
+    sorted_scores = {}
 
-    # Calculate the maximum number of log odds points for each pass at the top
-    # so we don't waste computations in the main loop below
-    max_points: dict[str, float] = {}
+    # Tuning generates results per pass, so we'll generate one result set
+    # per pass of the given algorithm
     for idx, algorithm_pass in enumerate(algorithm.passes):
         max_points_in_pass: float = sum(
             [log_odds[str(e.feature)] or 0.0 for e in algorithm_pass.evaluators]
         )
-        max_points[algorithm_pass.label or f"pass_{idx}"] = max_points_in_pass
-
-    true_match_scores: list[float] = _score_pairs_in_class(
-        true_match_pairs, log_odds, max_points, algorithm, context
-    )
-    non_match_scores: list[float] = _score_pairs_in_class(
-        non_match_pairs, log_odds, max_points, algorithm, context
-    )
-    true_match_scores = sorted(true_match_scores)
-    non_match_scores = sorted(non_match_scores)
-    return (true_match_scores, non_match_scores)
+        true_match_scores: list[float] = _score_pairs_in_class(
+            true_match_pairs, log_odds, max_points_in_pass, algorithm_pass, context
+        )
+        non_match_scores: list[float] = _score_pairs_in_class(
+            non_match_pairs, log_odds, max_points_in_pass, algorithm_pass, context
+        )
+        true_match_scores = sorted(true_match_scores)
+        non_match_scores = sorted(non_match_scores)
+        sorted_scores[
+            algorithm_pass.label or f"pass_{idx}"
+        ] = (true_match_scores, non_match_scores)
+    return sorted_scores
 
 
 def estimate_rms_bounds(
-    true_match_scores: list[float],
-    non_match_scores: list[float],
-) -> typing.Tuple[float, float]:
+    sorted_scores: dict[str, typing.Tuple[list[float], list[float]]]
+) -> dict[str, typing.Tuple[float, float]]:
     """
-    Identifies suggested boundaries for the RMS possible match window
-    using previously sampled pairs of true and non matches. 
+    Identifies suggested boundaries for the RMS possible match windows
+    of each pass of an algorithm, using previously sampled pairs of
+    true and non matches. 
 
-    :param true_match_pairs: A sequence of tuples containing known
-      matching pairs of patient data dictionaries.
-    :param non_match_pairs: A sequence of tuples containing known non-
-      matching pairs of patient data dictionaries.
-    :returns: A tuple containing the Minimum Match Threshold and the Certain
+    :param sorted_scores: A dictionary mapping the names of the passes of
+      a linkage algorithm to a tuple containing class-partitioned lists
+      of pairwise RMS values.
+    :returns: A dictionary mapping the names of the passes of an algorithm
+      to a tuple containing the Minimum Match Threshold and the Certain
       Match Threshold suggested by the input data.
     """
-    # Overlap the lists to find the possible match window:
-    # MMT is first non-match score greater than smallest true-match score
-    # CMT is first true-match score greater than all non-match scores
-    mmt = None
-    cmt = None
-    for t in non_match_scores:
-        if t >= true_match_scores[0]:
-            mmt = t
-            break
-    for t in true_match_scores:
-        if t > non_match_scores[-1]:
-            cmt = t
-            break
+    suggested_bounds = {}
 
-    # To account for unseen data, buffer each threshold by pushing it 
-    # towards its respective distribution's extreme
-    if mmt is not None:
-        mmt = max([0, mmt - 0.025])
-    if cmt is not None:
-        cmt = min([1.0, cmt + 0.025])
-    
-    # Edge Case 1: Distributions are totally disjoint
-    # MMT can just be set to the highest non-match score
-    if mmt is None:
-        mmt = non_match_scores[-1]
+    for k in sorted_scores:
+        true_match_scores = sorted_scores[k][0]
+        non_match_scores = sorted_scores[k][1]
 
-    # Edge Case 2: No true match score larger than largest non-match
-    # This is EXTREMELY unnatural and can only happen if either the
-    # distributions are inverted (true match scores left of non-match
-    # scores) or the true-match curve is a subset contained entirely 
-    # within the non-match curve--in either case, the problem is likely
-    # the data and not the scoring procedure
-    if cmt is None:
-        # Best we can do is set the CMT to be beyond the range of the
-        # non-match curve
-        cmt = min([non_match_scores[-1] + 0.01, 1.0])
-    
-    return (mmt, cmt)
+        # Overlap the lists to find the possible match window:
+        # MMT is first non-match score greater than smallest true-match score
+        # CMT is first true-match score greater than all non-match scores
+        mmt = None
+        cmt = None
+        for t in non_match_scores:
+            if t >= true_match_scores[0]:
+                mmt = t
+                break
+        for t in true_match_scores:
+            if t > non_match_scores[-1]:
+                cmt = t
+                break
+
+        # To account for unseen data, buffer each threshold by pushing it 
+        # towards its respective distribution's extreme
+        if mmt is not None:
+            mmt = max([0, mmt - 0.025])
+        if cmt is not None:
+            cmt = min([1.0, cmt + 0.025])
+        
+        # Edge Case 1: Distributions are totally disjoint
+        # MMT can just be set to the highest non-match score
+        if mmt is None:
+            mmt = non_match_scores[-1]
+
+        # Edge Case 2: No true match score larger than largest non-match
+        # This is EXTREMELY unnatural and can only happen if either the
+        # distributions are inverted (true match scores left of non-match
+        # scores) or the true-match curve is a subset contained entirely 
+        # within the non-match curve--in either case, the problem is likely
+        # the data and not the scoring procedure
+        if cmt is None:
+            # Best we can do is set the CMT to be beyond the range of the
+            # non-match curve
+            cmt = min([non_match_scores[-1] + 0.01, 1.0])
+        
+        suggested_bounds[k] = (mmt, cmt)
+    return suggested_bounds
 
 
 def _compare_records_in_pair(
@@ -236,14 +245,14 @@ def _compare_records_in_pair(
 def _score_pairs_in_class(
         class_sample: typing.Sequence[typing.Tuple[dict, dict]],
         log_odds: dict[str, float],
-        max_points: dict[str, float],
-        algorithm: ag.Algorithm,
+        max_points: float,
+        algorithm_pass: ag.AlgorithmPass,
         context: ag.AlgorithmContext,
     ) -> list[float]:
     """
-    Given a sample of class-partitioned data and a record linkage algorithm,
-    compute the RMS of each pair in the class sample, taking the best RMS
-    the pair could have scored across all passes of the provided algorithm.
+    Given a sample of class-partitioned data and a single pass of a record
+    linkage algorithm, compute the RMS of each pair in the class sample 
+    when evaluated on just that pass. 
 
     :param class_sample: A sequence of tuples of pairs of patient data
       dictionaries, each belonging to the same class of tuning data (either
@@ -253,8 +262,8 @@ def _score_pairs_in_class(
     :param max_points: A dictionary mapping the name of each pass of an 
       algorithm to the maximum possible number of log-odds points obtainable
       in that pass.
-    :param algorithm: The schema for an algorithm to use for comparing the
-      record pairs.
+    :param algorithm_pass: The schema for one pass of an algorithm to use
+      for comparing the record pairs.
     :param context: The schema for an algorithm context to use.
     :returns: A list of RMS values, one for each input pair.
     """
@@ -265,19 +274,15 @@ def _score_pairs_in_class(
         pii_record_2 = PIIRecord.from_data(pair[1])
         pii_record_2 = remove_skip_values(pii_record_2, context.skip_values)
 
-        # We need to find the best RMS across all passes that this pair
-        # could achieve
-        scores_across_passes = []
-        for idx, algorithm_pass in enumerate(algorithm.passes):
-            max_points_in_pass = max_points[algorithm_pass.label or f"pass_{idx}"]
-            score_in_pass = _compare_records_in_pair(
-                pii_record_1,
-                pii_record_2,
-                log_odds,
-                max_points_in_pass,
-                algorithm_pass,
-                context
-            )
-            scores_across_passes.append(score_in_pass / max_points_in_pass)
-        class_scores.append(max(scores_across_passes))
+        # Find the score for this pair using just the evaluators of the pass
+        # we were given
+        score_in_pass = _compare_records_in_pair(
+            pii_record_1,
+            pii_record_2,
+            log_odds,
+            max_points,
+            algorithm_pass,
+            context
+        )
+        class_scores.append(score_in_pass / max_points)
     return class_scores
