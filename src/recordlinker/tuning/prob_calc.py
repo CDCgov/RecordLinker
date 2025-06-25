@@ -78,7 +78,7 @@ def calculate_and_sort_tuning_scores(
     non_match_pairs: typing.Sequence[typing.Tuple[dict, dict]],
     log_odds: dict[str, float],
     algorithm: ag.Algorithm
-) -> list[float]:
+) -> typing.Tuple[list[float], list[float]]:
     """
     Given a set of true-matching pairs and a set of non-matching pairs
     obtained from database sampling, calculates the pairwise RMS for
@@ -222,7 +222,7 @@ def _compare_records_in_pair(
         if result[1]:
             # The field was missing, so update the running tally of how much
             # the candidate is missing overall
-            missing_field_weights += log_odds
+            missing_field_weights += log_odds_for_field
         results.append(result[0])
 
     # Make sure this score wasn't just accumulated with missing checks
