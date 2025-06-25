@@ -9,6 +9,7 @@ import datetime
 import typing
 import uuid
 
+import fastapi
 import pydantic
 from typing_extensions import Annotated
 
@@ -48,10 +49,10 @@ class PassRecommendation(pydantic.BaseModel):
 
 
 class TuningResults(pydantic.BaseModel):
-    true_matches_pairs_used: Annotated[int, pydantic.Field(ge=0)] = pydantic.Field(
+    true_match_pairs_used: Annotated[int, pydantic.Field(ge=0)] = pydantic.Field(
         default=0, description="The number of true matches found."
     )
-    non_matches_pairs_used: Annotated[int, pydantic.Field(ge=0)] = pydantic.Field(
+    non_match_pairs_used: Annotated[int, pydantic.Field(ge=0)] = pydantic.Field(
         default=0, description="The number of non-matches found."
     )
     non_match_sample_used: Annotated[int, pydantic.Field(ge=0)] = pydantic.Field(
@@ -73,3 +74,15 @@ class TuningJob(pydantic.BaseModel):
     results: typing.Optional[TuningResults] = None
     started_at: datetime.datetime = pydantic.Field(default_factory=now_utc_no_ms)
     finished_at: typing.Optional[datetime.datetime] = None
+
+
+class TuningJobResponse(TuningJob):
+    status_url: pydantic.HttpUrl
+
+    @classmethod
+    def from_tuning_job(cls, job: TuningJob, request: fastapi.Request) -> typing.Self:
+        """
+        Convenience method to create a TuningJobResponse from a TuningJob
+        """
+        url: str = str(request.url_for("get-tuning-job", job_id=job.id))
+        return cls(**job.model_dump(), status_url=pydantic.HttpUrl(url))

@@ -3,6 +3,7 @@ from .algorithm import AlgorithmContext
 from .algorithm import AlgorithmPass
 from .algorithm import AlgorithmSummary
 from .algorithm import Evaluator
+from .algorithm import LogOdd
 from .link import LinkFhirInput
 from .link import LinkFhirResponse
 from .link import LinkInput
@@ -32,6 +33,7 @@ from .seed import ClusterGroup
 from .seed import PersonCluster
 from .seed import PersonGroup
 from .tuning import TuningJob
+from .tuning import TuningJobResponse
 from .tuning import TuningParams
 from .tuning import TuningResults
 
@@ -41,6 +43,7 @@ __all__ = [
     "AlgorithmPass",
     "AlgorithmSummary",
     "Evaluator",
+    "LogOdd",
     "Feature",
     "FeatureAttribute",
     "PIIRecord",
@@ -72,4 +75,5 @@ __all__ = [
     "TuningParams",
     "TuningResults",
     "TuningJob",
+    "TuningJobResponse",
 ]
