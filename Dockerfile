@@ -1,4 +1,4 @@
-FROM python:3.12-slim
+FROM python:3.13-slim
 
 LABEL org.opencontainers.image.source=https://github.com/CDCgov/RecordLinker
 LABEL org.opencontainers.image.description="RecordLinker is a service that links records from two datasets based on a set of common attributes."
