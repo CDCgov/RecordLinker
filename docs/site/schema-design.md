@@ -44,7 +44,7 @@ erDiagram
         bigint id PK "Primary Key (auto-generated)"
         bigint person_id FK "Foreign Key to Person"
         json data "Patient Data"
-        uuid reference_id "Reference UUID" (auto-generated)
+        uuid reference_id "Reference UUID (auto-generated)"
         string external_patient_id "External Patient ID"
         string external_person_id "External Person ID"
         string external_person_source "Source System"
