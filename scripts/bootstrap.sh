@@ -5,7 +5,7 @@
 # Usage: source bootstrap.sh
 # Requires: python3
 
-cd "$(dirname "$0")/.."
+cd "$(dirname "$0")/.." || exit
 
 # Create a default .env file if it doesn't exist
 if [ ! -f .env ]; then
