@@ -34,7 +34,7 @@ class TestInvokeEvaluator:
             advanced={
                 "fuzzy_match_threshold": 0.9,
                 "fuzzy_match_measure": "JaroWinkler",
-            }
+            },
         )
 
         result, _ = link.invoke_evaluator(evaluator, rec, mpi_rec, context)
@@ -54,7 +54,7 @@ class TestInvokeEvaluator:
             advanced={
                 "fuzzy_match_threshold": 0.9,
                 "fuzzy_match_measure": "JaroWinkler",
-            }
+            },
         )
 
         result, _ = link.invoke_evaluator(evaluator, rec, mpi_rec, context)
@@ -106,7 +106,7 @@ class TestCompare:
         )
 
         res, feature_scores = link.compare(rec, mpi_rec, algorithm_pass, context)
-        assert round(res, 3)== 12.830
+        assert round(res, 3) == 12.830
         assert feature_scores["FIRST_NAME"] == 6.85
         assert round(feature_scores["LAST_NAME"], 3) == 5.980
 
@@ -327,8 +327,8 @@ class TestLinkRecordAgainstMpi:
         assert sorted(list(mapped_patients.values())) == [1, 1, 1, 3]
         # Median contributions shouldn't exist for any patients that didn't match
         assert all_results[0] == []
-        assert all_results [2] == []
-        assert all_results [4] == []
+        assert all_results[2] == []
+        assert all_results[4] == []
         assert all_results[5] == []
         # The records that did match will have scaled medians
         assert round(all_results[1][0].median_features["FIRST_NAME"], 3) == 6.393
@@ -379,14 +379,15 @@ class TestLinkRecordAgainstMpi:
         new_record.address[0].line[0] = "4444 Different Street"
         patients.append(new_record)
 
+        algorithm = copy.deepcopy(default_algorithm)
         # Need to decrease MMT for example purposes so pass 2 grades
         # as possible
-        default_algorithm.passes[1].possible_match_window = [0.4, 0.9]
+        algorithm.passes[1].possible_match_window = [0.4, 0.9]
 
         matches: list[bool] = []
         results = []
         for data in patients:
-            (_, person, result, _) = link.link_record_against_mpi(data, session, default_algorithm)
+            (_, person, result, _) = link.link_record_against_mpi(data, session, algorithm)
             matches.append(bool(person and result))
             results.append(result)
 
@@ -408,14 +409,15 @@ class TestLinkRecordAgainstMpi:
         new_record.name[0].family = "Shepley"
         patients.append(new_record)
 
+        algorithm = copy.deepcopy(default_algorithm)
         # Need to decrease MMT for example purposes so pass 1 grades
         # as possible
-        default_algorithm.passes[0].possible_match_window = [0.4, 0.9]
+        algorithm.passes[0].possible_match_window = [0.4, 0.9]
 
         matches: list[bool] = []
         results = []
         for data in patients:
-            (_, person, result, _) = link.link_record_against_mpi(data, session, default_algorithm)
+            (_, person, result, _) = link.link_record_against_mpi(data, session, algorithm)
             matches.append(bool(person and result))
             results.append(result)
 
@@ -436,13 +438,14 @@ class TestLinkRecordAgainstMpi:
         duplicate.address[0].line[0] = ""
         patients.append(duplicate)
 
+        algorithm = copy.deepcopy(default_algorithm)
         # Test whether we can successfully make a match if info is missing
-        default_algorithm.passes[0].possible_match_window = [0.7, 0.75]
+        algorithm.passes[0].possible_match_window = [0.7, 0.75]
         matches: list[bool] = []
         mapped_patients: dict[str, int] = collections.defaultdict(int)
         all_results = []
         for data in patients[:2]:
-            (_, person, results, _) = link.link_record_against_mpi(data, session, default_algorithm)
+            (_, person, results, _) = link.link_record_against_mpi(data, session, algorithm)
             matches.append(bool(person and results))
             all_results.append(results)
             mapped_patients[person.reference_id] += 1
@@ -466,13 +469,14 @@ class TestLinkRecordAgainstMpi:
         duplicate.address[0].line[0] = ""
         patients.append(duplicate)
 
+        algorithm = copy.deepcopy(default_algorithm)
         # Test whether too many missing points causes failure
-        default_algorithm.algorithm_context.advanced.max_missing_allowed_proportion = 0.3
+        algorithm.algorithm_context.advanced.max_missing_allowed_proportion = 0.3
         matches: list[bool] = []
         mapped_patients: dict[str, int] = collections.defaultdict(int)
         all_results = []
         for data in patients[:2]:
-            (_, person, results, _) = link.link_record_against_mpi(data, session, default_algorithm)
+            (_, person, results, _) = link.link_record_against_mpi(data, session, algorithm)
             matches.append(bool(person and results))
             mapped_patients[person.reference_id] += 1
             all_results.append(results)
@@ -495,17 +499,18 @@ class TestLinkRecordAgainstMpi:
         duplicate.address[0].line[0] = ""
         patients.append(duplicate)
 
+        algorithm = copy.deepcopy(default_algorithm)
         # We'll test lower log-odds cutoffs and show that even if a record
         # would regularly have the points to match, it's disqualified if it
         # violates the user missingness constraint.
-        default_algorithm.algorithm_context.advanced.max_missing_allowed_proportion = 0.0
-        default_algorithm.algorithm_context.advanced.missing_field_points_proportion = 0.0
-        default_algorithm.passes[0].possible_match_window = [0.2, 0.3]
-        default_algorithm.passes[1].possible_match_window = [0.2, 0.3]
+        algorithm.algorithm_context.advanced.max_missing_allowed_proportion = 0.0
+        algorithm.algorithm_context.advanced.missing_field_points_proportion = 0.0
+        algorithm.passes[0].possible_match_window = [0.2, 0.3]
+        algorithm.passes[1].possible_match_window = [0.2, 0.3]
         matches: list[bool] = []
         mapped_patients: dict[str, int] = collections.defaultdict(int)
         for data in patients[:2]:
-            (_, person, results, _) = link.link_record_against_mpi(data, session, default_algorithm)
+            (_, person, results, _) = link.link_record_against_mpi(data, session, algorithm)
             matches.append(bool(person and results))
             mapped_patients[person.reference_id] += 1
 
@@ -534,6 +539,7 @@ class TestLinkRecordAgainstMpi:
         duplicate.address[0].line[0] = ""
         patients.append(duplicate)
 
+        algorithm = copy.deepcopy(default_algorithm)
         # Create scenario described above: each pass will have 10 total points,
         # the missing field will represent a small number of these points, but
         # the total result should still be disqualified
@@ -543,15 +549,15 @@ class TestLinkRecordAgainstMpi:
             {"feature": "BIRTHDATE", "log_odds": 7.5},
             {"feature": "ADDRESS", "log_odds": 2.5},
         ]
-        default_algorithm.algorithm_context.advanced.max_missing_allowed_proportion = 0.2
-        default_algorithm.algorithm_context.advanced.missing_field_points_proportion = 0.7
-        default_algorithm.algorithm_context.log_odds = log_odds
-        default_algorithm.passes[0].possible_match_window = [0.7, 0.8]
-        default_algorithm.passes[1].possible_match_window = [0.7, 0.8]
+        algorithm.algorithm_context.advanced.max_missing_allowed_proportion = 0.2
+        algorithm.algorithm_context.advanced.missing_field_points_proportion = 0.7
+        algorithm.algorithm_context.log_odds = log_odds
+        algorithm.passes[0].possible_match_window = [0.7, 0.8]
+        algorithm.passes[1].possible_match_window = [0.7, 0.8]
         matches: list[bool] = []
         mapped_patients: dict[str, int] = collections.defaultdict(int)
         for data in patients[:2]:
-            (_, person, results, _) = link.link_record_against_mpi(data, session, default_algorithm)
+            (_, person, results, _) = link.link_record_against_mpi(data, session, algorithm)
             matches.append(bool(person and results))
             mapped_patients[person.reference_id] += 1
 
@@ -561,10 +567,7 @@ class TestLinkRecordAgainstMpi:
         assert matches == [False, False]
 
     def test_no_match_one_suffix_one_not(
-        self,
-        session,
-        default_algorithm,
-        patients: list[schemas.PIIRecord]
+        self, session, default_algorithm, patients: list[schemas.PIIRecord]
     ):
         # Make a deep copy of the first patient, give it a suffix
         patients = [patients[0]]
@@ -586,16 +589,13 @@ class TestLinkRecordAgainstMpi:
         assert matches == [False, False]
 
     def test_no_match_same_name_diff_suffixes(
-        self,
-        session,
-        default_algorithm,
-        patients: list[schemas.PIIRecord]
+        self, session, default_algorithm, patients: list[schemas.PIIRecord]
     ):
-        '''
+        """
         NOTE: This catches the Jr/Sr edge case of a parent and child
         living at the same address with the same first name. It even
         goes a step farther and gives them the same birthday.
-        '''
+        """
         # Give both patients the same name before duplication, change
         # suffixes after
         patients = [patients[0]]
@@ -618,10 +618,7 @@ class TestLinkRecordAgainstMpi:
         assert matches == [False, False]
 
     def test_no_match_diff_names_same_suffix(
-        self,
-        session,
-        default_algorithm,
-        patients: list[schemas.PIIRecord]
+        self, session, default_algorithm, patients: list[schemas.PIIRecord]
     ):
         # Give each copy the same suffix, duplicate, then change name
         patients = [patients[0]]
@@ -644,10 +641,7 @@ class TestLinkRecordAgainstMpi:
         assert matches == [False, False]
 
     def test_match_name_with_suffix(
-        self,
-        session,
-        default_algorithm,
-        patients: list[schemas.PIIRecord]
+        self, session, default_algorithm, patients: list[schemas.PIIRecord]
     ):
         # Give patient a suffix, duplicate, then introduce a small typo
         # to make sure we can fuzzy match it still
@@ -668,7 +662,7 @@ class TestLinkRecordAgainstMpi:
         # First patient inserted into empty MPI, no match
         # Second patient blocks in first pass, then passes evaluation, match
         assert matches == [False, True]
-    
+
     def test_default_possible_match(
         self, session, default_algorithm, possible_match_default_patients: list[schemas.PIIRecord]
     ):

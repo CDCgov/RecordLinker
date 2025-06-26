@@ -231,6 +231,34 @@ class TestPIIRecord:
         record = pii.PIIRecord(race=None)
         assert record.race == []
 
+        # testing empty string in list
+        record = pii.PIIRecord(race=["", "black"])
+        assert record.race == [pii.Race.OTHER, pii.Race.BLACK]
+
+        # testing null in list
+        record = pii.PIIRecord(race=[None, "asian", None])
+        assert record.race == [pii.Race.ASIAN]
+
+    def test_parse_address(self):
+        record = pii.PIIRecord(
+            address=[
+                pii.Address(
+                    line=[" 123 Main Street", None, "Apt 2"],
+                    city="Anytown",
+                    state="New York",
+                    postalCode=" 12345-9876",
+                    country="US",
+                    county="county ",
+                ),
+            ]
+        )
+        assert record.address[0].line == ["123 Main ST", "Apt 2"]
+        assert record.address[0].city == "Anytown"
+        assert record.address[0].state == "NY"
+        assert record.address[0].postal_code == "12345-9876"
+        assert record.address[0].country == "US"
+        assert record.address[0].county == "county"
+
     def test_feature_iter(self):
         record = pii.PIIRecord(
             external_id="99",
@@ -262,6 +290,8 @@ class TestPIIRecord:
             telecom=[
                 pii.Telecom(value="555-123-4567"),
                 pii.Telecom(value="+44 (555) 987-6543 ext 123", system="phone"),
+                pii.Telecom(value="", system="phone"),
+                pii.Telecom(value="", system="email"),
                 pii.Telecom(value=" teSt@email.com", system="email"),
                 pii.Telecom(value="555*987*6543"),
                 pii.Telecom(value=" teSt@email.com"),
@@ -326,16 +356,20 @@ class TestPIIRecord:
         assert list(record.feature_iter(pii.Feature(attribute=pii.FeatureAttribute.TELECOM))) == [
             "555-123-4567",
             "5559876543",
+            "",
+            "",
             "test@email.com",
             "555*987*6543",
             "teSt@email.com",
         ]
 
         assert list(record.feature_iter(pii.Feature(attribute=pii.FeatureAttribute.PHONE))) == [
-            "5559876543"
+            "5559876543",
+            "",
         ]
         assert list(record.feature_iter(pii.Feature(attribute=pii.FeatureAttribute.EMAIL))) == [
-            "test@email.com"
+            "",
+            "test@email.com",
         ]
         assert list(record.feature_iter(pii.Feature(attribute=pii.FeatureAttribute.SUFFIX))) == [
             "suffix",
@@ -714,11 +748,11 @@ class TestAddress:
 @pytest.mark.parametrize(
     "input_value, input_system, expected_value",
     [
-        ("555-123-4567", "phone", "+15551234567"),  # US phone number w/o country code
-        ("+1 555-123-4567", "phone", "+15551234567"),  # US country code
-        ("+44 555 123 4567", "phone", "+445551234567"),  # Non-US country code
-        ("555-123-4567 ext 123", "phone", "+15551234567"),  # Extension (excluded)
-        ("555", "phone", "+1555"),  # Invalid phone (still be formatted)
+        ("555-123-4567", "phone", "5551234567"),  # US phone number w/o country code
+        ("+1 555-123-4567", "phone", "5551234567"),  # US country code
+        ("+44 555 123 4567", "phone", "5551234567"),  # Non-US country code
+        ("555-123-4567 ext 123", "phone", "5551234567"),  # Extension (excluded)
+        ("555", "phone", "555"),  # Invalid phone (still be formatted)
         ("abc", "phone", "abc"),  # Unparsable phone (should remain unchanged)
         ("555-123-4567", None, "555-123-4567"),  # No system provided
     ],
