@@ -24,7 +24,7 @@ docker run -v ./:/tmp -e DB_URI=sqlite:////tmp/db.sqlite3 ghcr.io/cdcgov/recordl
 
 #### Prerequisites
 
-- Python 3.13+ installed on your system.
+- Python 3.11+ installed on your system.
 - Git for cloning the repository.
 
 #### Steps

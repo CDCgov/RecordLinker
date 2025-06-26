@@ -2,7 +2,7 @@
 
 [![codecov](https://codecov.io/github/CDCgov/RecordLinker/graph/badge.svg?token=V0FH691B9B)](https://codecov.io/github/CDCgov/RecordLinker)
 [![release](https://img.shields.io/github/v/release/cdcgov/RecordLinker)](https://github.com/CDCgov/RecordLinker/releases)
-[![python](https://img.shields.io/badge/python-3.13%2B-yellow)](https://docs.python.org/3.13/)
+[![python](https://img.shields.io/badge/python-3.11%2B-yellow)](https://docs.python.org/3.11/)
 
 **General disclaimer** This repository was created for use by CDC programs to collaborate on public health related projects in support of the [CDC mission](https://www.cdc.gov/about/organization/mission.htm). GitHub is not hosted by the CDC, but is a third party website used by CDC and its partners to share information and collaborate on software. CDC use of GitHub does not imply an endorsement of any one particular service, product, or enterprise.
 
@@ -21,7 +21,7 @@ The RecordLinker is a service that links records from two datasets based on a se
 
 ### Pre-requisites
 
-- Python 3.13 or higher
+- Python 3.11 or higher
 - [Docker](https://docs.docker.com/get-docker/)
 
 ### Initial Setup
