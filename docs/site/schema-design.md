@@ -37,21 +37,21 @@ erDiagram
 
     Person {
         bigint id PK "Primary Key (auto-generated)"
-        uuid reference_id "Reference UUID (used for external access)"
+        uuid reference_id "Reference UUID (auto-generated)"
     }
 
     Patient {
         bigint id PK "Primary Key (auto-generated)"
         bigint person_id FK "Foreign Key to Person"
         json data "Patient Data"
-        uuid reference_id "Reference UUID"
+        uuid reference_id "Reference UUID" (auto-generated)
         string external_patient_id "External Patient ID"
         string external_person_id "External Person ID"
         string external_person_source "Source System"
     }
 
     BlockingValue {
-        bigint id PK "Primary Key"
+        bigint id PK "Primary Key (auto-generated)"
         bigint patient_id FK "Foreign Key to Patient"
         smallint blockingkey "Blocking Key Type"
         string value "Blocking Value"
@@ -73,7 +73,7 @@ erDiagram
 > **Design Note**: Both the `Person` and `Patient` models include two identifiers: an `INT id` and a `UUID reference_id`. While either could serve as the primary key, using both offers performance and security benefits at the cost of some additional storage. The `INT id` is designated as the primary key because of its compact size, which makes it more efficient for indexing and join operations. However, exposing sequential integer IDs externally can pose a security risk by making it easier to infer the number of records in the database. To mitigate this, the `UUID reference_id` serves as a secure, external-facing identifier. It enables safe referencing of records without revealing internal record counts or sequences. In short, the `INT id` is optimized for internal performance, while the `UUID reference_id` provides a secure external reference.
 
 
-### 🔗 Key Relationships Summary
+### Key Relationships Summary
 
 | Relationship                | Description |
 |-----------------------------|-------------|
