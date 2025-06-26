@@ -26,10 +26,6 @@ The `BlockingValue` model stores normalized — and sometimes partial — repres
 
 The `Algorithm` model stores **user-defined configuration** for running the record linkage algorithm. This table is **not part of the entity matching graph**, but provides control over how matches are calculated and thresholds applied.
 
-### 5. **TuningJob**
-
-The `TuningJob` model is used to track the progress of **tuning jobs** that are issued to calculate recommended log-odds and possible match thresholds using existing data.
-
 ---
 
 ## Entity Relationship Diagram
@@ -70,15 +66,6 @@ erDiagram
         json passes "List of configuration passes"
     }
 
-    TuningJob {
-        uuid id PK "Primary Key (auto-generated)"
-        enum status "Job status"
-        json params "Job parameters"
-        json results "Job results"
-        timestamp started_at "Job start time"
-        timestamp finished_at "Job completion time"
-    }
-
     Person ||--o{ Patient : "has"
     Patient ||--o{ BlockingValue : "has"
 ```
@@ -93,4 +80,3 @@ erDiagram
 | **Person → Patient**        | A person may be linked to many external `Patient` records |
 | **Patient → BlockingValue** | A patient may have many `BlockingValue` entries for blocking comparisons |
 | **Algorithm (config)**      | Stores match settings and thresholds used during processing; not joined in match graphs |
-| **TuningJob**               | Stores tuning job status, parameters, and results; not joined in match graphs |
