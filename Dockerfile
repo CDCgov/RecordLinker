@@ -1,4 +1,4 @@
-FROM python:3.13-slim
+FROM python:3.13-alpine
 
 LABEL org.opencontainers.image.source=https://github.com/CDCgov/RecordLinker
 LABEL org.opencontainers.image.description="RecordLinker is a service that links records from two datasets based on a set of common attributes."
@@ -20,18 +20,16 @@ ENV USE_OTEL=${USE_OTEL}
 ARG LOG_CONFIG=assets/production_log_config.json
 ENV LOG_CONFIG=${LOG_CONFIG}
 
-# Updgrade system packages and install curl
-RUN apt-get update && apt-get upgrade -y && apt-get install curl -y
+# Upgrade system packages and install curl, and packages required for pyodbc installation on Alpine
+RUN apk update && apk upgrade && apk add build-base python3-dev freetds freetds-dev unixodbc-dev linux-headers --no-cache  curl
 RUN pip install --upgrade pip
 
 # Conditionally install ODBC driver for SQL Server.
 RUN if [ "$USE_MSSQL" = "true" ]; then \
-        apt-get install -y gnupg2 apt-transport-https && \
-        curl https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor -o /etc/apt/trusted.gpg.d/microsoft.gpg && \
-        curl https://packages.microsoft.com/config/debian/11/prod.list | tee /etc/apt/sources.list.d/mssql-release.list && \
-        apt-get update && \
-        ACCEPT_EULA=Y apt-get install -y msodbcsql18 unixodbc-dev; \
-    fi
+    apk add --no-cache freetds-dev unixodbc-dev && \
+    printf "[ODBC Driver 18 for SQL Server]\nDescription=Backwards compatible driver connection\nDriver=/usr/lib/libtdsodbc.so\nUsageCount=1\n\n" > /etc/odbcinst.ini && \
+    printf "[FreeTDS]\nDescription=FreeTDS Driver\nDriver=/usr/lib/libtdsodbc.so\nUsageCount=1\n" >> /etc/odbcinst.ini; \
+  fi
 
 WORKDIR /code
 # Initialize the recordlinker directory
