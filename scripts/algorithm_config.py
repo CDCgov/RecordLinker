@@ -27,6 +27,7 @@ from sqlalchemy import orm
 from recordlinker import database
 from recordlinker import schemas
 from recordlinker.database import algorithm_service as service
+from recordlinker.models import algorithm as models
 
 # ANSI escape codes for colors
 RED = "\033[91m"
@@ -109,10 +110,11 @@ def delete_config(label: str, session: orm.Session) -> None:
     """
     Delete an algorithm configuration by its label.
     """
-    if not service.get_algorithm(label, session):
+    obj: models.Algorithm | None = service.get_algorithm(session, label)
+    if not obj:
         raise ConfigError(f"Algorithm '{label}' not found.")
     if confirm(f"Do you want to delete the algorithm '{label}'?"):
-        service.delete_algorithm(label, session)
+        service.delete_algorithm(session, obj)
 
 
 def clear_configs(session: orm.Session) -> None:
