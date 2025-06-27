@@ -69,9 +69,9 @@ class TestCreate:
 
         patched_algo.return_value = default_algorithm
 
-        monkeypatch.setattr(config.settings, "tuning_true_match_pairs", 1)
-        monkeypatch.setattr(config.settings, "tuning_non_match_pairs", 1)
-        monkeypatch.setattr(config.settings, "tuning_non_match_sample", 5)
+        monkeypatch.setattr(config.settings, "tuning_true_match_pairs", 100)
+        monkeypatch.setattr(config.settings, "tuning_non_match_pairs", 100)
+        monkeypatch.setattr(config.settings, "tuning_non_match_sample", 500)
         with mock.patch("recordlinker.tuning.base.get_session_manager") as mock_session_b, \
                 mock.patch("recordlinker.routes.tuning_router.get_session_manager") as mock_session_r:
             mock_session_b.return_value = client.session
@@ -87,9 +87,9 @@ class TestCreate:
             # placed in the running state
             assert job.status == models.TuningStatus.COMPLETED
             assert resp.json()["params"] == {
-                "true_match_pairs_requested": 1,
-                "non_match_pairs_requested": 1,
-                "non_match_sample_requested": 5,
+                "true_match_pairs_requested": 100,
+                "non_match_pairs_requested": 100,
+                "non_match_sample_requested": 500,
             }
             assert resp.json()["results"] is None
             assert resp.json()["status_url"] == f"http://testserver/api/tuning/{job.id}"
