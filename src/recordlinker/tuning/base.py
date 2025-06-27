@@ -11,10 +11,10 @@ import uuid
 
 from recordlinker import models
 from recordlinker import schemas
-from recordlinker.database.algorithm_service import default_algorithm
 from recordlinker.database import get_session_manager
 from recordlinker.database import mpi_service
 from recordlinker.database import tuning_service
+from recordlinker.database.algorithm_service import default_algorithm
 from recordlinker.tuning import prob_calc
 
 LOGGER = logging.getLogger(__name__)

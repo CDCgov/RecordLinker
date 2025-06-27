@@ -9,6 +9,7 @@ import unittest.mock as mock
 import uuid
 
 from conftest import load_test_json_asset
+
 from recordlinker import config
 from recordlinker.models import tuning as models
 
