@@ -79,11 +79,8 @@ async def tune(job_id: uuid.UUID, session_factory: typing.Optional[typing.Callab
                 prob_calc.estimate_rms_bounds(sorted_scores)
             )
             pass_recs: list[schemas.tuning.PassRecommendation] = []
-            pass_list: list[
-                typing.Tuple[int, schemas.AlgorithmPass]
-            ] = enumerate(algorithm.passes)
-            for idx, algorithm_pass in pass_list:
-                pass_name: str = algorithm_pass.label or f"pass_{idx}"
+            for idx, algorithm_pass in enumerate(algorithm.passes):
+                pass_name: str = algorithm_pass.label or f"pass_{idx}"  # type: ignore
                 rec = schemas.tuning.PassRecommendation(
                     pass_label=pass_name,
                     recommended_match_window=rms_bounds[pass_name]
