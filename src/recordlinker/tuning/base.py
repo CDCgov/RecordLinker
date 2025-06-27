@@ -63,13 +63,13 @@ async def tune(job_id: uuid.UUID, session_factory: typing.Optional[typing.Callab
             )
             results.log_odds = [
                 schemas.LogOdd(
-                    feature=k, value=v
+                    feature=schemas.Feature.parse(k), value=v
                 ) for k, v in log_odds.items()
             ]
 
             # Step 4: Compute suggested RMS possible match window boundaries
             algorithm = default_algorithm(session)
-            assert default_algorithm is not None
+            assert algorithm is not None
             sorted_scores: dict[str, typing.Tuple[list[float], list[float]]] = (
                 prob_calc.calculate_and_sort_tuning_scores(
                     true_pairs, non_pairs, log_odds, algorithm
