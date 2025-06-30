@@ -106,6 +106,7 @@ class Settings(pydantic_settings.BaseSettings):
             },
             "loggers": {
                 "": {"handlers": ["console"], "level": "WARNING"},
+                "alembic": {"handlers": ["console"], "level": "INFO", "propagate": False},
                 "recordlinker": {"handlers": ["console"], "level": "INFO", "propagate": False},
                 "recordlinker.access": {
                     "handlers": ["console"],
