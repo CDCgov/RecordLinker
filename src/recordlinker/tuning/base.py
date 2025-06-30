@@ -68,8 +68,9 @@ async def tune(job_id: uuid.UUID, session_factory: typing.Optional[typing.Callab
             ]
 
             # Step 4: Compute suggested RMS possible match window boundaries
-            algorithm = default_algorithm(session)
-            assert algorithm is not None
+            obj: models.Algorithm | None = default_algorithm(session)
+            assert obj is not None
+            algorithm: schemas.Algorithm = schemas.Algorithm.model_validate(obj)
             sorted_scores: dict[str, typing.Tuple[list[float], list[float]]] = (
                 prob_calc.calculate_and_sort_tuning_scores(
                     true_pairs, non_pairs, log_odds, algorithm
@@ -90,5 +91,5 @@ async def tune(job_id: uuid.UUID, session_factory: typing.Optional[typing.Callab
 
             tuning_service.update_job(session, job, models.TuningStatus.COMPLETED, results)
         except Exception as exc:
-            LOGGER.error("tuning job failed", extra={"job_id": job_id, "exc": str(exc)})
+            LOGGER.error("tuning job failed", extra={"job_id": job_id, "exc": str(exc)}, exc_info=True)
             tuning_service.fail_job(session, job_id, str(exc))
