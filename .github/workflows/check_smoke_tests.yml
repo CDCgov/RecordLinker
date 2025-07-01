@@ -35,7 +35,7 @@ jobs:
           - 1433:1433
         env:
           ACCEPT_EULA: Y
-          SA_PASSWORD: "YourStrong!Passw0rd"
+          SA_PASSWORD: 'YourStrong!Passw0rd'
 
     steps:
       - name: Check out repository
@@ -57,7 +57,8 @@ jobs:
           elif [[ "${{ matrix.database }}" == "mysql" ]]; then
             export DB_URI="mysql+pymysql://root:pw@localhost:3306/mysql"
           elif [[ "${{ matrix.database }}" == "sqlserver" ]]; then
-            export DB_URI="mssql+pyodbc://sa:YourStrong!Passw0rd@localhost:1433/master?driver=ODBC+Driver+18+for+SQL+Server&TrustServerCertificate=yes"
+            export DB_URI="mssql+pyodbc://sa:YourStrong!Passw0rd@localhost:1433/master?driver=FreeTDS&TrustServerCertificate=yes"
+            
           fi
 
           API_ROOT="/api"
@@ -70,7 +71,7 @@ jobs:
             -e API_ROOT_PATH=$API_ROOT \
             rl-service-image
 
-          # Wait for the RL Service to be healthy
+          # Wait for the RL Service to be healthy 
           TRIES=5
           COUNT=0
           until curl -s $BASE_URL | grep "OK"; do

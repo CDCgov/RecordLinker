@@ -9,7 +9,7 @@
 # run against http://localhost:8080/api.
 set -e
 
-cd "$(dirname "$0")/.."
+cd "$(dirname "$0")/.." || exit
 
 SERVER=${1:-http://localhost:8080/api}
 

@@ -7,7 +7,7 @@
 
 set -e
 
-cd "$(dirname "$0")/.."
+cd "$(dirname "$0")/.." || exit
 
 OUT=${1:-_site}
 VERSION=${VERSION:-$(python -c "from recordlinker._version import __version__; print(f'v{__version__}');")}
