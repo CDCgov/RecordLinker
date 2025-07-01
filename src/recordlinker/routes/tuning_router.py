@@ -37,7 +37,7 @@ async def run_tune_job(job_id: uuid.UUID):
         # In either case, we're going to log the error, mark the job
         # as failed in the database and exit the background task
         msg: str= "job timed out" if isinstance(exc, asyncio.TimeoutError) else str(exc)
-        LOGGER.error(msg, extra={"job_id": job_id, "timeout": timeout})
+        LOGGER.error(msg, extra={"job_id": job_id, "timeout": timeout}, exc_info=True)
         with get_session_manager() as session:
             service.fail_job(session, job_id, msg)
 

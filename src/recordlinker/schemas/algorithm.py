@@ -75,7 +75,7 @@ class LogOdd(pydantic.BaseModel):
         Validate the feature is a valid PII feature.
         """
         try:
-            return Feature.parse(value)
+            return Feature.parse(str(value))
         except ValueError as e:
             raise ValueError(f"Invalid feature: '{value}'. {e}")
 
