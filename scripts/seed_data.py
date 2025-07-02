@@ -39,9 +39,8 @@ def seed_data(base_url: str, data: dict) -> None:
             if response.status != 201:
                 raise Exception(f"Request failed with status {response.status}")
     except urllib.error.HTTPError as e:
-        data = e.read().decode("utf-8")
-        print(data, file=sys.stderr)
-        raise Exception(f"Request failed with status {e.code}")
+        msg = e.read().decode("utf-8")
+        raise Exception(f"Request failed with status {e.code}: {msg}")
 
 
 def main() -> None:
