@@ -84,4 +84,7 @@ jobs:
             fi
           done
 
+          curl -s -X "GET" -H "Content-Type: application/json" "${BASE_URL}/algorithm"
+          docker logs rl-service
+
           ./scripts/example_linkage_test.sh "${BASE_URL}"
