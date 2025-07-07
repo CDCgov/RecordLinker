@@ -47,7 +47,7 @@ erDiagram
         uuid reference_id "Reference UUID (auto-generated)"
         string external_patient_id "External Patient ID"
         string external_person_id "External Person ID"
-        string external_person_source "Source System"
+        string external_person_source "External Source System"
     }
 
     BlockingValue {
