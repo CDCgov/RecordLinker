@@ -5,8 +5,6 @@ from sqlalchemy import pool
 from recordlinker.config import settings
 from recordlinker.models import Base
 
-print(Base.metadata.tables.keys())
-
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
 config = context.config
