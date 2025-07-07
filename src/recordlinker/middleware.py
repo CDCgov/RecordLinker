@@ -1,7 +1,7 @@
 import logging
 import time
-import typing
 import traceback
+import typing
 
 import asgi_correlation_id
 from starlette.middleware.base import BaseHTTPMiddleware
@@ -17,7 +17,10 @@ class CorrelationIdMiddleware(asgi_correlation_id.CorrelationIdMiddleware):
     Override the default ASGI correlation ID middleware to provide a
     default correlation ID length.
     """
-    def __init__(self, app: typing.Callable, correlation_id_length: int = DEFAULT_CORRELATION_ID_LENGTH):
+
+    def __init__(
+        self, app: typing.Callable, correlation_id_length: int = DEFAULT_CORRELATION_ID_LENGTH
+    ):
         super().__init__(app)
         self.transformer = lambda a: a[:correlation_id_length]
 
@@ -71,7 +74,10 @@ class TracebackMiddleware(BaseHTTPMiddleware):
         """
         try:
             return await call_next(request)
-        except Exception as exc:
-            tb = traceback.format_exc()
-            ERROR_LOGGER.error(f"Unhandled error: {exc}\n{tb}")
+        except Exception:
+            data = {
+                "correlation_id": request.headers.get(CorrelationIdMiddleware.header_name, "-"),
+                "traceback": traceback.format_exc(),
+            }
+            ERROR_LOGGER.error("uncaught exception", extra=data)
             raise

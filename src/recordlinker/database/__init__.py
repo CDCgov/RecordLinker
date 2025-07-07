@@ -6,6 +6,7 @@ This module contains the database connection and session management functions.
 """
 
 import contextlib
+import logging
 import typing
 
 from alembic import command as alembic_command
@@ -17,6 +18,8 @@ from sqlalchemy import schema
 
 from recordlinker import models
 from recordlinker.config import settings
+
+LOGGER = logging.getLogger("recordlinker.database")
 
 
 def tables() -> list[schema.Table]:
@@ -40,6 +43,7 @@ def create_sessionmaker(init_tables: bool = True) -> orm.sessionmaker:
         kwargs["max_overflow"] = settings.connection_pool_max_overflow
     engine = create_engine(settings.db_uri, **kwargs)
     if init_tables:
+        LOGGER.info(f"CURRENT TABLES: {inspect(engine).get_table_names()}")
         is_empty_db: bool = inspect(engine).get_table_names() == []
         if is_empty_db:
             # When the database is empty, create all the tables and mark
