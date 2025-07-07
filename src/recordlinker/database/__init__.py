@@ -6,7 +6,6 @@ This module contains the database connection and session management functions.
 """
 
 import contextlib
-import logging
 import typing
 
 from alembic import command as alembic_command
@@ -18,8 +17,6 @@ from sqlalchemy import schema
 
 from recordlinker import models
 from recordlinker.config import settings
-
-LOGGER = logging.getLogger("recordlinker.database")
 
 
 def tables() -> set[schema.Table]:
