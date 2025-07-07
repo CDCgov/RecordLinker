@@ -28,7 +28,7 @@ def tables() -> set[schema.Table]:
     """
     tables = set(models.Base.metadata.tables.values())
     if not settings.tuning_enabled:
-        return {t for t in tables if not t.name.startswith("tuning_")}
+        return {t for t in tables if "tuning_" not in t.name}
     return tables
 
 
