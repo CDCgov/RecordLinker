@@ -48,6 +48,10 @@ class Settings(pydantic_settings.BaseSettings):
         description="The URI for the Splunk HEC server",
         default="",
     )
+    initialize_tables: bool = pydantic.Field(
+        description="Create the database tables on startup if the database is empty",
+        default=True,
+    )
     initial_algorithms: str = pydantic.Field(
         description=(
             "The path to the initial algorithms file that is loaded on startup if the "

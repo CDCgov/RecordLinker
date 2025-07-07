@@ -67,6 +67,14 @@ variable and a `.env` file are present, the environment variable takes precedenc
 
     **Development Default**: `""`
 
+`INITIALIZE_TABLES (Optional)`
+
+:   Whether to initialize the database tables on startup if the database is empty.
+
+    **Docker Default**: `true`
+
+    **Development Default**: `true`
+
 `INITIAL_ALGORITHMS (Optional)`
 
 :   Path to a JSON file with initial algorithms to load if the algorithms table is empty.
