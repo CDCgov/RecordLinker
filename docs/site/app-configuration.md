@@ -106,7 +106,7 @@ drivers are installed allowing for connections to:
 
     Example: `postgresql+psycopg2://user:password@localhost/dbname`
 
-- **[pymysql](https://pymysql.readthedocs.io/en/latest/) (mysql)**
+- **[pymysql](https://pymysql.readthedocs.io/en/latest/) (mysql / mariadb)**
 
     Example: `mysql+pymysql://user:password@localhost/dbname`
 
