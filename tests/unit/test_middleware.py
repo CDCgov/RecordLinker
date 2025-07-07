@@ -1,6 +1,7 @@
 import unittest.mock
 
 import starlette.applications
+from fastapi.routing import APIRoute
 
 from recordlinker import middleware
 
@@ -23,7 +24,7 @@ class TestAccessLogMiddleware:
     def test_dispatch(self, client):
         health_url = client.app.url_path_for("health-check")
         with unittest.mock.patch("recordlinker.middleware.ACCESS_LOGGER") as mock_logger:
-             response = client.get(health_url)
+            response = client.get(health_url)
         # Verify the response
         assert response.status_code == 200
         assert response.json() == {"status": "OK"}
@@ -40,3 +41,25 @@ class TestAccessLogMiddleware:
         assert mock_logger.info.call_args[0][1]["status_code"] == 200
         assert mock_logger.info.call_args[0][1]["process_time"] > 0
         assert len(mock_logger.info.call_args[0][1]["correlation_id"]) == 12
+
+
+class TestTracebackMiddleware:
+    def test_dispatch(self, client):
+        async def error_route():
+            raise Exception("Simulated failure")
+
+        try:
+            route = APIRoute(
+                path="/error", endpoint=error_route, methods=["GET"], name="test-error"
+            )
+            client.app.router.routes.append(route)
+            with unittest.mock.patch("recordlinker.middleware.ERROR_LOGGER") as mock_logger:
+                response = client.get("/error")
+            # Verify the response
+            assert response.status_code == 500
+            assert response.json() == {"detail": "Internal Server Error"}
+            assert len(mock_logger.error.mock_calls) == 1
+            assert mock_logger.error.call_args[0] == ("uncaught exception",)
+            assert "traceback" in mock_logger.error.call_args[1]["extra"]
+        finally:
+            client.app.router.routes = [r for r in client.app.router.routes if r.path != "/error"]

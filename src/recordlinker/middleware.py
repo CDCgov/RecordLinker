@@ -6,6 +6,7 @@ import typing
 import asgi_correlation_id
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.requests import Request
+from starlette.responses import JSONResponse
 
 DEFAULT_CORRELATION_ID_LENGTH = 12
 ACCESS_LOGGER = logging.getLogger("recordlinker.access")
@@ -80,4 +81,4 @@ class TracebackMiddleware(BaseHTTPMiddleware):
                 "traceback": traceback.format_exc(),
             }
             ERROR_LOGGER.error("uncaught exception", extra=data)
-            raise
+            return JSONResponse(status_code=500, content={"detail": "Internal Server Error"})
