@@ -44,8 +44,11 @@ def create_sessionmaker(init_tables: bool = True) -> orm.sessionmaker:
         rl_tables: set[schema.Table] = tables()
         if existing_tables.isdisjoint({t.name for t in rl_tables}):
             # When the database doesn't contain any of the record linker tables,
-            # create all the tables and mark the alembic migrations as applied
+            # create all the tables
             models.Base.metadata.create_all(engine, tables=rl_tables)
+        if "alembic_version" not in existing_tables:
+            # If the database doesn't contain the alembic_version table, create it
+            # and stamp the tables with the current migration head
             alembic_cfg = alembic_config.Config(toml_file="pyproject.toml")
             alembic_command.stamp(alembic_cfg, "head")
     return orm.sessionmaker(bind=engine)
