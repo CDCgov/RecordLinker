@@ -1,6 +1,7 @@
 import logging
 import time
 import typing
+import traceback
 
 import asgi_correlation_id
 from starlette.middleware.base import BaseHTTPMiddleware
@@ -8,6 +9,7 @@ from starlette.requests import Request
 
 DEFAULT_CORRELATION_ID_LENGTH = 12
 ACCESS_LOGGER = logging.getLogger("recordlinker.access")
+ERROR_LOGGER = logging.getLogger("recordlinker.error")
 
 
 class CorrelationIdMiddleware(asgi_correlation_id.CorrelationIdMiddleware):
@@ -54,3 +56,22 @@ class AccessLogMiddleware(BaseHTTPMiddleware):
         # Log the message
         ACCESS_LOGGER.info(msg, data)
         return response
+
+
+class TracebackMiddleware(BaseHTTPMiddleware):
+    """
+    This custom traceback middleware is meant to be used instead of the default
+    Uvicorn traceback middleware.  As such, it provides more information about the
+    request including processing time and correlation ID.
+    """
+
+    async def dispatch(self, request: Request, call_next):
+        """
+        Catch any exceptions and log them to the error logger.
+        """
+        try:
+            return await call_next(request)
+        except Exception as exc:
+            tb = traceback.format_exc()
+            ERROR_LOGGER.error(f"Unhandled error: {exc}\n{tb}")
+            raise
