@@ -139,7 +139,10 @@ def estimate_rms_bounds(
     suggested_bounds = {}
 
     for k in sorted_scores:
-        true_match_scores = sorted_scores[k][0]
+        # Don't count any vacuous 0s in the true match class towards the boundary
+        # of minimum thresholding--we want the MMT to apply to the real bulk of
+        # the distribution farther down the axis
+        true_match_scores = [x for x in sorted_scores[k][0] if x > 0.0]
         non_match_scores = sorted_scores[k][1]
 
         # Overlap the lists to find the possible match window:

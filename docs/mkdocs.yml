@@ -41,7 +41,8 @@ nav:
   - "Getting Started": "getting-started.md"
   - "Reference":
     - "Application Configuration": "app-configuration.md"
-    - "Algorithm Configration": "algo-configuration.md"
+    - "Algorithm Configuration": "algo-configuration.md"
   - "Explanation":
+    - "Algorithm Design": "algo-design.md"
     - "Schema Design": "schema-design.md"
   - "API Docs": "api-docs.html"

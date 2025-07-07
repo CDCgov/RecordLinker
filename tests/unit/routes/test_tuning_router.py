@@ -8,6 +8,8 @@ This module contains the unit tests for the recordlinker.routes.tuning_router mo
 import unittest.mock as mock
 import uuid
 
+from conftest import load_test_json_asset
+
 from recordlinker import config
 from recordlinker.models import tuning as models
 
@@ -15,6 +17,9 @@ from recordlinker.models import tuning as models
 class TestCreate:
     def path(self, client):
         return client.app.url_path_for("create-tuning-job")
+    
+    def seed(self, client):
+        return client.app.url_path_for("seed-batch")
 
     def test_already_in_progress(self, monkeypatch, client):
         client.session.add(
@@ -55,10 +60,18 @@ class TestCreate:
             # canceled because of a timeout
             assert job.status == models.TuningStatus.FAILED
 
-    def test_create(self, monkeypatch, client):
-        monkeypatch.setattr(config.settings, "tuning_true_match_pairs", 1)
-        monkeypatch.setattr(config.settings, "tuning_non_match_pairs", 1)
-        monkeypatch.setattr(config.settings, "tuning_non_match_sample", 1)
+    @mock.patch('recordlinker.tuning.base.default_algorithm')
+    def test_create(self, patched_algo, default_algorithm, monkeypatch, client):
+        # Need to seed DB first so we don't error out on randomly sampling
+        # non-match pairs
+        data = load_test_json_asset("100_cluster_tuning_test.json.gz")
+        client.post(self.seed(client), json=data)
+
+        patched_algo.return_value = default_algorithm
+
+        monkeypatch.setattr(config.settings, "tuning_true_match_pairs", 100)
+        monkeypatch.setattr(config.settings, "tuning_non_match_pairs", 100)
+        monkeypatch.setattr(config.settings, "tuning_non_match_sample", 500)
         with mock.patch("recordlinker.tuning.base.get_session_manager") as mock_session_b, \
                 mock.patch("recordlinker.routes.tuning_router.get_session_manager") as mock_session_r:
             mock_session_b.return_value = client.session
@@ -74,9 +87,9 @@ class TestCreate:
             # placed in the running state
             assert job.status == models.TuningStatus.COMPLETED
             assert resp.json()["params"] == {
-                "true_match_pairs_requested": 1,
-                "non_match_pairs_requested": 1,
-                "non_match_sample_requested": 1,
+                "true_match_pairs_requested": 100,
+                "non_match_pairs_requested": 100,
+                "non_match_sample_requested": 500,
             }
             assert resp.json()["results"] is None
             assert resp.json()["status_url"] == f"http://testserver/api/tuning/{job.id}"
