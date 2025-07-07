@@ -12,7 +12,7 @@ The `Person` model represents a unique individual within the MPI system. It serv
 
 ### 2. **Patient**
 
-The `Patient` model represents how an external system defines a person within a specific healthcare record. Each `Patient`:
+The `Patient` model represents record-level demographic information as provided by an external system. Each `Patient`:
 
 - Is stored as a JSON object, used during the evaluation phase of matching
 - Is linked to multiple `BlockingValue` records, utilized in the blocking phase of matching
