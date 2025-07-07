@@ -22,6 +22,7 @@ from faker import Faker
 
 from recordlinker import schemas
 from recordlinker.schemas.identifier import Identifier
+from recordlinker.schemas.identifier import IdentifierType
 from recordlinker.schemas.pii import Address
 from recordlinker.schemas.pii import Name
 from recordlinker.schemas.pii import Race
@@ -37,14 +38,14 @@ def _generate_random_identifiers(count, faker):
     for idx in range(count):
         if idx % 3 == 0:
             # make mrn
-            yield Identifier(type="MR", value=faker.bothify(text="MRN-#######"))
+            yield Identifier(type=IdentifierType.MR, value=faker.bothify(text="MRN-#######"))
         if idx % 3 == 1:
             # make ssn
-            yield Identifier(type="SS", value=faker.ssn())
+            yield Identifier(type=IdentifierType.SS, value=faker.ssn())
         if idx % 3 == 2:
             # make drivers_license
             yield Identifier(
-                type="DL", value=faker.bothify(text="DL-######"), authority=faker.state_abbr()
+                type=IdentifierType.DL, value=faker.bothify(text="DL-######"), authority=faker.state_abbr()
             )
 
 
@@ -119,7 +120,7 @@ def _scramble(
     scamble_frequency: float = 0.1,
     str_edits: tuple[int, int] = (1, 3),
     drop_frequency: float = 0.1,
-    transformer: typing.Callable[[typing.Any], typing.Any] = _transform,
+    transformer: typing.Callable[[typing.Any, tuple[int, int]], typing.Any] = _transform,
 ) -> schemas.PIIRecord:
     """
     Scrambles a subset of relevant fields and returns the scrambled dict.
