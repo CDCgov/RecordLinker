@@ -113,7 +113,7 @@ class LoadTest(locust.HttpUser):
             raise ValueError(f"Record data file does not exist: {options.record_data}")
 
         with open(options.record_data, "r") as input_file:
-            url = f"/api/{options.linkage_endpoint}"
+            url = f"/{options.linkage_endpoint}"
             counter = 0
             for cluster in ijson.items(input_file, "clusters.item", use_float=True):
                 data = {"external_person_id": cluster.get("external_person_id", None)}
