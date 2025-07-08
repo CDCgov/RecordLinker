@@ -77,6 +77,10 @@ def default_algorithm():
         if algo["label"] == "dibbs-default":
             return schemas.Algorithm.model_validate(algo)
 
+@pytest.fixture(scope="session", autouse=True)
+def print_db_dialect():
+    print(f"DATABASE DIALECT: {db_dialect()}")
+
 
 @contextlib.contextmanager
 def count_queries(session):
