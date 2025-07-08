@@ -36,7 +36,7 @@ alembic upgrade head
 
 ### Manual offline migrations
 
-If you have an exisitng databse, and want to incrementally update the schema, but are unable
+If you have an existing database, and want to incrementally update the schema, but are unable
 to apply them directly to the database. You can run the following command to create a set of SQL
 scripts that can be applied to the database:
 
