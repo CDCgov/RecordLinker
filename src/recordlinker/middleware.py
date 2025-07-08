@@ -1,13 +1,16 @@
 import logging
 import time
+import traceback
 import typing
 
 import asgi_correlation_id
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.requests import Request
+from starlette.responses import JSONResponse
 
 DEFAULT_CORRELATION_ID_LENGTH = 12
 ACCESS_LOGGER = logging.getLogger("recordlinker.access")
+ERROR_LOGGER = logging.getLogger("recordlinker.error")
 
 
 class CorrelationIdMiddleware(asgi_correlation_id.CorrelationIdMiddleware):
@@ -15,7 +18,10 @@ class CorrelationIdMiddleware(asgi_correlation_id.CorrelationIdMiddleware):
     Override the default ASGI correlation ID middleware to provide a
     default correlation ID length.
     """
-    def __init__(self, app: typing.Callable, correlation_id_length: int = DEFAULT_CORRELATION_ID_LENGTH):
+
+    def __init__(
+        self, app: typing.Callable, correlation_id_length: int = DEFAULT_CORRELATION_ID_LENGTH
+    ):
         super().__init__(app)
         self.transformer = lambda a: a[:correlation_id_length]
 
@@ -54,3 +60,17 @@ class AccessLogMiddleware(BaseHTTPMiddleware):
         # Log the message
         ACCESS_LOGGER.info(msg, data)
         return response
+
+
+async def error_handler(request: Request, exc: Exception):
+    """
+    Not a middleware, but rather an error handler. This is used to catch any
+    exceptions, log the traceback including the correlation ID, and return a
+    JSON response with a 500 status code.
+    """
+    data = {
+        "correlation_id": request.headers.get(CorrelationIdMiddleware.header_name, "-"),
+        "traceback": traceback.format_exc(),
+    }
+    ERROR_LOGGER.error("uncaught exception", extra=data)
+    return JSONResponse(status_code=500, content={"detail": "Internal Server Error"})

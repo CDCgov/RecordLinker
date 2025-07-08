@@ -66,6 +66,11 @@
             "level": "CRITICAL",
             "propagate": false
         },
+        "alembic": {
+            "handlers": ["console"],
+            "level": "INFO",
+            "propagate": false
+        },
         "recordlinker": {
             "handlers": ["console", "splunk_console"],
             "level": "INFO",

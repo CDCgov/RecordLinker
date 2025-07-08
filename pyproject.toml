@@ -26,6 +26,7 @@ dependencies = [
     "python-dateutil==2.9.0.post0",
     "sqlalchemy",
     "rapidfuzz",
+    "alembic",
     # Observability
     "python-json-logger",
     "asgi-correlation-id",
@@ -131,3 +132,25 @@ omit = [
 [tool.mypy]
 files = ["src"]
 mypy_path = ["src"]
+
+[tool.alembic]
+# path to migration scripts.
+# this is typically a path given in POSIX (e.g. forward slashes)
+# format, relative to the token %(here)s which refers to the location of this
+# ini file
+script_location = "%(here)s/migrations"
+
+# additional paths to be prepended to sys.path. defaults to the current working directory.
+prepend_sys_path = ["src"]
+
+# timezone to use when rendering the date within the migration file as well as the filename.
+# leave blank for localtime
+timezone = "UTC"
+
+[[tool.alembic.post_write_hooks]]
+# lint with attempts to fix using "ruff" - use the exec runner,
+# execute a binary
+name = "ruff"
+type = "exec"
+executable = "%(here)s/.venv/bin/ruff"
+options = "check --fix REVISION_SCRIPT_FILENAME"

@@ -49,6 +49,7 @@ RUN if [ "$USE_OTEL" = "true" ]; then \
 # Copy over the rest of the code
 COPY ./src /code/src
 COPY ./docs /code/docs
+COPY ./migrations /code/migrations
 COPY README.md /code/README.md
 
 EXPOSE ${PORT}
