@@ -62,23 +62,15 @@ class AccessLogMiddleware(BaseHTTPMiddleware):
         return response
 
 
-class TracebackMiddleware(BaseHTTPMiddleware):
+async def error_handler(request: Request, exc: Exception):
     """
-    This custom traceback middleware is meant to be used instead of the default
-    Uvicorn traceback middleware.  As such, it provides more information about the
-    request including processing time and correlation ID.
+    Not a middleware, but rather an error handler. This is used to catch any
+    exceptions, log the traceback including the correlation ID, and return a
+    JSON response with a 500 status code.
     """
-
-    async def dispatch(self, request: Request, call_next):
-        """
-        Catch any exceptions and log them to the error logger.
-        """
-        try:
-            return await call_next(request)
-        except Exception:
-            data = {
-                "correlation_id": request.headers.get(CorrelationIdMiddleware.header_name, "-"),
-                "traceback": traceback.format_exc(),
-            }
-            ERROR_LOGGER.error("uncaught exception", extra=data)
-            return JSONResponse(status_code=500, content={"detail": "Internal Server Error"})
+    data = {
+        "correlation_id": request.headers.get(CorrelationIdMiddleware.header_name, "-"),
+        "traceback": traceback.format_exc(),
+    }
+    ERROR_LOGGER.error("uncaught exception", extra=data)
+    return JSONResponse(status_code=500, content={"detail": "Internal Server Error"})

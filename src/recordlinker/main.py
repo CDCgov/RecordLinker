@@ -52,7 +52,7 @@ app = fastapi.FastAPI(
 
 app.add_middleware(middleware.CorrelationIdMiddleware)
 app.add_middleware(middleware.AccessLogMiddleware)
-app.add_middleware(middleware.TracebackMiddleware)
+app.add_exception_handler(Exception, middleware.error_handler)
 
 
 @app.get("/", include_in_schema=False)

@@ -43,16 +43,13 @@ class TestAccessLogMiddleware:
         assert len(mock_logger.info.call_args[0][1]["correlation_id"]) == 12
 
 
-class TestTracebackMiddleware:
-    def test_dispatch(self, client):
+class TestErrorHandler:
+    def test(self, client):
         async def error_route():
             raise Exception("Simulated failure")
 
         try:
-            route = APIRoute(
-                path="/error", endpoint=error_route, methods=["GET"], name="test-error"
-            )
-            client.app.router.routes.append(route)
+            client.app.add_api_route("/error", error_route, methods=["GET"])
             with unittest.mock.patch("recordlinker.middleware.ERROR_LOGGER") as mock_logger:
                 response = client.get("/error")
             # Verify the response
