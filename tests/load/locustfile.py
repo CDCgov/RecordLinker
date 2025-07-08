@@ -81,7 +81,7 @@ def _(parser):
 
 
 class LoadTest(locust.HttpUser):
-    host = "http://localhost:8080/"
+    host = "http://localhost:8080/api"
     auto_name_stripping = False
 
     def on_start(self):
@@ -97,7 +97,7 @@ class LoadTest(locust.HttpUser):
                 for cluster in clusters_iter:
                     chunk.append(cluster)
                     if len(chunk) == chunk_size:
-                        self.client.post("/api/seed", json.dumps({"clusters": chunk}))
+                        self.client.post("/seed", json.dumps({"clusters": chunk}))
                         chunk = []
                 if chunk:
                     self.client.post("/seed", json.dumps({"clusters": chunk}))
