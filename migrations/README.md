@@ -27,7 +27,7 @@ uvicorn recordlinker.main:app --app-dir src
 
 ### Manual online migrations
 
-If you have an exisitng databse, and want to incrementally update the schema.  You can run
+If you have an existing database, and want to incrementally update the schema.  You can run
 the following command to upgrade to the latest revision:
 
 ```sh
