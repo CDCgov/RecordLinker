@@ -1,7 +1,6 @@
 import unittest.mock
 
 import starlette.applications
-from fastapi.routing import APIRoute
 
 from recordlinker import middleware
 
