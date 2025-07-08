@@ -2,7 +2,6 @@ import contextlib
 import functools
 import gzip
 import json
-import logging
 import os
 import pathlib
 
@@ -15,8 +14,6 @@ from recordlinker import database
 from recordlinker import main
 from recordlinker import schemas
 from recordlinker.utils import path as utils
-
-LOGGER = logging.getLogger(__name__)
 
 
 def load_test_json_asset(*paths: str) -> dict | list:
@@ -35,11 +32,6 @@ def load_test_json_asset(*paths: str) -> dict | list:
 def db_dialect():
     with database.get_test_session() as session:
         return session.get_bind().dialect.name
-
-
-@pytest.fixture(scope="session", autouse=True)
-def log_db_dialect():
-    LOGGER.info(f"DATABASE DIALECT: {db_dialect()}")
 
 
 @pytest.fixture(scope="function")
