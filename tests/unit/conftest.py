@@ -34,6 +34,11 @@ def db_dialect():
         return session.get_bind().dialect.name
 
 
+@pytest.fixture(scope="session", autouse=True)
+def print_db_dialect():
+    print(f"DATABASE DIALECT: {db_dialect()}")
+
+
 @pytest.fixture(scope="function")
 def session():
     with database.get_test_session() as session:
