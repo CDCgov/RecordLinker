@@ -60,6 +60,26 @@ class Settings(pydantic_settings.BaseSettings):
         description="The root path for the API",
         default="/api",
     )
+    tuning_enabled: bool = pydantic.Field(
+        description="Enable tuning",
+        default=False,
+    )
+    tuning_true_match_pairs: int = pydantic.Field(
+        description="The number of true match pairs to use for training",
+        default=10000,
+    )
+    tuning_non_match_pairs: int = pydantic.Field(
+        description="The number of non-match pairs to use for training",
+        default=100000,
+    )
+    tuning_non_match_sample: int = pydantic.Field(
+        description="The number of records to sample for non-match pairs",
+        default=250000,
+    )
+    tuning_job_timeout: int = pydantic.Field(
+        description="The number of seconds to wait for the tuning job to complete",
+        default=3600,
+    )
 
     def default_log_config(self) -> dict:
         """

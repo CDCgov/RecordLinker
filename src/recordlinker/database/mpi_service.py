@@ -601,7 +601,7 @@ def generate_non_match_tuning_samples(
         session: orm.Session,
         sample_size: int,
         n_pairs: int
-    ) -> typing.Sequence[typing.Tuple[dict, dict]]:
+    ) -> typing.Tuple[typing.Sequence[typing.Tuple[dict, dict]], int]:
     """
     Creates a sample of known "non match" pairs of patient records of 
     size n_pairs using previously labeled data. The complete collection
@@ -621,10 +621,16 @@ def generate_non_match_tuning_samples(
       generation and checking) is bounded by a secondary stopping 
       condition which may terminate before this number is hit (in order
       to prevent excessive time spent looping).
+    :returns: A tuple whose first element is a sequence of randomly 
+      sub-sampled pairs of non-matching records, and whose second element
+      is the length of the sub-sample actually retrieved from the DB
+      from which these pairs were generated.
     """
     # First, sanity check that we have a big enough sample size to grab
     # the requested number of pairs in "reasonable" time--use the 
     # Taylor approximation for e^x derived from the Birthday Problem
+    if sample_size == 1:
+        raise ValueError("Cannot sample from a single database point")
     taylor_expansion = math.exp(
         (-1.0 * n_pairs * (n_pairs - 1.0)) / (sample_size * (sample_size - 1.0))
     )
@@ -676,4 +682,4 @@ def generate_non_match_tuning_samples(
                 if (record_row_1[0], record_row_2[0]) not in already_seen:
                     already_seen.add((record_row_1[0], record_row_2[0]))
                     neg_pairs.append((record_row_1[2], record_row_2[2]))
-    return neg_pairs
+    return neg_pairs, len(sample)

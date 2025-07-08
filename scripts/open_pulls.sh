@@ -7,7 +7,7 @@
 
 set -e
 
-cd "$(dirname "$0")/.."
+cd "$(dirname "$0")/.." || exit
 
 # check if the GITHUB_TOKEN environment variable is set
 if [ -z "$GITHUB_TOKEN" ]; then

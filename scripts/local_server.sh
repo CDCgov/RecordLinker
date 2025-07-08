@@ -9,7 +9,7 @@
 #
 set -e
 
-cd "$(dirname "$0")/.."
+cd "$(dirname "$0")/.." || exit
 
 PORT=${1:-8080}
 

@@ -35,7 +35,7 @@ jobs:
           - 1433:1433
         env:
           ACCEPT_EULA: Y
-          SA_PASSWORD: "YourStrong!Passw0rd"
+          SA_PASSWORD: 'YourStrong!Passw0rd'
 
     steps:
       - name: Checkout code
@@ -44,8 +44,8 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: "3.11"
-          cache: "pip"
+          python-version: '3.13'
+          cache: 'pip'
 
       - name: Install dependencies
         run: |
