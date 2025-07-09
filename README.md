@@ -1,4 +1,4 @@
-# RecordLinker
+# Record Linker
 
 [![codecov](https://codecov.io/github/CDCgov/RecordLinker/graph/badge.svg?token=V0FH691B9B)](https://codecov.io/github/CDCgov/RecordLinker)
 [![release](https://img.shields.io/github/v/release/cdcgov/RecordLinker)](https://github.com/CDCgov/RecordLinker/releases)
@@ -15,7 +15,7 @@
 
 ## Overview
 
-The RecordLinker is a service that links records from two datasets based on a set of common attributes. The service is designed to be used in a variety of public health contexts, such as linking patient records from different sources or linking records from different public health surveillance systems. The service uses a probabilistic record linkage algorithm to determine the likelihood that two records refer to the same entity. The service is implemented as a RESTful API that can be accessed over HTTP. The API provides endpoints for uploading datasets, configuring the record linkage process, and retrieving the results of the record linkage process.
+The Record Linker is a service that links records from two datasets based on a set of common attributes. The service is designed to be used in a variety of public health contexts, such as linking patient records from different sources or linking records from different public health surveillance systems. The service uses a probabilistic record linkage algorithm to determine the likelihood that two records refer to the same entity. The service is implemented as a RESTful API that can be accessed over HTTP. The API provides endpoints for uploading datasets, configuring the record linkage process, and retrieving the results of the record linkage process.
 
 ## Getting Started
 
@@ -46,11 +46,21 @@ To run the API locally, use the following command:
 
 The API will be available at `http://localhost:8000`. Visit `http://localhost:8000/redoc` to view the API documentation.
 
+## Database Management
+
+Record Linker supports 4 different database systems for managing the Master Patient
+Index (MPI) data. All will require the `DB_URI` environment variable to be set.
+(See [Database Options](docs/site/app-configuration.md#database-options) for details.)
+For more information on setting up the database and/or managing the schema, see
+the [Migrations README](migrations/README.md).
+
 ## Testing
 
-The RecordLinker system comes with a number of built-in tests spread across several different types. Some of these tests are run automatically (e.g. by Github), while others must be manually executed by a developer.
+The Record Linker system comes with a number of built-in tests spread across several
+different types. Some of these tests are run automatically (e.g. by Github), while
+others must be manually executed by a developer.
 
-- `tests/unit`: These comprise basic unit (and in some cases integration) tests providing code coverage to RecordLinker. These tests demonstrate the functionality of different parts of the code base under different logical conditions and with different inputs and outputs. They are automataically executed by a Github Actions workflow as part of a PR.
+- `tests/unit`: These comprise basic unit (and in some cases integration) tests providing code coverage to Record Linker. These tests demonstrate the functionality of different parts of the code base under different logical conditions and with different inputs and outputs. They are automataically executed by a Github Actions workflow as part of a PR.
 - `tests/algorithm`: This is a set of scripts developed to test an algorithm configuration with a known set of particular edge cases. In response to frequent questions of how the DIBBs algorithm handles case X, this mini-project was created to help answer those questions by giving developers some persistent evaluation tools. These tests are _not_ automated, and developers will need to go through the steps in the README in the relevant directory in order to run them.
 - `tests/performance`: Another set of scripts developed to see how fast the API can process linkage requests using synthetic data. This is useful for verifying refactors are still performant and helping developers identify bottlenecks along the way. These tests are _not_ automated, and developers need to go through the steps in the README of the relevant directory in order to run them.
 
