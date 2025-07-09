@@ -59,11 +59,17 @@ def _(parser):
         help="Path to the record data file to use when seeding the database",
     )
     parser.add_argument(
+        "--seeded",
+        type=str_to_bool,
+        default=False,
+        help="Indicates if the database has been seeded with initial data",
+    )
+    parser.add_argument(
         "--record-data",
         type=str,
         default=f"{pathlib.Path(__file__).resolve().parent}/assets/test_data.json",
         help="Path to the record data file to use in the test run",
-        required=True,
+        required=False,
     )
     parser.add_argument(
         "--linkage-endpoint",
@@ -81,7 +87,7 @@ class LoadTest(locust.HttpUser):
     def on_start(self):
         options = self.environment.parsed_options
         if options.seed_data:
-            if os.path.exists(options.seed_data):
+            if not os.path.exists(options.seed_data):
                 raise ValueError(f"Seed data file does not exist: {options.seed_data}")
 
             chunk_size = 100
@@ -93,7 +99,6 @@ class LoadTest(locust.HttpUser):
                     if len(chunk) == chunk_size:
                         self.client.post("/seed", json.dumps({"clusters": chunk}))
                         chunk = []
-
                 if chunk:
                     self.client.post("/seed", json.dumps({"clusters": chunk}))
 
@@ -127,5 +132,5 @@ class LoadTest(locust.HttpUser):
                                 resp.request_meta["name"] = "match_grade::error"
                                 resp.failure(str(e))
 
-                        if options.records_to_link and counter >= options.records_to_link:
-                            self.environment.runner.quit()
+                    if options.records_to_link and counter >= options.records_to_link:
+                        self.environment.runner.quit()
