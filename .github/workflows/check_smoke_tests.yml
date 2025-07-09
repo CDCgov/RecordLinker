@@ -63,7 +63,7 @@ jobs:
 
           API_ROOT="/api"
           BASE_URL="http://localhost:8080${API_ROOT}"
-          INITIAL_ALGORITHMS="src/recordlinker/assets/initial_algorithms.json"
+          INITIAL_ALGORITHMS="src/recordlinker/assets/testing_algorithms.json"
 
           # Start Record Linker Service
           docker run -d --name rl-service \
