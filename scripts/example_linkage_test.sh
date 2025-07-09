@@ -246,8 +246,9 @@ assert_status_code "$HTTP_STATUS" "201"
 echo "$RESPONSE_BODY" | python3 -c '
 import sys, json
 data = json.load(sys.stdin)
-for p in data.get("persons", []): p.pop("patients", None)
+for p in data.get("persons", []): p.pop("patients", none)
 json.dump(data, sys.stdout, indent=2)
+print()
 '
 
 echo "LINK RECORD..."
