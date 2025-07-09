@@ -40,7 +40,7 @@ services:
       TEST_DB_URI: "sqlite:///:memory:"
       OTEL_TRACES_EXPORTER: "otlp"
       OTEL_EXPORTER_OTLP_ENDPOINT: "http://jaeger:4317"
-      INITIAL_ALGORITHMS: "assets/initial_algorithms.json"
+      INITIAL_ALGORITHMS: "assets/testing_algorithms.json"
     volumes:
       - ./src:/code/src
     command: >
