@@ -83,6 +83,7 @@ async def tune(job_id: uuid.UUID, session_factory: typing.Optional[typing.Callab
             for idx, algorithm_pass in enumerate(algorithm.passes):
                 pass_name: str = algorithm_pass.label or f"pass_{idx}"  # type: ignore
                 rec = schemas.PassRecommendation(
+                    algorithm_label=algorithm.label,
                     pass_label=pass_name,
                     recommended_match_window=rms_bounds[pass_name]
                 )
