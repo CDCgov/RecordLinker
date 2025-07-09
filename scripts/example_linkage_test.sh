@@ -229,8 +229,8 @@ echo "LIST THE ALGORITHMS..."
 read -r HTTP_STATUS RESPONSE_BODY <<< "$(http_request "${SERVER}/algorithm" "GET")"
 assert_status_code "$HTTP_STATUS" "200"
 
-# echo "OPTIONALLY DELETE LINKAGE-TEST ALGORITHM..."
-# http_request "${SERVER}/algorithm/linkage-test" "DELETE" > /dev/null
+echo "OPTIONALLY DELETE LINKAGE-TEST ALGORITHM..."
+http_request "${SERVER}/algorithm/linkage-test" "DELETE" > /dev/null
 
 echo "CREATE LINKAGE-TEST ALGORITHM..."
 read -r HTTP_STATUS RESPONSE_BODY <<< "$(http_request "${SERVER}/algorithm" "POST" "$ALGORITHM")"
