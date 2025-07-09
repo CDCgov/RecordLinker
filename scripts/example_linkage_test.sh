@@ -232,9 +232,9 @@ assert_status_code() {
 # echo "OPTIONALLY DELETE LINKAGE-TEST ALGORITHM..."
 # http_request "${SERVER}/algorithm/linkage-test" "DELETE" > /dev/null
 
-# echo "CREATE LINKAGE-TEST ALGORITHM..."
-# read -r HTTP_STATUS RESPONSE_BODY <<< "$(http_request "${SERVER}/algorithm" "POST" "$ALGORITHM")"
-# assert_status_code "$HTTP_STATUS" "201"
+echo "CREATE LINKAGE-TEST ALGORITHM..."
+read -r HTTP_STATUS RESPONSE_BODY <<< "$(http_request "${SERVER}/algorithm" "POST" "$ALGORITHM")"
+assert_status_code "$HTTP_STATUS" "201"
 
 echo "RESET THE DATABASE..."
 read -r HTTP_STATUS RESPONSE_BODY <<< "$(http_request "${SERVER}/seed" "DELETE")"
