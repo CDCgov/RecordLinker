@@ -90,6 +90,7 @@ class SkipValue(pydantic.BaseModel):
         ),
         examples=["John Doe", "unknown", "anonymous"],
     )
+
     @pydantic.field_validator("feature", mode="before")
     def validate_feature(cls, value):
         """
@@ -128,25 +129,30 @@ class AlgorithmAdvanced(pydantic.BaseModel):
             "two patient records."
         ),
     )
-    max_missing_allowed_proportion: Annotated[float, pydantic.Field(ge=0.0, le=1.0)] = pydantic.Field(
-        default=0.5,
-        description=(
-            "The proportion of log-odds points that can be missing from a record’s fields "
-            "before that record stops being eligible as a potential match. When too many "
-            "fields are missing from a record, making match decisions for that record "
-            "becomes impossible. This parameter controls the extent to which information "
-            "can be absent before some processing is automatically skipped."
+    max_missing_allowed_proportion: Annotated[float, pydantic.Field(ge=0.0, le=1.0)] = (
+        pydantic.Field(
+            default=0.5,
+            description=(
+                "The proportion of log-odds points that can be missing from a record’s fields "
+                "before that record stops being eligible as a potential match. When too many "
+                "fields are missing from a record, making match decisions for that record "
+                "becomes impossible. This parameter controls the extent to which information "
+                "can be absent before some processing is automatically skipped."
+            ),
         )
     )
-    missing_field_points_proportion: Annotated[float, pydantic.Field(ge=0.0, le=1.0)] = pydantic.Field(
-        default=0.5,
-        description=(
-            "The proportion of a field's log-odds points earned when making a comparison "
-            "in which at least one record is missing information. This parameter only "
-            "applies when a record is missing some field information but does not have more "
-            "missingness than permitted by max_missing_allowed_proportion."
+    missing_field_points_proportion: Annotated[float, pydantic.Field(ge=0.0, le=1.0)] = (
+        pydantic.Field(
+            default=0.5,
+            description=(
+                "The proportion of a field's log-odds points earned when making a comparison "
+                "in which at least one record is missing information. This parameter only "
+                "applies when a record is missing some field information but does not have more "
+                "missingness than permitted by max_missing_allowed_proportion."
+            ),
         )
     )
+
 
 class AlgorithmContext(pydantic.BaseModel):
     """
@@ -161,7 +167,7 @@ class AlgorithmContext(pydantic.BaseModel):
             "A boolean flag indicating whether the algorithm should return only the "
             "highest scoring match to the caller, or whether it should return all "
             "match candidates who scored an equivalently high grade with the best match."
-        )
+        ),
     )
     log_odds: typing.Sequence[LogOdd] = []
     skip_values: typing.Sequence[SkipValue] = []
@@ -210,13 +216,14 @@ class AlgorithmPass(pydantic.BaseModel):
     evaluators: list[Evaluator]
     possible_match_window: tuple[
         Annotated[float, pydantic.Field(ge=0, le=1)], Annotated[float, pydantic.Field(ge=0, le=1)]
-    ] = pydantic.Field(...,
+    ] = pydantic.Field(
+        ...,
         description=(
             "A range of decimal values consisting of two endpoint thresholds: a Minimum "
             "Match Threshold—representing an RMS value below which a candidate record is "
             "labeled 'certainly-not' a match—and a Certain Match Threshold, an RMS value "
             "above which a candidate record is labeled a 'certain' match."
-        )
+        ),
     )
 
     @pydantic.field_validator("possible_match_window", mode="before")
@@ -228,7 +235,7 @@ class AlgorithmPass(pydantic.BaseModel):
         if minimum_match_threshold > certain_match_threshold:
             raise ValueError(f"Invalid range. Lower bound must be less than upper bound: {value}")
         return (minimum_match_threshold, certain_match_threshold)
-    
+
     @pydantic.model_validator(mode="after")
     def default_label(self) -> "AlgorithmPass":
         """
@@ -278,10 +285,10 @@ class Algorithm(pydantic.BaseModel):
         """
         for pass_ in self.passes:
             for blocking_key in pass_.blocking_keys:
-                if not self.algorithm_context.get_log_odds(blocking_key):
+                if self.algorithm_context.get_log_odds(blocking_key) is None:
                     raise ValueError("Log odds must be defined for all blocking keys.")
             for evaluator in pass_.evaluators:
-                if not self.algorithm_context.get_log_odds(evaluator.feature):
+                if self.algorithm_context.get_log_odds(evaluator.feature) is None:
                     raise ValueError("Log odds must be defined for all evaluators.")
         return self
 
