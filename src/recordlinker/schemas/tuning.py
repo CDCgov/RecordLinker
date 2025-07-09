@@ -32,8 +32,12 @@ class TuningParams(pydantic.BaseModel):
 
 
 class PassRecommendation(pydantic.BaseModel):
+    algorithm_label: str = pydantic.Field(
+        description="The name of the algorithm this pass is associated with."
+    )
     pass_label: str = pydantic.Field(
-        description="The algorithm pass label these recommendations are for."
+        description="The label of the pass within the associated algorithm for which "
+        "this recommendation applies."
     )
     recommended_match_window: tuple[
         Annotated[float, pydantic.Field(ge=0, le=1)], Annotated[float, pydantic.Field(ge=0, le=1)]

@@ -51,7 +51,7 @@ def client():
         # make the session persist for each call to the client within the
         # scope of the test
         main.app.dependency_overrides[database.get_session] = lambda: session
-        with TestClient(main.app) as c:
+        with TestClient(main.app, raise_server_exceptions=False) as c:
             c.session = session
             yield c
 

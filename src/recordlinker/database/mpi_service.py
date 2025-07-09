@@ -17,12 +17,14 @@ from sqlalchemy import literal
 from sqlalchemy import orm
 from sqlalchemy import select
 from sqlalchemy.sql import expression
-from sqlalchemy.sql import func
 
 from recordlinker import models
 from recordlinker import schemas
 
+from . import get_random_function
+
 LOGGER = logging.getLogger(__name__)
+
 
 
 class BlockData:
@@ -571,10 +573,10 @@ def generate_true_match_tuning_samples(
             expression.and_(
                 p1.person_id == p2.person_id,
                 p1.id < p2.id,
-                ~p1.person_id.is_(None)
+                p1.person_id.isnot(None)
             )
         ).order_by(
-            func.random()
+            get_random_function(session.get_bind().dialect)
         ).limit(
             n_pairs
         ).cte()
@@ -646,7 +648,7 @@ def generate_non_match_tuning_samples(
     ).where(
         ~models.Patient.person_id.is_(None)
     ).order_by(
-        func.random()
+        get_random_function(session.get_bind().dialect)
     ).limit(
         sample_size
     )

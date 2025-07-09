@@ -248,6 +248,7 @@ import sys, json
 data = json.load(sys.stdin)
 for p in data.get("persons", []): p.pop("patients", None)
 json.dump(data, sys.stdout, indent=2)
+print()
 '
 
 echo "LINK RECORD..."
