@@ -49,16 +49,18 @@ jobs:
           docker build -t rl-service-image .
 
       - name: Start RecordLinker Service and Run Smoke Tests
+        shell: bash
         run: |
-          if [[ "${{ matrix.database }}" == "postgres" ]]; then
+          DB="${{ matrix.database }}"
+
+          if [[ "$DB" == "postgres" ]]; then
             export DB_URI="postgresql+psycopg2://postgres:pw@localhost:5432/postgres"
-          elif [[ "${{ matrix.database }}" == "sqlite" ]]; then
+          elif [[ "$DB" == "sqlite" ]]; then
             export DB_URI="sqlite:///testdb.sqlite3"
-          elif [[ "${{ matrix.database }}" == "mysql" ]]; then
+          elif [[ "$DB" == "mysql" ]]; then
             export DB_URI="mysql+pymysql://root:pw@localhost:3306/mysql"
-          elif [[ "${{ matrix.database }}" == "sqlserver" ]]; then
+          elif [[ "$DB" == "sqlserver" ]]; then
             export DB_URI="mssql+pyodbc://sa:YourStrong!Passw0rd@localhost:1433/master?driver=ODBC+Driver+18+for+SQL+Server&TrustServerCertificate=yes"
-            
           fi
 
           API_ROOT="/api"

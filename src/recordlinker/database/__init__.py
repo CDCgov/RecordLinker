@@ -10,13 +10,25 @@ import typing
 
 from alembic import command as alembic_command
 from alembic import config as alembic_config
-from sqlalchemy import create_engine
+from sqlalchemy import engine as sa_engine
+from sqlalchemy import func
 from sqlalchemy import inspect
 from sqlalchemy import orm
 from sqlalchemy import schema
 
 from recordlinker import models
 from recordlinker.config import settings
+
+
+def get_random_function(dialect: sa_engine.Dialect):
+    if dialect.name == "sqlite" or dialect.name == "postgresql":
+        return func.random()
+    elif dialect.name == "mysql":
+        return func.rand()
+    elif dialect.name == "mssql":
+        return func.newid()
+    else:
+        raise NotImplementedError(f"Unsupported DB dialect: {dialect.name}")
 
 
 def tables() -> set[schema.Table]:
@@ -38,7 +50,7 @@ def create_sessionmaker(init_tables: bool = True) -> orm.sessionmaker:
         kwargs["pool_size"] = settings.connection_pool_size
     if settings.connection_pool_max_overflow is not None:
         kwargs["max_overflow"] = settings.connection_pool_max_overflow
-    engine = create_engine(settings.db_uri, **kwargs)
+    engine = sa_engine.create_engine(settings.db_uri, **kwargs)
     if init_tables:
         existing_tables: set[str] = set(inspect(engine).get_table_names())
         rl_tables: set[schema.Table] = tables()
@@ -74,7 +86,7 @@ def get_test_session() -> typing.Iterator[orm.Session]:
     """
     Get a new session from the sessionmaker for testing.
     """
-    engine = create_engine(settings.test_db_uri)
+    engine = sa_engine.create_engine(settings.test_db_uri)
     # Create all the tables
     models.Base.metadata.create_all(engine, tables=tables())
     session = orm.scoped_session(orm.sessionmaker(bind=engine))()
