@@ -71,7 +71,7 @@ jobs:
           docker run -d --name rl-service \
             --network="host" \
             -e DB_URI=$DB_URI \
-            -e API_ROOT_PATH=$API_ROOT \ 
+            -e API_ROOT_PATH=$API_ROOT \
             -e INITIAL_ALGORITHMS=$INITIAL_ALGORITHMS \
             rl-service-image
 
