@@ -644,8 +644,8 @@ def generate_non_match_tuning_samples(
     found_size: int = len(random_ids)
     while True:
         ids: list[int] = random.choices(random_ids, k=100)
+        # iterate over the query, pulling out the first two items at a time
         for pair_1, pair_2 in itertools.pairwise(session.execute(query, {"ids": ids})):
-            # iterate over the query, pulling out the first two items at a time
             if num_iters > 10 * n_pairs:
                 LOGGER.warn("too many non-match iterations", extra={"n_pairs": n_pairs})
                 return
@@ -653,7 +653,7 @@ def generate_non_match_tuning_samples(
                 # end case, we have enough pairs
                 return
 
-            num_iters += 2
+            num_iters += 1
             seen: tuple[int, int] = tuple(sorted((pair_1[0], pair_2[0])))
 
             if pair_1[1] is None or pair_2[1] is None:
