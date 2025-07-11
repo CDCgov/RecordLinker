@@ -38,17 +38,26 @@ async def tune(job_id: uuid.UUID, session_factory: typing.Optional[typing.Callab
 
             # Step 1: Acquire class-partitioned data samples and update
             # results information with number of pairs actually used
-            true_pairs: typing.Sequence[typing.Tuple[dict, dict]] = (
+            true_iter: typing.Iterator[typing.Tuple[dict, dict]] = (
                 mpi_service.generate_true_match_tuning_samples(
                     session,
                     job.params.true_match_pairs_requested,
                 )
             )
-            non_pairs, sample_used = mpi_service.generate_non_match_tuning_samples(
-                session,
-                sample_size=job.params.non_match_sample_requested,
-                n_pairs=job.params.non_match_pairs_requested,
+            true_pairs: list[typing.Tuple[dict, dict]] = list(true_iter)
+            non_iter: typing.Iterator[typing.Tuple[typing.Tuple[dict, dict], int]] = (
+                mpi_service.generate_non_match_tuning_samples(
+                    session,
+                    sample_size=job.params.non_match_sample_requested,
+                    n_pairs=job.params.non_match_pairs_requested,
+                )
             )
+            non_pairs: list[typing.Tuple[dict, dict]] = []
+            sample_used: int = 0
+            for pair, found in non_iter:
+                non_pairs.append(pair)
+                if not sample_used:
+                    sample_used = found
             results.true_match_pairs_used = len(true_pairs)
             results.non_match_pairs_used = len(non_pairs)
             results.non_match_sample_used = sample_used
@@ -62,9 +71,8 @@ async def tune(job_id: uuid.UUID, session_factory: typing.Optional[typing.Callab
                 m_probs=m_probs, u_probs=u_probs
             )
             results.log_odds = [
-                schemas.LogOdd(
-                    feature=schemas.Feature.parse(k), value=v
-                ) for k, v in log_odds.items()
+                schemas.LogOdd(feature=schemas.Feature.parse(k), value=v)
+                for k, v in log_odds.items()
             ]
 
             # Step 4: Compute suggested RMS possible match window boundaries
@@ -76,8 +84,8 @@ async def tune(job_id: uuid.UUID, session_factory: typing.Optional[typing.Callab
                     true_pairs, non_pairs, log_odds, algorithm
                 )
             )
-            rms_bounds: dict[str, typing.Tuple[float, float]] = (
-                prob_calc.estimate_rms_bounds(sorted_scores)
+            rms_bounds: dict[str, typing.Tuple[float, float]] = prob_calc.estimate_rms_bounds(
+                sorted_scores
             )
             pass_recs: list[schemas.PassRecommendation] = []
             for idx, algorithm_pass in enumerate(algorithm.passes):
@@ -85,12 +93,14 @@ async def tune(job_id: uuid.UUID, session_factory: typing.Optional[typing.Callab
                 rec = schemas.PassRecommendation(
                     algorithm_label=algorithm.label,
                     pass_label=pass_name,
-                    recommended_match_window=rms_bounds[pass_name]
+                    recommended_match_window=rms_bounds[pass_name],
                 )
                 pass_recs.append(rec)
             results.passes = pass_recs
 
             tuning_service.update_job(session, job, models.TuningStatus.COMPLETED, results)
         except Exception as exc:
-            LOGGER.error("tuning job failed", extra={"job_id": job_id, "exc": str(exc)}, exc_info=True)
+            LOGGER.error(
+                "tuning job failed", extra={"job_id": job_id, "exc": str(exc)}, exc_info=True
+            )
             tuning_service.fail_job(session, job_id, str(exc))
