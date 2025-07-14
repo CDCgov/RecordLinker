@@ -65,8 +65,8 @@ def create_sessionmaker(init_tables: bool = True) -> orm.sessionmaker:
             # If the database doesn't contain the alembic_version table, create it
             # and stamp the tables with the current migration head
             repo: pathlib.Path | None = repo_root()
+            # Only adjust migrations if the repo root is found
             if repo is not None:
-                # only adjust migrations if the repo root is found
                 # NOTE: alembic requires a relative path to the pyproject.toml file,
                 # an absolute path will not work
                 alembic_cfg = alembic_config.Config(toml_file=rel_path(repo / "pyproject.toml"))
