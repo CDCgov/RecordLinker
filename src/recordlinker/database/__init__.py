@@ -6,6 +6,7 @@ This module contains the database connection and session management functions.
 """
 
 import contextlib
+import pathlib
 import typing
 
 from alembic import command as alembic_command
@@ -18,6 +19,8 @@ from sqlalchemy import schema
 
 from recordlinker import models
 from recordlinker.config import settings
+from recordlinker.utils.path import rel_path
+from recordlinker.utils.path import repo_root
 
 
 def get_random_function(dialect: sa_engine.Dialect):
@@ -61,8 +64,13 @@ def create_sessionmaker(init_tables: bool = True) -> orm.sessionmaker:
         if "alembic_version" not in existing_tables:
             # If the database doesn't contain the alembic_version table, create it
             # and stamp the tables with the current migration head
-            alembic_cfg = alembic_config.Config(toml_file="pyproject.toml")
-            alembic_command.stamp(alembic_cfg, "head")
+            repo: pathlib.Path | None = repo_root()
+            if repo is not None:
+                # only adjust migrations if the repo root is found
+                # NOTE: alembic requires a relative path to the pyproject.toml file,
+                # an absolute path will not work
+                alembic_cfg = alembic_config.Config(toml_file=rel_path(repo / "pyproject.toml"))
+                alembic_command.stamp(alembic_cfg, "head")
     return orm.sessionmaker(bind=engine)
 
 
