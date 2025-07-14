@@ -38,26 +38,22 @@ async def tune(job_id: uuid.UUID, session_factory: typing.Optional[typing.Callab
 
             # Step 1: Acquire class-partitioned data samples and update
             # results information with number of pairs actually used
-            true_iter: typing.Iterator[typing.Tuple[dict, dict]] = (
+            true_iter: typing.Iterator[schemas.TuningPair] = (
                 mpi_service.generate_true_match_tuning_samples(
                     session,
                     job.params.true_match_pairs_requested,
                 )
             )
-            true_pairs: list[typing.Tuple[dict, dict]] = list(true_iter)
-            non_iter: typing.Iterator[typing.Tuple[typing.Tuple[dict, dict], int]] = (
+            true_pairs: list[schemas.TuningPair] = list(true_iter)
+            non_iter: typing.Iterator[schemas.TuningPair] = (
                 mpi_service.generate_non_match_tuning_samples(
                     session,
                     sample_size=job.params.non_match_sample_requested,
                     n_pairs=job.params.non_match_pairs_requested,
                 )
             )
-            non_pairs: list[typing.Tuple[dict, dict]] = []
-            sample_used: int = 0
-            for pair, found in non_iter:
-                non_pairs.append(pair)
-                if not sample_used:
-                    sample_used = found
+            non_pairs: list[schemas.TuningPair] = list(non_iter)
+            sample_used: int = non_pairs[0].sample_used if non_pairs else 0
             results.true_match_pairs_used = len(true_pairs)
             results.non_match_pairs_used = len(non_pairs)
             results.non_match_sample_used = sample_used

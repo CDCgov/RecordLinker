@@ -28,6 +28,7 @@ from .mpi import PersonRefs
 from .pii import Feature
 from .pii import FeatureAttribute
 from .pii import PIIRecord
+from .pii import TuningPair
 from .seed import Cluster
 from .seed import ClusterGroup
 from .seed import PersonCluster
@@ -78,4 +79,5 @@ __all__ = [
     "TuningJob",
     "TuningJobResponse",
     "PassRecommendation",
+    "TuningPair",
 ]

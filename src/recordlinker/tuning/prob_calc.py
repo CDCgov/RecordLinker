@@ -7,6 +7,7 @@ from recordlinker.schemas import algorithm as ag
 from recordlinker.schemas.pii import Feature
 from recordlinker.schemas.pii import FeatureAttribute
 from recordlinker.schemas.pii import PIIRecord
+from recordlinker.schemas.pii import TuningPair
 
 # We don't need log-odds for every Feature we register, since some
 # are folded into other evaluations
@@ -16,7 +17,7 @@ FIELDS_TO_CALCULATE = [
 ]
 
 def calculate_class_probs(
-        sampled_pairs: typing.Sequence[typing.Tuple[dict, dict]]
+        sampled_pairs: typing.Sequence[TuningPair]
     ) -> dict[str, float]:
     """
     Calculate the class-conditional likelihood that two records will
@@ -32,22 +33,21 @@ def calculate_class_probs(
     """
     # LaPlacian smoothing accounts for unseen instances
     class_probs = {str(f): 1.0 for f in FIELDS_TO_CALCULATE}
+    count: int = 0
 
     for pair in sampled_pairs:
-        pii_record_1 = PIIRecord.from_data(pair[0])
-        pii_record_2 = PIIRecord.from_data(pair[1])
-
         # The probabilistic exact matcher nicely uses feature_iter and
         # cross-value checking for us; if we award 0 points for missing
         # data and 1 point for perfect agreement, we get the count
+        count += 1
         for f in FIELDS_TO_CALCULATE:
-            comparison = compare_probabilistic_exact_match(
-                pii_record_1, pii_record_2, f, 1.0, 0.0, prepend_suffix=False
+            comparison, _ = compare_probabilistic_exact_match(
+                pair.record1, pair.record2, f, 1.0, 0.0, prepend_suffix=False
             )
-            class_probs[str(f)] += comparison[0]
+            class_probs[str(f)] += comparison
     
     for k in class_probs:
-        class_probs[k] /= float(len(sampled_pairs) + 1)
+        class_probs[k] /= float(count + 1)
     
     return class_probs
 
@@ -74,8 +74,8 @@ def calculate_log_odds(
 
 
 def calculate_and_sort_tuning_scores(
-    true_match_pairs: typing.Sequence[typing.Tuple[dict, dict]],
-    non_match_pairs: typing.Sequence[typing.Tuple[dict, dict]],
+    true_match_pairs: typing.Sequence[TuningPair],
+    non_match_pairs: typing.Sequence[TuningPair],
     log_odds: dict[str, float],
     algorithm: ag.Algorithm
 ) -> dict[str, typing.Tuple[list[float], list[float]]]:
@@ -87,9 +87,9 @@ def calculate_and_sort_tuning_scores(
     invoked on each pair of each class, using the provided log-odds
     to compute RMS.
 
-    :param true_match_pairs: A sequence of tuples containing known
+    :param true_match_pairs: A sequence of TuningPairs containing known
       matching pairs of patient data dictionaries.
-    :param non_match_pairs: A sequence of tuples containing known non-
+    :param non_match_pairs: A sequence of TuningPairs containing known non-
       matching pairs of patient data dictionaries.
     :param log_odds: A dictionary mapping Feature string names to their
       computed log-odds values.
@@ -246,7 +246,7 @@ def _compare_records_in_pair(
 
 
 def _score_pairs_in_class(
-        class_sample: typing.Sequence[typing.Tuple[dict, dict]],
+        class_sample: typing.Sequence[TuningPair],
         log_odds: dict[str, float],
         max_points: float,
         algorithm_pass: ag.AlgorithmPass,
@@ -272,10 +272,8 @@ def _score_pairs_in_class(
     """
     class_scores: list[float] = []
     for pair in class_sample:
-        pii_record_1 = PIIRecord.from_data(pair[0])
-        pii_record_1 = remove_skip_values(pii_record_1, context.skip_values)
-        pii_record_2 = PIIRecord.from_data(pair[1])
-        pii_record_2 = remove_skip_values(pii_record_2, context.skip_values)
+        pii_record_1 = remove_skip_values(pair.record1, context.skip_values)
+        pii_record_2 = remove_skip_values(pair.record2, context.skip_values)
 
         # Find the score for this pair using just the evaluators of the pass
         # we were given

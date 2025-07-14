@@ -3,6 +3,7 @@ from conftest import load_test_json_asset
 
 from recordlinker.linking.skip_values import remove_skip_values
 from recordlinker.schemas.pii import PIIRecord
+from recordlinker.schemas.pii import TuningPair
 from recordlinker.tuning.prob_calc import _compare_records_in_pair
 from recordlinker.tuning.prob_calc import _score_pairs_in_class
 from recordlinker.tuning.prob_calc import calculate_and_sort_tuning_scores
@@ -11,14 +12,33 @@ from recordlinker.tuning.prob_calc import calculate_log_odds
 from recordlinker.tuning.prob_calc import estimate_rms_bounds
 
 
+@pytest.fixture
+def true_match_samples():
+    test_pairs = load_test_json_asset("synthetic_tuning_pairs.json")
+    rows = []
+    for p in test_pairs["samples"]:
+        rows.append(TuningPair.from_data(p["data_1"], p["data_2"]))
+    return rows
+
+@pytest.fixture
+def non_match_samples():
+    test_pairs = load_test_json_asset("synthetic_tuning_pairs.json")
+    rows = []
+    for i in range(len(test_pairs["samples"]) - 1):
+        r1 = test_pairs["samples"][i]["data_1"]
+        r2 = test_pairs["samples"][i+1]["data_2"]
+        rows.append(TuningPair.from_data(r1, r2))
+    rows.append(
+        TuningPair.from_data(
+            test_pairs["samples"][len(test_pairs["samples"]) - 1]["data_1"],
+            test_pairs["samples"][0]["data_2"]
+    ))
+    return rows
+
+
 class TestTuningProbabilityCalculators:
-    def test_calculate_class_probs_m(self):
-        test_pairs = load_test_json_asset("synthetic_tuning_pairs.json")
-        rows = []
-        for p in test_pairs["samples"]:
-            row = (p["data_1"], p["data_2"])
-            rows.append(row)
-        m_probs = calculate_class_probs(rows)
+    def test_calculate_class_probs_m(self, true_match_samples):
+        m_probs = calculate_class_probs(true_match_samples)
         assert m_probs == {
             'BIRTHDATE': (2.0 / 3.0),
             'SEX': (5.0 / 6.0),
@@ -36,21 +56,8 @@ class TestTuningProbabilityCalculators:
             'IDENTIFIER': 1.0
         }
 
-    def test_calculate_class_probs_u(self):
-        test_pairs = load_test_json_asset("synthetic_tuning_pairs.json")
-        # Pairs come matched up as true-class examples, so just move the
-        # second record in each pair up by one to make them all non-match
-        rows = []
-        for i in range(len(test_pairs["samples"]) - 1):
-            r1 = test_pairs["samples"][i]["data_1"]
-            r2 = test_pairs["samples"][i+1]["data_2"]
-            rows.append((r1, r2))
-        rows.append((
-            test_pairs["samples"][len(test_pairs["samples"]) - 1]["data_1"],
-            test_pairs["samples"][0]["data_2"]
-        ))
-
-        u_probs = calculate_class_probs(rows)
+    def test_calculate_class_probs_u(self, non_match_samples):
+        u_probs = calculate_class_probs(non_match_samples)
         assert u_probs == {
             'BIRTHDATE': (1.0 / 6.0),
             'SEX': (1.0 / 3.0),
@@ -138,29 +145,6 @@ class TestScoreTuningSamples:
             'COUNTY': 1.792,
             'IDENTIFIER': 1.792,
         }
-    
-    @pytest.fixture
-    def true_match_samples(self):
-        test_pairs = load_test_json_asset("synthetic_tuning_pairs.json")
-        rows = []
-        for p in test_pairs["samples"]:
-            row = (p["data_1"], p["data_2"])
-            rows.append(row)
-        return rows
-    
-    @pytest.fixture
-    def non_match_samples(self):
-        test_pairs = load_test_json_asset("synthetic_tuning_pairs.json")
-        rows = []
-        for i in range(len(test_pairs["samples"]) - 1):
-            r1 = test_pairs["samples"][i]["data_1"]
-            r2 = test_pairs["samples"][i+1]["data_2"]
-            rows.append((r1, r2))
-        rows.append((
-            test_pairs["samples"][len(test_pairs["samples"]) - 1]["data_1"],
-            test_pairs["samples"][0]["data_2"]
-        ))
-        return rows
 
     def test_compare_records_in_pair(self, default_algorithm, log_odds, true_match_samples, non_match_samples):
 
@@ -172,19 +156,15 @@ class TestScoreTuningSamples:
 
         # Run one check of comparisons on a true match pair
         # Fields should all line up, should be max
-        pii_record_1 = PIIRecord.from_data(true_match_samples[0][0])
-        pii_record_1 = remove_skip_values(pii_record_1, context.skip_values)
-        pii_record_2 = PIIRecord.from_data(true_match_samples[0][1])
-        pii_record_2 = remove_skip_values(pii_record_2, context.skip_values)
+        pii_record_1 = remove_skip_values(true_match_samples[0].record1, context.skip_values)
+        pii_record_2 = remove_skip_values(true_match_samples[0].record2, context.skip_values)
         result = _compare_records_in_pair(pii_record_1, pii_record_2, log_odds, max_points, pass_1, context)
         assert result == 3.401
 
         # Now run a check of comparisons on a non-match pair
         # Stuff should be missing and wrong so we should get a 0
-        pii_record_1 = PIIRecord.from_data(non_match_samples[0][0])
-        pii_record_1 = remove_skip_values(pii_record_1, context.skip_values)
-        pii_record_2 = PIIRecord.from_data(non_match_samples[0][1])
-        pii_record_2 = remove_skip_values(pii_record_2, context.skip_values)
+        pii_record_1 = remove_skip_values(non_match_samples[0].record1, context.skip_values)
+        pii_record_2 = remove_skip_values(non_match_samples[0].record2, context.skip_values)
         result = _compare_records_in_pair(pii_record_1, pii_record_2, log_odds, max_points, pass_1, context)
         assert result == 0.0
 
