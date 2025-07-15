@@ -71,7 +71,7 @@ class Feature(StrippedBaseModel):
     The schema for a feature.
     """
 
-    model_config = pydantic.ConfigDict(extra="allow")
+    model_config = pydantic.ConfigDict(extra="allow", frozen=True)
 
     suffix: typing.Optional[IdentifierType] = None
     attribute: FeatureAttribute
@@ -630,24 +630,3 @@ class PIIRecord(StrippedBaseModel):
             # a PII data dict could have multiple given names
             for val in self.blocking_keys(key):
                 yield key, val
-
-
-class TuningPair(pydantic.BaseModel):
-    """
-    A pair of PIIRecords that are used for training a model.
-    """
-
-    record1: PIIRecord
-    record2: PIIRecord
-    sample_used: typing.Optional[int] = None
-
-    @classmethod
-    def from_data(cls, record1: dict, record2: dict, sample_used: int | None = None) -> typing.Self:
-        """
-        Contruct a TuningPair from raw PII data dictionaries.
-        """
-        return cls.model_construct(
-            record1=PIIRecord.from_data(record1),
-            record2=PIIRecord.from_data(record2),
-            sample_used=sample_used,
-        )
