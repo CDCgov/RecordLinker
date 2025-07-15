@@ -7,20 +7,35 @@ import pytest
 from recordlinker.utils import path as utils
 
 
-def test_project_root():
-    root = utils.project_root()
+def test_code_root():
+    root = utils.code_root()
     assert root.name == "recordlinker"
 
 
-def test_project_root_not_found():
+def test_code_root_not_found():
     with unittest.mock.patch("pathlib.Path.resolve") as mock_resolve:
         mock_resolve.return_value = pathlib.Path("/")
         with pytest.raises(FileNotFoundError):
-            utils.project_root()
+            utils.code_root()
+
+def test_repo_root():
+    root = utils.repo_root()
+    assert root is not None
+
+
+def test_repo_root_not_found():
+    with unittest.mock.patch("pathlib.Path.resolve") as mock_resolve:
+        mock_resolve.return_value = pathlib.Path("/")
+        root = utils.repo_root()
+        assert root is None
+
+
+def test_rel_path():
+    assert utils.rel_path(utils.code_root()).endswith("src/recordlinker")
 
 
 def test_read_json_relative():
-    tmp = utils.project_root() / "test.json"
+    tmp = utils.code_root() / "test.json"
     with open(tmp, "w") as fobj:
         fobj.write('{"key": "value"}')
     assert utils.read_json("test.json") == {"key": "value"}
