@@ -635,7 +635,7 @@ def generate_non_match_tuning_samples(
     ]
     query: expression.Select = (
         select(models.Patient.id, models.Patient.person_id, models.Patient.data)
-        .where(models.Patient.id.in_(bindparam("ids")))
+       .where(models.Patient.id.in_(bindparam("ids", expanding=True)))
     )
 
     already_seen: set[tuple[int, int]] = set()
