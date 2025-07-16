@@ -5,6 +5,7 @@ unit.routes.test_tuning_router.py
 This module contains the unit tests for the recordlinker.routes.tuning_router module.
 """
 
+import time
 import unittest.mock as mock
 import uuid
 
@@ -39,14 +40,19 @@ class TestCreate:
         assert resp.status_code == 409
 
     def test_create_timeout(self, monkeypatch, client):
-        monkeypatch.setattr(config.settings, "tuning_job_timeout", 0)
+        def mock_sleep(*args, **kwargs):
+            time.sleep(0.1)
+
+        monkeypatch.setattr(config.settings, "tuning_job_timeout", 0.01)
         monkeypatch.setattr(config.settings, "tuning_true_match_pairs", 1000)
         monkeypatch.setattr(config.settings, "tuning_non_match_pairs", 1000)
         monkeypatch.setattr(config.settings, "tuning_non_match_sample", 10000)
         with (
+            mock.patch("recordlinker.routes.tuning_router.tune") as mock_tune,
             mock.patch("recordlinker.tuning.base.get_session_manager") as mock_session_t,
             mock.patch("recordlinker.routes.tuning_router.get_session_manager") as mock_session_r,
         ):
+            mock_tune.side_effect = mock_sleep
             mock_session_r.return_value = client.session
             mock_session_t.return_value = client.session
             resp = client.post(self.path(client))
@@ -59,6 +65,7 @@ class TestCreate:
             # However, once the job starts processing in the background job, its immediately
             # canceled because of a timeout
             assert job.status == models.TuningStatus.FAILED
+            assert job.results["details"] == "job timed out"
 
     @mock.patch('recordlinker.tuning.base.default_algorithm')
     def test_create(self, patched_algo, default_algorithm, monkeypatch, client):
