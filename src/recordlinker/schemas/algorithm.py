@@ -219,6 +219,28 @@ class AlgorithmPass(pydantic.BaseModel):
         )
     )
 
+    def model_post_init(self, __context) -> None:
+        """
+        Set the default label if one is not provided.
+        """
+        self.label = self.label or self.default_label
+
+    @property
+    def default_label(self) -> str:
+        """
+        Create a default label for the algorithm based on the keys used in the evaluation step.
+        """
+        blocks = ["BLOCK"] + [str(b).lower() for b in self.blocking_keys]
+        matches = ["MATCH"] + [str(e.feature).lower() for e in self.evaluators]
+        return "_".join(blocks + matches)
+
+    @property
+    def resolved_label(self) -> str:
+        """
+        Post initialization a label is always available.
+        """
+        return self.label # type: ignore[return-value]
+
     @pydantic.field_validator("possible_match_window", mode="before")
     def validate_possible_match_window(cls, value):
         """
@@ -228,17 +250,7 @@ class AlgorithmPass(pydantic.BaseModel):
         if minimum_match_threshold > certain_match_threshold:
             raise ValueError(f"Invalid range. Lower bound must be less than upper bound: {value}")
         return (minimum_match_threshold, certain_match_threshold)
-    
-    @pydantic.model_validator(mode="after")
-    def default_label(self) -> "AlgorithmPass":
-        """
-        Create a default label for the algorithm based on the keys used in the evaluation step.
-        """
-        if not self.label:
-            blocks = ["BLOCK"] + [str(b).lower() for b in self.blocking_keys]
-            matches = ["MATCH"] + [str(e.feature).lower() for e in self.evaluators]
-            self.label = "_".join(blocks + matches)
-        return self
+
 
     @pydantic.field_serializer("blocking_keys")
     def serialize_blocking_keys(self, keys: list[BlockingKey]) -> list[str]:
