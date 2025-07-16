@@ -2,10 +2,9 @@ import pytest
 from conftest import load_test_json_asset
 
 from recordlinker.linking.skip_values import remove_skip_values
-from recordlinker.schemas.pii import PIIRecord
-from recordlinker.schemas.pii import TuningPair
+from recordlinker.schemas.pii import Feature
+from recordlinker.schemas.tuning import TuningPair
 from recordlinker.tuning.prob_calc import _compare_records_in_pair
-from recordlinker.tuning.prob_calc import _score_pairs_in_class
 from recordlinker.tuning.prob_calc import calculate_and_sort_tuning_scores
 from recordlinker.tuning.prob_calc import calculate_class_probs
 from recordlinker.tuning.prob_calc import calculate_log_odds
@@ -38,41 +37,41 @@ def non_match_samples():
 
 class TestTuningProbabilityCalculators:
     def test_calculate_class_probs_m(self, true_match_samples):
-        m_probs = calculate_class_probs(true_match_samples)
+        m_probs = calculate_class_probs(true_match_samples).probs
         assert m_probs == {
-            'BIRTHDATE': (2.0 / 3.0),
-            'SEX': (5.0 / 6.0),
-            'FIRST_NAME': (5.0 / 6.0),
-            'LAST_NAME': 1.0,
-            'ADDRESS': 1.0,
-            'CITY': (2.0 / 3.0),
-            'STATE': 1.0,
-            'ZIP': (5.0 / 6.0),
-            'RACE': 1.0,
-            'TELECOM': 1.0,
-            'PHONE': 1.0,
-            'EMAIL': (1.0 / 6.0),
-            'COUNTY': 1.0,
-            'IDENTIFIER': 1.0
+            Feature.parse('BIRTHDATE'): (2.0 / 3.0),
+            Feature.parse('SEX'): (5.0 / 6.0),
+            Feature.parse('FIRST_NAME'): (5.0 / 6.0),
+            Feature.parse('LAST_NAME'): 1.0,
+            Feature.parse('ADDRESS'): 1.0,
+            Feature.parse('CITY'): (2.0 / 3.0),
+            Feature.parse('STATE'): 1.0,
+            Feature.parse('ZIP'): (5.0 / 6.0),
+            Feature.parse('RACE'): 1.0,
+            Feature.parse('TELECOM'): 1.0,
+            Feature.parse('PHONE'): 1.0,
+            Feature.parse('EMAIL'): (1.0 / 6.0),
+            Feature.parse('COUNTY'): 1.0,
+            Feature.parse('IDENTIFIER'): 1.0
         }
 
     def test_calculate_class_probs_u(self, non_match_samples):
-        u_probs = calculate_class_probs(non_match_samples)
+        u_probs = calculate_class_probs(non_match_samples).probs
         assert u_probs == {
-            'BIRTHDATE': (1.0 / 6.0),
-            'SEX': (1.0 / 3.0),
-            'FIRST_NAME': (1.0 / 6.0),
-            'LAST_NAME': (1.0 / 6.0),
-            'ADDRESS': (1.0 / 6.0),
-            'CITY': (1.0 / 6.0),
-            'STATE': (1.0 / 3.0),
-            'ZIP': (1.0 / 6.0),
-            'RACE': (1.0 / 3.0),
-            'TELECOM': (1.0 / 6.0),
-            'PHONE': (1.0 / 6.0),
-            'EMAIL': (1.0 / 6.0),
-            'COUNTY': (1.0 / 6.0),
-            'IDENTIFIER': (1.0 / 6.0)
+            Feature.parse('BIRTHDATE'): (1.0 / 6.0),
+            Feature.parse('SEX'): (1.0 / 3.0),
+            Feature.parse('FIRST_NAME'): (1.0 / 6.0),
+            Feature.parse('LAST_NAME'): (1.0 / 6.0),
+            Feature.parse('ADDRESS'): (1.0 / 6.0),
+            Feature.parse('CITY'): (1.0 / 6.0),
+            Feature.parse('STATE'): (1.0 / 3.0),
+            Feature.parse('ZIP'): (1.0 / 6.0),
+            Feature.parse('RACE'): (1.0 / 3.0),
+            Feature.parse('TELECOM'): (1.0 / 6.0),
+            Feature.parse('PHONE'): (1.0 / 6.0),
+            Feature.parse('EMAIL'): (1.0 / 6.0),
+            Feature.parse('COUNTY'): (1.0 / 6.0),
+            Feature.parse('IDENTIFIER'): (1.0 / 6.0)
         }
 
     def test_calculate_log_odds(self):
@@ -130,29 +129,27 @@ class TestScoreTuningSamples:
     @pytest.fixture
     def log_odds(self):
         return {
-            'BIRTHDATE': 1.386,
-            'SEX': 0.916,
-            'FIRST_NAME': 1.609,
-            'LAST_NAME': 1.792,
-            'ADDRESS': 1.792,
-            'CITY': 1.386,
-            'STATE': 1.099,
-            'ZIP': 1.609,
-            'RACE': 1.099,
-            'TELECOM': 1.792,
-            'PHONE': 1.792,
-            'EMAIL': 0.0,
-            'COUNTY': 1.792,
-            'IDENTIFIER': 1.792,
+            Feature.parse('BIRTHDATE'): 1.386,
+            Feature.parse('SEX'): 0.916,
+            Feature.parse('FIRST_NAME'): 1.609,
+            Feature.parse('LAST_NAME'): 1.792,
+            Feature.parse('ADDRESS'): 1.792,
+            Feature.parse('CITY'): 1.386,
+            Feature.parse('STATE'): 1.099,
+            Feature.parse('ZIP'): 1.609,
+            Feature.parse('RACE'): 1.099,
+            Feature.parse('TELECOM'): 1.792,
+            Feature.parse('PHONE'): 1.792,
+            Feature.parse('EMAIL'): 0.0,
+            Feature.parse('COUNTY'): 1.792,
+            Feature.parse('IDENTIFIER'): 1.792,
         }
 
     def test_compare_records_in_pair(self, default_algorithm, log_odds, true_match_samples, non_match_samples):
 
         context = default_algorithm.algorithm_context
         pass_1 = default_algorithm.passes[0]
-        max_points = sum(
-            [log_odds[str(e.feature)] or 0.0 for e in pass_1.evaluators]
-        )
+        max_points = sum([log_odds[e.feature] for e in pass_1.evaluators])
 
         # Run one check of comparisons on a true match pair
         # Fields should all line up, should be max
@@ -167,23 +164,6 @@ class TestScoreTuningSamples:
         pii_record_2 = remove_skip_values(non_match_samples[0].record2, context.skip_values)
         result = _compare_records_in_pair(pii_record_1, pii_record_2, log_odds, max_points, pass_1, context)
         assert result == 0.0
-
-    def test_score_pairs_in_class(self, default_algorithm, log_odds, true_match_samples, non_match_samples):
-        context = default_algorithm.algorithm_context
-        for idx, algorithm_pass in enumerate(default_algorithm.passes):
-            max_points_in_pass: float = sum(
-                [log_odds[str(e.feature)] or 0.0 for e in algorithm_pass.evaluators]
-            )
-            true_scores = _score_pairs_in_class(true_match_samples, log_odds, max_points_in_pass, algorithm_pass, context)
-            true_scores = [round(x, 3) for x in true_scores]
-            non_match_scores = _score_pairs_in_class(non_match_samples, log_odds, max_points_in_pass, algorithm_pass, context)
-            # Scores for first pass
-            if idx == 0:
-                assert true_scores == [1.0, 1.0, 1.0, 0.527, 1.0]
-                assert non_match_scores == [0.0] * 5
-            else:
-                assert true_scores == [1.0, 1.0, 0.564, 0.564, 1.0]
-                assert non_match_scores == [0.0] * 5
     
     def test_calculate_and_sort_tuning_scores(self, default_algorithm, log_odds, true_match_samples, non_match_samples):
         sorted_scores = calculate_and_sort_tuning_scores(
