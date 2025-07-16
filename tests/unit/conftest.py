@@ -73,7 +73,7 @@ def clean_test_database():
 
 @pytest.fixture(scope="session")
 def default_algorithm():
-    for algo in utils.read_json("assets/initial_algorithms.json"):
+    for algo in utils.read_json("assets/testing_algorithms.json"):
         if algo["label"] == "dibbs-default":
             return schemas.Algorithm.model_validate(algo)
 
