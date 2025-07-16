@@ -1222,7 +1222,8 @@ class TestGenerateTuningClasses:
     def test_generate_true_match_samples(self, client):
         data = load_test_json_asset("100_cluster_tuning_test.json.gz")
         client.post(self.path(client), json=data)
-        sample_pairs = mpi_service.generate_true_match_tuning_samples(client.session, 5)
+        pair_iter = mpi_service.generate_true_match_tuning_samples(client.session, 5)
+        sample_pairs = list(pair_iter)
         assert len(sample_pairs) == 5
         for pair in sample_pairs:
             assert type(pair) is tuple
@@ -1232,7 +1233,12 @@ class TestGenerateTuningClasses:
     def test_generate_non_match_samples(self, client):
         data = load_test_json_asset("100_cluster_tuning_test.json.gz")
         client.post(self.path(client), json=data)
-        sample_pairs, sample_used = mpi_service.generate_non_match_tuning_samples(client.session, 1500, 5)
+        pair_iter = mpi_service.generate_non_match_tuning_samples(client.session, 1500, 5)
+        sample_pairs = []
+        sample_used = 0
+        for pair, found in pair_iter:
+            sample_pairs.append(pair)
+            sample_used = found
         assert sample_used == 699
         assert len(sample_pairs) == 5
         for pair in sample_pairs:
@@ -1244,11 +1250,11 @@ class TestGenerateTuningClasses:
         data = load_test_json_asset("100_cluster_tuning_test.json.gz")
         client.post(self.path(client), json=data)
         with pytest.raises(ValueError):
-            mpi_service.generate_non_match_tuning_samples(client.session, 500, 500)
+            list(mpi_service.generate_non_match_tuning_samples(client.session, 500, 500))
 
     def test_generate_non_match_samples_taylor_error(self, client):
         data = load_test_json_asset("100_cluster_tuning_test.json.gz")
         client.post(self.path(client), json=data)
         with pytest.raises(ValueError):
-            mpi_service.generate_non_match_tuning_samples(client.session, 1, 1)
+            list(mpi_service.generate_non_match_tuning_samples(client.session, 1, 1))
 

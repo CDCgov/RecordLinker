@@ -5,12 +5,14 @@ recordlinker.linking.mpi_service
 This module provides the data access functions to the MPI tables
 """
 
+import itertools
 import logging
 import math
 import random
 import typing
 import uuid
 
+from sqlalchemy import bindparam
 from sqlalchemy import exists
 from sqlalchemy import insert
 from sqlalchemy import literal
@@ -24,7 +26,6 @@ from recordlinker import schemas
 from . import get_random_function
 
 LOGGER = logging.getLogger(__name__)
-
 
 
 class BlockData:
@@ -570,65 +571,50 @@ def check_mpi_has_acceptable_cluster_structure(session: orm.Session) -> typing.T
 
 
 def generate_true_match_tuning_samples(
-        session: orm.Session,
-        n_pairs: int
-    ) -> typing.Sequence[typing.Tuple[dict, dict]]:
+    session: orm.Session, n_pairs: int
+) -> typing.Iterator[typing.Tuple[dict, dict]]:
     """
-    Creates a sample of known "true match" pairs of patient records of 
-    size n_pairs using previously labeled data. Pairs of records are 
+    Creates a sample of known "true match" pairs of patient records of
+    size n_pairs using previously labeled data. Pairs of records are
     randomly sampled from randomly chosen person clusters until
     a list of unique pairs has been obtained.
 
     :param session: A database session to use for executing queries.
     :param n_pairs: The number of pairs of true-matches to generate.
-    :returns A list of tuples containing pairs of patient data 
+    :returns An iterator of tuples containing pairs of patient data
       dictionaries.
     """
     p1 = orm.aliased(models.Patient, name="p1")
     p2 = orm.aliased(models.Patient, name="p2")
     random_pairs = (
-        expression.select(
-            p1.id.label("patient_1_id"),
-            p2.id.label("patient_2_id")
-        ).join_from(
+        expression.select(p1.id.label("patient_1_id"), p2.id.label("patient_2_id"))
+        .join_from(
             p1,
             p2,
-            expression.and_(
-                p1.person_id == p2.person_id,
-                p1.id < p2.id,
-                p1.person_id.isnot(None)
-            )
-        ).order_by(
-            get_random_function(session.get_bind().dialect)
-        ).limit(
-            n_pairs
-        ).cte()
+            expression.and_(p1.person_id == p2.person_id, p1.id < p2.id, p1.person_id.isnot(None)),
+        )
+        .order_by(get_random_function(session.get_bind().dialect))
+        .limit(n_pairs)
+        .cte()
     )
     sample = (
         expression.select(
-            p1.person_id,
-            random_pairs.c.patient_1_id,
-            random_pairs.c.patient_2_id,
             p1.data.label("patient_data_1"),
-            p2.data.label("patient_data_2")
-        ).join_from(
-            random_pairs, p1, p1.id == random_pairs.c.patient_1_id
-        ).join(
-            p2, p2.id == random_pairs.c.patient_2_id
+            p2.data.label("patient_data_2"),
         )
+        .join_from(random_pairs, p1, p1.id == random_pairs.c.patient_1_id)
+        .join(p2, p2.id == random_pairs.c.patient_2_id)
     )
 
-    db_rows = session.execute(sample).all()
-    return [(row[3], row[4]) for row in db_rows]
+    for row in session.execute(sample):
+        yield (row[0], row[1])
 
 
 def generate_non_match_tuning_samples(
-        session: orm.Session,
-        sample_size: int,
-        n_pairs: int
-    ) -> typing.Tuple[typing.Sequence[typing.Tuple[dict, dict]], int]:
+    session: orm.Session, sample_size: int, n_pairs: int
+) -> typing.Iterator[typing.Tuple[typing.Tuple[dict, dict], int]]:
     """
-    Creates a sample of known "non match" pairs of patient records of 
+    Creates a sample of known "non match" pairs of patient records of
     size n_pairs using previously labeled data. The complete collection
     of patient data is first randomly sub-sampled if there are more than
     100k patient rows (since a random sample from a random sample is
@@ -638,21 +624,21 @@ def generate_non_match_tuning_samples(
     :param session: A database session with which to execute queries.
     :param sample_size: The number of patient records to sub-sample from
       the MPI for use with combinatorial pairing. Effectively "shrinks"
-      the scope of the world the function needs to consider, since 
+      the scope of the world the function needs to consider, since
       randomly sampling out of a random sample is equivalent to randomly
       sampling from the initial population.
     :param n_pairs: The number of non-matching pairs to try to generate.
-      The function's internal pairing loop (which performs random 
-      generation and checking) is bounded by a secondary stopping 
+      The function's internal pairing loop (which performs random
+      generation and checking) is bounded by a secondary stopping
       condition which may terminate before this number is hit (in order
       to prevent excessive time spent looping).
-    :returns: A tuple whose first element is a sequence of randomly 
+    :returns: An iterator tuple whose first element is a sequence of randomly
       sub-sampled pairs of non-matching records, and whose second element
       is the length of the sub-sample actually retrieved from the DB
       from which these pairs were generated.
     """
     # First, sanity check that we have a big enough sample size to grab
-    # the requested number of pairs in "reasonable" time--use the 
+    # the requested number of pairs in "reasonable" time--use the
     # Taylor approximation for e^x derived from the Birthday Problem
     if sample_size == 1:
         raise ValueError("Cannot sample from a single database point")
@@ -663,48 +649,43 @@ def generate_non_match_tuning_samples(
     if repeat_probability >= 0.5:
         raise ValueError("Too many pairs requested for sample size")
 
-    # Start with a large sub-sample from which we'll draw pairs
-    query = expression.select(
-        models.Patient.id,
-        models.Patient.person_id,
-        models.Patient.data
-    ).where(
-        ~models.Patient.person_id.is_(None)
-    ).order_by(
-        get_random_function(session.get_bind().dialect)
-    ).limit(
-        sample_size
+    random_ids: list[int] = [
+        row[0]
+        for row in session.query(models.Patient.id)
+        .order_by(get_random_function(session.get_bind().dialect))
+        .limit(sample_size)
+        .all()
+    ]
+    query: expression.Select = (
+        select(models.Patient.id, models.Patient.person_id, models.Patient.data)
+       .where(models.Patient.id.in_(bindparam("ids", expanding=True)))
     )
-    sample = list(session.execute(query).all())
 
-    # Now, combinatorially build up the negative pairs by
-    # randomly selecting two records, making sure they don't
-    # match, and then storing them as a pair
-    already_seen = set()
-    neg_pairs: list[tuple] = []
-    # Alternate stopping condition to prevent us from looping forever
-    num_iters = 0
-    max_iters = 10 * n_pairs
-    while len(neg_pairs) < n_pairs and num_iters < max_iters:
-        num_iters += 1
-        idx_1 = random.randint(0, len(sample) - 1)
-        idx_2 = random.randint(0, len(sample) - 1)
+    already_seen: set[tuple[int, int]] = set()
+    num_iters: int = 0
+    num_pairs: int = 0
+    found_size: int = len(random_ids)
+    while True:
+        ids: list[int] = random.choices(random_ids, k=100)
+        # iterate over the query, pulling out the first two items at a time
+        for pair_1, pair_2 in itertools.pairwise(session.execute(query, {"ids": ids})):
+            if num_iters > 10 * n_pairs:
+                LOGGER.warn("too many non-match iterations", extra={"n_pairs": n_pairs})
+                return
+            if num_pairs >= n_pairs:
+                # end case, we have enough pairs
+                return
 
-        # Can't make a record pair from one record
-        if idx_1 != idx_2:
+            num_iters += 1
+            seen: tuple[int, int] = tuple(sorted((pair_1[0], pair_2[0])))
 
-            # We'll use the convention of making the "smaller" ID the
-            # first index, easier for set tracking
-            if sample[idx_1][0] < sample[idx_2][0]:
-                record_row_1 = sample[idx_1]
-                record_row_2 = sample[idx_2]
-            else:
-                record_row_1 = sample[idx_2]
-                record_row_2 = sample[idx_1]                
+            if pair_1[1] is None or pair_2[1] is None:
+                continue  # no person
+            if pair_1[1] == pair_2[1]:
+                continue  # same person
+            if seen in already_seen:
+                continue  # already seen
 
-            # If the person_ids don't agree, this is a valid neg pair
-            if record_row_1[1] != record_row_2[1]:
-                if (record_row_1[0], record_row_2[0]) not in already_seen:
-                    already_seen.add((record_row_1[0], record_row_2[0]))
-                    neg_pairs.append((record_row_1[2], record_row_2[2]))
-    return neg_pairs, len(sample)
+            already_seen.add(seen)
+            num_pairs += 1
+            yield (pair_1[2], pair_2[2]), found_size
