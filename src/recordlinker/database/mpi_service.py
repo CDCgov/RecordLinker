@@ -547,6 +547,33 @@ def get_orphaned_persons(
     return session.execute(query).scalars().all()
 
 
+def check_mpi_non_empty(session: orm.Session) -> bool:
+    """
+    Simple helper method to check whether the MPI has any patient data in it.
+    """
+    row_count = session.query(models.Patient).count()
+    return row_count == 0
+
+
+def check_mpi_has_acceptable_cluster_structure(session: orm.Session) -> typing.Tuple[bool, int]:
+    """
+    Helper method to determine whether the MPI satisfies two conditions required
+    for tuning:
+        1. that the MPI has linked patient clusters of size greater than 1
+        2. that the MPI has more than just a single monolith Person cluster
+    """
+    patients_with_person_ids = (
+        session.query(models.Patient).where(~models.Patient.person_id.is_(None)).count()
+    )
+    unique_person_ids = session.query(models.Person).where(~models.Person.id.is_(None)).count()
+    # If there are the same number of patients as there are distinct person
+    # IDs, every patient is in a singleton cluster
+    acceptable_structure = (patients_with_person_ids != unique_person_ids) and (
+        unique_person_ids > 1
+    )
+    return (acceptable_structure, unique_person_ids)
+
+
 def generate_true_match_tuning_samples(
     session: orm.Session, n_pairs: int
 ) -> typing.Iterator[schemas.TuningPair]:
@@ -635,7 +662,7 @@ def generate_non_match_tuning_samples(
     ]
     query: expression.Select = select(
         models.Patient.id, models.Patient.person_id, models.Patient.data
-    ).where(models.Patient.id.in_(bindparam("ids")))
+    ).where(models.Patient.id.in_(bindparam("ids", expanding=True)))
 
     already_seen: set[tuple[int, int]] = set()
     num_iters: int = 0

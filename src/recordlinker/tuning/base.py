@@ -33,15 +33,90 @@ async def tune(job_id: uuid.UUID, session_factory: typing.Optional[typing.Callab
         if job is None:
             LOGGER.error("tuning job not found", extra={"job_id": job_id})
             raise ValueError(f"Tuning job not found: {job_id}")
+
+        # Some early fail-fasts if the user hasn't requested enough data to
+        # make tuning results meaningful
+        if job.params.true_match_pairs_requested < 1000:
+            LOGGER.error(
+                "too few true match pairs requested",
+                extra={
+                    "job_id": job_id,
+                    "true_match_pairs_requested": job.params.true_match_pairs_requested,
+                },
+            )
+            raise ValueError(
+                f"Too few true match pairs requested for job {job_id}: minimum permitted 1000, {job.params.true_match_pairs_requested} requested"
+            )
+        if job.params.non_match_sample_requested < 10000:
+            LOGGER.error(
+                "too few non match samples requested",
+                extra={
+                    "job_id": job_id,
+                    "non_match_samples_requested": job.params.non_match_sample_requested,
+                },
+            )
+            raise ValueError(
+                f"Too few non match samples requested for job {job_id}: minimum permitted 10000, {job.params.non_match_sample_requested} requested"
+            )
+
+        if job.params.non_match_pairs_requested < 1000:
+            LOGGER.error(
+                "too few non match pairs requested",
+                extra={
+                    "job_id": job_id,
+                    "non_match_pairs_requested": job.params.non_match_pairs_requested,
+                },
+            )
+            raise ValueError(
+                f"Too few non match pairs requested for job {job_id}: minimum permitted 1000, {job.params.non_match_pairs_requested} requested"
+            )
+
         try:
+            # Pre-flight checks: DB must be non-empty, have more than one Person
+            # cluster, and not have a single monolith Person in order to tune
+            db_empty: bool = mpi_service.check_mpi_non_empty(session)
+            if db_empty:
+                LOGGER.error("no patient data in MPI", extra={"job_id": job_id})
+                raise ValueError("MPI contains no patient data")
+            acceptable_structure, unique_person_ids = (
+                mpi_service.check_mpi_has_acceptable_cluster_structure(session)
+            )
+            if not acceptable_structure:
+                LOGGER.error(
+                    "MPI Person cluster structure invalid for tuning",
+                    extra={"job_id": job_id, "num_person_clusters_in_MPI": unique_person_ids},
+                )
+                raise ValueError(
+                    f"MPI has person structure that does not support tuning: must have num_person_clusters greater than 1 and less than num_patients, have {unique_person_ids}"
+                )
+
             tuning_service.update_job(session, job, models.TuningStatus.RUNNING)
             results: schemas.TuningResults = schemas.TuningResults()
 
-            (true_count, non_count, non_sample, log_odds) = run_log_odds(session, job.params)
+            # compute log odds
+            (true_count, non_count, sample_used, log_odds) = run_log_odds(session, job.params)
+            if sample_used < 50000:
+                LOGGER.warning(
+                    "Lower than recommended negative sample used, proceed with caution",
+                    extra={"job_id": job_id, "negative_sample_used": sample_used},
+                )
+            if non_count < 3000:
+                LOGGER.warning(
+                    "Fewer than recommended non-match pairs found in MPI, proceed with caution",
+                    extra={"job_id": job_id, "non_match_pairs_found": non_count},
+                )
             results.true_match_pairs_used = true_count
             results.non_match_pairs_used = non_count
-            results.non_match_sample_used = non_sample
-            results.passes = run_rms(session, job.params, results.log_odds)
+            results.non_match_sample_used = sample_used
+            results.log_odds = log_odds
+
+            # Compute pass recommendations
+            passes = run_rms(session, job.params, log_odds)
+            if not passes:
+                LOGGER.warning(
+                    "No passes recommended, proceed with caution", extra={"job_id": job_id}
+                )
+            results.passes = passes
 
             tuning_service.update_job(session, job, models.TuningStatus.COMPLETED, results)
         except Exception as exc:
