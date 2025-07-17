@@ -48,15 +48,16 @@ class Settings(pydantic_settings.BaseSettings):
         description="The URI for the Splunk HEC server",
         default="",
     )
-    initialize_tables: bool = pydantic.Field(
+    auto_migrate: bool = pydantic.Field(
         description="Create the database tables on startup if the database is empty",
         default=True,
     )
     initial_algorithms: str = pydantic.Field(
         description=(
-            "The path to the initial algorithms file that is loaded on startup if the "
-            "algorithms table is empty.  This file should be in JSON format.  If the "
-            "value is an empty string, no algorithms will be loaded."
+            "The path to the initial algorithms file that is loaded on startup. This file"
+            "should be in JSON format. If the value is an empty string, no algorithms will"
+            "be loaded.  This operation will be ignored if the algorithms table is not "
+            "empty or auto_migrate is disabled."
         ),
         default="assets/initial_algorithms.json",
     )

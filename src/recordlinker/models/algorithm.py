@@ -73,7 +73,7 @@ def create_initial_algorithms(target, connection, **kw) -> typing.List[Algorithm
     This function is called after the database schema has been created in the
     recordlinker.database.create_sessionmaker function.
     """
-    if settings.initial_algorithms:
+    if settings.auto_migrate and settings.initial_algorithms:
         try:
             data = path_utils.read_json(settings.initial_algorithms)
         except Exception as exc:

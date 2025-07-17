@@ -67,9 +67,14 @@ variable and a `.env` file are present, the environment variable takes precedenc
 
     **Development Default**: `""`
 
-`INITIALIZE_TABLES (Optional)`
+`AUTO_MIGRATE (Optional)`
 
-:   Whether to initialize the database tables on startup if the database is empty.
+:   Apply all pending database migrations when the application starts. A fake migration
+    will happen on the first application if the database is missing the `alembic_version`
+    table.  In this case, the record linker and migration tables will be auto created and
+    the `alembic_version` table will be initialized with the latest migration version. On
+    all subsequent application starts, the database will be checked for a pending migration
+    and applied if necessary.
 
     **Docker Default**: `true`
 
@@ -78,6 +83,7 @@ variable and a `.env` file are present, the environment variable takes precedenc
 `INITIAL_ALGORITHMS (Optional)`
 
 :   Path to a JSON file with initial algorithms to load if the algorithms table is empty.
+    NOTE: This will only be used if AUTO_MIGRATE is `true`.
 
     **Docker Default**: `assets/initial_algorithms.json`
 
