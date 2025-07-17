@@ -13,7 +13,7 @@ All 3 will require the `DB_URI` environment variable to be set.
 ### Auto-initialize
 
 The default, and recommended approach for new environments, is to run the application server
-with the `INITIALIZE_TABLES` environment variable set to **true** (this is the default). This
+with the `AUTO_MIGRATE` environment variable set to **true** (this is the default). This
 will automatically create all of the required database tables and stamp the migrations table with
 the current revision.
 
