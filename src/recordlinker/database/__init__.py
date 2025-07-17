@@ -6,6 +6,7 @@ This module contains the database connection and session management functions.
 """
 
 import contextlib
+import logging
 import pathlib
 import typing
 
@@ -21,6 +22,8 @@ from recordlinker import models
 from recordlinker.config import settings
 from recordlinker.utils.path import rel_path
 from recordlinker.utils.path import repo_root
+
+LOGGER = logging.getLogger("recordlinker.database")
 
 
 def get_random_function(dialect: sa_engine.Dialect):
@@ -44,7 +47,7 @@ def tables() -> set[schema.Table]:
     return tables
 
 
-def create_sessionmaker(init_tables: bool = True) -> orm.sessionmaker:
+def create_sessionmaker(auto_migrate: bool = True) -> orm.sessionmaker:
     """
     Create a new sessionmaker for the database connection.
     """
@@ -54,23 +57,28 @@ def create_sessionmaker(init_tables: bool = True) -> orm.sessionmaker:
     if settings.connection_pool_max_overflow is not None:
         kwargs["max_overflow"] = settings.connection_pool_max_overflow
     engine = sa_engine.create_engine(settings.db_uri, **kwargs)
-    if init_tables:
-        existing_tables: set[str] = set(inspect(engine).get_table_names())
-        rl_tables: set[schema.Table] = tables()
-        if existing_tables.isdisjoint({t.name for t in rl_tables}):
-            # When the database doesn't contain any of the record linker tables,
-            # create all the tables
-            models.Base.metadata.create_all(engine, tables=rl_tables)
-        if "alembic_version" not in existing_tables:
-            # If the database doesn't contain the alembic_version table, create it
-            # and stamp the tables with the current migration head
-            repo: pathlib.Path | None = repo_root()
-            # Only adjust migrations if the repo root is found
-            if repo is not None:
-                # NOTE: alembic requires a relative path to the pyproject.toml file,
-                # an absolute path will not work
-                alembic_cfg = alembic_config.Config(toml_file=rel_path(repo / "pyproject.toml"))
+    if auto_migrate:
+        repo: pathlib.Path | None = repo_root()
+        if repo is None:
+            LOGGER.warning("could not find repo root, skipping automatic database migration")
+        else:
+            alembic_cfg = alembic_config.Config(toml_file=rel_path(repo / "pyproject.toml"))
+            existing_tables: set[str] = set(inspect(engine).get_table_names())
+            rl_tables: set[schema.Table] = tables()
+            if existing_tables.isdisjoint({t.name for t in rl_tables}):
+                # When the database doesn't contain any of the record linker tables,
+                # create all the tables, and stamp the versions table with the current
+                # migration head (aka fake the migrations)
+                models.Base.metadata.create_all(engine, tables=rl_tables)
                 alembic_command.stamp(alembic_cfg, "head")
+            elif "alembic_version" not in existing_tables:
+                # Record linker tables exist, but migrations do not.  Create the migrations
+                # table and stamp it with the current migration head (aka fake the migrations)
+                alembic_command.stamp(alembic_cfg, "head")
+            else:
+                # When the database already contains some of the record linker tables, and
+                # some migrations have been applied, upgrade the database to the latest migration
+                alembic_command.upgrade(alembic_cfg, "head")
     return orm.sessionmaker(bind=engine)
 
 
@@ -106,5 +114,5 @@ def get_test_session() -> typing.Iterator[orm.Session]:
         models.Base.metadata.drop_all(engine, tables=tables())
 
 
-SessionMaker = create_sessionmaker(init_tables=settings.initialize_tables)
+SessionMaker = create_sessionmaker(auto_migrate=settings.auto_migrate)
 get_session_manager = contextlib.contextmanager(get_session)

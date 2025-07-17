@@ -52,7 +52,7 @@ def client():
         # scope of the test
         main.app.dependency_overrides[database.get_session] = lambda: session
         with TestClient(main.app, raise_server_exceptions=False) as c:
-            c.session = session
+            setattr(c, "session", session)
             yield c
 
 
