@@ -91,6 +91,46 @@ variable and a `.env` file are present, the environment variable takes precedenc
 
     **Development Default**: `/api`
 
+`TUNING_ENABLED (Optional)`
+
+:   Whether to enable the tuning API endpoints.
+
+    **Docker Default**: `false`
+
+    **Development Default**: `false`
+
+`TUNING_TRUE_MATCH_PAIRS (Optional)`
+
+:   Number of true match pairs to use for tuning.
+
+    **Docker Default**: `10000`
+
+    **Development Default**: `10000`
+
+`TUNING_NON_MATCH_PAIRS (Optional)`
+
+:   Number of non match pairs to use for tuning.
+
+    **Docker Default**: `100000`
+
+    **Development Default**: `100000`
+
+`TUNING_NON_MATCH_SAMPLE (Optional)`
+
+:   Number of patient records to sample from when selecting non match pairs.
+
+    **Docker Default**: `250000`
+
+    **Development Default**: `250000`
+
+`TUNING_JOB_TIMEOUT (Optional)`
+
+:   Number of seconds to wait for a tuning job to finish before canceling it.
+
+    **Docker Default**: `3600`
+
+    **Development Default**: `3600`
+
 
 ## Database Options
 
