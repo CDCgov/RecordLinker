@@ -119,9 +119,10 @@ class TuningPair:
 @dataclasses.dataclass
 class TuningProbabilities:
     """
-    A dict of feature specific probabilities that two records are likely to belong to
-    the same cluster given a collection of TuningPairs. Also included are the number,
-    count, of TuningPairs analyzed and an optional parameter for sample size used.
+    A dictionary of class-conditional likelihoods separated by feature. For a given
+    feature F, this holds the probability that a pair of patient records in the same
+    tuning class (i.e. a true-match pair or a non-match pair) will have the same field
+    value in F.
     """
     probs: dict[Feature, float]  # the feature specific probabilities
     count: int  # the number of pairs analyzed
