@@ -1049,8 +1049,8 @@ class TestResetMPI:
 
 class TestUpdatePatientPersonIds:
     def test_invalid_person_id(self, session: Session):
-        with pytest.raises(sqlalchemy.exc.SQLAlchemyError):
-            mpi_service.update_patient_person_ids(session, models.Person(), "123")
+        person = mpi_service.update_patient_person_ids(session, models.Person(), ["123"])
+        assert person.id is None
 
     def test_update_patient_person_ids(self, session: Session):
         # Tests that we can update the person_id of a patient
@@ -1226,25 +1226,18 @@ class TestGenerateTuningClasses:
         sample_pairs = list(pair_iter)
         assert len(sample_pairs) == 5
         for pair in sample_pairs:
-            assert type(pair) is tuple
-            assert type(pair[0]) is dict
-            assert type(pair[1]) is dict
+            assert type(pair) is schemas.TuningPair
 
     def test_generate_non_match_samples(self, client):
         data = load_test_json_asset("100_cluster_tuning_test.json.gz")
         client.post(self.path(client), json=data)
         pair_iter = mpi_service.generate_non_match_tuning_samples(client.session, 1500, 5)
-        sample_pairs = []
-        sample_used = 0
-        for pair, found in pair_iter:
-            sample_pairs.append(pair)
-            sample_used = found
+        sample_pairs = list(pair_iter)
+        sample_used = sample_pairs[0].sample_used
         assert sample_used == 699
         assert len(sample_pairs) == 5
         for pair in sample_pairs:
-            assert type(pair) is tuple
-            assert type(pair[0]) is dict
-            assert type(pair[1]) is dict
+            assert type(pair) is schemas.TuningPair
 
     def test_generate_non_match_samples_repeat_error(self, client):
         data = load_test_json_asset("100_cluster_tuning_test.json.gz")
@@ -1257,4 +1250,3 @@ class TestGenerateTuningClasses:
         client.post(self.path(client), json=data)
         with pytest.raises(ValueError):
             list(mpi_service.generate_non_match_tuning_samples(client.session, 1, 1))
-

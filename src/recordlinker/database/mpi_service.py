@@ -562,17 +562,21 @@ def check_mpi_has_acceptable_cluster_structure(session: orm.Session) -> typing.T
         1. that the MPI has linked patient clusters of size greater than 1
         2. that the MPI has more than just a single monolith Person cluster
     """
-    patients_with_person_ids = session.query(models.Patient).where(~models.Patient.person_id.is_(None)).count()
+    patients_with_person_ids = (
+        session.query(models.Patient).where(~models.Patient.person_id.is_(None)).count()
+    )
     unique_person_ids = session.query(models.Person).where(~models.Person.id.is_(None)).count()
     # If there are the same number of patients as there are distinct person
     # IDs, every patient is in a singleton cluster
-    acceptable_structure = (patients_with_person_ids != unique_person_ids) and (unique_person_ids > 1)
+    acceptable_structure = (patients_with_person_ids != unique_person_ids) and (
+        unique_person_ids > 1
+    )
     return (acceptable_structure, unique_person_ids)
 
 
 def generate_true_match_tuning_samples(
     session: orm.Session, n_pairs: int
-) -> typing.Iterator[typing.Tuple[dict, dict]]:
+) -> typing.Iterator[schemas.TuningPair]:
     """
     Creates a sample of known "true match" pairs of patient records of
     size n_pairs using previously labeled data. Pairs of records are
@@ -607,12 +611,12 @@ def generate_true_match_tuning_samples(
     )
 
     for row in session.execute(sample):
-        yield (row[0], row[1])
+        yield schemas.TuningPair.from_data(row[0], row[1])
 
 
 def generate_non_match_tuning_samples(
     session: orm.Session, sample_size: int, n_pairs: int
-) -> typing.Iterator[typing.Tuple[typing.Tuple[dict, dict], int]]:
+) -> typing.Iterator[schemas.TuningPair]:
     """
     Creates a sample of known "non match" pairs of patient records of
     size n_pairs using previously labeled data. The complete collection
@@ -656,10 +660,9 @@ def generate_non_match_tuning_samples(
         .limit(sample_size)
         .all()
     ]
-    query: expression.Select = (
-        select(models.Patient.id, models.Patient.person_id, models.Patient.data)
-       .where(models.Patient.id.in_(bindparam("ids", expanding=True)))
-    )
+    query: expression.Select = select(
+        models.Patient.id, models.Patient.person_id, models.Patient.data
+    ).where(models.Patient.id.in_(bindparam("ids", expanding=True)))
 
     already_seen: set[tuple[int, int]] = set()
     num_iters: int = 0
@@ -688,4 +691,4 @@ def generate_non_match_tuning_samples(
 
             already_seen.add(seen)
             num_pairs += 1
-            yield (pair_1[2], pair_2[2]), found_size
+            yield schemas.TuningPair.from_data(pair_1[2], pair_2[2], found_size)

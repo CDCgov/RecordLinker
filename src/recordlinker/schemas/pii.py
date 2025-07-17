@@ -71,7 +71,7 @@ class Feature(StrippedBaseModel):
     The schema for a feature.
     """
 
-    model_config = pydantic.ConfigDict(extra="allow")
+    model_config = pydantic.ConfigDict(extra="allow", frozen=True)
 
     suffix: typing.Optional[IdentifierType] = None
     attribute: FeatureAttribute
@@ -236,42 +236,31 @@ class Address(StrippedBaseModel):
     )
     model_config = pydantic.ConfigDict(extra="allow")
 
-    line: typing.List[str] = pydantic.Field(default_factory=list,
+    line: typing.List[str] = pydantic.Field(
+        default_factory=list,
         description=(
             "A list of street name, number, direction & P.O. Box etc., "
             "the order in which lines should appear in an address label."
-        )
+        ),
     )
-    city: typing.Optional[str] = pydantic.Field(
-        default=None,
-        description="Name of city, town etc."
-    )
+    city: typing.Optional[str] = pydantic.Field(default=None, description="Name of city, town etc.")
     state: typing.Optional[str] = pydantic.Field(
-        default=None,
-        description="US State or abbreviation"
+        default=None, description="US State or abbreviation"
     )
     postal_code: typing.Optional[str] = pydantic.Field(
         default=None,
         validation_alias=pydantic.AliasChoices(
             "postal_code", "postalcode", "postalCode", "zip_code", "zipcode", "zipCode", "zip"
         ),
-        description="Postal code for area"
+        description="Postal code for area",
     )
-    county: typing.Optional[str] = pydantic.Field(
-        default=None,
-        description="Name of county"
-    )
-    country: typing.Optional[str] = pydantic.Field(
-        default=None,
-        description="Name of country"
-    )
+    county: typing.Optional[str] = pydantic.Field(default=None, description="Name of county")
+    country: typing.Optional[str] = pydantic.Field(default=None, description="Name of country")
     latitude: typing.Optional[float] = pydantic.Field(
-        default=None,
-        description="Latitude of address"
+        default=None, description="Latitude of address"
     )
     longitude: typing.Optional[float] = pydantic.Field(
-        default=None,
-        description="Longitude of address"
+        default=None, description="Longitude of address"
     )
 
     @pydantic.field_validator("line", mode="before")
@@ -371,11 +360,11 @@ class PIIRecord(StrippedBaseModel):
         Construct a PIIRecord from a Patient model.
         """
         return PIIRecord.from_data(patient.data)
-    
+
     @classmethod
     def from_data(cls, data: dict) -> typing.Self:
         """
-        Construct a PIIRecord from an extracted data dictionary of a 
+        Construct a PIIRecord from an extracted data dictionary of a
         Patient model.
         """
         obj = cls.model_construct(**data)
@@ -384,7 +373,6 @@ class PIIRecord(StrippedBaseModel):
         obj.telecom = [Telecom.model_construct(**t) for t in data.get("telecom", [])]
         obj.identifiers = [Identifier.model_construct(**i) for i in data.get("identifiers", [])]
         return obj
-
 
     def to_data(self) -> dict[str, typing.Any]:
         """
@@ -479,14 +467,14 @@ class PIIRecord(StrippedBaseModel):
     def feature_iter(self, feature: Feature, prepend_suffix: bool = False) -> typing.Iterator[str]:
         """
         Given a field name, return an iterator of all string values for that field.
-        Empty strings are not included in the iterator. Includes an optional 
+        Empty strings are not included in the iterator. Includes an optional
         parameter that can be used when invoking `feature_iter` on the FIRST_NAME
         field; if this parameter is true, the value yielded is the concatenation
         `SUFFIX + FIRST_NAME`.
 
-        :param prepend_suffix: An optional boolean indicating whether a suffix 
+        :param prepend_suffix: An optional boolean indicating whether a suffix
           should be prepended to a first name for blocking purposes. Has no
-          effect for features other than FIRST_NAME. 
+          effect for features other than FIRST_NAME.
         """
 
         if not isinstance(feature, Feature):
@@ -603,7 +591,12 @@ class PIIRecord(StrippedBaseModel):
             vals.update(self.feature_iter(Feature(attribute=FeatureAttribute.ZIP)))
         elif key == models.BlockingKey.FIRST_NAME:
             vals.update(
-                {x[:4] for x in self.feature_iter(Feature(attribute=FeatureAttribute.FIRST_NAME), prepend_suffix=True)}
+                {
+                    x[:4]
+                    for x in self.feature_iter(
+                        Feature(attribute=FeatureAttribute.FIRST_NAME), prepend_suffix=True
+                    )
+                }
             )
         elif key == models.BlockingKey.LAST_NAME:
             vals.update(

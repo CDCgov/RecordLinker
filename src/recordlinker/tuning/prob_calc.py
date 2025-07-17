@@ -7,6 +7,8 @@ from recordlinker.schemas import algorithm as ag
 from recordlinker.schemas.pii import Feature
 from recordlinker.schemas.pii import FeatureAttribute
 from recordlinker.schemas.pii import PIIRecord
+from recordlinker.schemas.tuning import TuningPair
+from recordlinker.schemas.tuning import TuningProbabilities
 
 # We don't need log-odds for every Feature we register, since some
 # are folded into other evaluations
@@ -15,9 +17,8 @@ FIELDS_TO_CALCULATE = [
     Feature.parse(f.value) for f in FeatureAttribute if f.value not in FIELDS_TO_IGNORE
 ]
 
-def calculate_class_probs(
-        sampled_pairs: typing.Sequence[typing.Tuple[dict, dict]]
-    ) -> dict[str, float]:
+
+def calculate_class_probs(sampled_pairs: typing.Iterable[TuningPair]) -> TuningProbabilities:
     """
     Calculate the class-conditional likelihood that two records will
     agree on a particular field, given that the two records are a
@@ -25,37 +26,35 @@ def calculate_class_probs(
     This function is used to calculate both the m- and u-probabilities,
     depending on the pair sample it is given.
 
-    :param sampled_pairs: A sequence of tuples containing pairs 
-      of patient data dictionaries.
-    :returns: A dictionary mapping Feature names to their class
-      probabilities.
+    :param sampled_pairs: An iterable of TuningPairs
+    :returns: A TuningProbabilities object
     """
     # LaPlacian smoothing accounts for unseen instances
-    class_probs = {str(f): 1.0 for f in FIELDS_TO_CALCULATE}
+    result: TuningProbabilities = TuningProbabilities(
+        probs={f: 1.0 for f in FIELDS_TO_CALCULATE}, count=0
+    )
 
     for pair in sampled_pairs:
-        pii_record_1 = PIIRecord.from_data(pair[0])
-        pii_record_2 = PIIRecord.from_data(pair[1])
-
         # The probabilistic exact matcher nicely uses feature_iter and
         # cross-value checking for us; if we award 0 points for missing
         # data and 1 point for perfect agreement, we get the count
+        result.count += 1
+        result.sample_used = pair.sample_used
         for f in FIELDS_TO_CALCULATE:
-            comparison = compare_probabilistic_exact_match(
-                pii_record_1, pii_record_2, f, 1.0, 0.0, prepend_suffix=False
+            comparison, _ = compare_probabilistic_exact_match(
+                pair.record1, pair.record2, f, 1.0, 0.0, prepend_suffix=False
             )
-            class_probs[str(f)] += comparison[0]
-    
-    for k in class_probs:
-        class_probs[k] /= float(len(sampled_pairs) + 1)
-    
-    return class_probs
+            result.probs[f] += comparison
+
+    for f in result.probs:
+        result.probs[f] /= float(result.count + 1)
+
+    return result
 
 
 def calculate_log_odds(
-        m_probs: dict[str, float],
-        u_probs: dict[str, float]
-    ) -> dict[str, float]:
+    m_probs: dict[Feature, float], u_probs: dict[Feature, float]
+) -> dict[Feature, float]:
     """
     Given class-conditional probabilities for field agreement, calculate
     the log-odds values for each field of calculable interest for
@@ -67,29 +66,29 @@ def calculate_log_odds(
       given two records are not a match.
     :returns: A dictionary mapping Feature names to their log-odds values.
     """
-    log_odds = {}
+    log_odds: dict[Feature, float] = {}
     for field in m_probs:
         log_odds[field] = math.log(m_probs[field] / u_probs[field])
     return log_odds
 
 
 def calculate_and_sort_tuning_scores(
-    true_match_pairs: typing.Sequence[typing.Tuple[dict, dict]],
-    non_match_pairs: typing.Sequence[typing.Tuple[dict, dict]],
-    log_odds: dict[str, float],
-    algorithm: ag.Algorithm
+    true_match_pairs: typing.Iterable[TuningPair],
+    non_match_pairs: typing.Iterable[TuningPair],
+    log_odds: dict[Feature, float],
+    algorithm: ag.Algorithm,
 ) -> dict[str, typing.Tuple[list[float], list[float]]]:
     """
     Given a set of true-matching pairs and a set of non-matching pairs
     obtained from database sampling, calculates the pairwise RMS for
-    each collection, for each pass of the algorithm, and sorts the 
+    each collection, for each pass of the algorithm, and sorts the
     resulting scores. The evaluation steps of the given algorithm are
     invoked on each pair of each class, using the provided log-odds
     to compute RMS.
 
-    :param true_match_pairs: A sequence of tuples containing known
+    :param true_match_pairs: An iterable of TuningPairs containing known
       matching pairs of patient data dictionaries.
-    :param non_match_pairs: A sequence of tuples containing known non-
+    :param non_match_pairs: An iterable of TuningPairs containing known non-
       matching pairs of patient data dictionaries.
     :param log_odds: A dictionary mapping Feature string names to their
       computed log-odds values.
@@ -98,36 +97,38 @@ def calculate_and_sort_tuning_scores(
     :returns: A dictonary mapping the names of the algorithm's passes to
       a tuple containing sorted lists of class RMS scores.
     """
-    context: ag.AlgorithmContext = algorithm.algorithm_context
-    sorted_scores = {}
+    sorted_scores: dict[str, typing.Tuple[list[float], list[float]]] = {
+        p.resolved_label: ([], []) for p in algorithm.passes
+    }
+    max_points: dict[str, float] = {
+        p.resolved_label: sum([log_odds.get(e.feature, 0.0) for e in p.evaluators])
+        for p in algorithm.passes
+    }
 
-    # Tuning generates results per pass, so we'll generate one result set
-    # per pass of the given algorithm
-    for idx, algorithm_pass in enumerate(algorithm.passes):
-        max_points_in_pass: float = sum(
-            [log_odds[str(e.feature)] or 0.0 for e in algorithm_pass.evaluators]
-        )
-        true_match_scores: list[float] = _score_pairs_in_class(
-            true_match_pairs, log_odds, max_points_in_pass, algorithm_pass, context
-        )
-        non_match_scores: list[float] = _score_pairs_in_class(
-            non_match_pairs, log_odds, max_points_in_pass, algorithm_pass, context
-        )
-        true_match_scores = sorted(true_match_scores)
-        non_match_scores = sorted(non_match_scores)
-        sorted_scores[
-            algorithm_pass.label or f"pass_{idx}"
-        ] = (true_match_scores, non_match_scores)
+    # Both true-match and non-match pairs are iterables and can only be accessed once,
+    # we need to use the pairs to calculate values for all passes in the Algorithm, thus we
+    # need to iterate over the pairs first, then the passes
+    for pair in true_match_pairs:
+        for key, score in _score_records_in_pair(pair, log_odds, max_points, algorithm).items():
+            sorted_scores[key][0].append(score)
+    for pair in non_match_pairs:
+        for key, score in _score_records_in_pair(pair, log_odds, max_points, algorithm).items():
+            sorted_scores[key][1].append(score)
+
+    for key in sorted_scores:
+        sorted_scores[key][0].sort()
+        sorted_scores[key][1].sort()
+
     return sorted_scores
 
 
 def estimate_rms_bounds(
-    sorted_scores: dict[str, typing.Tuple[list[float], list[float]]]
+    sorted_scores: dict[str, typing.Tuple[list[float], list[float]]],
 ) -> dict[str, typing.Tuple[float, float]]:
     """
     Identifies suggested boundaries for the RMS possible match windows
     of each pass of an algorithm, using previously sampled pairs of
-    true and non matches. 
+    true and non matches.
 
     :param sorted_scores: A dictionary mapping the names of the passes of
       a linkage algorithm to a tuple containing class-partitioned lists
@@ -159,13 +160,13 @@ def estimate_rms_bounds(
                 cmt = t
                 break
 
-        # To account for unseen data, buffer each threshold by pushing it 
+        # To account for unseen data, buffer each threshold by pushing it
         # towards its respective distribution's extreme
         if mmt is not None:
             mmt = max([0, mmt - 0.025])
         if cmt is not None:
             cmt = min([1.0, cmt + 0.025])
-        
+
         # Edge Case 1: Distributions are totally disjoint
         # MMT can just be set to the highest non-match score
         if mmt is None:
@@ -174,14 +175,14 @@ def estimate_rms_bounds(
         # Edge Case 2: No true match score larger than largest non-match
         # This is EXTREMELY unnatural and can only happen if either the
         # distributions are inverted (true match scores left of non-match
-        # scores) or the true-match curve is a subset contained entirely 
+        # scores) or the true-match curve is a subset contained entirely
         # within the non-match curve--in either case, the problem is likely
         # the data and not the scoring procedure
         if cmt is None:
             # Best we can do is set the CMT to be beyond the range of the
             # non-match curve
             cmt = min([non_match_scores[-1] + 0.01, 1.0])
-        
+
         suggested_bounds[k] = (mmt, cmt)
     return suggested_bounds
 
@@ -189,7 +190,7 @@ def estimate_rms_bounds(
 def _compare_records_in_pair(
     record_1: PIIRecord,
     record_2: PIIRecord,
-    log_odds: dict[str, float],
+    log_odds: dict[Feature, float],
     max_log_odds_points: float,
     algorithm_pass: ag.AlgorithmPass,
     context: ag.AlgorithmContext,
@@ -208,7 +209,7 @@ def _compare_records_in_pair(
     :param max_log_odds_points: The maximum number of log-odds points that can
       be scored in the pass of the algorithm in which the records are being
       compared.
-    :param algorithm_pass: The schema for the algorithm pass in which the 
+    :param algorithm_pass: The schema for the algorithm pass in which the
       records are being compared.
     :param context: The schema for the algorithm context being used.
     :returns: The number of log-odds points earned by the comparison between
@@ -218,7 +219,7 @@ def _compare_records_in_pair(
     results: list[float] = []
     max_missing_proportion: float = context.advanced.max_missing_allowed_proportion
     for evaluator in algorithm_pass.evaluators:
-        log_odds_for_field: float = log_odds[str(evaluator.feature)] or 0.0
+        log_odds_for_field: float = log_odds.get(evaluator.feature, 0.0)
         # Evaluate the comparison function, track missingness, and append the
         # score component to the list
         fn: typing.Callable = evaluator.func.callable()
@@ -245,47 +246,31 @@ def _compare_records_in_pair(
     return rule_result
 
 
-def _score_pairs_in_class(
-        class_sample: typing.Sequence[typing.Tuple[dict, dict]],
-        log_odds: dict[str, float],
-        max_points: float,
-        algorithm_pass: ag.AlgorithmPass,
-        context: ag.AlgorithmContext,
-    ) -> list[float]:
+def _score_records_in_pair(
+    pair: TuningPair,
+    log_odds: dict[Feature, float],
+    max_points: dict[str, float],
+    algorithm: ag.Algorithm,
+) -> dict[str, float]:
     """
-    Given a sample of class-partitioned data and a single pass of a record
-    linkage algorithm, compute the RMS of each pair in the class sample 
-    when evaluated on just that pass. 
+    Given a TuningPair and an Algorithm, calculate the RMS for each pass.
 
-    :param class_sample: A sequence of tuples of pairs of patient data
-      dictionaries, each belonging to the same class of tuning data (either
-      known true-match or known non-match).
-    :param log_odds: A dictionary mapping Feature string names to their 
+    :param pair: A TuningPair containing two patient records.
+    :param log_odds: A dictionary mapping Feature string names to their
       calculated log-odds values.
-    :param max_points: A dictionary mapping the name of each pass of an 
-      algorithm to the maximum possible number of log-odds points obtainable
-      in that pass.
-    :param algorithm_pass: The schema for one pass of an algorithm to use
-      for comparing the record pairs.
-    :param context: The schema for an algorithm context to use.
-    :returns: A list of RMS values, one for each input pair.
+    :param max_points: A dictionary mapping the names of the algorithm's
+      passes to the maximum number of log-odds points that can be scored in
+      the pass.
+    :param algorithm: A schema defining an algorithm to use for estimating
+      RMS threshold boundaries.
+    :returns: A dictionary mapping the names of the algorithm's passes to
     """
-    class_scores: list[float] = []
-    for pair in class_sample:
-        pii_record_1 = PIIRecord.from_data(pair[0])
-        pii_record_1 = remove_skip_values(pii_record_1, context.skip_values)
-        pii_record_2 = PIIRecord.from_data(pair[1])
-        pii_record_2 = remove_skip_values(pii_record_2, context.skip_values)
-
-        # Find the score for this pair using just the evaluators of the pass
-        # we were given
-        score_in_pass = _compare_records_in_pair(
-            pii_record_1,
-            pii_record_2,
-            log_odds,
-            max_points,
-            algorithm_pass,
-            context
-        )
-        class_scores.append(score_in_pass / max_points)
-    return class_scores
+    result: dict[str, float] = {}
+    ctx: ag.AlgorithmContext = algorithm.algorithm_context
+    rec1: PIIRecord = remove_skip_values(pair.record1, ctx.skip_values)
+    rec2: PIIRecord = remove_skip_values(pair.record2, ctx.skip_values)
+    for _pass in algorithm.passes:
+        key: str = _pass.resolved_label
+        val: float = _compare_records_in_pair(rec1, rec2, log_odds, max_points[key], _pass, ctx)
+        result[key] = val / max_points[key] if max_points[key] else 0.0
+    return result

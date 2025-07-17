@@ -5,6 +5,7 @@ recordlinker.schemas.tuning
 This module contains the schema definitions for the tuning jobs.
 """
 
+import dataclasses
 import datetime
 import typing
 import uuid
@@ -17,6 +18,8 @@ from recordlinker import models
 from recordlinker.utils.datetime import now_utc_no_ms
 
 from .algorithm import LogOdd
+from .pii import Feature
+from .pii import PIIRecord
 
 
 class TuningParams(pydantic.BaseModel):
@@ -90,3 +93,37 @@ class TuningJobResponse(TuningJob):
         """
         url: str = str(request.url_for("get-tuning-job", job_id=job.id))
         return cls(**job.model_dump(), status_url=pydantic.HttpUrl(url))
+
+
+@dataclasses.dataclass
+class TuningPair:
+    """
+    A pair of PIIRecords that are used for training a model.
+    """
+    record1: PIIRecord
+    record2: PIIRecord
+    sample_used: typing.Optional[int] = None  # the number of records sampled from to produce the pair
+
+    @classmethod
+    def from_data(cls, record1: dict, record2: dict, sample_used: int | None = None) -> typing.Self:
+        """
+        Contruct a TuningPair from raw PII data dictionaries.
+        """
+        return cls(
+            record1=PIIRecord.from_data(record1),
+            record2=PIIRecord.from_data(record2),
+            sample_used=sample_used,
+        )
+
+
+@dataclasses.dataclass
+class TuningProbabilities:
+    """
+    A dictionary of class-conditional likelihoods separated by feature. For a given
+    feature F, this holds the probability that a pair of patient records in the same
+    tuning class (i.e. a true-match pair or a non-match pair) will have the same field
+    value in F.
+    """
+    probs: dict[Feature, float]  # the feature specific probabilities
+    count: int  # the number of pairs analyzed
+    sample_used: typing.Optional[int] = None  # the number of records sampled from to produce the probabilities

@@ -35,7 +35,9 @@ from .seed import PersonGroup
 from .tuning import PassRecommendation
 from .tuning import TuningJob
 from .tuning import TuningJobResponse
+from .tuning import TuningPair
 from .tuning import TuningParams
+from .tuning import TuningProbabilities
 from .tuning import TuningResults
 
 __all__ = [
@@ -78,4 +80,6 @@ __all__ = [
     "TuningJob",
     "TuningJobResponse",
     "PassRecommendation",
+    "TuningPair",
+    "TuningProbabilities",
 ]
