@@ -21,7 +21,7 @@ LOGGER = logging.getLogger(__name__)
 
 
 # TODO: test cases
-async def tune(job_id: uuid.UUID, session_factory: typing.Optional[typing.Callable] = None) -> None:
+def tune(job_id: uuid.UUID, session_factory: typing.Optional[typing.Callable] = None) -> None:
     """
     Run log-odds tuning calculations
     """
