@@ -22,7 +22,7 @@ from recordlinker.tuning import prob_calc
 LOGGER = logging.getLogger(__name__)
 
 
-async def tune(job_id: uuid.UUID, session_factory: typing.Optional[typing.Callable] = None) -> None:
+def tune(job_id: uuid.UUID, session_factory: typing.Optional[typing.Callable] = None) -> None:
     """
     Run log-odds tuning calculations
     """

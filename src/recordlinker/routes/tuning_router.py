@@ -31,7 +31,7 @@ async def run_tune_job(job_id: uuid.UUID):
     """
     timeout: int = settings.tuning_job_timeout
     try:
-        await asyncio.wait_for(tune(job_id), timeout=timeout)
+        await asyncio.wait_for(asyncio.to_thread(tune, job_id), timeout=timeout)
     except Exception as exc:
         # Tuning job either failed on its own, or ran out of time.
         # In either case, we're going to log the error, mark the job
