@@ -110,9 +110,7 @@ def calculate_and_sort_tuning_scores(
     # need to iterate over the pairs first, then the passes
     for pair in true_match_pairs:
         for key, score in _score_records_in_pair(pair, log_odds, max_points, algorithm).items():
-            if score > 0.0:
-                # ignore true-matches with no agreement
-                sorted_scores[key][0].append(score)
+            sorted_scores[key][0].append(score)
     for pair in non_match_pairs:
         for key, score in _score_records_in_pair(pair, log_odds, max_points, algorithm).items():
             sorted_scores[key][1].append(score)
@@ -145,7 +143,7 @@ def estimate_rms_bounds(
         # Don't count any vacuous 0s in the true match class towards the boundary
         # of minimum thresholding--we want the MMT to apply to the real bulk of
         # the distribution farther down the axis
-        true_match_scores = sorted_scores[k][0]
+        true_match_scores = [x for x in sorted_scores[k][0] if x > 0.0]
         non_match_scores = sorted_scores[k][1]
 
         # Overlap the lists to find the possible match window:
