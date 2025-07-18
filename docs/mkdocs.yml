@@ -45,4 +45,5 @@ nav:
   - "Explanation":
     - "Algorithm Design": "algo-design.md"
     - "Schema Design": "schema-design.md"
+    - "Tuning": "tuning.md"
   - "API Docs": "api-docs.html"
